@@ -12,20 +12,6 @@
 #' @param AgeVariableIndex The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples.
-# '
-
-# TODO examples.
-
-library("dplyr")
-#  bring in data - this uses the test file
-# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
-
-# split out the males for testing
-# HH3PPartneredMales <- HH3P %>%
-#   filter(SEX=="Male", RELATIONSHIP=="Partnered")
-
-
-# same sex couples
 Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
@@ -106,6 +92,18 @@ Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWei
   }
  return(SameSexCouples)
 }
+# TODO examples.
+
+#library("dplyr")
+#  bring in data - this uses the test file
+# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
+
+# split out the males for testing
+# HH3PPartneredMales <- HH3P %>%
+#   filter(SEX=="Male", RELATIONSHIP=="Partnered")
+
+
+# same sex couples
 
 # TestNoWeights <- Create.SameSexCouples(HH3PPartneredMales, .1)
 
