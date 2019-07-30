@@ -4,6 +4,7 @@
 #' It is mainly used for data frames that contain a subset of observations that require over-sampling.
 #' However, it can also be used to generate a simple random sample.
 #'
+#' @export
 #' @param x A data frame containing observations limited to one sex and includes an age column.
 #' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
 #' @param UpWeight If TRUE, a subset of ages will be over-sampled.
