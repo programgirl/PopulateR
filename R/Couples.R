@@ -2,18 +2,21 @@
 #'
 #' This is a wrapper for randomly sampling observations into same-sex couples.
 #' It is mainly used for data frames that contain a subset of observations that require over-sampling.
-#' However, it can also be used to generate a simple random sample.
+#' However, it can also be used to generate a simple random sample of observations.
+#' An even number of observations is output.
 #'
 #' @export
-#' @param x A data frame containing observations limited to one sex and includes an age column.
+#' @param dataframe A data frame containing observations limited to one sex and includes an age column.
 #' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
 #' @param UpWeight If TRUE, a subset of ages will be over-sampled.
 #' @param UpWeightLowerAge The youngest age for the over-sampling. Required if UpWeight is TRUE.
 #' @param UpWeightUpperAge The oldest age for the over-sampling. Required if UpWeight is TRUE.
 #' @param AgeVariableIndex The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.
+#' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples.
-Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL) {
+Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
+                                  CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
   # UpWeightLowerAge/UpweightUpperAge only used if UpWeight is not NULL
@@ -52,14 +55,14 @@ Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWei
   # get proportion of ages for upweighted observations
 
   PropToUpWeight <- dataframe %>%
-    filter(dataframe[,8] >= UpWeightLowerAge & dataframe[,8] <= UpWeightUpperAge) %>%
+    filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge) %>%
     summarise(Value=n()) %>%
     mutate(PropResult = Value/nrow(dataframe)) %>%
     select(PropResult) %>%
     as.numeric()
 
   UpWeightObs <- dataframe %>%
-    filter(dataframe[,8] >= UpWeightLowerAge & dataframe[,8] <= UpWeightUpperAge)
+    filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge)
 
   # check against actual proportion
   # only adjust proportion if this differs to expected
@@ -76,7 +79,7 @@ Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWei
     UpWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(UpWeightObs)), UpWeightCount, replace=FALSE),]
 
     DownWeightObs <- dataframe %>%
-      filter(dataframe[,8] < UpWeightLowerAge | dataframe[,8] > UpWeightUpperAge)
+      filter(dataframe[,AgeVariableIndex] < UpWeightLowerAge | dataframe[,AgeVariableIndex] > UpWeightUpperAge)
 
     DownWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(DownWeightObs)), (NumberRequired - UpWeightCount), replace=FALSE),]
 
@@ -90,12 +93,30 @@ Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWei
 
   }
 
+  if (is.numeric(CoupleIDValue)) {
+
+    if(is.null(HouseholdNumVariable)) {
+      stop("Variable name for the household numbers must be supplied.")
+    }
+
+    # HouseholdNumVariable <- as.character(HouseholdNumVariable) doesn't work
+    # HouseholdNumVariable <- noquote(HouseholdNumVariable) doesn't work either
+
+    MaxCoupleIDValue <- (nrow(SameSexCouples)/2)-1
+    SameSexCouples <- SameSexCouples %>%
+      arrange(SameSexCouples[,AgeVariableIndex]) %>%
+      mutate(!! HouseholdNumVariable := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+                             each=2))
+  }
+
   }
  return(SameSexCouples)
 }
+
+
 # TODO examples.
 
-#library("dplyr")
+# library("dplyr")
 #  bring in data - this uses the test file
 # HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
 
@@ -128,6 +149,6 @@ Create.SameSexCouples <- function(x, ProbSameSex = NULL, UpWeight = FALSE, UpWei
 # UpWeightUpperAge <- 54
 
 # put the above into an input format
-# TestWeights <- Create.SameSexCouples(HH3PPartneredMales , .1, TRUE, .6, 25, 54, 8)
+# TestWeights <- Create.SameSexCouples(HH3PPartneredMales , .1, TRUE, .6, 25, 54, 8, 50, MyHouseholds)
 
 
