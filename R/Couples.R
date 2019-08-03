@@ -15,6 +15,17 @@
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples.
+#'
+#' @examples
+#' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
+#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=21, max=90),0))))
+#' # create unweighted sample with no household variable
+#' UnweightedExample <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1)
+#' # create unweighted sample with household numbers
+#' UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
+#' # create weighted example where 40% of people in same-sex couples are aged between 24 and 50 years
+#' WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50)
+#'
 Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
                                   CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
 
@@ -31,15 +42,25 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
   }
 
   # create simple random sample without weights
-  if (isFALSE(UpWeight)) {
+  # if (isFALSE(UpWeight)) {
+  ##########################
+    # should be able to drop the Upweight logic test, use whether UpWeightProp contains a value
+  ########################
+  if (is.null(UpWeightProp)) {
     SameSexCouples <- dataframe[sample(1:CountPartneredCouples, NumberRequired, replace=FALSE),]
-    }
+  }
+
+
 
   # create weighted samples
-  if (isTRUE(UpWeight)) {
-    if (is.null(UpWeightProp) == TRUE) {
-      stop("An expected proportion of upweighted ages must be provided.")
-    }
+  # now need to fix this code in accordance with amendment above.
+  # checks now all rely on UpWeightProp not being NULL
+  # if (isTRUE(UpWeight)) {
+  #   if (is.null(UpWeightProp) == TRUE) {
+  #     stop("An expected proportion of upweighted ages must be provided.")
+  #   }
+    if (is.numeric(UpWeightProp)) {
+
     if(is.null(UpWeightLowerAge) == TRUE) {
       stop("A minimum age for the upweights is required.")
     }

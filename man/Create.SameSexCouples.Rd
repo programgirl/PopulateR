@@ -4,12 +4,13 @@
 \alias{Create.SameSexCouples}
 \title{Create a subset of observations containing only same-sex couples}
 \usage{
-Create.SameSexCouples(x, ProbSameSex = NULL, UpWeight = FALSE,
+Create.SameSexCouples(dataframe, ProbSameSex = NULL, UpWeight = FALSE,
   UpWeightProp = NULL, UpWeightLowerAge = NULL,
-  UpWeightUpperAge = NULL, AgeVariableIndex = NULL)
+  UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
+  CoupleIDValue = NULL, HouseholdNumVariable = NULL)
 }
 \arguments{
-\item{x}{A data frame containing observations limited to one sex and includes an age column.}
+\item{dataframe}{A data frame containing observations limited to one sex and includes an age column.}
 
 \item{ProbSameSex}{The probability of any observation being assigned to a same-sex couple.}
 
@@ -20,6 +21,8 @@ Create.SameSexCouples(x, ProbSameSex = NULL, UpWeight = FALSE,
 \item{UpWeightUpperAge}{The oldest age for the over-sampling. Required if UpWeight is TRUE.}
 
 \item{AgeVariableIndex}{The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.}
+
+\item{CoupleIDValue}{The starting number for generating a variable that identifies the observations in a couple. Must be numeric.}
 }
 \value{
 A data frame of an even number of observations for allocation into same-sex couples.
@@ -27,5 +30,17 @@ A data frame of an even number of observations for allocation into same-sex coup
 \description{
 This is a wrapper for randomly sampling observations into same-sex couples.
 It is mainly used for data frames that contain a subset of observations that require over-sampling.
-However, it can also be used to generate a simple random sample.
+However, it can also be used to generate a simple random sample of observations.
+An even number of observations is output.
+}
+\examples{
+PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
+                              PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=21, max=90),0))))
+# create unweighted sample with no household variable
+UnweightedExample <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1)
+# create unweighted sample with household numbers
+UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
+# create weighted example where 40\% of people in same-sex couples are aged between 24 and 50 years
+WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50)
+
 }
