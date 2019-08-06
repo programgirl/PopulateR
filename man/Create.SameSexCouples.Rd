@@ -41,6 +41,6 @@ UnweightedExample <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1)
 # create unweighted sample with household numbers
 UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
 # create weighted example where 40\% of people in same-sex couples are aged between 24 and 50 years
-WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50)
+WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2)
 
 }

@@ -24,10 +24,10 @@
 #' # create unweighted sample with household numbers
 #' UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
 #' # create weighted example where 40% of people in same-sex couples are aged between 24 and 50 years
-#' WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50)
+#' WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2)
 #'
 Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
-                                  CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
+                                  CoupleIDValue = NULL, HouseholdNumVariable = "") {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
   # UpWeightLowerAge/UpweightUpperAge only used if UpWeight is not NULL
@@ -35,6 +35,7 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
   # get total number of partnered men
   CountPartneredCouples <- as.numeric(nrow(dataframe))
   NumberRequired <- as.numeric(plyr::round_any((ProbSameSex*CountPartneredCouples), 2))
+  #InternalHouseholdNumVariable <- get()
 
   # ensure a probability for same sex couples is included
   if(is.null(ProbSameSex)) {
@@ -114,23 +115,37 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
 
   }
 
-  if (is.numeric(CoupleIDValue)) {
-
-    if(is.null(HouseholdNumVariable)) {
-      stop("Variable name for the household numbers must be supplied.")
     }
 
-    # HouseholdNumVariable <- as.character(HouseholdNumVariable) doesn't work
-    # HouseholdNumVariable <- noquote(HouseholdNumVariable) doesn't work either
+  if (is.numeric(CoupleIDValue)) {
+
+    # if(HouseholdNumVariable == "") {
+    #   stop("Variable name for the household numbers must be supplied.")
+    # }
+  #
+  #   # HouseholdNumVariable <- as.character(HouseholdNumVariable) doesn't work
+  #   # HouseholdNumVariable <- noquote(HouseholdNumVariable) doesn't work either
 
     MaxCoupleIDValue <- (nrow(SameSexCouples)/2)-1
     SameSexCouples <- SameSexCouples %>%
       arrange(SameSexCouples[,AgeVariableIndex]) %>%
-      mutate(!! HouseholdNumVariable := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-                             each=2))
+      mutate(HouseholdNumVariable = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+
+
+      # mutate(!!as.name("HouseholdNumVariable") = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+
+
+      # mutate((eval(parse(text = "HouseholdNumVariable"))) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+
+      # mutate(paste(HouseholdNumVariable) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+
+  #     mutate(get(HouseholdNumVariable) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+  #                                            each=2))
+  #     # mutate(!! HouseholdNumVariable := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+                                             each=2))
   }
 
-  }
+
  return(SameSexCouples)
 }
 
