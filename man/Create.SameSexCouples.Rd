@@ -4,7 +4,7 @@
 \alias{Create.SameSexCouples}
 \title{Create a subset of observations containing only same-sex couples}
 \usage{
-Create.SameSexCouples(dataframe, ProbSameSex = NULL, UpWeight = FALSE,
+Create.SameSexCouples(dataframe, ProbSameSex = NULL,
   UpWeightProp = NULL, UpWeightLowerAge = NULL,
   UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
   CoupleIDValue = NULL, HouseholdNumVariable = NULL)
@@ -14,15 +14,15 @@ Create.SameSexCouples(dataframe, ProbSameSex = NULL, UpWeight = FALSE,
 
 \item{ProbSameSex}{The probability of any observation being assigned to a same-sex couple.}
 
-\item{UpWeight}{If TRUE, a subset of ages will be over-sampled.}
-
 \item{UpWeightLowerAge}{The youngest age for the over-sampling. Required if UpWeight is TRUE.}
 
 \item{UpWeightUpperAge}{The oldest age for the over-sampling. Required if UpWeight is TRUE.}
 
-\item{AgeVariableIndex}{The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.}
+\item{AgeVariableIndex}{The column number of the data frame that contains the ages.}
 
 \item{CoupleIDValue}{The starting number for generating a variable that identifies the observations in a couple. Must be numeric.}
+
+\item{HouseholdNumVariable}{The column name for the household variable. This must be supplied in quotes.}
 }
 \value{
 A data frame of an even number of observations for allocation into same-sex couples.
@@ -37,10 +37,18 @@ An even number of observations is output.
 PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=21, max=90),0))))
 # create unweighted sample with no household variable
-UnweightedExample <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1)
+UnweightedExample <- Create.SameSexCouples(PersonDataframe,.1)
 # create unweighted sample with household numbers
-UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
+UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+# must supply the required columns when using household assignment
+# doesn't work
+ExampleHouseholdsWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+ExampleHouseholdsAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
+# No CoupleIDValue means that the household numbering subfunction is not performed
+ExampleHouseholdsAlsoAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
 # create weighted example where 40\% of people in same-sex couples are aged between 24 and 50 years
 WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2)
+# add household numbering
+WeightedWithNumbering <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
 
 }

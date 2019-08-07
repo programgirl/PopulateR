@@ -8,11 +8,11 @@
 #' @export
 #' @param dataframe A data frame containing observations limited to one sex and includes an age column.
 #' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
-#' @param UpWeight If TRUE, a subset of ages will be over-sampled.
 #' @param UpWeightLowerAge The youngest age for the over-sampling. Required if UpWeight is TRUE.
 #' @param UpWeightUpperAge The oldest age for the over-sampling. Required if UpWeight is TRUE.
-#' @param AgeVariableIndex The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.
+#' @param AgeVariableIndex The column number of the data frame that contains the ages.
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
+#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples.
 #'
@@ -20,14 +20,22 @@
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=21, max=90),0))))
 #' # create unweighted sample with no household variable
-#' UnweightedExample <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1)
+#' UnweightedExample <- Create.SameSexCouples(PersonDataframe,.1)
 #' # create unweighted sample with household numbers
-#' UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = MyHouseholdNum)
+#' UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' # must supply the required columns when using household assignment
+#' # doesn't work
+#' ExampleHouseholdsWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' ExampleHouseholdsAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
+#' # No CoupleIDValue means that the household numbering subfunction is not performed
+#' ExampleHouseholdsAlsoAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
 #' # create weighted example where 40% of people in same-sex couples are aged between 24 and 50 years
 #' WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2)
+#' # add household numbering
+#' WeightedWithNumbering <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
 #'
-Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALSE, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
-                                  CoupleIDValue = NULL, HouseholdNumVariable = "") {
+Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
+                                  CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
   # UpWeightLowerAge/UpweightUpperAge only used if UpWeight is not NULL
@@ -42,25 +50,17 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
     stop("The probability of being in a same sex couple must be supplied.")
   }
 
+
   # create simple random sample without weights
-  # if (isFALSE(UpWeight)) {
-  ##########################
-    # should be able to drop the Upweight logic test, use whether UpWeightProp contains a value
-  ########################
-  if (is.null(UpWeightProp)) {
+
+   if (is.null(UpWeightProp)) {
     SameSexCouples <- dataframe[sample(1:CountPartneredCouples, NumberRequired, replace=FALSE),]
+
   }
-
-
 
   # create weighted samples
   # now need to fix this code in accordance with amendment above.
-  # checks now all rely on UpWeightProp not being NULL
-  # if (isTRUE(UpWeight)) {
-  #   if (is.null(UpWeightProp) == TRUE) {
-  #     stop("An expected proportion of upweighted ages must be provided.")
-  #   }
-    if (is.numeric(UpWeightProp)) {
+  if (is.numeric(UpWeightProp)) {
 
     if(is.null(UpWeightLowerAge) == TRUE) {
       stop("A minimum age for the upweights is required.")
@@ -72,7 +72,6 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
       stop("The column index for the age variable is required.")
     }
 
-  # }
 
   # get proportion of ages for upweighted observations
 
@@ -115,42 +114,34 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
 
   }
 
-    }
 
+  }
+
+  # create households if a start household number is provided
   if (is.numeric(CoupleIDValue)) {
 
-    # if(HouseholdNumVariable == "") {
-    #   stop("Variable name for the household numbers must be supplied.")
-    # }
-  #
-  #   # HouseholdNumVariable <- as.character(HouseholdNumVariable) doesn't work
-  #   # HouseholdNumVariable <- noquote(HouseholdNumVariable) doesn't work either
+    if(is.null(AgeVariableIndex)) {
+      stop("The column number for the age variable must be supplied.")
+    }
+
+    if(is.null(HouseholdNumVariable)) {
+      stop("A name for the household count variable must be supplied.")
+    }
 
     MaxCoupleIDValue <- (nrow(SameSexCouples)/2)-1
     SameSexCouples <- SameSexCouples %>%
       arrange(SameSexCouples[,AgeVariableIndex]) %>%
-      mutate(HouseholdNumVariable = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-
-
-      # mutate(!!as.name("HouseholdNumVariable") = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-
-
-      # mutate((eval(parse(text = "HouseholdNumVariable"))) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-
-      # mutate(paste(HouseholdNumVariable) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-
-  #     mutate(get(HouseholdNumVariable) = rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-  #                                            each=2))
-  #     # mutate(!! HouseholdNumVariable := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+      mutate({{HouseholdNumVariable}} := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
                                              each=2))
-  }
+
+    }
+
+
 
 
  return(SameSexCouples)
 }
 
-
-# TODO examples.
 
 # library("dplyr")
 #  bring in data - this uses the test file
@@ -159,30 +150,6 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeight = FALS
 # split out the males for testing
 # HH3PPartneredMales <- HH3P %>%
 #   filter(SEX=="Male", RELATIONSHIP=="Partnered")
-
-
-# same sex couples
-
-# TestNoWeights <- Create.SameSexCouples(HH3PPartneredMales, .1)
-
-# values for testing below
-# dataframe <- HH3PPartneredMales
-# ProbSameSex <- .1
-# UpWeight <- NULL
-# TestOpposite <- HH3PPartneredMales[sample(1:CountPartneredCouples, 10, replace=FALSE),]
-# NumberRequired <- plyr::round_any(as.numeric(.1*CountPartneredCouples), 2)
-# SameSexCouples <- HH3PPartneredMales[sample(1:HH3PPartneredMales, NumberRequired, replace=FALSE),]
-
-# testing for UpWeight == TRUE
-
-
-# AgeVariableIndex <- 8
-# #AgeVariable <- dataframe[,AgeVariableIndex]
-# UpWeight <- TRUE
-# ProbSameSex <- .1
-# UpWeightProp <- .6
-# UpWeightLowerAge <- 25
-# UpWeightUpperAge <- 54
 
 # put the above into an input format
 # TestWeights <- Create.SameSexCouples(HH3PPartneredMales , .1, TRUE, .6, 25, 54, 8, 50, MyHouseholds)
