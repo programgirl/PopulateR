@@ -17,7 +17,7 @@
 #' @examples
 #'
 
-Create.OppSexCouples <- function(dataframe) {
+opposite_sex <- function(dataframe) {
 
 
 }

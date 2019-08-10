@@ -6,7 +6,7 @@
 #' An even number of observations is output.
 #'
 #' @export
-#' @param dataframe A data frame containing observations limited to one sex and includes an age column.
+#' @param dataframe A data frame containing observations limited to one sex that includes an age column.
 #' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
 #' @param UpWeightLowerAge The youngest age for the over-sampling. Required if UpWeight is TRUE.
 #' @param UpWeightUpperAge The oldest age for the over-sampling. Required if UpWeight is TRUE.
@@ -18,23 +18,28 @@
 #'
 #' @examples
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
-#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=21, max=90),0))))
+#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=51, max=90),0))))
 #' # create unweighted sample with no household variable
-#' UnweightedExample <- Create.SameSexCouples(PersonDataframe,.1)
+#' UnweightedExample <- same_sex(PersonDataframe,.1)
 #' # create unweighted sample with household numbers
-#' UnweightedExampleHouseholds <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' UnweightedExampleHouseholds <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
 #' # must supply the required columns when using household assignment
 #' # doesn't work
-#' ExampleHouseholdsWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
-#' ExampleHouseholdsAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
+#' ExampleHouseholdsWrong <- same_sex(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' ExampleHouseholdsAlsoWrong <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
 #' # No CoupleIDValue means that the household numbering subfunction is not performed
-#' ExampleHouseholdsAlsoAlsoWrong <- Create.SameSexCouples(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
+#' ExampleHouseholdsAlsoAlsoWrong <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
 #' # create weighted example where 40% of people in same-sex couples are aged between 24 and 50 years
-#' WeightedExample <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2)
+#' WeightedExample <- same_sex(PersonDataframe, .1, .4, 24, 50, 2)
 #' # add household numbering
-#' WeightedWithNumbering <- Create.SameSexCouples(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
+#' WeightedWithNumbering <- same_sex(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
+#' # check weighted subfunction worked
+#' WeightsWorked <- WeightedWithNumbering %>%
+#' filter(PersonAge >=24 & PersonAge <=50) %>%
+#' summarise(CountsCreated=n()) %>%
+#' mutate(PercentCounts = CountsCreated/nrow(WeightedWithNumbering))
 #'
-Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
+same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
                                   CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
@@ -102,7 +107,7 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeightProp = 
     DownWeightObs <- dataframe %>%
       filter(dataframe[,AgeVariableIndex] < UpWeightLowerAge | dataframe[,AgeVariableIndex] > UpWeightUpperAge)
 
-    DownWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(DownWeightObs)), (NumberRequired - UpWeightCount), replace=FALSE),]
+    DownWeightObsSample <- DownWeightObs[sample(1:as.numeric(nrow(DownWeightObs)), (NumberRequired - UpWeightCount), replace=FALSE),]
 
     SameSexCouples <- rbind(UpWeightObsSample, DownWeightObsSample)
 
@@ -152,6 +157,38 @@ Create.SameSexCouples <- function(dataframe, ProbSameSex = NULL, UpWeightProp = 
 #   filter(SEX=="Male", RELATIONSHIP=="Partnered")
 
 # put the above into an input format
-# TestWeights <- Create.SameSexCouples(HH3PPartneredMales , .1, TRUE, .6, 25, 54, 8, 50, MyHouseholds)
+# TestWeights <- same_sex(HH3PPartneredMales , .1, TRUE, .6, 25, 54, 8, 50, MyHouseholds)
 
 
+# # weighted bit not working, testing here
+# dataframe=PersonDataframe
+# AgeVariableIndex=2
+# UpWeightProp = .4
+# UpWeightLowerAge=24
+# UpWeightUpperAge=50
+# CountPartneredCouples <- as.numeric(nrow(dataframe))
+# NumberRequired <- as.numeric(plyr::round_any((ProbSameSex*CountPartneredCouples), 2))
+#
+# PropToUpWeight <- dataframe %>%
+#   filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge) %>%
+#   summarise(Value=n()) %>%
+#   mutate(PropResult = Value/nrow(dataframe)) %>%
+#   select(PropResult) %>%
+#   as.numeric()
+#
+# UpWeightObs <- dataframe %>%
+#   filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge)
+#
+# if (PropToUpWeight != UpWeightProp) {
+#   UpWeightCount <- plyr::round_any(as.numeric((ProbSameSex*(UpWeightProp/PropToUpWeight)*nrow(UpWeightObs))), 2)
+#
+#   UpWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(UpWeightObs)), UpWeightCount, replace=FALSE),]
+#
+#   DownWeightObs <- dataframe %>%
+#     filter(dataframe[,AgeVariableIndex] < UpWeightLowerAge | dataframe[,AgeVariableIndex] > UpWeightUpperAge)
+#
+#   DownWeightObsSample <- DownWeightObs[sample(1:as.numeric(nrow(DownWeightObs)), (NumberRequired - UpWeightCount), replace=FALSE),]
+#
+#   SameSexCouples <- rbind(UpWeightObsSample, DownWeightObsSample)
+#
+# }
