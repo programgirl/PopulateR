@@ -34,10 +34,17 @@
 #' # add household numbering
 #' WeightedWithNumbering <- same_sex(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
 #' # check weighted subfunction worked
-#' WeightsWorked <- WeightedWithNumbering %>%
+#' WeightedWithNumbering %>%
 #' filter(PersonAge >=24 & PersonAge <=50) %>%
 #' summarise(CountsCreated=n()) %>%
 #' mutate(PercentCounts = CountsCreated/nrow(WeightedWithNumbering))
+#' Example of downweights, can be used with upweight range is not contiguous
+#' DownWeightedWithNumbering <- same_sex(PersonDataframe, .1, .2, 24, 50, 2, 101, "TheHouseholds")
+#' DownWeightedWithNumbering %>%
+#' filter(PersonAge >=24 & PersonAge <=50) %>%
+#' summarise(CountsCreated=n()) %>%
+#' mutate(PercentCounts = CountsCreated/nrow(DownWeightedWithNumbering))
+#'
 #'
 same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
                                   CoupleIDValue = NULL, HouseholdNumVariable = NULL) {

@@ -1,15 +1,22 @@
 #' Create a subset of observations containing only opposite-sex couples
 #'
-#' This is a wrapper for randomly sampling observations into opposite-sex couples.
-#' An even number of observations is output, with an appropriate age-difference distribution between the female and male ages in the couples.
+#' This function creates a data frame of couples, based on a population distribution of age differences. The distribution used is the skew normal.
+#' Two data frames are required. The recipient data frame contains the age data, of one sex, to which the distribution will be applied. The
+#' donor data frame contains the age data, of the other sex, from which the age counts to match are constructed. If the two data frames are different
+#' lengths, the recipient data frame must be the shortest of the two. In this situation, a random subsample of the donor data frame will be used.
+#' Both data frames must be restricted to only those ages that will have a couples match performed. No age reasonableness check is made.
+#' An even number of observations is output, using the defined age-difference distribution between the female and male ages for the couples.
+#'
+#' If desired, this can be used to construct same-sex couples. However,
 #'
 #' @export
-#' @param dataframe A data frame containing observations limited to one sex. An age column is required.
-#' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
-#' @param UpWeight If TRUE, a subset of ages will be over-sampled.
-#' @param UpWeightLowerAge The youngest age for the over-sampling. Required if UpWeight is TRUE.
-#' @param UpWeightUpperAge The oldest age for the over-sampling. Required if UpWeight is TRUE.
-#' @param AgeVariableIndex The column number of the data frame that contains the ages. Only used if over-sampling is specified. Required if UpWeight is TRUE.
+#' @param Recipient A data frame containing observations limited to one sex. An age column is required. Only include the ages that are eligible for partner allocation.
+#' @param RecipientAgeVariable The column name for the age variable in the Recipient data frame.
+#' @param Donor A data frame containing observations limited to one sex. An age column is required. Only include the ages that will be allocated to partners.
+#' @param DonorAgeVariable The column name for the age variable in the Donor data frame.
+#' @param xiUsed The xi value for the skew normal distribution.
+#' @param OmegaUsed The omega value for the skew normal distribution.
+#' @param AlphaUsed The alpha value for the skew normal distribution.
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples.
@@ -17,8 +24,15 @@
 #' @examples
 #'
 
-opposite_sex <- function(dataframe) {
+opposite_sex <- function(Recipient, RecipientAgeVariable, Donor, DonorAgeVariable, xiUsed=NULL, OmegaUsed=NULL, AlphaUsed=NULL) {
 
+
+  # get counts for each single age from the donor data frame
+  DonorCounts <- Donor %>%
+    group_by({{DonorAgeVariable}}) %>%
+    summarise(AgeCount=n())
+
+return(DonorCounts)
 
 }
 
@@ -31,6 +45,16 @@ opposite_sex <- function(dataframe) {
 # library("stringr")
 #
 #
+
+#  bring in data - this uses the test file
+# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
+# split out the coupled data for testing
+# OppSexPartneredMales <- HH3P %>%
+#   filter(SEX=="Male", RELATIONSHIP=="Partnered")
+# OppSexPartneredFemales <- HH3P %>%
+#   filter(SEX=="Female", RELATIONSHIP=="Partnered")
+
+TestData <- opposite_sex(OppSexPartneredMales, AssignedAge, OppSexPartneredFemales, AssignedAge)
 
 # code below is the basis for the function. Needs modification into a function.
 
