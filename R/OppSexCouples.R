@@ -24,6 +24,8 @@
 #' @param AlphaUsed The alpha value for the skew normal distribution.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
+#' if the algorithm does not converge.
 #'
 #'
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
@@ -34,7 +36,7 @@
 #'
 
 opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
-                         AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL) {
+                         AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
 
   # content check
   if (!any(duplicated(Recipient[RecipientIDVariable])) == FALSE) {
@@ -49,13 +51,53 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
     stop("The column number for the ID variable in the donor data frame must be supplied.")
   }
 
-  # pairing swap used later in the function
+  #####################################
+  #####################################
+  # sub functions are here
+  #####################################
+  #####################################
+  # pairing swap subfunction
+
   swap_donor <- function(pair1, pair2) {
     swap <- pair1
     swap$DonorID <- pair2$DonorID
     swap$DonorAge <- pair2$DonorAge
     return(swap)
   }
+
+  # #####################################
+  # # chi-squared check subfunction
+  #
+  # compare_logK <- function(prop, curr) {
+  #   # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
+  #   # but we can't work out exp(prop) or exp(curr) during the process..
+  #
+  #   # to do this, we first eliminate those that don't matter
+  #   w = prop != curr
+  #   if (sum(w) == 0) {
+  #     return(0) # no change
+  #   }
+  #   prop = prop[w]
+  #   curr = curr[w]
+  #
+  #   #     # next we find which is the dominant exponent, as changes these are all that will matter
+  #   #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
+  #   #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
+  #   base <- max(prop, curr)
+  #   prop = prop - base
+  #   curr = curr - base
+  #   sum(exp(prop)) - sum(exp(curr))
+  # }
+
+  #####################################
+  #####################################
+  # sub functions end
+  #####################################
+  #####################################
+
+  # construct symbol from Recipient ID variable to be used later in the code (when actually pair swapping)
+  DonorIDColName <- sym(names(Recipient[RecipientIDVariable]))
+
 
   # get counts for each single age from the donor data frame
   DonorCounts <- Donor %>%
@@ -73,24 +115,21 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   MaxAgeDifference <-  (max(Recipient[RecipientAgeVariable]) -
                            min(Donor[DonorAgeVariable]))-5
 
-  # create max number of iterations in case iterations don't converge with a result
-  NumIterations <- 1000000
-
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
-  min_bin <- round(qsn(0.000001,xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed))-0.5
-  max_bin <- round(qsn(0.999999,xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed))+0.5
+  min_bin <- round(sn::qsn(0.000001,xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed))-0.5
+  max_bin <- round(sn::qsn(0.999999,xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed))+0.5
   bins <- c(-Inf, min_bin:max_bin, Inf)
 
   # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- psn(bins[-1], xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed) -
-    psn(bins[-length(bins)], xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed)
+  Probabilities <- sn::psn(bins[-1], xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed) -
+    sn::psn(bins[-length(bins)], xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed)
 
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- dsn(-MaxAgeDifference:(min_bin-0.5), xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed, log=TRUE)
-  logProbHigh <- dsn((max_bin+0.5):MaxAgeDifference, xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed, log=TRUE)
+  logProbLow <- sn::dsn(-MaxAgeDifference:(min_bin-0.5), xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed, log=TRUE)
+  logProbHigh <- sn::dsn((max_bin+0.5):MaxAgeDifference, xi=xiUsed, omega=OmegaUsed, alpha=AlphaUsed, log=TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
@@ -137,7 +176,7 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
 # iteration for getting couple ages starts here
 
-#  for (i in 1:NumIterations) {
+ for (i in 1:NumIterations) {
 
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -151,68 +190,67 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
   # compute change in Chi-squared value from current pairing to proposed pairing
   PropAgeMatch <- CurrentAgeMatch %>%
-    filter_at(!(1 %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+    filter(!({{DonorIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
     bind_rows(., PropPair1,PropPair2)
 
-  #   # do chi-squared
-  #
-  #   ProplogO <- hist(PropOppPairs2PHH$MaleAge - PropOppPairs2PHH$FemaleAge, breaks = logBins, plot=FALSE)$counts
-  #   ProplogK = ifelse(ProplogO == 0, 2*logE, log((ProplogO - exp(logE))^2)) - logE
-  #
-  #   compare_logK <- function(prop, curr) {
-  #     # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
-  #     # but we can't work out exp(prop) or exp(curr) during the process..
-  #
-  #     # to do this, we first eliminate those that don't matter
-  #     w = prop != curr
-  #     if (sum(w) == 0) {
-  #       return(0) # no change
-  #     }
-  #     prop = prop[w]
-  #     curr = curr[w]
-  #
-  #     # next we find which is the dominant exponent, as changes these are all that will matter
-  #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
-  #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
-  #     base <- max(prop, curr)
-  #     prop = prop - base
-  #     curr = curr - base
-  #     sum(exp(prop)) - sum(exp(curr))
-  #   }
-  #
-  #   prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-  #
-  #   if (compare_logK(ProplogK, logK) < 0) { # we cancel out the bits that haven't changed first.
-  #
-  #     OppPairs2PHH[wch1,] <- prop1
-  #     OppPairs2PHH[wch2,] <- prop2
-  #
-  #
-  #     logO <- ProplogO
-  #     logK <- ProplogK
-  #     log_chisq <- prop_log_chisq
-  #
-  #
-  #   } else {
-  #
-  #   }
-  #   WrongAllocations[i] <- log_chisq
-  #
-  #   if (log_chisq <= Critical_log_chisq) {
-  #     break
-  #
-  #   }
-#  }
+    # do chi-squared
+    Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+
+
+    #####################################
+    # chi-squared check subfunction
+
+    compare_logK <- function(prop, curr) {
+      # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
+      # but we can't work out exp(prop) or exp(curr) during the process..
+
+      # to do this, we first eliminate those that don't matter
+      w = prop != curr
+      if (sum(w) == 0) {
+        return(0) # no change
+      }
+      prop = prop[w]
+      curr = curr[w]
+
+      #     # next we find which is the dominant exponent, as changes these are all that will matter
+      #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
+      #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
+      base <- max(prop, curr)
+      prop = prop - base
+      curr = curr - base
+      sum(exp(prop)) - sum(exp(curr))
+    }
 
 
 
-return(PropAgeMatch)
+    prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+
+    if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+
+      CurrentAgeMatch[Pick1,] <- PropPair1
+      CurrentAgeMatch[Pick2,] <- PropPair2
+
+
+      log0ObservedAges <- Proplog0
+      logKObservedAges <- ProplogK
+      log_chisq <- prop_log_chisq
+
+    }
+
+    if (log_chisq <= Critical_log_chisq) {
+      break
+
+    }
+
+ }
+
+  return(CurrentAgeMatch)
 
 }
 
 
 # library("dplyr")
-# library("sn")
 
 TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01)
 
