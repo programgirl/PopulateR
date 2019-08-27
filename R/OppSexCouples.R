@@ -108,8 +108,6 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   # donor age variable
   DonorAgeColName <- sym(names(Donor[DonorAgeVariable]))
 
-
-
   #####################################
   #####################################
   # end column names
@@ -272,7 +270,9 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   MatchedDonorAges <- CurrentAgeMatch %>%
     select(DonorAge) %>%
     group_by(DonorAge) %>%
-    mutate(DonorAgeCount = row_number())
+    mutate(DonorAgeCount = row_number()) %>%
+    ungroup()
+
 
   # generate same AgeCount second ID variable for the donor data
   # the AgeCount is used to ensure that the first donor with a specific age is matched first
@@ -280,11 +280,14 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   # and so forth
   DonorsToMatch <- Donor %>%
     group_by({{DonorAgeColName}}) %>%
-    mutate(AgeCount = row_number())
+    mutate(DonorAgeCount = row_number()) %>%
+    ungroup()
 
-  # # reduce partnered women to ones with an actual match
-  # HH2PActuallyMatchedWomen <- left_join(HH2PMatchedWomenAges, HH2PAllWomenToMatch)
-  #
+  # reduce pool of potentially partnered donors to only those matched to recipients
+  DonorsMatched <- left_join(MatchedDonorAges, DonorsToMatch, by.x = c("DonorAge", "DonorAgeCount"), by.y = c({{DonorAgeColName}}, "DonorAgeCount")
+                             # by = c("DonorAge" = "{{DonorAgeColName}}", "DonorAgeCount")
+                             )
+
   # # construct same file for the partnered men
   # # bring in all data at this point
   # HH2PDiffSexMenMatchPrep <- OppPairs2PHH %>%
@@ -329,7 +332,7 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   #####################################
 
 
-  return(DonorsToMatch)
+  return(DonorsMatched)
 
 }
 
@@ -338,6 +341,10 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
 TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 
+# used different return specifications to get the two data frames below output
+# MatchedDonorAges <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+
+# DonorsToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 
 
 
