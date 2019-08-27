@@ -67,27 +67,28 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
   # #####################################
   # # chi-squared check subfunction
-  #
-  # compare_logK <- function(prop, curr) {
-  #   # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
-  #   # but we can't work out exp(prop) or exp(curr) during the process..
-  #
-  #   # to do this, we first eliminate those that don't matter
-  #   w = prop != curr
-  #   if (sum(w) == 0) {
-  #     return(0) # no change
-  #   }
-  #   prop = prop[w]
-  #   curr = curr[w]
-  #
-  #   #     # next we find which is the dominant exponent, as changes these are all that will matter
-  #   #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
-  #   #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
-  #   base <- max(prop, curr)
-  #   prop = prop - base
-  #   curr = curr - base
-  #   sum(exp(prop)) - sum(exp(curr))
-  # }
+  #####################################
+
+  compare_logK <- function(prop, curr) {
+    # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
+    # but we can't work out exp(prop) or exp(curr) during the process..
+
+    # to do this, we first eliminate those that don't matter
+    w = prop != curr
+    if (sum(w) == 0) {
+      return(0) # no change
+    }
+    prop = prop[w]
+    curr = curr[w]
+
+    #     # next we find which is the dominant exponent, as changes these are all that will matter
+    #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
+    #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
+    base <- max(prop, curr)
+    prop = prop - base
+    curr = curr - base
+    sum(exp(prop)) - sum(exp(curr))
+  }
 
   #####################################
   #####################################
@@ -95,9 +96,32 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   #####################################
   #####################################
 
-  # construct symbol from Recipient ID variable to be used later in the code (when actually pair swapping)
-  DonorIDColName <- sym(names(Recipient[RecipientIDVariable]))
+  #####################################
+  #####################################
+  # get column names as symbols to use inside data frame subfunctions
+  #####################################
+  #####################################
 
+  # Recipient ID variable
+  RecipientIDColName <- sym(names(Recipient[RecipientIDVariable]))
+
+  # donor age variable
+  DonorAgeColName <- sym(names(Donor[DonorAgeVariable]))
+
+
+
+  #####################################
+  #####################################
+  # end column names
+  #####################################
+  #####################################
+
+
+  #####################################
+  #####################################
+  # set up pre-data information for matching
+  #####################################
+  #####################################
 
   # get counts for each single age from the donor data frame
   DonorCounts <- Donor %>%
@@ -135,9 +159,19 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
 
 
+  #####################################
+  #####################################
+  # end set up
+  #####################################
+  #####################################
 
+
+  #####################################
+  #####################################
   # create initial age matches
-  # this is a random sample so age differences will not follow desired distribution
+  #####################################
+  #####################################
+    # this is a random sample so age differences will not follow desired distribution
   # however, if the donor data frame is larger than the recipient data frame
   # this ensures that a random selection of donors has the correct count
    if (!is.null(UserSeed)) {
@@ -173,8 +207,11 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
   }
 
-
-# iteration for getting couple ages starts here
+  #####################################
+  #####################################
+  # iteration for matching couple ages starts here
+  #####################################
+  #####################################
 
  for (i in 1:NumIterations) {
 
@@ -190,39 +227,12 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
   # compute change in Chi-squared value from current pairing to proposed pairing
   PropAgeMatch <- CurrentAgeMatch %>%
-    filter(!({{DonorIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+    filter(!({{RecipientIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
     bind_rows(., PropPair1,PropPair2)
 
     # do chi-squared
     Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
     ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-
-
-    #####################################
-    # chi-squared check subfunction
-
-    compare_logK <- function(prop, curr) {
-      # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
-      # but we can't work out exp(prop) or exp(curr) during the process..
-
-      # to do this, we first eliminate those that don't matter
-      w = prop != curr
-      if (sum(w) == 0) {
-        return(0) # no change
-      }
-      prop = prop[w]
-      curr = curr[w]
-
-      #     # next we find which is the dominant exponent, as changes these are all that will matter
-      #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
-      #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
-      base <- max(prop, curr)
-      prop = prop - base
-      curr = curr - base
-      sum(exp(prop)) - sum(exp(curr))
-    }
-
-
 
     prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
@@ -245,14 +255,88 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
  }
 
-  return(CurrentAgeMatch)
+  #####################################
+  #####################################
+  # iteration for matching couple ages ends here
+  #####################################
+  #####################################
+
+
+  #####################################
+  #####################################
+  # pairing the actual couples starts here
+  #####################################
+  #####################################
+  # return full donor and recipient rows as matched household pairs
+  # extract ages counts for matching the donors
+  MatchedDonorAges <- CurrentAgeMatch %>%
+    select(DonorAge) %>%
+    group_by(DonorAge) %>%
+    mutate(DonorAgeCount = row_number())
+
+  # generate same AgeCount second ID variable for the donor data
+  # the AgeCount is used to ensure that the first donor with a specific age is matched first
+  # the second donor with a specific age is matched second
+  # and so forth
+  DonorsToMatch <- Donor %>%
+    group_by({{DonorAgeColName}}) %>%
+    mutate(AgeCount = row_number())
+
+  # # reduce partnered women to ones with an actual match
+  # HH2PActuallyMatchedWomen <- left_join(HH2PMatchedWomenAges, HH2PAllWomenToMatch)
+  #
+  # # construct same file for the partnered men
+  # # bring in all data at this point
+  # HH2PDiffSexMenMatchPrep <- OppPairs2PHH %>%
+  #   group_by(FemaleAge) %>%
+  #   mutate(AgeCount = row_number()) %>%
+  #   left_join(Partnered2PHHDiffSexMales, by=c("MaleID" = "ID"))
+  #
+  # # now merge the partnered women to the partnered men
+  # # by FemaleAge and AgeCount
+  # # women outnumber the men so left_join on the partnered men
+  # # also add the household numbers at this point
+  # OppSex2PHHStartNumber <- max(Partnered2PHHSameSexWomen$Household)+1
+  # OppSex2PHHMaxNumber <- nrow(HH2PDiffSexMenMatchPrep)-1
+  #
+  # HH2PPartneredOppSex <- left_join(HH2PDiffSexMenMatchPrep,HH2PActuallyMatchedWomen,
+  #                                  by=c("FemaleAge", "AgeCount")) %>%
+  #   ungroup() %>%
+  #   mutate(Household = rep(OppSex2PHHStartNumber:(OppSex2PHHStartNumber+OppSex2PHHMaxNumber), each=1))
+  #
+  # # convert from wide to long
+  # # need to rename columns because the join earlier added in suffixes
+  # HH2POppSexMenTemp <- HH2PPartneredOppSex %>%
+  #   select(1, 5:12, 22) %>%
+  #   rename(ID = MaleID) %>%
+  #   rename_all(list(~gsub("\\.x$", "", .))) %>%
+  #   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
+  #          Household)
+  #
+  # HH2POppSexWomenTemp <- HH2PPartneredOppSex %>%
+  #   select(13:22) %>%
+  #   rename_all(list(~gsub("\\.y$", "", .))) %>%
+  #   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
+  #          Household)
+  #
+  # HH2PAllPartnered <- rbind(Partnered2PHHSameSexMen, Partnered2PHHSameSexWomen, HH2POppSexMenTemp,
+  #                           HH2POppSexWomenTemp)
+
+  #####################################
+  #####################################
+  # pairing the actual couples ends here
+  #####################################
+  #####################################
+
+
+  return(DonorsToMatch)
 
 }
 
 
 # library("dplyr")
 
-TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01)
+TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 
 
 
@@ -267,9 +351,10 @@ TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5
 
 #  bring in data - this uses the test file
 # HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
-# split out the coupled data for testing
+# split out the coupled data for testing,
 # OppSexPartneredMales <- HH3P %>%
 #   filter(SEX=="Male", RELATIONSHIP=="Partnered")
+
 # OppSexPartneredFemales <- HH3P %>%
 #   filter(SEX=="Female", RELATIONSHIP=="Partnered")
 
@@ -277,193 +362,7 @@ TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5
 
 # code below is the basis for the function. Needs modification into a function.
 
-# ################################################################################################
-# ################################################################################################
-# # opposite sex couples
-# ################################################################################################
-# ################################################################################################
-# # match remaining men and women marked as "matched" - there will be some non-matches as more women are recorded as partnered
-# # use a skewed normal distribution
-# # a normal distribution won't retain high enough peaks at standard age differences between partners
-# # will use the sn package to generate a skewed normal distribution - this retains the high peaks at the mean values
-# # the mean is set to 2 years difference, with men generally being older than women
-# # the method is:
-# # 1. get the counts of women by single age
-# # 2. construct two lists of these so that one is the age and the other is the corresponding count
-# # 3. generate the skewed normal rng for the man, and the matching age is his age plus the rng number (rounded)
-# # 4. as the minimum age is 18, the matching age index is matching age - 17
-# # 5. check if there is still a non-zero count in the age list
-# # 6a. if so, keep the age as the matched age and decrease the count by 1 in the count list
-# # 6b. if the matching age has a count of 0 in the table, set the matched age to NA
-# # 7. the non-matched ages will be the May-December matches - check this (make sure there aren't too many non-matches)
-#
-# # remove same-sex households from the 2-person household partnered data
-# # this is for women
-# # get counts for each single age for the women
-# Partnered2PHHDiffSexFemCounts <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Female", AssignedAge>=17, !(ID %in% Partnered2PHHSameSexWomen$ID)) %>%
-#   group_by(AssignedAge) %>%
-#   summarise(AgeCount=n())
-#
-# Partnered2PHHCounts <- Partnered2PHHDiffSexFemCounts$AgeCount
-# Partnered2PHHAges <- Partnered2PHHDiffSexFemCounts$AssignedAge
-#
-# # remove same-sex households from the 2-person household partnered data
-# # this is for men
-# Partnered2PHHDiffSexMales <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Male", !(ID %in% Partnered2PHHSameSexMen$ID))
-#
-# # generate the constants
-# # the age difference used must be smaller than the maximum age difference possible so that the bins work
-# xiUsed <- -2
-# omegaUsed <- 6
-# alphaUsed <- 2
-# # this must enable at least some extreme age differences to be assigned to the Inf categories
-# # otherwise the bins will be wrong
-# AgeDifferenceUsed <-  (max(Partnered2PHHDiffSexMales$AssignedAge) -
-#                          min(Partnered2PHHDiffSexFemCounts$AssignedAge))-5
-# NumIterations <- 1000000
-#
-# # estimate expected minimum and maximum ages from the distribution, and bin these
-# set.seed(161018)
-# min_bin <- round(qsn(0.000001,xi=xiUsed, omega=omegaUsed, alpha=alphaUsed))-0.5
-# max_bin <- round(qsn(0.999999,xi=xiUsed, omega=omegaUsed, alpha=alphaUsed))+0.5
-# bins <- c(-Inf, min_bin:max_bin, Inf)
-#
-# # construct the probabilities for each bin, gives n(bins)-1
-# Probabilities <- psn(bins[-1], xi=xiUsed, omega=omegaUsed, alpha=alphaUsed) -
-#   psn(bins[-length(bins)], xi=xiUsed, omega=omegaUsed, alpha=alphaUsed)
-#
-# # assign realistic expected probabilities in the bins outside the bins constructed earlier
-# # use minAge and maxAge for this, only need range for included ages
-# # Just use midpoint rule. This will underestimate a little probably (concave up)
-# logProbLow <- dsn(-AgeDifferenceUsed:(min_bin-0.5), xi=xiUsed, omega=omegaUsed, alpha=alphaUsed, log=TRUE)
-# logProbHigh <- dsn((max_bin+0.5):AgeDifferenceUsed, xi=xiUsed, omega=omegaUsed, alpha=alphaUsed, log=TRUE)
-#
-# logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-# logBins    <- c(-Inf, -(AgeDifferenceUsed-.5):(AgeDifferenceUsed-.5), Inf)
-#
-# # create expected values
-# OppPairs2PHH <- data.frame(MaleID = Partnered2PHHDiffSexMales$ID,
-#                            MaleAge = Partnered2PHHDiffSexMales$AssignedAge,
-#                            FemaleAge=sample(rep(Partnered2PHHAges, Partnered2PHHCounts),
-#                                             size=nrow(Partnered2PHHDiffSexMales),
-#                                             replace = FALSE))
-#
-# Expected <- Probabilities * nrow(OppPairs2PHH)
-# logE <- logProb + log(nrow(OppPairs2PHH))
-#
-# # construct starting set of observed values for iteration
-# Observed <- hist(OppPairs2PHH$MaleAge - OppPairs2PHH$FemaleAge, breaks = bins, plot=FALSE)$counts
-#
-# # do chi-squared
-# logO <- hist(OppPairs2PHH$MaleAge - OppPairs2PHH$FemaleAge, breaks = logBins, plot=FALSE)$counts
-# logK = ifelse(logO == 0, 2*logE, log((logO - exp(logE))^2)) - logE
-#
-# log_chisq = max(logK) + log(sum(exp(logK - max(logK))))
-#
-#
-# # improve the distribution of the difference in ages
-# # maximum number of iterations is set, let user of package choose their own?
-# # let user choose their own p-value to stop?
-#
-# ptm <- proc.time() # for testing
-# WrongAllocations <- numeric(NumIterations)
-# Critical_log_chisq <- log(qchisq(0.99, df=(length(logE-1)), lower.tail = FALSE))
-#
-# for (i in 1:NumIterations) {
-#
-#   # choose two pairs
-#   wch1 <- sample(nrow(OppPairs2PHH), 1)
-#   wch2 <- sample(nrow(OppPairs2PHH), 1)
-#   curr1 <- OppPairs2PHH[wch1,]
-#   curr2 <- OppPairs2PHH[wch2,]
-#
-#   # proposed pairing after a swap
-#   prop1 <- swap_female(curr1, curr2)
-#   prop2 <- swap_female(curr2, curr1)
-#
-#   # compute change in Chi-squared value from current pairing to proposed pairing
-#   PropOppPairs2PHH <- OppPairs2PHH %>%
-#     filter(!(MaleID %in% c(prop1$MaleID, prop2$MaleID))) %>%
-#     bind_rows(., prop1,prop2)
-#
-#   # do chi-squared
-#
-#   ProplogO <- hist(PropOppPairs2PHH$MaleAge - PropOppPairs2PHH$FemaleAge, breaks = logBins, plot=FALSE)$counts
-#   ProplogK = ifelse(ProplogO == 0, 2*logE, log((ProplogO - exp(logE))^2)) - logE
-#
-#   compare_logK <- function(prop, curr) {
-#     # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
-#     # but we can't work out exp(prop) or exp(curr) during the process..
-#
-#     # to do this, we first eliminate those that don't matter
-#     w = prop != curr
-#     if (sum(w) == 0) {
-#       return(0) # no change
-#     }
-#     prop = prop[w]
-#     curr = curr[w]
-#
-#     # next we find which is the dominant exponent, as changes these are all that will matter
-#     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
-#     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
-#     base <- max(prop, curr)
-#     prop = prop - base
-#     curr = curr - base
-#     sum(exp(prop)) - sum(exp(curr))
-#   }
-#
-#   prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-#
-#   if (compare_logK(ProplogK, logK) < 0) { # we cancel out the bits that haven't changed first.
-#
-#     OppPairs2PHH[wch1,] <- prop1
-#     OppPairs2PHH[wch2,] <- prop2
-#
-#
-#     logO <- ProplogO
-#     logK <- ProplogK
-#     log_chisq <- prop_log_chisq
-#
-#
-#   } else {
-#
-#   }
-#   WrongAllocations[i] <- log_chisq
-#
-#   if (log_chisq <= Critical_log_chisq) {
-#     break
-#
-#   }
-#
-# }
-#
-# proc.time() - ptm
-# LookAtIt <- as.data.frame(WrongAllocations) %>%
-#   filter(. >0)
-# # plot(LookAtIt)
-#
-#
-# # plot the histogram of the age differences in the matches
-# AgeDifferencesOutput <- data.frame(OppPairs2PHH$MaleAge-OppPairs2PHH$FemaleAge) %>%
-#   rename_at( 1, ~"AgeDifference" ) %>%
-#   group_by(AgeDifference) %>%
-#   summarise(count=n()) %>%
-#   mutate(perc=count/sum(count))
-#
-# ggplot(AgeDifferencesOutput, aes(x=factor(AgeDifference), y=perc)) +
-#   geom_bar(stat="identity") +
-#   scale_y_continuous(labels=function(x)paste0(x*100,"%"), limits=c(0,0.1), breaks = seq(0,.1,.02)) +
-#   labs(#title="Age difference of matched opposite-sex partners in two-person households",
-#     x ="Age difference (years, male age is base)", y = "Percentage of matches") +
-#   geom_hline(yintercept=seq(0, .1, .02), col="white", lwd=1) +
-#   theme_tufte()
-# ggsave("~/Sync/PhD/Thesis dissertation/HH2POppSexMtchdCpls.pdf")
-#
-#
-#
-#
+
 # ################################################################################################
 # # construct file of matched men and women
 # # column bind women that match the FemaleAge
