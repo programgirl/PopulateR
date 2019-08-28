@@ -284,21 +284,23 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
     ungroup()
 
   # reduce pool of potentially partnered donors to only those matched to recipients
-  DonorsMatched <- left_join(MatchedDonorAges, DonorsToMatch, by.x = c("DonorAge", "DonorAgeCount"), by.y = c({{DonorAgeColName}}, "DonorAgeCount")
+  DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")
+    #left_join(MatchedDonorAges, DonorsToMatch, by.x = c("DonorAge", "DonorAgeCount"), by.y = c({{DonorAgeColName}}, "DonorAgeCount")
                              # by = c("DonorAge" = "{{DonorAgeColName}}", "DonorAgeCount")
                              )
 
-  # # construct same file for the partnered men
-  # # bring in all data at this point
-  # HH2PDiffSexMenMatchPrep <- OppPairs2PHH %>%
-  #   group_by(FemaleAge) %>%
-  #   mutate(AgeCount = row_number()) %>%
-  #   left_join(Partnered2PHHDiffSexMales, by=c("MaleID" = "ID"))
+  # construct same file for the recipients
+  # need both donor age and donor age count so that the join between the recipients and the donors works
+  RecipientsMatchPrep <- CurrentAgeMatch %>%
+    group_by(DonorAge) %>%
+    mutate(AgeCount = row_number()) %>%
+    left_join(rename_at(Recipient, RecipientIDVariable, ~ names(CurrentAgeMatch)[1]), by = c(names(CurrentAgeMatch)[1])) %>% #assigned age is cropping up as .x and .y as is in both data frames
+    ungroup()
   #
-  # # now merge the partnered women to the partnered men
-  # # by FemaleAge and AgeCount
-  # # women outnumber the men so left_join on the partnered men
-  # # also add the household numbers at this point
+  # now merge the full data of the subset donors to the recipients
+  # by donor age and donor age count
+  # women outnumber the men so left_join on the partnered men
+  # also add the household numbers at this point
   # OppSex2PHHStartNumber <- max(Partnered2PHHSameSexWomen$Household)+1
   # OppSex2PHHMaxNumber <- nrow(HH2PDiffSexMenMatchPrep)-1
   #
@@ -332,7 +334,7 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   #####################################
 
 
-  return(DonorsMatched)
+  return(RecipientsMatchPrep)
 
 }
 
@@ -375,16 +377,7 @@ TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5
 # # column bind women that match the FemaleAge
 # # use SQL joins so that a one-to-one match is made in each case.
 #
-# # create the partnered 2PHH female subset
-# Partnered2PHHDiffSexFemales <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Female", AssignedAge>=17, !(ID %in% Partnered2PHHSameSexWomen$ID))
-#
-# # extract ages counts for matching the women
-# HH2PMatchedWomenAges <- OppPairs2PHH %>%
-#   select(FemaleAge) %>%
-#   group_by(FemaleAge) %>%
-#   mutate(AgeCount = row_number())
-#
+
 # # generate same AgeCount second ID variable for the women data
 # # the AgeCount is used to ensure that the first woman with a specific age is matched first
 # # the second woman with a specific age is matched second
