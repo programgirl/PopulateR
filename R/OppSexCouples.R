@@ -105,7 +105,10 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   # Recipient ID variable
   RecipientIDColName <- sym(names(Recipient[RecipientIDVariable]))
 
-  # donor age variable
+  # Recipient age variable
+  RecipientAgeColName <- sym(names(Recipient[RecipientAgeVariable]))
+
+  # Donor age variable
   DonorAgeColName <- sym(names(Donor[DonorAgeVariable]))
 
   #####################################
@@ -284,31 +287,32 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
     ungroup()
 
   # reduce pool of potentially partnered donors to only those matched to recipients
-  DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")
-    #left_join(MatchedDonorAges, DonorsToMatch, by.x = c("DonorAge", "DonorAgeCount"), by.y = c({{DonorAgeColName}}, "DonorAgeCount")
-                             # by = c("DonorAge" = "{{DonorAgeColName}}", "DonorAgeCount")
-                             )
+  DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+                               mutate(!!DonorAgeColName := DonorAge)
+
 
   # construct same file for the recipients
   # need both donor age and donor age count so that the join between the recipients and the donors works
+  # do not need Recipient age as this will be a duplicate column on the merge
   RecipientsMatchPrep <- CurrentAgeMatch %>%
     group_by(DonorAge) %>%
-    mutate(AgeCount = row_number()) %>%
-    left_join(rename_at(Recipient, RecipientIDVariable, ~ names(CurrentAgeMatch)[1]), by = c(names(CurrentAgeMatch)[1])) %>% #assigned age is cropping up as .x and .y as is in both data frames
-    ungroup()
-  #
+    mutate(DonorAgeCount = row_number()) %>%
+    select(-c(2))
+
+  RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names(Recipient[RecipientIDVariable]), names(RecipientsMatchPrep[1])))
+
   # now merge the full data of the subset donors to the recipients
   # by donor age and donor age count
-  # women outnumber the men so left_join on the partnered men
+  # recipient data frame is the one to which observations must be joined
   # also add the household numbers at this point
-  # OppSex2PHHStartNumber <- max(Partnered2PHHSameSexWomen$Household)+1
-  # OppSex2PHHMaxNumber <- nrow(HH2PDiffSexMenMatchPrep)-1
-  #
-  # HH2PPartneredOppSex <- left_join(HH2PDiffSexMenMatchPrep,HH2PActuallyMatchedWomen,
-  #                                  by=c("FemaleAge", "AgeCount")) %>%
-  #   ungroup() %>%
-  #   mutate(Household = rep(OppSex2PHHStartNumber:(OppSex2PHHStartNumber+OppSex2PHHMaxNumber), each=1))
-  #
+  MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch))-1
+
+  FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+    ungroup() #%>%
+  #   # mutate({{HouseholdNumVariable}} := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
+  #   #                                        each=2))
+
+
   # # convert from wide to long
   # # need to rename columns because the join earlier added in suffixes
   # HH2POppSexMenTemp <- HH2PPartneredOppSex %>%
@@ -334,20 +338,28 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   #####################################
 
 
-  return(RecipientsMatchPrep)
+  return(FullMatchedDataFrame)
 
 }
 
 
 # library("dplyr")
 
-TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 
 # used different return specifications to get the two data frames below output
 # MatchedDonorAges <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-
 # DonorsToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# DonorsMatched <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# RecipientsMatchPrep <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# RecipientsReadyToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# FullMatchedDataFrame <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# at this point, check for duplicate Recipient and Donor IDs - should be none
+# print(any(duplicated(FullMatchedDataFrame$ID.x)))
+# print(any(duplicated(FullMatchedDataFrame$ID.y)))
 
+
+# note - check
 
 
 # library("tidyr")
