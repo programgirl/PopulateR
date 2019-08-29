@@ -26,17 +26,16 @@
 #' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
 #' if the algorithm does not converge.
-#'
-#'
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
+#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #'
-#' @return A data frame of an even number of observations for allocation into same-sex couples.
+#' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
 #' @examples
 #'
 
 opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
-                         AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
+                         AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000, CoupleIDValue = NULL, HouseholdNumVariable=NULL) {
 
   # content check
   if (!any(duplicated(Recipient[RecipientIDVariable])) == FALSE) {
@@ -49,6 +48,10 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
   if (!any(duplicated(Donor[DonorIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the donor data frame must be supplied.")
+  }
+
+  if(is.null(HouseholdNumVariable)) {
+    stop("A name for the household count variable must be supplied.")
   }
 
   #####################################
@@ -305,12 +308,29 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   # by donor age and donor age count
   # recipient data frame is the one to which observations must be joined
   # also add the household numbers at this point
-  MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch))-1
+  MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
 
   FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-    ungroup() #%>%
-  #   # mutate({{HouseholdNumVariable}} := rep((CoupleIDValue):(CoupleIDValue+MaxCoupleIDValue),
-  #   #                                        each=2))
+    select(-DonorAge, -DonorAgeCount) %>%
+    ungroup() %>%
+    mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
+
+  # convert from wide to long, use .x and .y to do the split
+
+  FirstDataframeSplit <- FullMatchedDataFrame %>%
+    # select(gsub("\\.x$", "", .), tail(names(.),1))
+    # select(contains(".x$", "", .), tail(names(.), 1))
+    # select(contains(".x"))
+    # select(ends_with(".x"))
+    # select(gsub("\\.x", "", .))
+    # select(grepl(".x"))
+    # select(matches(".x"))
+    # select(grepl(".x", names(.), value = TRUE))
+    # select(grepl(".x", names(.)))
+    # select_if(grepl(".x$", names(.)))
+    # select_if(grep(".x$", names(.)))
+  select_if(grepl(".x", names(.)))
+
 
 
   # # convert from wide to long
@@ -353,7 +373,12 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 # DonorsMatched <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 # RecipientsMatchPrep <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
 # RecipientsReadyToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# FullMatchedDataFrame <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
+# FullMatchedDataFrame <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
+# CoupleIDValue <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
+# MaxCoupleIDValue <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
+FirstDataframeSplit <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
+
+
 # at this point, check for duplicate Recipient and Donor IDs - should be none
 # print(any(duplicated(FullMatchedDataFrame$ID.x)))
 # print(any(duplicated(FullMatchedDataFrame$ID.y)))
@@ -382,45 +407,6 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
 
 
 # code below is the basis for the function. Needs modification into a function.
-
-
-# ################################################################################################
-# # construct file of matched men and women
-# # column bind women that match the FemaleAge
-# # use SQL joins so that a one-to-one match is made in each case.
-#
-
-# # generate same AgeCount second ID variable for the women data
-# # the AgeCount is used to ensure that the first woman with a specific age is matched first
-# # the second woman with a specific age is matched second
-# # and so forth
-# HH2PAllWomenToMatch <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Female", AssignedAge>16, !(ID %in% Partnered2PHHSameSexWomen$ID)) %>%
-#   group_by(AssignedAge) %>%
-#   mutate(AgeCount = row_number(), FemaleAge = AssignedAge)
-#
-# # reduce partnered women to ones with an actual match
-# HH2PActuallyMatchedWomen <- left_join(HH2PMatchedWomenAges, HH2PAllWomenToMatch)
-#
-# # construct same file for the partnered men
-# # bring in all data at this point
-# HH2PDiffSexMenMatchPrep <- OppPairs2PHH %>%
-#   group_by(FemaleAge) %>%
-#   mutate(AgeCount = row_number()) %>%
-#   left_join(Partnered2PHHDiffSexMales, by=c("MaleID" = "ID"))
-#
-# # now merge the partnered women to the partnered men
-# # by FemaleAge and AgeCount
-# # women outnumber the men so left_join on the partnered men
-# # also add the household numbers at this point
-# OppSex2PHHStartNumber <- max(Partnered2PHHSameSexWomen$Household)+1
-# OppSex2PHHMaxNumber <- nrow(HH2PDiffSexMenMatchPrep)-1
-#
-# HH2PPartneredOppSex <- left_join(HH2PDiffSexMenMatchPrep,HH2PActuallyMatchedWomen,
-#                                  by=c("FemaleAge", "AgeCount")) %>%
-#   ungroup() %>%
-#   mutate(Household = rep(OppSex2PHHStartNumber:(OppSex2PHHStartNumber+OppSex2PHHMaxNumber), each=1))
-#
 # # convert from wide to long
 # # need to rename columns because the join earlier added in suffixes
 # HH2POppSexMenTemp <- HH2PPartneredOppSex %>%

@@ -14,7 +14,7 @@
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #'
-#' @return A data frame of an even number of observations for allocation into same-sex couples.
+#' @return A data frame of an even number of observations for allocation into same-sex couples. If CoupleIDValue is specified, household allocation will be performed.
 #'
 #' @examples
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
