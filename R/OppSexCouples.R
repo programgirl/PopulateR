@@ -32,7 +32,15 @@
 #' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
 #' @examples
+#' Recipients <- data.frame(cbind(PersonID = c(1:1000),
+#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=51, max=90),0))))
 #'
+#' Donors <- data.frame(cbind(PersonID = c(2001:4000),
+#'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
+#'
+#' ExampleOutput <- opposite_sex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, xiUsed=-2, OmegaUsed=4,
+#'                               AlphaUsed=5, UserSeed=NULL, pValueToStop=.001, NumIterations=1000, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds")
+
 
 opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
                          AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000, CoupleIDValue = NULL, HouseholdNumVariable=NULL) {
@@ -318,38 +326,15 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   # convert from wide to long, use .x and .y to do the split
 
   FirstDataframeSplit <- FullMatchedDataFrame %>%
-    # select(gsub("\\.x$", "", .), tail(names(.),1))
-    # select(contains(".x$", "", .), tail(names(.), 1))
-    # select(contains(".x"))
-    # select(ends_with(".x"))
-    # select(gsub("\\.x", "", .))
-    # select(grepl(".x"))
-    # select(matches(".x"))
-    # select(grepl(".x", names(.), value = TRUE))
-    # select(grepl(".x", names(.)))
-    # select_if(grepl(".x$", names(.)))
-    # select_if(grep(".x$", names(.)))
-  select_if(grepl(".x", names(.)))
+    select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.x$", "", .)))
+
+  SecondDataframeSplit <- FullMatchedDataFrame %>%
+    select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.y$", "", .)))
 
 
-
-  # # convert from wide to long
-  # # need to rename columns because the join earlier added in suffixes
-  # HH2POppSexMenTemp <- HH2PPartneredOppSex %>%
-  #   select(1, 5:12, 22) %>%
-  #   rename(ID = MaleID) %>%
-  #   rename_all(list(~gsub("\\.x$", "", .))) %>%
-  #   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
-  #          Household)
-  #
-  # HH2POppSexWomenTemp <- HH2PPartneredOppSex %>%
-  #   select(13:22) %>%
-  #   rename_all(list(~gsub("\\.y$", "", .))) %>%
-  #   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
-  #          Household)
-  #
-  # HH2PAllPartnered <- rbind(Partnered2PHHSameSexMen, Partnered2PHHSameSexWomen, HH2POppSexMenTemp,
-  #                           HH2POppSexWomenTemp)
+  OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
 
   #####################################
   #####################################
@@ -358,79 +343,6 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   #####################################
 
 
-  return(FullMatchedDataFrame)
+  return(OutputDataframe)
 
 }
-
-
-# library("dplyr")
-
-# TestResults <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-
-# used different return specifications to get the two data frames below output
-# MatchedDonorAges <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# DonorsToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# DonorsMatched <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# RecipientsMatchPrep <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# RecipientsReadyToMatch <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100)
-# FullMatchedDataFrame <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
-# CoupleIDValue <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
-# MaxCoupleIDValue <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
-FirstDataframeSplit <- opposite_sex(OppSexPartneredMales, 5, 8, OppSexPartneredFemales,5, 8, 4,2,2,4, .01, 100, 11, "MyHouseholdNumber")
-
-
-# at this point, check for duplicate Recipient and Donor IDs - should be none
-# print(any(duplicated(FullMatchedDataFrame$ID.x)))
-# print(any(duplicated(FullMatchedDataFrame$ID.y)))
-
-
-# note - check
-
-
-# library("tidyr")
-# library("ggplot2")
-
-# library("ggthemes")
-# library("stringr")
-#
-#
-
-#  bring in data - this uses the test file
-# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
-# split out the coupled data for testing,
-# OppSexPartneredMales <- HH3P %>%
-#   filter(SEX=="Male", RELATIONSHIP=="Partnered")
-
-# OppSexPartneredFemales <- HH3P %>%
-#   filter(SEX=="Female", RELATIONSHIP=="Partnered")
-
-
-
-# code below is the basis for the function. Needs modification into a function.
-# # convert from wide to long
-# # need to rename columns because the join earlier added in suffixes
-# HH2POppSexMenTemp <- HH2PPartneredOppSex %>%
-#   select(1, 5:12, 22) %>%
-#   rename(ID = MaleID) %>%
-#   rename_all(list(~gsub("\\.x$", "", .))) %>%
-#   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
-#          Household)
-#
-# HH2POppSexWomenTemp <- HH2PPartneredOppSex %>%
-#   select(13:22) %>%
-#   rename_all(list(~gsub("\\.y$", "", .))) %>%
-#   select(SEX, AGEBAND, RELATIONSHIP, INHABITANTS, ID, AGEBANDnum, INHABITANTSnum, AssignedAge, FixedHours,
-#          Household)
-#
-# HH2PAllPartnered <- rbind(Partnered2PHHSameSexMen, Partnered2PHHSameSexWomen, HH2POppSexMenTemp,
-#                           HH2POppSexWomenTemp)
-#
-# # delete extra files
-# rm(AgeDifferencesOutput, curr1, curr2, HH2PActuallyMatchedWomen, HH2PAllWomenToMatch,
-#    HH2PDiffSexMenMatchPrep, HH2PMatchedWomenAges, HH2POppSexMenTemp, HH2POppSexWomenTemp,
-#    HH2PPartneredOppSex, LookAtIt, OppPairs2PHH, Partnered2PHH, Partnered2PHHDiffSexFemales,
-#    Partnered2PHHDiffSexMales, Partnered2PHHDiffSexFemCounts, Partnered2PHHSameSexMen, Partnered2PHHSameSexWomen,
-#    prop1, prop2, PropOppPairs2PHH, AgeDifferenceUsed, alphaUsed, bins, Critical_log_chisq, Expected, i,
-#    log_chisq, logBins, logE, logK, logO, logProb, logProbHigh, logProbLow, max_bin, min_bin, NumIterations,
-#    Observed, omegaUsed, OppSex2PHHMaxNumber, OppSex2PHHStartNumber, Partnered2PHHAges, Partnered2PHHCounts,
-#    Probabilities, prop_log_chisq, ProplogK, ProplogO, ptm, wch1, wch2, WrongAllocations, xiUsed)
