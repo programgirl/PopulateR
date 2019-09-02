@@ -37,5 +37,25 @@ fitdistrplus::descdist(ChildDist0through17$ChildCount, discrete=FALSE, boot=500)
 
 # use this data to generate skew normal distribution
 # after ripping my hair out with various parameterisations, this works. Note that the mean had to shift from 29 to 25 in order to get this to work. Minimum age is 16, max will round to 55
-SN34 <- sn::rsn(10000, xi=25, omega=7, alpha=2)
+SN34 <- sn::rsn(100000, xi=25, omega=6, alpha=2)
 hist(SN34)
+# get min age
+# if min age < actual min age, add difference to actual min age
+
+parent_child <- function() {
+
+
+}
+
+
+library("dplyr")
+
+#  bring in data - this uses the test file
+# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
+# pull out definite dependent children
+# Children <- HH3P %>%
+#   filter(AssignedAge < 16)
+
+# get parents/guardians
+# Parents1 <- HH3P %>%
+
