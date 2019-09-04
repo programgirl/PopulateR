@@ -1,61 +1,71 @@
-# look at child age distribution
-# these are counts generated from the Stats NZ aggregate cells. Only contains contributions from children aged 0-4, 5-9, 10-14, and 15-17
-ChildDist0through17 <- data.frame(MaternalAge=c(16:49), ChildCount=c(82.58333, 82.58333, 99.29762, 99.29762, 82.04762, 193.7143, 193.7143, 234.8571, 234.8571, 152.8095,
-                                                                     307.1429, 307.1429, 352.1429, 352.1429, 199.3333, 309, 309, 329.1429, 329.1429, 129.8095, 165.8095,
-                                                                     165.8095, 169.6667, 169.6667, 39.85714, 45.85714, 45.85714, 45.85714, 45.85714, 6, 6, 6, 6, 6))
+#' Create a subset of observations containing children matched to guardians
+#'
+#' This function creates a data frame of guardian and child matches, based on a population distribution of age differences. The distribution used is the skew normal.
+#' Two data frames are required. The Guardians data frame contains the age data, to which the distribution will be applied. The
+#' Children data frame contains the age data, of the children, from which the age counts to match are constructed. The sum of the number of children to match
+#' in the Guardians data frame must equal the row number in the Children data frame. If the counts are different, no matching will occur.
+#' The number of observations output is the sum of the number of rows in the Guardians data frame and the sum of the rows in the Children data frame.
+#'
+#' @export
+#' @param Guardians A data frame containing observations limited to the guardians to which the children will be matched.
+#' @param GuardianIDVariable The column number for the ID variable in the Parents data frame.
+#' @param GuardianAgeVariable The column number for the age variable in the Parents data frame.
+#' @param GuardianType The column number for the type of the guardian, restricted to "P" or "G". If P, the guardian is assumed to be a parent, and the age distribution
+#' entered will be applied against the ages provided in the GuardianAgeVariable. If "G", the guardian is assumed to be a grandparent, and the age distribution will
+#' be used twice because the child will be a grandchild. The first use estimates the age of the grandparent at the age of the parent's birth. The second use
+#' estimates the age of the parent at the age of the child's birth. A two-step process is required as most of the children will be aged more than 0 years in the
+#' Children data frame.
+#' @param NumberChildren the column number for the number of children to match to the a guardian.
+#' @param TwinRate The expected proportion of twins. This requires between number from 0 and 1. The default value is 0. This proportion is applied to the total count of children,
+#' with singletons included in the estimation.
+#' @param Children A data frame containing observations limited to children who will be matched to the guardians.
+#' @param ChildrenIDVariable The column number for the ID. variable in the Children data frame.
+#' @param ChildrenAgeVariable The column number for the age variable in the Children data frame.
+#' @param xiUsed The xi value for the skew normal distribution.
+#' @param OmegaUsed The omega value for the skew normal distribution.
+#' @param AlphaUsed The alpha value for the skew normal distribution.
+#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
+#' if the algorithm does not converge.
+#' @param PairedIDValue The starting number for generating a variable that identifies the observations in guardian/children match. Must be numeric.
+#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#'
+#' @return A data frame of the matched guardian/child observations.
+#'
+#' @examples
 
-#
-# GetSNDistn <- sn::msn.mple(ChildDist0through17$MaternalAge, ChildDist0through17$ChildCount, penalty = "Qpenalty")
-#
-# GetSNDistn
-#
-# sn::fitted(GetSNDistn)
+guardian_child <- function(Guardians, GuardiansIDVariable=NULL, GuardiansAgeVariable=NULL, GuardianType=NULL, NumberChildren=NULL, TwinRate=0, Children, ChildrenIDVariable=NULL,
+                         ChildrenAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL, AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=NULL, PairedIDValue=NULL,
+                         HouseholdNumVariable=NULL) {
 
-plot(ChildDist0through17)
+  # content check
+  if (!any(duplicated(Guardians[GuardianIDVariable])) == FALSE) {
+    stop("The column number for the ID variable in the Guardian data frame must be supplied.")
+  }
 
-library("ggplot2")
-ggplot(data=ChildDist0through17, aes(MaternalAge, ChildCount)) +
-  geom_histogram(stat="identity", breaks = seq(16, 49, by=1),
-                 fill="grey") +
-  geom_smooth()
+  if(sum(Guardians[NumberChildren]) !=nrow(Children)) {
+    stop("The number of children to match does not equal the number of children supplied.")
+  }
 
-#smoothed values should be:
-SmoothedValues <- predict(loess(ChildCount ~ MaternalAge, ChildDist0through17, ChildDist0through17$MaternalAge))
-plot(SmoothedValues)
+  if (!is.numeric(GuardianAgeVariable)) {
+    stop("Both the Guardian ID and the Guardian age column numbers must be supplied.")
+  }
 
-ChildDist0through17 <- cbind(ChildDist0through17, SmoothedValues)
+  if(!(GuardianType %in% c("G", "P"))) {
+    stop("The Guardian type must be either P or G.")
+  }
 
-library("dplyr")
-ChildDist0through17 <- ChildDist0through17 %>%
-  mutate(PropofBirths = SmoothedValues/sum(SmoothedValues))
+  if (!any(duplicated(Children[ChildrenIDVariable])) == FALSE) {
+    stop("The column number for the ID variable in the Children data frame must be supplied.")
+  }
 
-plot(ChildDist0through17$PropofBirths)
-
-
-# use package fitdistrplus to find best distribution
-fitdistrplus::descdist(ChildDist0through17$ChildCount, discrete=FALSE, boot=500)
-
-# use this data to generate skew normal distribution
-# after ripping my hair out with various parameterisations, this works. Note that the mean had to shift from 29 to 25 in order to get this to work. Minimum age is 16, max will round to 55
-SN34 <- sn::rsn(100000, xi=25, omega=6, alpha=2)
-hist(SN34)
-# get min age
-# if min age < actual min age, add difference to actual min age
-
-parent_child <- function() {
+  if(is.null(HouseholdNumVariable)) {
+    stop("A name for the household count variable must be supplied.")
+  }
 
 
 }
 
-
-library("dplyr")
-
-#  bring in data - this uses the test file
-# HH3P <- readRDS("~/Sync/PhD/PopSim/R/HH3P.Rds")
-# pull out definite dependent children
-# Children <- HH3P %>%
-#   filter(AssignedAge < 16)
-
-# get parents/guardians
-# Parents1 <- HH3P %>%
+TestStops <- guardian_child(SubsetNoPartners, )
 

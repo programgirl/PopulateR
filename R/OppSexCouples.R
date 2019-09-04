@@ -14,7 +14,7 @@
 #'
 #' @export
 #' @param Recipient A data frame containing observations limited to one sex. An age column is required. Only include the ages that are eligible for partner allocation.
-#' @param RecipientIDVariable The column number for the recipient ID.
+#' @param RecipientIDVariable The column number for the ID variable in the Recipient data frame.
 #' @param RecipientAgeVariable The column number for the age variable in the Recipient data frame.
 #' @param Donor A data frame containing observations limited to one sex. An age column is required. Only include the ages that will be allocated to partners.
 #' @param DonorIDVariable The column number for the donor ID. Must be numeric.
@@ -346,29 +346,3 @@ opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariab
   return(OutputDataframe)
 
 }
-
-library("dplyr")
-
-
-#  bring in data - this uses the test file
-
-# Exclude the children
-# ExcludingChildren <- SubsetNoSameSex %>%
-   # filter(AssignedAge > 17)
-#
-# split out the males
-# PartneredMalesOppSex <- ExcludingChildren %>%
-#   filter(SEX=="Male", RELATIONSHIP=="Partnered")
-
-# split out females
-# PartneredFemalesOppSex <- ExcludingChildren %>%
-#   filter(SEX=="Female", RELATIONSHIP=="Partnered")
-
-# OppSexPartners <- opposite_sex(PartneredMalesOppSex, 5, 8, PartneredFemalesOppSex, 5, 8, 2, 6, 2, , pValueToStop=.01, , (nrow(SameSex)/2)+1, "Households")
-
-# Add both dataframes into one same sex coupled data frame
-
-# Subset original data frame so that the same sex couples no longer remain
-# SubsetNoPartners <- SubsetNoSameSex %>%
-# filter(!ID %in% OppSexPartners$ID)
-# saveRDS(SubsetNoPartners, "SubsetNoPartners.rds")
