@@ -21,33 +21,33 @@
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=51, max=90),0))))
 #' # create unweighted sample with no household variable
-#' UnweightedExample <- same_sex(PersonDataframe,.1)
+#' UnweightedExample <- SameSex(PersonDataframe,.1)
 #' # create unweighted sample with household numbers
-#' UnweightedExampleHouseholds <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' UnweightedExampleHouseholds <- SameSex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
 #' # must supply the required columns when using household assignment
 #' # doesn't work
-#' ExampleHouseholdsWrong <- same_sex(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
-#' ExampleHouseholdsAlsoWrong <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
+#' ExampleHouseholdsWrong <- SameSex(PersonDataframe, ProbSameSex=.1, CoupleIDValue=51, HouseholdNumVariable = "TheHouseholds")
+#' ExampleHouseholdsAlsoWrong <- SameSex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, CoupleIDValue=51, HouseholdNumVariable = TheHouseholds)
 #' # No CoupleIDValue means that the household numbering subfunction is not performed
-#' ExampleHouseholdsAlsoAlsoWrong <- same_sex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
+#' ExampleHouseholdsAlsoAlsoWrong <- SameSex(PersonDataframe, ProbSameSex=.1, AgeVariableIndex=2, HouseholdNumVariable = "TheHouseholds")
 #' # create weighted example where 40% of people in same-sex couples are aged between 24 and 50 years
-#' WeightedExample <- same_sex(PersonDataframe, .1, .4, 24, 50, 2)
+#' WeightedExample <- SameSex(PersonDataframe, .1, .4, 24, 50, 2)
 #' # add household numbering
-#' WeightedWithNumbering <- same_sex(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
+#' WeightedWithNumbering <- SameSex(PersonDataframe, .1, .4, 24, 50, 2, 101, "TheHouseholds")
 #' # check weighted subfunction worked
 #' WeightedWithNumbering %>%
 #' filter(PersonAge >=24 & PersonAge <=50) %>%
 #' summarise(CountsCreated=n()) %>%
 #' mutate(PercentCounts = CountsCreated/nrow(WeightedWithNumbering))
 #' Example of downweights, can be used with upweight range is not contiguous
-#' DownWeightedWithNumbering <- same_sex(PersonDataframe, .1, .2, 24, 50, 2, 101, "TheHouseholds")
+#' DownWeightedWithNumbering <- SameSex(PersonDataframe, .1, .2, 24, 50, 2, 101, "TheHouseholds")
 #' DownWeightedWithNumbering %>%
 #' filter(PersonAge >=24 & PersonAge <=50) %>%
 #' summarise(CountsCreated=n()) %>%
 #' mutate(PercentCounts = CountsCreated/nrow(DownWeightedWithNumbering))
 #'
 #'
-same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
+SameSex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
                                   CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
@@ -92,8 +92,9 @@ same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeigh
     filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge) %>%
     summarise(Value=n()) %>%
     mutate(PropResult = Value/nrow(dataframe)) %>%
-    select(PropResult) %>%
-    as.numeric()
+    pull(PropResult)
+
+  
 
   UpWeightObs <- dataframe %>%
     filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge)
@@ -119,6 +120,7 @@ same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeigh
 
     SameSexCouples <- rbind(UpWeightObsSample, DownWeightObsSample)
 
+
   } else {
 
     # the expected and actual proportions are the same so just output a random sample
@@ -126,7 +128,6 @@ same_sex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeigh
     SameSexCouples <- dataframe[sample(1:CountPartneredCouples, NumberRequired, replace=FALSE),]
 
   }
-
 
   }
 

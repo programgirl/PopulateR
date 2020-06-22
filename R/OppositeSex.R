@@ -38,11 +38,11 @@
 #' Donors <- data.frame(cbind(PersonID = c(2001:4000),
 #'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
 #'
-#' ExampleOutput <- opposite_sex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, xiUsed=-2, OmegaUsed=4,
+#' ExampleOutput <- OppositeSex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, xiUsed=-2, OmegaUsed=4,
 #'                               AlphaUsed=5, UserSeed=NULL, pValueToStop=.001, NumIterations=1000, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds")
 
 
-opposite_sex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
+OppositeSex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
                          AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000, CoupleIDValue = NULL, HouseholdNumVariable=NULL) {
 
   # content check

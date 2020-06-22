@@ -2,12 +2,10 @@ Package: PopSim
 Type: Package
 Title: Create data frames suitable for microsimulation of human populations
 Version: 1.0.0
-Authors@R: as.person(c(
-                       "Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre]",
+Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre]",
                        "Jonathan Marshall <J.C.Marshall@massey.ac.nz> [aut,cre]",
                        "Mark Bebbington <M.Bebbington@massey.ac.nz> [ctb]"
                        ))
-
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
 Description: Creates data frames for synthetic data. These are used in microsimulations of population data.
      Typically, the package will be used when detailed population data is unavailable. The package is
@@ -18,5 +16,5 @@ Imports: dplyr, plyr, sn, tidyr
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 BugReports: https://github.com/programgirl/PopSim/issues
