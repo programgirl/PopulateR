@@ -16,7 +16,7 @@
 #' estimates the age of the parent at the age of the child's birth. A two-step process is required as most of the children will be aged more than 0 years in the
 #' Children data frame.
 #' @param NumberChildren the column number for the number of children to match to the a guardian.
-#' @param TwinRate The expected proportion of twins. This requires between number from 0 and 1. The default value is 0. This proportion is applied to the total count of children,
+#' @param TwinRate The expected proportion of twins. This requires between number between 0 and 1. The default value is 0. This proportion is applied to the total count of children,
 #' with singletons included in the estimation.
 #' @param Children A data frame containing observations limited to children who will be matched to the guardians.
 #' @param ChildrenIDVariable The column number for the ID. variable in the Children data frame.
@@ -35,37 +35,37 @@
 #'
 #' @examples
 
-guardian_child <- function(Guardians, GuardiansIDVariable=NULL, GuardiansAgeVariable=NULL, GuardianType=NULL, NumberChildren=NULL, TwinRate=0, Children, ChildrenIDVariable=NULL,
-                         ChildrenAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL, AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=NULL, PairedIDValue=NULL,
-                         HouseholdNumVariable=NULL) {
+# guardian_child <- function(Guardians, GuardiansIDVariable=NULL, GuardiansAgeVariable=NULL, GuardianType=NULL, NumberChildren=NULL, TwinRate=0, Children, ChildrenIDVariable=NULL,
+#                          ChildrenAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL, AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=NULL, PairedIDValue=NULL,
+#                          HouseholdNumVariable=NULL) {
+#
+#   # content check
+#   if (!any(duplicated(Guardians[GuardianIDVariable])) == FALSE) {
+#     stop("The column number for the ID variable in the Guardian data frame must be supplied.")
+#   }
+#
+#   if(sum(Guardians[NumberChildren]) !=nrow(Children)) {
+#     stop("The number of children to match does not equal the number of children supplied.")
+#   }
+#
+#   if (!is.numeric(GuardianAgeVariable)) {
+#     stop("Both the Guardian ID and the Guardian age column numbers must be supplied.")
+#   }
+#
+#   if(!(GuardianType %in% c("G", "P"))) {
+#     stop("The Guardian type must be either P or G.")
+#   }
+#
+#   if (!any(duplicated(Children[ChildrenIDVariable])) == FALSE) {
+#     stop("The column number for the ID variable in the Children data frame must be supplied.")
+#   }
+#
+#   if(is.null(HouseholdNumVariable)) {
+#     stop("A name for the household count variable must be supplied.")
+#   }
+#
+#
+# }
 
-  # content check
-  if (!any(duplicated(Guardians[GuardianIDVariable])) == FALSE) {
-    stop("The column number for the ID variable in the Guardian data frame must be supplied.")
-  }
-
-  if(sum(Guardians[NumberChildren]) !=nrow(Children)) {
-    stop("The number of children to match does not equal the number of children supplied.")
-  }
-
-  if (!is.numeric(GuardianAgeVariable)) {
-    stop("Both the Guardian ID and the Guardian age column numbers must be supplied.")
-  }
-
-  if(!(GuardianType %in% c("G", "P"))) {
-    stop("The Guardian type must be either P or G.")
-  }
-
-  if (!any(duplicated(Children[ChildrenIDVariable])) == FALSE) {
-    stop("The column number for the ID variable in the Children data frame must be supplied.")
-  }
-
-  if(is.null(HouseholdNumVariable)) {
-    stop("A name for the household count variable must be supplied.")
-  }
-
-
-}
-
-TestStops <- guardian_child(SubsetNoPartners, )
+#TestStops <- guardian_child(SubsetNoPartners, )
 
