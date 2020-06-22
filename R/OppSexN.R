@@ -20,13 +20,14 @@
 #' @param DonorIDVariable The column number for the donor ID. Must be numeric.
 #' @param DonorAgeVariable The column number for the age variable in the Donor data frame.
 #' @param meanUsed The mean value for the  normal distribution.
-#' @param SdUsed The standard deviation value for the  normal distribution.
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
-#' if the algorithm does not converge.
+#' @param sdUsed The standard deviation value for the normal distribution.
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
+#' if the algorithm does not converge.
+
 #'
 #' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
@@ -37,51 +38,52 @@
 #' Donors <- data.frame(cbind(PersonID = c(2001:4000),
 #'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
 #'
-#' ExampleOutput <- OppositeSex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, xiUsed=-2, OmegaUsed=4,
-#'                               AlphaUsed=5, UserSeed=NULL, pValueToStop=.001, NumIterations=1000, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds")
+#' ExampleOutput <- OppositeSex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, meanUsed=2, sdUsed=4, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
 
 
-OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, meanUsed=NULL, SdUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000, CoupleIDValue = NULL, HouseholdNumVariable=NULL) {
-  
+OppositeSex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL,
+                        DonorAgeVariable=NULL, meanUsed= NULL, sdUsed = NULL, CoupleIDValue = NULL, HouseholdNumVariable=NULL,
+                        UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
+
   # content check
   if (!any(duplicated(Recipient[RecipientIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the recipient data frame must be supplied.")
   }
-  
+
   if (!is.numeric(RecipientAgeVariable)) {
     stop("Both the Recipient ID and the Recipient age column numbers must be supplied.")
   }
-  
+
   if (!any(duplicated(Donor[DonorIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the donor data frame must be supplied.")
   }
-  
+
   if(is.null(HouseholdNumVariable)) {
     stop("A name for the household count variable must be supplied.")
   }
-  
+
   #####################################
   #####################################
   # sub functions are here
   #####################################
   #####################################
   # pairing swap subfunction
-  
+
   swap_donor <- function(pair1, pair2) {
     swap <- pair1
     swap$DonorID <- pair2$DonorID
     swap$DonorAge <- pair2$DonorAge
     return(swap)
   }
-  
+
   # #####################################
   # # chi-squared check subfunction
   #####################################
-  
+
   compare_logK <- function(prop, curr) {
     # what we want to do is know if sum(exp(prop)) > sum(exp(curr))
     # but we can't work out exp(prop) or exp(curr) during the process..
-    
+
     # to do this, we first eliminate those that don't matter
     w = prop != curr
     if (sum(w) == 0) {
@@ -89,7 +91,7 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
     }
     prop = prop[w]
     curr = curr[w]
-    
+
     #     # next we find which is the dominant exponent, as changes these are all that will matter
     #     # i.e. we write exp(a) + exp(b) = exp(a)[1 + exp(b-a)] where a > b, so that the additional terms are less than 1
     #     # and we can exponentiate them safely. We then ignore the base (it's common) and just use extras
@@ -98,84 +100,84 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
     curr = curr - base
     sum(exp(prop)) - sum(exp(curr))
   }
-  
+
   #####################################
   #####################################
   # sub functions end
   #####################################
   #####################################
-  
+
   #####################################
   #####################################
   # get column names as symbols to use inside data frame subfunctions
   #####################################
   #####################################
-  
+
   # Recipient ID variable
   RecipientIDColName <- sym(names(Recipient[RecipientIDVariable]))
-  
+
   # Recipient age variable
   RecipientAgeColName <- sym(names(Recipient[RecipientAgeVariable]))
-  
+
   # Donor age variable
   DonorAgeColName <- sym(names(Donor[DonorAgeVariable]))
-  
+
   #####################################
   #####################################
   # end column names
   #####################################
   #####################################
-  
-  
+
+
   #####################################
   #####################################
   # set up pre-data information for matching
   #####################################
   #####################################
-  
+
   # get counts for each single age from the donor data frame
   DonorCounts <- Donor %>%
     group_by_at(DonorAgeVariable) %>%
     summarise(AgeCount=n())
-  
+
   # DonorAges <- as.vector(DonorCounts[1])
   DonorAges <- pull(DonorCounts[1])
   DonorAgeCounts <- pull(DonorCounts[2])
-  
+
   # set up bins for iterations
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
-  
+
   MaxAgeDifference <-  (max(Recipient[RecipientAgeVariable]) -
                           min(Donor[DonorAgeVariable]))-5
-  
+
   # estimate expected minimum and maximum ages from the distribution, and bin these
-  
-  min_bin <- round(qnorm(0.000001, mean=meanUsed, sd=SdUsed))-0.5
-  max_bin <- round(qnorm(0.999999, mean=meanUsed, sd=SdUsed))+0.5
+
+  min_bin <- round(qnorm(0.000001, mean = meanUsed, sd = sdUsed))-0.5
+  max_bin <- round(qnorm(0.999999, mean = meanUsed, sd = sdUsed))+0.5
   bins <- c(-Inf, min_bin:max_bin, Inf)
-  
+
   # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- pnorm(bins[-1], mean=meanUsed, sd=SdUsed) -
-    pnorm(bins[-length(bins)], mean=meanUsed, sd=SdUsed)
-  
+  Probabilities <- pnorm(bins[-1], mean = meanUsed, sd = sdUsed) -
+    pnorm(bins[-length(bins)], mean = meanUsed, sd = sdUsed)
+
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean=meanUsed, sd=SdUsed, log=TRUE)
-  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean=meanUsed, sd=SdUsed, log=TRUE)
-  
+  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = meanUsed, sd = sdUsed, log=TRUE)
+  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = meanUsed, sd = sdUsed, log=TRUE)
+
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
-  
-  
+
+
   #####################################
   #####################################
   # end set up
   #####################################
   #####################################
-  
-  
+
+
   #####################################
   #####################################
   # create initial age matches
@@ -187,8 +189,8 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
   }
-  
-  
+
+
   CurrentAgeMatch <- data.frame(Recipient[RecipientIDVariable],
                                 Recipient[RecipientAgeVariable],
                                 DonorAge = sample(rep(DonorAges, DonorAgeCounts),
@@ -222,7 +224,6 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   # iteration for matching couple ages starts here
   #####################################
   #####################################
-  ChiSquareChanges <- data.frame()
 
   for (i in 1:NumIterations) {
 
@@ -259,101 +260,97 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
 
     }
 
-    ChiSquareChanges <- cbind(log_chisq)
-
     if (log_chisq <= Critical_log_chisq) {
       break
 
     }
 
-
-
   }
 
-  # #####################################
-  # #####################################
-  # # iteration for matching couple ages ends here
-  # #####################################
-  # #####################################
-  # 
-  # 
-  # #####################################
-  # #####################################
-  # # pairing the actual couples starts here
-  # #####################################
-  # #####################################
-  # # return full donor and recipient rows as matched household pairs
-  # # extract ages counts for matching the donors
-  # MatchedDonorAges <- CurrentAgeMatch %>%
-  #   select(DonorAge) %>%
-  #   group_by(DonorAge) %>%
-  #   mutate(DonorAgeCount = row_number()) %>%
-  #   ungroup()
-  # 
-  # 
-  # # generate same AgeCount second ID variable for the donor data
-  # # the AgeCount is used to ensure that the first donor with a specific age is matched first
-  # # the second donor with a specific age is matched second
-  # # and so forth
-  # DonorsToMatch <- Donor %>%
-  #   group_by({{DonorAgeColName}}) %>%
-  #   mutate(DonorAgeCount = row_number()) %>%
-  #   ungroup()
-  # 
-  # # reduce pool of potentially partnered donors to only those matched to recipients
-  # DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
-  #   mutate(!!DonorAgeColName := DonorAge)
-  # 
-  # 
-  # # construct same file for the recipients
-  # # need both donor age and donor age count so that the join between the recipients and the donors works
-  # # do not need Recipient age as this will be a duplicate column on the merge
-  # RecipientsMatchPrep <- CurrentAgeMatch %>%
-  #   group_by(DonorAge) %>%
-  #   mutate(DonorAgeCount = row_number()) %>%
-  #   select(-c(2))
-  # 
-  # # RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names(Recipient[RecipientIDVariable]), names(RecipientsMatchPrep[1])))
-  # 
-  # RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names(Recipient[RecipientIDVariable])))
-  # 
-  # 
-  # 
-  # 
-  # 
-  # 
-  # 
-  # # now merge the full data of the subset donors to the recipients
-  # # by donor age and donor age count
-  # # recipient data frame is the one to which observations must be joined
-  # # also add the household numbers at this point
-  # MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
-  # 
-  # FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-  #   select(-DonorAge, -DonorAgeCount) %>%
-  #   ungroup() %>%
-  #   mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
-  # 
-  # # convert from wide to long, use .x and .y to do the split
-  # 
-  # FirstDataframeSplit <- FullMatchedDataFrame %>%
-  #   select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-  #   rename_all(list(~gsub("\\.x$", "", .)))
-  # 
-  # SecondDataframeSplit <- FullMatchedDataFrame %>%
-  #   select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-  #   rename_all(list(~gsub("\\.y$", "", .)))
-  # 
-  # 
-  # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-  # 
+  #####################################
+  #####################################
+  # iteration for matching couple ages ends here
+  #####################################
+  #####################################
+
+
+  #####################################
+  #####################################
+  # pairing the actual couples starts here
+  #####################################
+  #####################################
+  # return full donor and recipient rows as matched household pairs
+  # extract ages counts for matching the donors
+  MatchedDonorAges <- CurrentAgeMatch %>%
+    dplyr::select(DonorAge) %>%
+    group_by(DonorAge) %>%
+    mutate(DonorAgeCount = row_number()) %>%
+    ungroup()
+
+
+  #   # generate same AgeCount second ID variable for the donor data
+  #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
+  #   # the second donor with a specific age is matched second
+  #   # and so forth
+  DonorsToMatch <- Donor %>%
+    group_by({{DonorAgeColName}}) %>%
+    mutate(DonorAgeCount = row_number()) %>%
+    ungroup()
+
+  # reduce pool of potentially partnered donors to only those matched to recipients
+  DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+    mutate(!!DonorAgeColName := DonorAge)
+
+
+  # construct same file for the recipients
+  # need both donor age and donor age count so that the join between the recipients and the donors works
+  # do not need Recipient age as this will be a duplicate column on the merge
+  RecipientsMatchPrep <- CurrentAgeMatch %>%
+    group_by(DonorAge) %>%
+    mutate(DonorAgeCount = row_number()) %>%
+    dplyr::select(-c(2))
+
+  #
+  RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = names(Recipient[RecipientIDVariable]))
+
+  # now merge the full data of the subset donors to the recipients
+  # by donor age and donor age count
+  # recipient data frame is the one to which observations must be joined
+  # also add the household numbers at this point
+  MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
+
+  FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+    dplyr::select(-DonorAge, -DonorAgeCount) %>%
+    ungroup() %>%
+    mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
+
+  # convert from wide to long, use .x and .y to do the split
+
+  FirstDataframeSplit <- FullMatchedDataFrame %>%
+    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.x$", "", .)))
+
+  SecondDataframeSplit <- FullMatchedDataFrame %>%
+    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.y$", "", .)))
+
+
+  OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+  #
   # #####################################
   # #####################################
   # # pairing the actual couples ends here
   # #####################################
   # #####################################
+
+  # use for checking number of iterations used, the p-value to stop, and the p-value reached
+  #
   # print(i)
-  # 
+  # print(Critical_log_chisq)
+  # print(log_chisq)
+
+  return(OutputDataframe)
+
   # return(OutputDataframe)
-  
+
 }
