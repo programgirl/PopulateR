@@ -3,7 +3,7 @@ Type: Package
 Title: Create data frames suitable for microsimulation of human populations
 Version: 1.0.0
 Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre]",
-                       "Jonathan Marshall <J.C.Marshall@massey.ac.nz> [aut,cre]",
+                       "Jonathan Marshall <J.C.Marshall@massey.ac.nz> [aut]",
                        "Mark Bebbington <M.Bebbington@massey.ac.nz> [ctb]"
                        ))
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
