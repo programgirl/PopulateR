@@ -23,12 +23,12 @@
 #' @param OmegaUsed The omega value for the skew normal distribution.
 #' @param AlphaUsed The alpha value for the skew normal distribution.
 #' @param SNCenter The difference value used as the base. If this value is not set, the value 0 will be used.
+#' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
+#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
 #' if the algorithm does not converge.
-#' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #'
 #' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
@@ -43,8 +43,9 @@
 #'                               AlphaUsed=5, UserSeed=NULL, pValueToStop=.001, NumIterations=1000, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds")
 
 
-OppSexSN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL, DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL,
-                         AlphaUsed=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000, CoupleIDValue = NULL, HouseholdNumVariable=NULL) {
+OppSexSN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL,
+                     DonorAgeVariable=NULL, xiUsed=NULL, OmegaUsed=NULL, AlphaUsed=NULL, CoupleIDValue = NULL,
+                     HouseholdNumVariable=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
 
   # content check
   if (!any(duplicated(Recipient[RecipientIDVariable])) == FALSE) {
@@ -283,7 +284,7 @@ OppSexSN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=N
   # return full donor and recipient rows as matched household pairs
   # extract ages counts for matching the donors
   MatchedDonorAges <- CurrentAgeMatch %>%
-    select(DonorAge) %>%
+    dplyr::select(DonorAge) %>%
     group_by(DonorAge) %>%
     mutate(DonorAgeCount = row_number()) %>%
     ungroup()
@@ -309,17 +310,17 @@ OppSexSN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=N
   RecipientsMatchPrep <- CurrentAgeMatch %>%
     group_by(DonorAge) %>%
     mutate(DonorAgeCount = row_number()) %>%
-    select(-c(2))
+    dplyr::select(-c(2))
 
   # RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names(Recipient[RecipientIDVariable]), names(RecipientsMatchPrep[1])))
-  
+
 RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names(Recipient[RecipientIDVariable])))
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
 
   # now merge the full data of the subset donors to the recipients
   # by donor age and donor age count
@@ -328,18 +329,18 @@ RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = c(names
   MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
 
   FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-    select(-DonorAge, -DonorAgeCount) %>%
+    dplyr::select(-DonorAge, -DonorAgeCount) %>%
     ungroup() %>%
     mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
 
   # convert from wide to long, use .x and .y to do the split
 
   FirstDataframeSplit <- FullMatchedDataFrame %>%
-    select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
     rename_all(list(~gsub("\\.x$", "", .)))
 
   SecondDataframeSplit <- FullMatchedDataFrame %>%
-    select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
     rename_all(list(~gsub("\\.y$", "", .)))
 
 

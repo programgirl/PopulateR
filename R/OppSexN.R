@@ -41,7 +41,7 @@
 #' ExampleOutput <- OppositeSex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, meanUsed=2, sdUsed=4, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
 
 
-OppositeSex <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL,
+OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL,
                         DonorAgeVariable=NULL, meanUsed= NULL, sdUsed = NULL, CoupleIDValue = NULL, HouseholdNumVariable=NULL,
                         UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
 
