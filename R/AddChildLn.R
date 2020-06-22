@@ -1,3 +1,13 @@
+#' Create a subset of observations containing only children matched to parents/guardians
+#' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used is the log normal
+#' Three data frames are required. The ChildDataFrame contains the age data, to which the two parent/guardian data will be applied. The two data frames for the parent/guardian observations are assumed to be split between mothers and fathers.
+#' The minimum and maximum ages of mothers are required, as this ensures that there are no mothers who were too young (e.g. 11 years) or too old (e.g. 70 years) at childbirth. Thus, the mother data frame does not require pre-cleaning for age.
+#' As the mother data frame is used first, the proportions to assign to fathers and the minimum proportion of women at any age who must not be mothers are required. This ensures that, for example, sole fathers can exist. The minimum proportion prevents the outcome where most/all women of a set age are mothers, leaving few or no women who are not mothers. If desired, this proportion can be set to 0 and no count restriction is set for sampling women into the mothers subset.
+#' An even number of observations is output, which is one child-mother pair and one child-father pair.
+#'
+#' The function performs a reasonableness check for child ID, child age, mother ID variable, and household number.
+#'
+#' @export
 #' @param ChildDataframe A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the ChildDataFrame.
 #' @param ChildAgeVariable The column number for the Age variable in the ChildDataFrame.
@@ -8,16 +18,16 @@
 #' @param MotherAgeVariable The column number for the Age variable in the Mother data frame.
 #' @param MinMotherAge The youngest age at which a woman gives birth.
 #' @param MaxMotherAge The oldest age at which a woman gives birth.
-#' @param PropMothers The proportion of children who are assigned to mothers, the remainder will be assigned to fathers
-#' @param MinPropRemain The minimum proportion of people, at each age, who are not parents
+#' @param PropMothers The proportion of children who are assigned to mothers, the remainder will be assigned to fathers.
+#' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
 #' if the algorithm does not converge.
 
-AddChldrnln <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlogUsed, sdlogUsed, MotherDataframe, MotherIDVariable,
-                          MotherAgeVariable, MinMotherAge, MaxMotherAge, PropMothers, MinPropRemain,HouseholdNumVariable, UserSeed=NULL,
+AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlogUsed, sdlogUsed, MotherDataframe, MotherIDVariable,
+                          MotherAgeVariable, MinMotherAge, MaxMotherAge, PropMothers, MinPropRemain = 0, HouseholdNumVariable, UserSeed=NULL,
                           pValueToStop = .01, NumIterations = 1000000)
   {
 
