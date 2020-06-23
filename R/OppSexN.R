@@ -171,6 +171,8 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
 
 
+
+
   #####################################
   #####################################
   # end set up
@@ -351,6 +353,5 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
 
   return(OutputDataframe)
 
-  # return(OutputDataframe)
 
 }

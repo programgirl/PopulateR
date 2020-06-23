@@ -162,17 +162,8 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     Probabilities <- plnorm(bins[-1], meanlog = meanlogUsed, sdlog = sdlogUsed) -
       plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
 
-
-    # assign realistic expected probabilities in the bins outside the bins constructed earlier
-    # use minAge and maxAge for this, only need range for included ages
-    # Uses midpoint rule.
-    logProbLow <- dlnorm(MinMotherAge:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-    logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-
-
-
-    logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins    <- c(-Inf, -(MinMotherAge-.5):(MaxMotherAge-.5), Inf)
+    logProb <- c(log(Probabilities[-c(1, length(Probabilities))]))
+    logBins <- c((min_bin):(max_bin))
 
 
     # #####################################
@@ -230,7 +221,7 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     #
     # }
 
-    return(logProbHigh)
+    return(Probabilities)
 
     #####################################
     #####################################
