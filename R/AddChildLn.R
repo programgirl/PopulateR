@@ -162,25 +162,28 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     Probabilities <- plnorm(bins[-1], meanlog = meanlogUsed, sdlog = sdlogUsed) -
       plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
 
-    logProb <- c(log(Probabilities[-c(1, length(Probabilities))]))
-    logBins <- c((min_bin):(max_bin))
+    logProbLow <- dlnorm(1:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+    logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+
+    logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
+    logBins <- c(-Inf, -(MaxMotherAge-.5):(MaxMotherAge-.5), Inf)
 
 
-    # #####################################
-    # #####################################
-    # # end set up
-    # #####################################
-    # #####################################
-    #
-    #
-    # #####################################
-    # #####################################
-    # # create initial age matches
-    # #####################################
-    # #####################################
-    # # this is a random sample so age differences will not follow desired distribution
-    # # however, if the donor data frame is larger than the recipient data frame
-    # # this ensures that a random selection of donors has the correct count
+    #####################################
+    #####################################
+    # end set up
+    #####################################
+    #####################################
+
+
+    #####################################
+    #####################################
+    # create initial age matches
+    #####################################
+    #####################################
+    # this is a random sample so age differences will not follow desired distribution
+    # however, if the donor data frame is larger than the recipient data frame
+    # this ensures that a random selection of donors has the correct count
     if (!is.null(UserSeed)) {
       set.seed(UserSeed)
     }
@@ -189,7 +192,6 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
 
     ChildToMother <- ChildDataframe %>%
       sample_n(round(PropMothers*nrow(ChildDataframe),0))
-
 
 
     CurrentAgeMatch <- data.frame(ChildToMother[ChildIDVariable],
@@ -204,13 +206,15 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
     # construct starting set of observed age difference values for iteration
-    # ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
-    #
-    # # set up for chi-squared
-    # log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-    # logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-    # log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-    #
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
+
+    # set up for chi-squared
+    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+    return(log_chisq)
+
     # if (is.null(pValueToStop)) {
     #
     #   Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
@@ -220,8 +224,8 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     #   Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
     #
     # }
-
-    return(Probabilities)
+    #
+    #
 
     #####################################
     #####################################
