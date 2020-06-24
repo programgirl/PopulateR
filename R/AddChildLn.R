@@ -166,7 +166,7 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
 
     logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins <- c(-Inf, .5:(MaxMotherAge-.5), Inf)
+    logBins <- c(-Inf, -.5:(MaxMotherAge-.5), Inf)
 
 
     #####################################
@@ -206,26 +206,26 @@ AddChildLn <- function(ChildDataframe, ChildIDVariable, ChildAgeVariable, meanlo
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
     # construct starting set of observed age difference values for iteration
-    # ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
-    #
-    # # set up for chi-squared
-    # log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-    # logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-    # log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
 
-    return(logBins)
+    # set up for chi-squared
+    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-    # if (is.null(pValueToStop)) {
-    #
-    #   Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-    #
-    # } else {
-    #
-    #   Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-    #
-    # }
-    #
-    #
+
+
+    if (is.null(pValueToStop)) {
+
+      Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    } else {
+
+      Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    }
+
+    return(Critical_log_chisq)
 
     #####################################
     #####################################
