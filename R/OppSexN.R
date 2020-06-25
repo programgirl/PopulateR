@@ -300,7 +300,9 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
     ungroup()
 
   # reduce pool of potentially partnered donors to only those matched to recipients
-  DonorsMatched <- left_join(MatchedDonorAges, rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]), by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+  DonorsMatched <- left_join(MatchedDonorAges,
+                             rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]),
+                             by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
     mutate(!!DonorAgeColName := DonorAge)
 
 
