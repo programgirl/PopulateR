@@ -162,14 +162,14 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     # break and throw error if available counts are smaller than required counts
 
-    if (sum(MotherCounts$AgeCount < round(PropMothers*nrow(Children),0))) stop ("Number of mothers required exceeds number of mothers available.")
+    # if (sum(MotherCounts$AgeCount < round(PropMothers*nrow(Children),0))) stop ("Number of mothers required exceeds number of mothers available.")
 
 
     # remove rows from the MotherCounts data frame that are 0, as these relate to counts < 2
     # this doesn't affect the total counts as 0 doesn't add anything to the sum()
 
     MotherCounts <- MotherCounts %>%
-      filter(AgeCount = 0)
+      filter(AgeCount != 0)
 
     # reduce working mother data frame to remaining ages
     # then sample 1-MinPropRemain from each age
@@ -416,7 +416,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 #     # print(Critical_log_chisq)
 #     # print(log_chisq)
 
-    return(Mothers)
+    return(sum(MotherCounts$AgeCount))
 
 
   }
