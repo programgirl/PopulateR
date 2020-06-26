@@ -160,61 +160,65 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
         mutate(AgeCount = floor(AgeCount*(1-MinPropRemain)))
     }
 
-    # break and throw error if available counts are smaller than required counts
-
-    # if (sum(MotherCounts$AgeCount < round(PropMothers*nrow(Children),0))) stop ("Number of mothers required exceeds number of mothers available.")
-
-
     # remove rows from the MotherCounts data frame that are 0, as these relate to counts < 2
     # this doesn't affect the total counts as 0 doesn't add anything to the sum()
 
     MotherCounts <- MotherCounts %>%
       filter(AgeCount != 0)
 
+
+    # break and throw error if available counts are smaller than required counts
+
+    if (sum(MotherCounts$AgeCount) < round(PropMothers*nrow(Children),0)) stop ("Number of mothers required exceeds number of mothers available.")
+
+
+
     # reduce working mother data frame to remaining ages
     # then sample 1-MinPropRemain from each age
 
     Mothers <- Mothers %>%
-      filter({{MotherAgeColName}} %in% MotherCounts[,1])
+    semi_join(MotherCounts, by = names(Mothers[MotherAgeVariable])) %>%
+      group_by({{MotherAgeVariable}}) %>%
+      slice_sample({{MotherAgeVariable}}, prop=1-MinPropRemain)
 
 
 
-    MotherAges <- pull(MotherCounts[1])
-    MotherAgeCounts <- pull(MotherCounts[2])
-
-
-
-    # set up bins for iterations
-    # enable at least some extreme age differences to be assigned to the Inf categories
-    # otherwise the bins will be wrong
-
-    # estimate expected minimum and maximum ages from the distribution, and bin these
-
-    min_bin <- round(qlnorm(0.000001, meanlog = meanlogUsed, sdlog = sdlogUsed))-0.5
-    max_bin <- round(qlnorm(0.999999, meanlog = meanlogUsed, sdlog = sdlogUsed))+0.5
-
-    # fix minima if it are outside the range input
-
-    if (!(is.null(MinMotherAge)) & MinMotherAge > min_bin) {
-      min_bin <- MinMotherAge - .5
-    }
-
-    if (!(is.null(MaxMotherAge)) & MaxMotherAge < max_bin) {
-      max_bin <- MaxMotherAge + .5
-    }
-
-    bins <- c(-Inf, min_bin:max_bin, Inf)
-
-
-    # # construct the probabilities for each bin, gives n(bins)-1
-    Probabilities <- plnorm(bins[-1], meanlog = meanlogUsed, sdlog = sdlogUsed) -
-      plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
-
-    logProbLow <- dlnorm(1:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-    logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-
-    logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins <- c(-Inf, -.5:(MaxMotherAge-.5), Inf)
+    # MotherAges <- pull(MotherCounts[1])
+    # # MotherAgeCounts <- pull(MotherCounts[2])
+    # #
+    #
+    #
+    # # set up bins for iterations
+    # # enable at least some extreme age differences to be assigned to the Inf categories
+    # # otherwise the bins will be wrong
+    #
+    # # estimate expected minimum and maximum ages from the distribution, and bin these
+    #
+    # min_bin <- round(qlnorm(0.000001, meanlog = meanlogUsed, sdlog = sdlogUsed))-0.5
+    # max_bin <- round(qlnorm(0.999999, meanlog = meanlogUsed, sdlog = sdlogUsed))+0.5
+    #
+    # # fix minima if it are outside the range input
+    #
+    # if (!(is.null(MinMotherAge)) & MinMotherAge > min_bin) {
+    #   min_bin <- MinMotherAge - .5
+    # }
+    #
+    # if (!(is.null(MaxMotherAge)) & MaxMotherAge < max_bin) {
+    #   max_bin <- MaxMotherAge + .5
+    # }
+    #
+    # bins <- c(-Inf, min_bin:max_bin, Inf)
+    #
+    #
+    # # # construct the probabilities for each bin, gives n(bins)-1
+    # Probabilities <- plnorm(bins[-1], meanlog = meanlogUsed, sdlog = sdlogUsed) -
+    #   plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
+    #
+    # logProbLow <- dlnorm(1:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+    # logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+    #
+    # logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
+    # logBins <- c(-Inf, -.5:(MaxMotherAge-.5), Inf)
 
 
     #####################################
@@ -416,7 +420,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 #     # print(Critical_log_chisq)
 #     # print(log_chisq)
 
-    return(sum(MotherCounts$AgeCount))
+    return(Mothers)
 
 
   }
