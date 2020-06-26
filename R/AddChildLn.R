@@ -116,6 +116,10 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     # Mother age variable
     MotherAgeColName <- sym(names(Mothers[MotherAgeVariable]))
 
+    minChildAge <- min(Children[ChildAgeVariable])
+
+    maxChildAge <- max(Children[ChildAgeVariable])
+
     #####################################
     #####################################
     # end column names
@@ -134,19 +138,19 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     if (!(is.null(MinMotherAge))) {
 
       Mothers <- Mothers %>%
-        filter(MotherAgeVariable >= MinMotherAge)
+        filter(({{MotherAgeColName}} - minChildAge) >= MinMotherAge)
     }
 
-    # if (!(is.null(MaxMotherAge))) {
-    #
-    #   Mothers <- Mothers %>%
-    #     filter(MotherAgeVariable <= MaxMotherAge)
-    # }
+    if (!(is.null(MaxMotherAge))) {
+
+      Mothers <- Mothers %>%
+        filter(({{MotherAgeColName}} - maxChildAge) <= MaxMotherAge)
+    }
 
     # get counts for each single age from the mother data frame
-    MotherCounts <- Mothers %>%
-      group_by_at(MotherAgeVariable) %>%
-      summarise(AgeCount=n())
+    # MotherCounts <- Mothers %>%
+    #   group_by_at(MotherAgeVariable) %>%
+    #   summarise(AgeCount=n())
 
 #     MotherAges <- pull(MotherCounts[1])
 #     MotherAgeCounts <- pull(MotherCounts[2])
