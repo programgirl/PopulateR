@@ -148,9 +148,10 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     }
 
     # get counts for each single age from the mother data frame
-    # MotherCounts <- Mothers %>%
-    #   group_by_at(MotherAgeVariable) %>%
-    #   summarise(AgeCount=n())
+    MotherCounts <- Mothers %>%
+      group_by_at(MotherAgeVariable) %>%
+      summarise(AgeCount=n()) %>%
+       mutate(newAgeCount = ifelse(!(is.null(MinPropRemain)), floor(AgeCount*(1-MinPropRemain)), AgeCount))
 
 #     MotherAges <- pull(MotherCounts[1])
 #     MotherAgeCounts <- pull(MotherCounts[2])
@@ -389,7 +390,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 #     # print(Critical_log_chisq)
 #     # print(log_chisq)
 
-    return(Mothers)
+    return(MotherCounts)
 
 
   }
