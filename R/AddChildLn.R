@@ -162,12 +162,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     # break and throw error if available counts are smaller than required counts
 
-    if (sum(MotherCounts$AgeCount < round(PropMothers*nrow(Children),0))) {
+    if (sum(MotherCounts$AgeCount < round(PropMothers*nrow(Children),0))) stop ("Number of mothers required exceeds number of mothers available.")
 
-      print("Number of mothers required exceeds number of mothers available.")
-
-      break
-    }
 
     # remove rows from the MotherCounts data frame that are 0, as these relate to counts < 2
     # this doesn't affect the total counts as 0 doesn't add anything to the sum()
@@ -328,8 +324,6 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 #
 #        if (log_chisq <= Critical_log_chisq) {
 #         break
-#
-#         print("check point")
 #
 #       }
 #
