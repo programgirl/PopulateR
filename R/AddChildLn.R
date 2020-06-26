@@ -179,7 +179,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     Mothers <- Mothers %>%
     semi_join(MotherCounts, by = names(Mothers[MotherAgeVariable])) %>%
       group_by({{MotherAgeVariable}}) %>%
-      slice_sample({{MotherAgeVariable}}, prop=1-MinPropRemain)
+      slice_sample(prop=1-MinPropRemain)
+      #slice_sample({{MotherAgeVariable}}, prop=1-MinPropRemain)
 
 
 
