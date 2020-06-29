@@ -171,17 +171,13 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     if (sum(MotherCounts$AgeCount) < round(PropMothers*nrow(Children),0)) stop ("Number of mothers required exceeds number of mothers available.")
 
-
-
     # reduce working mother data frame to remaining ages
     # then sample 1-MinPropRemain from each age
 
     Mothers <- Mothers %>%
-    semi_join(MotherCounts, by = names(Mothers[MotherAgeVariable])) %>%
-      group_by({{MotherAgeVariable}}) %>%
-      slice_sample(prop=1-MinPropRemain)
-      #slice_sample({{MotherAgeVariable}}, prop=1-MinPropRemain)
-
+      left_join(MotherCounts, by = names(Mothers[MotherAgeVariable])) %>%
+      group_by({{MotherAgeColName}}) %>%
+      sample_n(AgeCount[1])
 
 
     # MotherAges <- pull(MotherCounts[1])
