@@ -254,10 +254,11 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
     # construct starting set of observed age difference values for iteration
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = bins, plot=FALSE)$counts
+
 
     # set up for chi-squared
-    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    log0ObservedAges <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
@@ -274,18 +275,17 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     }
 
-    print(Critical_log_chisq)
 
-    #####################################
-    #####################################
-    # iteration for matching child to mother ages starts here
-    #####################################
-    #####################################
-#  ChiSquareValuesCreated <- data.frame()
-
+#     #####################################
+#     #####################################
+#     # iteration for matching child to mother ages starts here
+#     #####################################
+#     #####################################
+# #  ChiSquareValuesCreated <- data.frame()
+#
     for (i in 1:NumIterations) {
 
-      # randomly choose two pairs
+       # randomly choose two pairs
       Pick1 <- sample(nrow(CurrentAgeMatch), 1)
       Pick2 <- sample(nrow(CurrentAgeMatch), 1)
       Current1 <- CurrentAgeMatch[Pick1,]
@@ -301,10 +301,11 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
         bind_rows(., PropPair1,PropPair2)
 
       # do chi-squared
-      Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+      Proplog0 <- hist(PropAgeMatch[,3] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+
 
       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
@@ -315,6 +316,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
         log0ObservedAges <- Proplog0
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
+
+
 
       }
 
@@ -356,7 +359,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     # generate same AgeCount second ID variable for the donor data
     # the AgeCount is used to ensure that the first donor with a specific age is matched first
     # the second donor with a specific age is matched second
-    # and so forth
+#     # and so forth
     MothersToMatch <- Mothers %>%
       group_by({{MotherAgeColName}}) %>%
       mutate(MotherAgeCount = row_number()) %>%
@@ -416,7 +419,9 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     print(Critical_log_chisq)
     print(log_chisq)
 
-    return(Mothers)
+    return(OutputDataframe)
+    # return(CurrentAgeMatch)
 
 
   }
+
