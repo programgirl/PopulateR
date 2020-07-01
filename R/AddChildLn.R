@@ -248,180 +248,203 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
                                                     size=nrow(ChildToMother),
                                                     replace = FALSE))
 
+    # fix any extreme age difference values in CurrentAgeMatch by swapping minimum and maximum extremes
+    # extremes are differences outside the MinMotherAge and MaxMotherAge values
+    # I think this is the problem causing the distribution fit to fail
+    # this should only be entered if:
+    # 1. there is a MinMotherAge and/or MaxMotherAge value entered by the user
+    # 2. if 1. is true, then check to see if any value is outside those user-defined values
+    # so we need two if statements, one nested inside the other
 
-    # set up for chi-squared test
-    ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-    logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+    if(!(is.null(MinMotherAge)) | !(is.null(MaxMotherAge))) {
 
-    # construct starting set of observed age difference values for iteration
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = bins, plot=FALSE)$counts
+      if(is.null(MinMotherAge)) {
+        MinMotherAge == 0
 
+      } else {
 
-    # set up for chi-squared
-    log0ObservedAges <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
-    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
-                              log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+        (is.null(MaxMotherAge))
 
+        MaxMotherAge==0
+      }
 
-
-    if(is.null(pValueToStop)) {
-
-      Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-    } else {
-
-      Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+      print(MinMotherAge)
+      print(MaxMotherAge)
 
     }
 
 
-#     #####################################
-#     #####################################
-#     # iteration for matching child to mother ages starts here
-#     #####################################
-#     #####################################
-# #  ChiSquareValuesCreated <- data.frame()
+#     # set up for chi-squared test
+#     ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+#     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 #
-    for (i in 1:NumIterations) {
-
-       # randomly choose two pairs
-      Pick1 <- sample(nrow(CurrentAgeMatch), 1)
-      Pick2 <- sample(nrow(CurrentAgeMatch), 1)
-      Current1 <- CurrentAgeMatch[Pick1,]
-      Current2 <- CurrentAgeMatch[Pick2,]
-
-      # # proposed pairing after a swap
-      PropPair1 <- swap_mother(Current1, Current2)
-      PropPair2 <- swap_mother(Current2, Current1)
-
-      # compute change in Chi-squared value from current pairing to proposed pairing
-      PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!({{ChildIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-        bind_rows(., PropPair1,PropPair2)
-
-      # do chi-squared
-      Proplog0 <- hist(PropAgeMatch[,3] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
-      ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-
-      prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-
-
-      if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
-
-        CurrentAgeMatch[Pick1,] <- PropPair1
-        CurrentAgeMatch[Pick2,] <- PropPair2
-
-
-        log0ObservedAges <- Proplog0
-        logKObservedAges <- ProplogK
-        log_chisq <- prop_log_chisq
-
-
-
-      }
-
-
-
-   #   ChiSquareValuesCreated <- c(ChiSquareValuesCreated, log_chisq)
-
-       if (log_chisq <= Critical_log_chisq) {
-        break
-
-      }
-
-
-    }
-
-
-
-    #####################################
-    #####################################
-    # iteration for matching mother-child ages ends here
-    #####################################
-    #####################################
-
-
-    #####################################
-    #####################################
-    # pairing the actual mother-child dyads starts here
-    #####################################
-    #####################################
-    # return full donor and recipient rows as matched household pairs
-    # extract ages counts for matching the donors
-    MatchedMotherAges <- CurrentAgeMatch %>%
-      dplyr::select(MotherAge) %>%
-      group_by(MotherAge) %>%
-      mutate(MotherAgeCount = row_number()) %>%
-      ungroup()
-
-
-    # generate same AgeCount second ID variable for the donor data
-    # the AgeCount is used to ensure that the first donor with a specific age is matched first
-    # the second donor with a specific age is matched second
-#     # and so forth
-    MothersToMatch <- Mothers %>%
-      group_by({{MotherAgeColName}}) %>%
-      mutate(MotherAgeCount = row_number()) %>%
-      ungroup()
-
-    # reduce pool of potentially partnered donors to only those matched to recipients
-    MothersMatched <- left_join(MatchedMotherAges,
-                                rename_at(MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[1],
-                                          MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[2]),
-                                by = c(names(MatchedMotherAges)[1], "MotherAgeCount")) %>%
-      mutate(!!MotherAgeColName := MotherAge)
-
-
-    # construct same file for the children
-    # need both mother age and mother age count so that the join between the children and the mothers works
-    # do not need child age as this will be a duplicate column on the merge
-    ChildrenMatchPrep <- CurrentAgeMatch %>%
-      group_by(MotherAge) %>%
-      mutate(MotherAgeCount = row_number()) %>%
-      dplyr::select(-c(2)) %>%
-      ungroup()
-
-    ChildrenReadyToMatch <- left_join(ChildToMother, ChildrenMatchPrep, by = c(names(Children[ChildIDVariable])))
-
-
-
-    # now merge the full data of the subset donors to the recipients
-    # by mother age and mother age count
-    # children data frame is the one to which observations must be joined
-    # also add the household numbers at this point
-    MaxDyadIDValue <- (nrow(ChildrenReadyToMatch)-1) + DyadIDValue
-
-    FullMatchedDataFrame <- left_join(ChildrenReadyToMatch, MothersMatched, by=c("MotherAge", "MotherAgeCount")) %>%
-      dplyr::select(-MotherAge, -MotherAgeCount) %>%
-      ungroup() %>%
-      mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
-
-    # convert from wide to long, use .x and .y to do the split
-
-    FirstDataframeSplit <- FullMatchedDataFrame %>%
-      dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.x$", "", .)))
-
-    SecondDataframeSplit <- FullMatchedDataFrame %>%
-      dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.y$", "", .)))
-
-
-    OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-
-    #####################################
-    #####################################
-    # pairing the mothers to children ends here
-    #####################################
-    #####################################
-    print(i)
-    print(Critical_log_chisq)
-    print(log_chisq)
-
-    return(OutputDataframe)
-    # return(CurrentAgeMatch)
-
+#     # construct starting set of observed age difference values for iteration
+#     ObservedAgeDifferences <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = bins, plot=FALSE)$counts
+#
+#
+#     # set up for chi-squared
+#     log0ObservedAges <- hist(CurrentAgeMatch[,3] - CurrentAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+#     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
+#                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+#     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+#
+#
+#
+#     if(is.null(pValueToStop)) {
+#
+#       Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+#
+#     } else {
+#
+#       Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+#
+#     }
+#
+#
+# #     #####################################
+# #     #####################################
+# #     # iteration for matching child to mother ages starts here
+# #     #####################################
+# #     #####################################
+# # #  ChiSquareValuesCreated <- data.frame()
+# #
+#     for (i in 1:NumIterations) {
+#
+#        # randomly choose two pairs
+#       Pick1 <- sample(nrow(CurrentAgeMatch), 1)
+#       Pick2 <- sample(nrow(CurrentAgeMatch), 1)
+#       Current1 <- CurrentAgeMatch[Pick1,]
+#       Current2 <- CurrentAgeMatch[Pick2,]
+#
+#       # # proposed pairing after a swap
+#       PropPair1 <- swap_mother(Current1, Current2)
+#       PropPair2 <- swap_mother(Current2, Current1)
+#
+#       # compute change in Chi-squared value from current pairing to proposed pairing
+#       PropAgeMatch <- CurrentAgeMatch %>%
+#         filter(!({{ChildIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+#         bind_rows(., PropPair1,PropPair2)
+#
+#       # do chi-squared
+#       Proplog0 <- hist(PropAgeMatch[,3] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+#       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+#
+#       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+#
+#
+#       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+#
+#         CurrentAgeMatch[Pick1,] <- PropPair1
+#         CurrentAgeMatch[Pick2,] <- PropPair2
+#
+#
+#         log0ObservedAges <- Proplog0
+#         logKObservedAges <- ProplogK
+#         log_chisq <- prop_log_chisq
+#
+#
+#
+#       }
+#
+#
+#
+#    #   ChiSquareValuesCreated <- c(ChiSquareValuesCreated, log_chisq)
+#
+#        if (log_chisq <= Critical_log_chisq) {
+#         break
+#
+#       }
+#
+#
+#     }
+#
+#
+#
+#     #####################################
+#     #####################################
+#     # iteration for matching mother-child ages ends here
+#     #####################################
+#     #####################################
+#
+#
+#     #####################################
+#     #####################################
+#     # pairing the actual mother-child dyads starts here
+#     #####################################
+#     #####################################
+#     # return full donor and recipient rows as matched household pairs
+#     # extract ages counts for matching the donors
+#     MatchedMotherAges <- CurrentAgeMatch %>%
+#       dplyr::select(MotherAge) %>%
+#       group_by(MotherAge) %>%
+#       mutate(MotherAgeCount = row_number()) %>%
+#       ungroup()
+#
+#
+#     # generate same AgeCount second ID variable for the donor data
+#     # the AgeCount is used to ensure that the first donor with a specific age is matched first
+#     # the second donor with a specific age is matched second
+# #     # and so forth
+#     MothersToMatch <- Mothers %>%
+#       group_by({{MotherAgeColName}}) %>%
+#       mutate(MotherAgeCount = row_number()) %>%
+#       ungroup()
+#
+#     # reduce pool of potentially partnered donors to only those matched to recipients
+#     MothersMatched <- left_join(MatchedMotherAges,
+#                                 rename_at(MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[1],
+#                                           MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[2]),
+#                                 by = c(names(MatchedMotherAges)[1], "MotherAgeCount")) %>%
+#       mutate(!!MotherAgeColName := MotherAge)
+#
+#
+#     # construct same file for the children
+#     # need both mother age and mother age count so that the join between the children and the mothers works
+#     # do not need child age as this will be a duplicate column on the merge
+#     ChildrenMatchPrep <- CurrentAgeMatch %>%
+#       group_by(MotherAge) %>%
+#       mutate(MotherAgeCount = row_number()) %>%
+#       dplyr::select(-c(2)) %>%
+#       ungroup()
+#
+#     ChildrenReadyToMatch <- left_join(ChildToMother, ChildrenMatchPrep, by = c(names(Children[ChildIDVariable])))
+#
+#
+#
+#     # now merge the full data of the subset donors to the recipients
+#     # by mother age and mother age count
+#     # children data frame is the one to which observations must be joined
+#     # also add the household numbers at this point
+#     MaxDyadIDValue <- (nrow(ChildrenReadyToMatch)-1) + DyadIDValue
+#
+#     FullMatchedDataFrame <- left_join(ChildrenReadyToMatch, MothersMatched, by=c("MotherAge", "MotherAgeCount")) %>%
+#       dplyr::select(-MotherAge, -MotherAgeCount) %>%
+#       ungroup() %>%
+#       mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
+#
+#     # convert from wide to long, use .x and .y to do the split
+#
+#     FirstDataframeSplit <- FullMatchedDataFrame %>%
+#       dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+#       rename_all(list(~gsub("\\.x$", "", .)))
+#
+#     SecondDataframeSplit <- FullMatchedDataFrame %>%
+#       dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+#       rename_all(list(~gsub("\\.y$", "", .)))
+#
+#
+#     OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+#
+#     #####################################
+#     #####################################
+#     # pairing the mothers to children ends here
+#     #####################################
+#     #####################################
+#     print(i)
+#     print(Critical_log_chisq)
+#     print(log_chisq)
+#
+#     return(OutputDataframe)
 
   }
 
