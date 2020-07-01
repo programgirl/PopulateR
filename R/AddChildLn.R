@@ -195,11 +195,11 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     # # fix minima if it are outside the range input
 
-    if (!(is.null(MinMotherAge)) & MinMotherAge > min_bin) {
+    if (!(is.null(MinMotherAge))) {
       min_bin <- MinMotherAge - .5
     }
 
-    if (!(is.null(MaxMotherAge)) & MaxMotherAge < max_bin) {
+    if (!(is.null(MaxMotherAge))) {
       max_bin <- MaxMotherAge + .5
     }
 
