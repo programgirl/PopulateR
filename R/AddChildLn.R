@@ -57,6 +57,29 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     # sub functions are here
     #####################################
     #####################################
+
+    # fix extreme age differences created at the start
+    # these may be interfering with pairing convergence
+
+  fixExtremes <- function(InitialAgeMatch) {
+      RowsToSwap <- InitialAgeMatch %>%
+      mutate(row_no = row_number()) %>%
+      filter(row_number() > max(row_number()) - NumToSwap | row_number() <= NumToSwap) %>%
+      mutate(final_age1 = MotherAge) %>%
+      dplyr::select(final_age1, row_no)
+
+
+      RowsToSwap$row_no <- sort(RowsToSwap$row_no, decreasing = T)
+
+    fixedDF <- InitialAgeMatch %>%
+      left_join(RowsToSwap) %>%
+      mutate(final_age1 = ifelse(is.na(final_age1), MotherAge, final_age1)) #%>%
+     # rename(final_age1 = MotherAge)
+    #dplyr::select(-Age1, -row_no)
+
+    return(fixedDF)
+  }
+
     # pairing swap subfunction
 
    # for mothers
@@ -268,8 +291,35 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
         MaxMotherAge==0
       }
 
-      print(MinMotherAge)
-      print(MaxMotherAge)
+    if(MinMotherAge + MaxMotherAge >0) {
+
+      CurrentAgeMatch <- CurrentAgeMatch %>%
+        mutate(AgeDiff = MotherAge - .[[2]]) %>%
+        arrange(AgeDiff) %>%
+        mutate(row_no = row_number())
+
+      # then test if any diffs are outside the required age range
+
+      TooYoung <- CurrentAgeMatch %>%
+        filter(AgeDiff < MinMotherAge) %>%
+        summarise(Count = n()) %>%
+        pull(Count)
+
+      TooOld <- CurrentAgeMatch %>%
+        filter(AgeDiff > MaxMotherAge) %>%
+        summarise(Count = n()) %>%
+        pull(Count)
+
+      NumToSwap <- max(TooYoung, TooOld)
+
+      # swap if there are swaps to do, hence test for 0
+      if(NumToSwap > 0) {
+
+        CurrentAgeMatch <- fixExtremes(CurrentAgeMatch)
+
+      }
+
+    }
 
     }
 
