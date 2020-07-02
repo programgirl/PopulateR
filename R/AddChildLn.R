@@ -72,7 +72,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       RowsToSwap$row_no <- sort(RowsToSwap$row_no, decreasing = T)
 
     fixedDF <- InitialAgeMatch %>%
-      left_join(RowsToSwap) %>%
+      left_join(RowsToSwap, by = "row_no") %>%
       mutate(final_age1 = ifelse(is.na(final_age1), MotherAge, final_age1)) %>%
       dplyr::select(-MotherAge, -row_no, -AgeDiff) %>%
       rename(MotherAge = final_age1)
