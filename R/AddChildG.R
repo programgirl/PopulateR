@@ -11,8 +11,8 @@
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
-#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
-#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
+#' @param shapeUsed The shape of the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
+#'  @param rateUsed The rate for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
 #' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must contain at least the same number of observations as the Children data frame.
 #' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
 #' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
@@ -25,8 +25,8 @@
 #' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 
-AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable,
-                       meanlogUsed, sdlogUsed,  MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0,
+AddChildG <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable,
+                       shapeUsed, rateUsed,  MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0,
                        DyadIDValue = NULL, HouseholdNumVariable= NULL, UserSeed=NULL, pValueToStop = .01,
                        NumIterations = 1000000)
 {
@@ -207,8 +207,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
-  min_bin <- round(qlnorm(0.000001, meanlog = meanlogUsed, sdlog = sdlogUsed))-0.5
-  max_bin <- round(qlnorm(0.999999, meanlog = meanlogUsed, sdlog = sdlogUsed))+0.5
+  min_bin <- round(qgamma(0.000001, shape = shapeUsed, rate = rateUsed))-0.5
+  max_bin <- round(qgamma(0.999999, shape = shapeUsed, rate = rateUsed))+0.5
 
   # # fix minima if it are outside the range input
 
@@ -224,11 +224,11 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
 
 
   # # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- plnorm(bins[-1], meanlog = meanlogUsed, sdlog = sdlogUsed) -
-    plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
+  Probabilities <- pgamma(bins[-1], shape = shapeUsed, rate = rateUsed) -
+    pgamma(bins[-length(bins)], shape = shapeUsed, rate = rateUsed)
 
-  logProbLow <- dlnorm(1:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-  logProbHigh <- dlnorm((max_bin+0.5):MaxParentAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+  logProbLow <- dgamma(1:(min_bin-0.5), shape = shapeUsed, rate = rateUsed, log=TRUE)
+  logProbHigh <- dgamma((max_bin+0.5):MaxParentAge, shape = shapeUsed, rate = rateUsed, log=TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins <- c(-Inf, -.5:(MaxParentAge-.5), Inf)
