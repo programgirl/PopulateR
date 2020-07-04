@@ -1,34 +1,32 @@
 #' Create a subset of observations containing only children matched to parents/guardians
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used is the log normal
-#' Three data frames are required. The ChildDataFrame contains the age data, to which the two parent/guardian data will be applied. The two data frames for the parent/guardian observations are assumed to be split between mothers and fathers.
-#' The minimum and maximum ages of mothers are required, as this ensures that there are no mothers who were too young (e.g. 11 years) or too old (e.g. 70 years) at childbirth. Thus, the mother data frame does not require pre-cleaning for age.
-#' As the mother data frame is used first, the proportions to assign to fathers and the minimum proportion of women at any age who must not be mothers are required. This ensures that, for example, sole fathers can exist. The minimum proportion prevents the outcome where most/all women of a set age are mothers, leaving few or no women who are not mothers. If desired, this proportion can be set to 0 and no count restriction is set for sampling women into the mothers subset.
-#' An even number of observations is output, which is one child-mother pair and one child-father pair.
+#' Three data frames are required. The Children data frame contains the age data, to which the two parent/guardian data will be applied. The two data frames for the parent/guardian observations are assumed to be split between parents and fathers.
+#' The minimum and maximum ages of parents can be specified, to minimise the result that there are parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at becoming a parent. The presence of too young and too old parents is tested at the start of the process and an attempt is made to remove initial pairings outside this range. Thus,  pre-cleaning the Parent data frame is not required, although pairs outside this age range may be produced, due to the distribution used.
+#' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents If desired, this proportion can be set to 0 and no count restriction is set for sampling women into the parents subset.
+#' An even number of observations is output, which is one child-parent pair and one child-father pair.
 #'
-#' The function performs a reasonableness check for child ID, child age, mother ID variable, and household number.
+#' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
 #' @export
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
-#' @param ChildIDVariable The column number for the ID variable in the ChildDataFrame.
-#' @param ChildAgeVariable The column number for the Age variable in the ChildDataFrame.
-#' @param meanlogUsed The mean of the natural log for the distribution of mother ages at childbirth.
-#'  @param sdlogUsed The standard deviation of the natural log for the distribution of mother ages at childbirth.
-#' @param Mothers A data frame containing observations limited to mothers. An age column is required. This can contain the entire set of women who can be mothers, as the assignment is made on age at birth, not current age.
-#' @param MotherIDVariable The column number for the ID variable in the Recipient data frame.
-#' @param MotherAgeVariable The column number for the Age variable in the Mother data frame.
-#' @param MinMotherAge The youngest age at which a mother gives birth.
-#' @param MaxMotherAge The oldest age at which a mother gives birth.
-#' @param PropMothers The proportion of children who are assigned to mothers, the remainder will be assigned to fathers.
-#' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable.
-#' @param DyadIDValue
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#' @param ChildIDVariable The column number for the ID variable in the Children data frame.
+#' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
+#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at childbirth.
+#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at childbirth.
+#' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must be contain at least the same number of observations as the Children data frame.
+#' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
+#' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
+#' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which permits the user to set no lower bound on age. This variable can still be set if nrow(Children) == nrow(Parents).
+#' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which permits the user to set no upper bound on age. This variable can still be set if nrow(Children) == nrow(Parents).
+#' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
+#' @param DyadIDValue The starting number for generating a variable that identifies the observations in a child-parent dyad. Must be numeric. If no value is provided, the Dyad ID starts at 1.
+#' @param HouseholdNumVariable The column name for the household variable. This must be supplied, and in quotes.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
-#' if the algorithm does not converge.
+#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 
-AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed, sdlogUsed, Mothers, MotherIDVariable,
-                       MotherAgeVariable, MinMotherAge = NULL, MaxMotherAge = NULL, PropMothers, MinPropRemain = 0,
+AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable,
+                       meanlogUsed, sdlogUsed,  MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0,
                        DyadIDValue = NULL, HouseholdNumVariable= NULL, UserSeed=NULL, pValueToStop = .01,
                        NumIterations = 1000000)
   {
@@ -44,8 +42,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       stop("Both the child ID and the child age column numbers must be supplied.")
     }
 
-    if (!any(duplicated(Mothers[MotherIDVariable])) == FALSE) {
-      stop("The column number for the ID variable in the mother data frame must be supplied.")
+    if (!any(duplicated(Parents[ParentIDVariable])) == FALSE) {
+      stop("The column number for the ID variable in the parent data frame must be supplied.")
     }
 
     if (is.null(HouseholdNumVariable)) {
@@ -65,7 +63,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       RowsToSwap <- InitialAgeMatch %>%
       mutate(row_no = row_number()) %>%
       filter(row_number() > max(row_number()) - NumToSwap | row_number() <= NumToSwap) %>%
-      mutate(final_age1 = MotherAge) %>%
+      mutate(final_age1 = ParentAge) %>%
       dplyr::select(final_age1, row_no)
 
 
@@ -73,9 +71,9 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     fixedDF <- InitialAgeMatch %>%
       left_join(RowsToSwap, by = "row_no") %>%
-      mutate(final_age1 = ifelse(is.na(final_age1), MotherAge, final_age1)) %>%
-      dplyr::select(-MotherAge, -row_no, -AgeDiff) %>%
-      rename(MotherAge = final_age1)
+      mutate(final_age1 = ifelse(is.na(final_age1), ParentAge, final_age1)) %>%
+      dplyr::select(-ParentAge, -row_no, -AgeDiff) %>%
+      rename(ParentAge = final_age1)
 
 
     return(fixedDF)
@@ -83,12 +81,12 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     # pairing swap subfunction
 
-   # for mothers
+   # for parents
 
-    swap_mother <- function(pair1, pair2) {
+    swap_parent <- function(pair1, pair2) {
       swap <- pair1
-      swap$MotherID <- pair2$MotherID
-      swap$MotherAge <- pair2$MotherAge
+      swap$ParentID <- pair2$ParentID
+      swap$ParentAge <- pair2$ParentAge
       return(swap)
     }
 
@@ -137,8 +135,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     # Child age variable
     ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
 
-    # Mother age variable
-    MotherAgeColName <- sym(names(Mothers[MotherAgeVariable]))
+    # Parent age variable
+    ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
     minChildAge <- min(Children[ChildAgeVariable])
 
@@ -157,55 +155,50 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     #####################################
     #####################################
 
-    # restrict mother ages to those allowed by the user specifications
+    # restrict parent ages to those allowed by the user specifications
 
-    if (!(is.null(MinMotherAge))) {
+    if (!(is.null(MinParentAge))) {
 
-      Mothers <- Mothers %>%
-        filter(({{MotherAgeColName}} - minChildAge) >= MinMotherAge)
+      Parents <- Parents %>%
+        filter(({{ParentAgeColName}} - minChildAge) >= MinParentAge)
     }
 
-    if (!(is.null(MaxMotherAge))) {
+    if (!(is.null(MaxParentAge))) {
 
-      Mothers <- Mothers %>%
-        filter(({{MotherAgeColName}} - maxChildAge) <= MaxMotherAge)
+      Parents <- Parents %>%
+        filter(({{ParentAgeColName}} - maxChildAge) <= MaxParentAge)
     }
 
-    # get counts for each single age from the mother data frame
-    MotherCounts <- Mothers %>%
-      group_by_at(MotherAgeVariable) %>%
+    # get counts for each single age from the parent data frame
+    ParentCounts <- Parents %>%
+      group_by_at(ParentAgeVariable) %>%
       summarise(AgeCount=n())
 
     # restrict available counts if MinPropRemain has a value
 
     if (!(is.null(MinPropRemain))) {
 
-      MotherCounts <- MotherCounts %>%
+      ParentCounts <- ParentCounts %>%
         mutate(AgeCount = floor(AgeCount*(1-MinPropRemain)))
     }
 
-    # remove rows from the MotherCounts data frame that are 0, as these relate to counts < 2
+    # remove rows from the ParentCounts data frame that are 0, as these relate to counts < 2
     # this doesn't affect the total counts as 0 doesn't add anything to the sum()
 
-    MotherCounts <- MotherCounts %>%
+    ParentCounts <- ParentCounts %>%
       filter(AgeCount != 0)
 
-
-    # break and throw error if available counts are smaller than required counts
-
-    if (sum(MotherCounts$AgeCount) < round(PropMothers*nrow(Children),0)) stop ("Number of mothers required exceeds number of mothers available.")
-
-    # reduce working mother data frame to remaining ages
+    # reduce working parent data frame to remaining ages
     # then sample 1-MinPropRemain from each age
 
-    Mothers <- Mothers %>%
-      left_join(MotherCounts, by = names(Mothers[MotherAgeVariable])) %>%
-      group_by({{MotherAgeColName}}) %>%
+    Parents <- Parents %>%
+      left_join(ParentCounts, by = names(Parents[ParentAgeVariable])) %>%
+      group_by({{ParentAgeColName}}) %>%
       sample_n(AgeCount[1])
 
 
-    MotherAges <- pull(MotherCounts[1])
-    MotherAgeCounts <- pull(MotherCounts[2])
+    ParentAges <- pull(ParentCounts[1])
+    ParentAgeCounts <- pull(ParentCounts[2])
 
 
     # set up bins for iterations
@@ -219,12 +212,12 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     # # fix minima if it are outside the range input
 
-    if (!(is.null(MinMotherAge))) {
-      min_bin <- MinMotherAge - .5
+    if (!(is.null(MinParentAge))) {
+      min_bin <- MinParentAge - .5
     }
 
-    if (!(is.null(MaxMotherAge))) {
-      max_bin <- MaxMotherAge + .5
+    if (!(is.null(MaxParentAge))) {
+      max_bin <- MaxParentAge + .5
     }
 
     bins <- c(-Inf, min_bin:max_bin, Inf)
@@ -235,10 +228,10 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       plnorm(bins[-length(bins)], meanlog = meanlogUsed, sdlog = sdlogUsed)
 
     logProbLow <- dlnorm(1:(min_bin-0.5), meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
-    logProbHigh <- dlnorm((max_bin+0.5):MaxMotherAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
+    logProbHigh <- dlnorm((max_bin+0.5):MaxParentAge, meanlog = meanlogUsed, sdlog = sdlogUsed, log=TRUE)
 
     logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins <- c(-Inf, -.5:(MaxMotherAge-.5), Inf)
+    logBins <- c(-Inf, -.5:(MaxParentAge-.5), Inf)
 
 
     #####################################
@@ -260,58 +253,58 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       set.seed(UserSeed)
     }
 
-    # generate the random subset of children to match to mothers
 
-    ChildToMother <- Children %>%
-      sample_n(round(PropMothers*nrow(Children),0))
-
-
-    CurrentAgeMatch <- data.frame(ChildToMother[ChildIDVariable],
-                                  ChildToMother[ChildAgeVariable],
-                                  MotherAge = sample(rep(MotherAges, MotherAgeCounts),
-                                                    size=nrow(ChildToMother),
+    CurrentAgeMatch <- data.frame(Children[ChildIDVariable],
+                                  Children[ChildAgeVariable],
+                                  ParentAge = sample(rep(ParentAges, ParentAgeCounts),
+                                                    size=nrow(Children),
                                                     replace = FALSE))
 
     # fix any extreme age difference values in CurrentAgeMatch by swapping minimum and maximum extremes
-    # extremes are differences outside the MinMotherAge and MaxMotherAge values
+    # extremes are differences outside the MinParentAge and MaxParentAge values
     # I think this is the problem causing the distribution fit to fail
     # this should only be entered if:
-    # 1. there is a MinMotherAge and/or MaxMotherAge value entered by the user
+    # 1. there is a MinParentAge and/or MaxParentAge value entered by the user
     # 2. if 1. is true, then check to see if any value is outside those user-defined values
     # so we need two if statements, one nested inside the other
 
-    if(!(is.null(MinMotherAge)) | !(is.null(MaxMotherAge))) {
+    if(!(is.null(MinParentAge)) | !(is.null(MaxParentAge))) {
 
-      if(is.null(MinMotherAge)) {
-        MinMotherAge == 0
+      if(is.null(MinParentAge)) {
+        MinParentAge == 0
 
       } else {
 
-        (is.null(MaxMotherAge))
+        (is.null(MaxParentAge))
 
-        MaxMotherAge==0
+        MaxParentAge==0
       }
 
-    if(MinMotherAge + MaxMotherAge >0) {
+    if(MinParentAge + MaxParentAge >0) {
 
       CurrentAgeMatch <- CurrentAgeMatch %>%
-        mutate(AgeDiff = MotherAge - .[[2]]) %>%
+        mutate(AgeDiff = ParentAge - .[[2]]) %>%
         arrange(AgeDiff) %>%
         mutate(row_no = row_number())
 
       # then test if any diffs are outside the required age range
 
       TooYoung <- CurrentAgeMatch %>%
-        filter(AgeDiff < MinMotherAge) %>%
+        filter(AgeDiff < MinParentAge) %>%
         summarise(Count = n()) %>%
         pull(Count)
 
       TooOld <- CurrentAgeMatch %>%
-        filter(AgeDiff > MaxMotherAge) %>%
+        filter(AgeDiff > MaxParentAge) %>%
         summarise(Count = n()) %>%
         pull(Count)
 
-      NumToSwap <- max(TooYoung, TooOld)
+      NumToSwap <- min(max(TooYoung, TooOld), floor(nrow(CurrentAgeMatch)/2))
+
+      # the last line above ensures that the maximum number of rows that are swapped
+      # cannot exceed the total number of observations
+      # if the data frame rows are odd, the floor() command ensures that a maximum of n-1 rows are swapped
+
 
       # swap if there are swaps to do, hence test for 0
       if(NumToSwap > 0) {
@@ -354,7 +347,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
 #     #####################################
 #     #####################################
-#     # iteration for matching child to mother ages starts here
+#     # iteration for matching child to parent ages starts here
 #     #####################################
 #     #####################################
 # #  ChiSquareValuesCreated <- data.frame()
@@ -368,8 +361,8 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
       Current2 <- CurrentAgeMatch[Pick2,]
 
       # # proposed pairing after a swap
-      PropPair1 <- swap_mother(Current1, Current2)
-      PropPair2 <- swap_mother(Current2, Current1)
+      PropPair1 <- swap_parent(Current1, Current2)
+      PropPair2 <- swap_parent(Current2, Current1)
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
@@ -413,22 +406,22 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     #####################################
     #####################################
-    # iteration for matching mother-child ages ends here
+    # iteration for matching parent-child ages ends here
     #####################################
     #####################################
 
 
     #####################################
     #####################################
-    # pairing the actual mother-child dyads starts here
+    # pairing the actual parent-child dyads starts here
     #####################################
     #####################################
     # return full donor and recipient rows as matched household pairs
     # extract ages counts for matching the donors
-    MatchedMotherAges <- CurrentAgeMatch %>%
-      dplyr::select(MotherAge) %>%
-      group_by(MotherAge) %>%
-      mutate(MotherAgeCount = row_number()) %>%
+    MatchedParentAges <- CurrentAgeMatch %>%
+      dplyr::select(ParentAge) %>%
+      group_by(ParentAge) %>%
+      mutate(ParentAgeCount = row_number()) %>%
       ungroup()
 
 
@@ -436,40 +429,40 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
     # the AgeCount is used to ensure that the first donor with a specific age is matched first
     # the second donor with a specific age is matched second
 #     # and so forth
-    MothersToMatch <- Mothers %>%
-      group_by({{MotherAgeColName}}) %>%
-      mutate(MotherAgeCount = row_number()) %>%
+    ParentsToMatch <- Parents %>%
+      group_by({{ParentAgeColName}}) %>%
+      mutate(ParentAgeCount = row_number()) %>%
       ungroup()
 
     # reduce pool of potentially partnered donors to only those matched to recipients
-    MothersMatched <- left_join(MatchedMotherAges,
-                                rename_at(MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[1],
-                                          MothersToMatch, MotherAgeVariable, ~ names(MatchedMotherAges)[2]),
-                                by = c(names(MatchedMotherAges)[1], "MotherAgeCount")) %>%
-      mutate(!!MotherAgeColName := MotherAge)
+    ParentsMatched <- left_join(MatchedParentAges,
+                                rename_at(ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[1],
+                                          ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[2]),
+                                by = c(names(MatchedParentAges)[1], "ParentAgeCount")) %>%
+      mutate(!!ParentAgeColName := ParentAge)
 
 
     # construct same file for the children
-    # need both mother age and mother age count so that the join between the children and the mothers works
+    # need both parent age and parent age count so that the join between the children and the parents works
     # do not need child age as this will be a duplicate column on the merge
     ChildrenMatchPrep <- CurrentAgeMatch %>%
-      group_by(MotherAge) %>%
-      mutate(MotherAgeCount = row_number()) %>%
+      group_by(ParentAge) %>%
+      mutate(ParentAgeCount = row_number()) %>%
       dplyr::select(-c(2)) %>%
       ungroup()
 
-    ChildrenReadyToMatch <- left_join(ChildToMother, ChildrenMatchPrep, by = c(names(Children[ChildIDVariable])))
+    ChildrenReadyToMatch <- left_join(Children, ChildrenMatchPrep, by = c(names(Children[ChildIDVariable])))
 
 
 
     # now merge the full data of the subset donors to the recipients
-    # by mother age and mother age count
+    # by parent age and parent age count
     # children data frame is the one to which observations must be joined
     # also add the household numbers at this point
     MaxDyadIDValue <- (nrow(ChildrenReadyToMatch)-1) + DyadIDValue
 
-    FullMatchedDataFrame <- left_join(ChildrenReadyToMatch, MothersMatched, by=c("MotherAge", "MotherAgeCount")) %>%
-      dplyr::select(-MotherAge, -MotherAgeCount) %>%
+    FullMatchedDataFrame <- left_join(ChildrenReadyToMatch, ParentsMatched, by=c("ParentAge", "ParentAgeCount")) %>%
+      dplyr::select(-ParentAge, -ParentAgeCount) %>%
       ungroup() %>%
       mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
@@ -488,7 +481,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, meanlogUsed,
 
     #####################################
     #####################################
-    # pairing the mothers to children ends here
+    # pairing the parents to children ends here
     #####################################
     #####################################
     print(i)
