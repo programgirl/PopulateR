@@ -11,9 +11,9 @@
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
-#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at childbirth.
-#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at childbirth.
-#' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must be contain at least the same number of observations as the Children data frame.
+#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
+#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
+#' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must contain at least the same number of observations as the Children data frame.
 #' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
 #' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which permits the user to set no lower bound on age. This variable can still be set if nrow(Children) == nrow(Parents).
