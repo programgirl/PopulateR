@@ -1,9 +1,9 @@
 #' Create a subset of observations containing only children matched to parents/guardians
-#' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used is the log normal
-#' Three data frames are required. The Children data frame contains the age data, to which the two parent/guardian data will be applied. The two data frames for the parent/guardian observations are assumed to be split between parents and fathers.
-#' The minimum and maximum ages of parents can be specified, to minimise the result that there are parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at becoming a parent. The presence of too young and too old parents is tested at the start of the process and an attempt is made to remove initial pairings outside this range. Thus,  pre-cleaning the Parent data frame is not required, although pairs outside this age range may be produced, due to the distribution used.
-#' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents If desired, this proportion can be set to 0 and no count restriction is set for sampling women into the parents subset.
-#' An even number of observations is output, which is one child-parent pair and one child-father pair.
+#' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal.
+#' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
+#' The minimum and maximum ages of parents can be specified, to minimise the result that there are parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at becoming a parent. The presence of too young and too old parents is tested at the start of the process and an attempt is made to remove initial pairings outside this range. Thus,pre-cleaning the Parent data frame is not required, although pairs outside this age range may be output, due to the distribution used.
+#' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents. The defalt value is 0, enabling a pre-cleaned data frame of parents to be used.
+#' An even number of observations is output, which is one child-parent pair.
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
