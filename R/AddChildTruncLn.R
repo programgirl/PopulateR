@@ -62,13 +62,11 @@ AddChildTruncLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents
 
   fixExtremes <- function(InitialAgeMatch) {
 
-    i = 0
+    i <- 0
 
-    while(NumToSwap > 0  || i < 50){
+    # while(NumToSwap > 0 & i < 51){
 
-      print(i)
-
-    RowsToSwap <- InitialAgeMatch %>%
+     RowsToSwap <- InitialAgeMatch %>%
       mutate(row_no = row_number()) %>%
       filter(row_number() > max(row_number()) - NumToSwap | row_number() <= NumToSwap) %>%
       mutate(final_age1 = ParentAge) %>%
@@ -90,23 +88,23 @@ AddChildTruncLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents
 
     # then test if any diffs are outside the required age range
 
-    TooYoung <- InitialAgeMatch %>%
-      filter(AgeDiff < MinParentAge) %>%
-      summarise(Count = n()) %>%
-      pull(Count)
-
-    TooOld <- InitialAgeMatch %>%
-      filter(AgeDiff > MaxParentAge) %>%
-      summarise(Count = n()) %>%
-      pull(Count)
-
-    NumToSwap <- min(max(TooYoung, TooOld), floor(nrow(InitialAgeMatch)/2))
-
-    i = i + 1
-
-  }
+    # TooYoung <- InitialAgeMatch %>%
+    #   filter(AgeDiff < MinParentAge) %>%
+    #   summarise(Count = n()) %>%
+    #   pull(Count)
+    #
+    # TooOld <- InitialAgeMatch %>%
+    #   filter(AgeDiff > MaxParentAge) %>%
+    #   summarise(Count = n()) %>%
+    #   pull(Count)
+    #
+    # NumToSwap <- min(max(TooYoung, TooOld), floor(nrow(InitialAgeMatch)/2))
+    #
+    # i = i + 1
 
     return(fixedDF)
+
+  # }
   }
 
   # #####################################
@@ -281,9 +279,15 @@ AddChildTruncLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents
 
     CurrentAgeMatch <- fixExtremes(CurrentAgeMatch)
 
-  }
+    return(CurrentAgeMatch)
 
-  return(CurrentAgeMatch)
+    }
+
+  print("it got to output")
+
+
+
+
 
   # # set up for chi-squared test
   # ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
