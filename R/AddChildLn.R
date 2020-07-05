@@ -1,7 +1,7 @@
 #' Create a subset of observations containing only children matched to parents/guardians
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal.
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
-#' The minimum and maximum ages of parents can be specified, to minimise the result that there are parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at becoming a parent. The presence of too young and too old parents is tested at the start of the process and an attempt is made to remove initial pairings outside this range. Thus,pre-cleaning the Parent data frame is not required, although pairs outside this age range may be output, due to the distribution used.
+#' The minimum and maximum ages of parents can be specified, to minimise the result that there are parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at becoming a parent. The presence of too young and too old parents is tested at the start of the process and an attempt is made to remove initial pairings outside this range. Thus,pre-cleaning the Parent data frame is not required, although pairs outside this age range may be output, due to the distribution used. For a solution that is guaranteed to prevent out-of-scope matches, use AddChildTruncLn instead.
 #' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents. The defalt value is 0, enabling a pre-cleaned data frame of parents to be used.
 #' An even number of observations is output, which is one child-parent pair.
 #'
@@ -81,8 +81,6 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
 
     # pairing swap subfunction
 
-   # for parents
-
     swap_parent <- function(pair1, pair2) {
       swap <- pair1
       swap$ParentID <- pair2$ParentID
@@ -90,7 +88,7 @@ AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
       return(swap)
     }
 
-    # for fathers
+
 
     # #####################################
     # # chi-squared check subfunction

@@ -25,7 +25,7 @@
 #' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 
-AddChildLn <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable,
+AddChildN <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable,
                        meanUsed, sdUsed,  MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0,
                        DyadIDValue = NULL, HouseholdNumVariable= NULL, UserSeed=NULL, pValueToStop = .01,
                        NumIterations = 1000000)
