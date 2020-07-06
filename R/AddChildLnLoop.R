@@ -84,19 +84,19 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   # ensure all parent ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
-  ParentAgeSeq <- seq(min(ParentCounts[,1]),  max(ParentCounts[,1]), by =1)
+  ParentAgeSeq <- data.frame(sym(names(Parents[ParentAgeVariable])) =
+                               seq(min(ParentCounts[,1]), max(ParentCounts[,1]), by =1))
 
   #left join on sequence, forcing any NULL counts to be zero
+#
+#   FinalParentCounts <- ParentAgeSeq %>%
+#     left_join(ParentCounts, by = ({{ParentAgeColName}}))  %>%
+#     mutate(is.numeric,coalesce,0)
+#
+#   ParentAgeVector <- FinalParentCounts %>%
+#     pull(AgeCount)
 
-  FinalParentCounts <- ParentAgeSeq %>%
-    left_join(ParentCounts, by = c("ParentAgeSeq" = "{{ParentAgeVariable}}")) %>%
-    mutate_if(is.numeric,coalesce,0)
-
-
-
-  return(ParentCounts)
-# ensure that all ages from parent minium age to parent maximum age are i t
-
+  return(ParentAgeSeq)
   #####################################
   #####################################
   # end set up
@@ -110,7 +110,11 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   #####################################
   #####################################
 
-  # 1. get the counts of parents by single age (completed above)
+  # construct an index of counts - these are the parent ages that will be sampled
+  # the index has no gaps, as the join and then coalesce ensured a full sequence with any NAs replaced by 0
+
+
+
   # 2. construct two lists of these so that one is the age and the other is the corresponding count
   # 3. generate the random age match for the child: this is child's age plus the rng number (floor)
   # 4.  as the minimum age is 18, the matching age index is matching age - 17
