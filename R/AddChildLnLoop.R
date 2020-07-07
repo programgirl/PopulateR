@@ -143,19 +143,41 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # create second attempt to match only those who didn't match the first time
   # use same distribution
 
-  return(Children)
-  #
-  #
-  #   if (Partnered2PHHDiffSexMales$MatchedAge[j] > 90) Partnered2PHHDiffSexMales$MatchedAge[j] = 90
-  #   age_index <- Partnered2PHHDiffSexMales$MatchedAge[j]-17
-  #   if (Partnered2PHHCounts[age_index]==0) {
-  #     Partnered2PHHDiffSexMales$MatchedAge[j] = 0
-  #   } else {
-  #     Partnered2PHHCounts[age_index] = Partnered2PHHCounts[age_index] - 1
-  #
-  #   }
-  # }
+  ChildrenMatched <- Children %>%
+    filter(!(is.na(Children$MatchedAge))) %>%
+    select(-c(AgeDifference, MatchedAge))
 
+  Children <- Children %>%
+    filter(is.na(Children$MatchedAge)) %>%
+    select(-c(AgeDifference, MatchedAge, IndexUsed))
+
+
+  # # redo code with reduced dataframe
+
+  for (j in 1:nrow(Children)) {
+    Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
+  #   Children$MatchedAge[j] <- round(Children[[ChildAgeVariable]][j] + Children$AgeDifference[j])
+  #   if (Children$MatchedAge[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
+  #     age_index <- Children$MatchedAge[j]-(minIndexAge-1)
+  #     if (ParentAgeCountVector[age_index]==0) {
+  #       Children$MatchedAge[j] <- NA
+  #
+  #     } else {
+  #
+  #       Children$IndexUsed[j] <- age_index
+  #       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+  #
+  #     }
+  #
+  #
+  #   } else {
+  #
+  #     Children$MatchedAge[j] <- NA
+  #   }
+
+  }
+
+  return(Children)
 
   # 2. construct two lists of these so that one is the age and the other is the corresponding count
   # 3. generate the random age match for the child: this is child's age plus the rng number (floor)
