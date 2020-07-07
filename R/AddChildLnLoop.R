@@ -80,14 +80,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # ensure all parent ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
 
-  # ParentCounts <- Parents %>%
-  #   group_by_at(ParentAgeVariable) %>%
-  #   summarise(AgeCount=n()) %>%
-  #   mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
-  #   #ungroup() #%>%
-  #   complete({{ParentAgeColName}}:=seq(from = min({{ParentAgeColName}}), to = max({{ParentAgeColName}})),
-  #            fill = list(AgeCount = 0))
-
   ParentCounts <- Parents %>%
     group_by_at(ParentAgeVariable) %>%
     summarise(AgeCount=n()) %>%
@@ -96,15 +88,11 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
              fill = list(AgeCount = 0))
 
-#
-#   FinalParentCounts <- ParentAgeSeq %>%
-#     left_join(ParentCounts, by = ({{ParentAgeColName}}))  %>%
-#     mutate(is.numeric,coalesce,0)
-#
-#   ParentAgeVector <- FinalParentCounts %>%
-#     pull(AgeCount)
+  minIndexAge <- as.integer(ParentCounts[1,1])
+  maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
-  return(ParentCounts)
+  ParentAgeCountVector <- ParentCounts$AgeCount
+
   #####################################
   #####################################
   # end set up
@@ -118,9 +106,35 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   #####################################
   #####################################
 
-  # construct an index of counts - these are the parent ages that will be sampled
-  # the index has no gaps, as the join and then coalesce ensured a full sequence with any NAs replaced by 0
+  # as the minimum and maximum Parent ages are known and the child age is known,
+  # a check is made is to to see if the parent age draw is within range
+  # if so, a check is made to ensure that there is an available parent of that age
+  # if not, parent match is rejected, to be redone later
+  # if still no match, third pass gives a drunkard's walk assigned to one of the
+  # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
 
+
+
+  for (j in 1:nrow(Children)) {
+    Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
+    #Children$MatchedAge[j] <- round(Children[ChildAgeVariable][j] + Children$AgeDifference[j])
+    # if (Children$MatchedAge[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
+    #   age_index <- Partnered2PHHDiffSexMales$MatchedAge[j]-17
+
+  }
+
+  return(Children)
+  #
+  #
+  #   if (Partnered2PHHDiffSexMales$MatchedAge[j] > 90) Partnered2PHHDiffSexMales$MatchedAge[j] = 90
+  #   age_index <- Partnered2PHHDiffSexMales$MatchedAge[j]-17
+  #   if (Partnered2PHHCounts[age_index]==0) {
+  #     Partnered2PHHDiffSexMales$MatchedAge[j] = 0
+  #   } else {
+  #     Partnered2PHHCounts[age_index] = Partnered2PHHCounts[age_index] - 1
+  #
+  #   }
+  # }
 
 
   # 2. construct two lists of these so that one is the age and the other is the corresponding count
