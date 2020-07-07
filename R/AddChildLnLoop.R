@@ -113,20 +113,24 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # if still no match, third pass gives a drunkard's walk assigned to one of the
   # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
 
-
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
 
   for (j in 1:nrow(Children)) {
     Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
-    Children$MatchedAge[j] <- floor(Children[[ChildAgeVariable]][j] + Children$AgeDifference[j])
+    Children$MatchedAge[j] <- round(Children[[ChildAgeVariable]][j] + Children$AgeDifference[j])
     if (Children$MatchedAge[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
        age_index <- Children$MatchedAge[j]-(minIndexAge-1)
        if (ParentAgeCountVector[age_index]==0) {
-         Children$MatchedAge2[j] <- NA
+         Children$MatchedAge[j] <- NA
 
          } else {
+           Children$IndexUsed[j] <- age_index
            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
          }
+
 
     }
 
