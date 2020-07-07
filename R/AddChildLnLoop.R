@@ -179,15 +179,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   return(Children)
 
-  # 2. construct two lists of these so that one is the age and the other is the corresponding count
-  # 3. generate the random age match for the child: this is child's age plus the rng number (floor)
-  # 4.  as the minimum age is 18, the matching age index is matching age - 17
-  # 5. check if there is still a non-zero count in the age list
-  # 6a. if so, keep the age as the matched age and decrease the count by 1 in the count list
-  # 6b. if the matching age has a count of 0 in the table, set the matched age to NA
-  # 7. the non-matched ages will be the May-December matches - check this (make sure there aren't too many non-matches)
-
-
 
 }
 
@@ -208,23 +199,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 # # 5. check if there is still a non-zero count in the age list
 # # 6a. if so, keep the age as the matched age and decrease the count by 1 in the count list
 # # 6b. if the matching age has a count of 0 in the table, set the matched age to NA
-# # 7. the non-matched ages will be the May-December matches - check this (make sure there aren't too many non-matches)
-#
-# # get counts for each single age for the women, for women not in same-sex households
-# Partnered2PHHDiffSexFemCounts <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Female", !(ID %in% Partnered2PHHSameSexWomen$ID)) %>%
-#   group_by(AssignedAge) %>%
-#   summarise(AgeCount=n()) #%>%
-# #spread(AssignedAge,AgeCount)
-#
-# Partnered2PHHCounts <- Partnered2PHHDiffSexFemCounts$AgeCount
-#
-# # remove same-sex households from the 2-person household partnered data
-# Partnered2PHHDiffSexMales <- Partnered2PHH %>%
-#   filter(RELATIONSHIP=="Partnered", SEX=="Male", !(ID %in% Partnered2PHHSameSexMen$ID)) %>%
-#   mutate(
-#     AgeDifference=0
-#   )
+# # 7. the non-matched ages will be the May-December matches - check this (make sure there aren't too many non-matches
 #
 # # assign the matched ages to the males, the females will be randomly matched to these
 # # interactive skew plot at http://azzalini.stat.unipd.it/SN/plot-SN1.html
@@ -243,39 +218,4 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #   }
 # }
 #
-# # check matched ages actually matched
-# table(Partnered2PHHDiffSexMales$MatchedAge)
-# # 329/nrow(Partnered2PHHDiffSexMales)
-# # 9% of males not matched when rsn(1,xi=0, omega=3, alpha=4)
-#
-# Partnered2PHHCounts
-# # some large pockets of women not matched
-# # plot the matched ages of men and women
-# Partnered2PHHMatched1 <- Partnered2PHHDiffSexMales %>%
-#   filter(MatchedAge > 0) %>%
-#   select(ID, AssignedAge, MatchedAge) %>%
-#   gather(key="Age.Type", value="Age", -ID)
-#
-# ggplot(Partnered2PHHMatched1, aes(x=Age, fill=Age.Type)) +
-#   geom_density(col=NA, alpha=0.35) +
-#   scale_fill_manual( values = c("blue","pink")) +
-#   labs(title="Age distribution of matched partnered adults in 2-person households\nrsn(1,xi=0, omega=3, alpha=4)",
-#        x ="Age (years)")
-#
-# # plot the ages of men unmatched and the ages of women not matched
-# Partnered2PHHUnmatched <- Partnered2PHHDiffSexMales %>%
-#   filter(MatchedAge==0) %>%
-#   select(ID, SEX, AssignedAge)
-#
-# IncorrectlyUnpartnered2PHHWomen <- data.frame(AssignedAge=c(Partnered2PHHDiffSexFemCounts$AssignedAge), SEX="Female", Count=Partnered2PHHCounts)
-# IncorrectlyUnpartnered2PHHWomen <- IncorrectlyUnpartnered2PHHWomen %>%
-#   group_by(AssignedAge, SEX) %>%
-#   ungroup(AssignedAge, SEX)
-#
-#
-#
-#
-# ################################################################################################
-# # look at children and unpartnered women's ages
-# Partnered2PHHChildren <- Master_household_file_Timaru_2013_census_data %>%
-#   filter(AGEBAND %in% c(1:4) | AGEBAND==5 & HRSWORKED=="Not Working", INHABITANTS==2)
+
