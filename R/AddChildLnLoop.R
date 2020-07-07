@@ -91,7 +91,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   minIndexAge <- as.integer(ParentCounts[1,1])
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
+
+
   ParentAgeCountVector <- ParentCounts$AgeCount
+
+
+
 
   #####################################
   #####################################
@@ -117,34 +122,82 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     set.seed(UserSeed)
   }
 
+
   for (j in 1:nrow(Children)) {
     Children$AgeDifference[j] <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-    if (Children$AgeDifference[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
-       age_index <- Children$MatchedAge[j]-(minIndexAge-1)
-       if (ParentAgeCountVector[age_index]==0) {
-         Children$MatchedAge[j] <- NA
+    MatchedAge <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+
+    if(!(is.null(MinParentAge)) & !(is.null(MaxParentAge))) {
+
+      if (Children$AgeDifference[j] >= MinParentAge & MatchedAge <=  MaxParentAge) {
+
+         age_index <- MatchedAge-(minIndexAge-1)
+
+         if (ParentAgeCountVector[age_index] !=0) {
+           Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+           ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+           }
 
          } else {
 
-           ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+           Children$MatchedAge[j] <- NA
 
          }
 
-
-    } else {
-
-      Children$MatchedAge[j] <- NA
     }
 
   }
+
+
+  #   if (Children$AgeDifference[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #        }
+  #
+  #
+  #   } else {
+  #
+  #     Children$MatchedAge[j] <- NA
+  #   }
+  #
+  # }
+
+  # previous code that doesn't limit the age differences for matching to those within the paramters
+  # for (j in 1:nrow(Children)) {
+  #   Children$AgeDifference[j] <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+  #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+  #   if (Children$AgeDifference[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
+  #      age_index <- Children$MatchedAge[j]-(minIndexAge-1)
+  #      if (ParentAgeCountVector[age_index]==0) {
+  #        Children$MatchedAge[j] <- NA
+  #
+  #        } else {
+  #
+  #          ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+  #
+  #        }
+  #
+  #
+  #   } else {
+  #
+  #     Children$MatchedAge[j] <- NA
+  #   }
+  #
+  # }
 
 # create second attempt to match only those who didn't match the first time
 # use same distribution
 
   ChildrenMatched <- Children %>%
-    filter(!(is.na(Children$MatchedAge))) %>%
-    select(-c(AgeDifference, MatchedAge))
+    filter(!(is.na(Children$MatchedAge))) #%>%
+   # select(-c(AgeDifference, MatchedAge))
 
   Children <- Children %>%
     filter(is.na(Children$MatchedAge)) %>%
@@ -175,7 +228,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(ParentAgeCountVector)
+  return(Children)
 
 
 }
