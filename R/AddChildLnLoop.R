@@ -119,9 +119,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
     Children$MatchedAge[j] <- floor(Children[[ChildAgeVariable]][j] + Children$AgeDifference[j])
     if (Children$MatchedAge[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
-       age_index <- Children$MatchedAge[j]-17
+       age_index <- Children$MatchedAge[j]-(minIndexAge-1)
        if (ParentAgeCountVector[age_index]==0) {
-         Children$MatchedAge[j] <- NA
+         Children$MatchedAge2[j] <- NA
 
          } else {
            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
@@ -132,7 +132,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   }
 
-  return(Children)
+  return(ParentAgeCountVector)
   #
   #
   #   if (Partnered2PHHDiffSexMales$MatchedAge[j] > 90) Partnered2PHHDiffSexMales$MatchedAge[j] = 90
