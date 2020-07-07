@@ -77,17 +77,25 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
+  # ensure all parent ages are represented in the data frame of counts
+  # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
+
+  # ParentCounts <- Parents %>%
+  #   group_by_at(ParentAgeVariable) %>%
+  #   summarise(AgeCount=n()) %>%
+  #   mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
+  #   #ungroup() #%>%
+  #   complete({{ParentAgeColName}}:=seq(from = min({{ParentAgeColName}}), to = max({{ParentAgeColName}})),
+  #            fill = list(AgeCount = 0))
+
   ParentCounts <- Parents %>%
     group_by_at(ParentAgeVariable) %>%
     summarise(AgeCount=n()) %>%
-    mutate(AgeCount = floor(AgeCount*(1-MinPropRemain)))
+    mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
+    #ungroup() #%>%
+    complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
+             fill = list(AgeCount = 0))
 
-  # ensure all parent ages are represented in the data frame of counts
-  # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
-  ParentAgeSeq <- data.frame(sym(names(Parents[ParentAgeVariable])) =
-                               seq(min(ParentCounts[,1]), max(ParentCounts[,1]), by =1))
-
-  #left join on sequence, forcing any NULL counts to be zero
 #
 #   FinalParentCounts <- ParentAgeSeq %>%
 #     left_join(ParentCounts, by = ({{ParentAgeColName}}))  %>%
@@ -96,7 +104,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #   ParentAgeVector <- FinalParentCounts %>%
 #     pull(AgeCount)
 
-  return(ParentAgeSeq)
+  return(ParentCounts)
   #####################################
   #####################################
   # end set up
