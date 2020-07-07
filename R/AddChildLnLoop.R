@@ -184,12 +184,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
 
 
-#
-#
-# # match remaining men and women marked as "matched" - there will be some non-matches as more women are recorded as partnered
-# # use a skewed normal distribution
-# # a normal distribution won't retain high enough peaks at standard age differences between partners
-# # will use the sn package to generate a skewed normal distribution - this retains the high peaks at the mean values
 # # the mean is set to 2 years difference, with men generally being older than women
 # # the method is:
 # # 1. get the counts of women by single age
