@@ -126,17 +126,24 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
          Children$MatchedAge[j] <- NA
 
          } else {
+
            Children$IndexUsed[j] <- age_index
            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
          }
 
 
+    } else {
+
+      Children$MatchedAge[j] <- NA
     }
 
   }
 
-  return(ParentAgeCountVector)
+  # create second attempt to match only those who didn't match the first time
+  # use same distribution
+
+  return(Children)
   #
   #
   #   if (Partnered2PHHDiffSexMales$MatchedAge[j] > 90) Partnered2PHHDiffSexMales$MatchedAge[j] = 90
