@@ -151,7 +151,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     select(-c(AgeDifference, MatchedAge))
 
 
-  # # redo code with reduced dataframe
+  # redo code with reduced dataframe
 
 #   for (j in 1:nrow(Children)) {
 #     Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
@@ -175,7 +175,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(Children)
+  return(ParentAgeCountVector)
 
 
 }
