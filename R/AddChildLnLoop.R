@@ -135,20 +135,20 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
          age_index <- MatchedAge-(minIndexAge -1)
 
          #
-         if (ParentAgeCountVector[age_index] != 0) {
-
-           Children$MatchedAge[j] <- MatchedAge
-           Children$AgeIndex[j] <- age_index
-           ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-
+#          if (ParentAgeCountVector[age_index] != 0) {
 #
-         }
-
-         } else {
-
-           Children$MatchedAge[j] <- NA
-           Children$AgeIndex[j] <- NA
-
+#            Children$MatchedAge[j] <- MatchedAge
+#            Children$AgeIndex[j] <- age_index
+#            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+#
+# #
+#          }
+#
+#          } else {
+#
+#            Children$MatchedAge[j] <- NA
+#            Children$AgeIndex[j] <- NA
+#
 #
 #            # will be else if (minparentage but not max) {}
 #
@@ -210,9 +210,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 # create second attempt to match only those who didn't match the first time
 # use same distribution
 
-  ChildrenMatched <- Children %>%
-    filter(!(is.na(Children$MatchedAge))) #%>%
- # select(-c(AgeDifference, MatchedAge))
+ #  ChildrenMatched <- Children %>%
+ #    filter(!(is.na(Children$MatchedAge))) #%>%
+ # # select(-c(AgeDifference, MatchedAge))
 
   # Children <- Children %>%
   #   filter(is.na(Children$MatchedAge)) %>%
@@ -243,7 +243,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(MaxParentAge)
+  return(Children)
 
 
 }
