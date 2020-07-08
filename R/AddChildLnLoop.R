@@ -142,6 +142,8 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
 #
+         }
+
          } else {
 
            Children$MatchedAge[j] <- NA
@@ -158,7 +160,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
          }
 
-    }
+
 
   }
 
@@ -241,7 +243,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(ChildrenMatched)
+  return(MaxParentAge)
 
 
 }
