@@ -128,7 +128,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   #  if (!(is.null(MinParentAge)) & !(is.null(MaxParentAge))) {
 #
-      if (Children$AgeDifference[j] >= MinParentAge & Children$AgeDifference[j] <=  MaxParentAge) {
+      if (Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <=  MaxParentAge) {
 
         MatchedAge <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
 #
@@ -208,9 +208,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 # create second attempt to match only those who didn't match the first time
 # use same distribution
 
-  # ChildrenMatched <- Children %>%
-  #   filter(!(is.na(Children$MatchedAge))) #%>%
-   # select(-c(AgeDifference, MatchedAge))
+  ChildrenMatched <- Children %>%
+    filter(!(is.na(Children$MatchedAge))) #%>%
+ # select(-c(AgeDifference, MatchedAge))
 
   # Children <- Children %>%
   #   filter(is.na(Children$MatchedAge)) %>%
@@ -241,7 +241,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(Children)
+  return(ChildrenMatched)
 
 
 }
