@@ -243,7 +243,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #
 #   }
 
-  return(ChildrenMatched)
+  return(ParentAgeCountVector)
 
 
 }
