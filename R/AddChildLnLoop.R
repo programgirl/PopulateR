@@ -88,8 +88,8 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
              fill = list(AgeCount = 0))
 
-  minIndexAge <- as.numeric(ParentCounts[1,1])
-  maxIndexAge <- as.numeric(ParentCounts[nrow(ParentCounts),1])
+  minIndexAge <- as.integer(ParentCounts[1,1])
+  maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
 
 
