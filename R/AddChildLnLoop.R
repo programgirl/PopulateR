@@ -134,7 +134,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
          Children$AgeDifference1[j] <- AgeDifference
          Children$MatchedAge1[j] <- MatchedAge
 
-    if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge) {
+ #   if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge) {
+
+         if (Children$MatchedAge[j] <=  MaxParentAge) {
 
         age_index <- MatchedAge-(minIndexAge -1)
 
