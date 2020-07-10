@@ -198,31 +198,31 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # find first current parent age that is still available
   # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
 
-  # for (j in 1:nrow(Children)) {
-  #
-  #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + MinParentAge
-  #   age_index <- Children$MatchedAge[j]-(minIndexAge -1)
-  #
-  #   if (ParentAgeCountVector[age_index] == 0) {
-  #
-  #     Children$MatchedAge[j] <- NA
-  #
-  #     while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
-  #
-  #       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] + 1
-  #     }
-  #
-  #     Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + (minIndexAge -1)
-  #
-  #     }
-  #
-  #   }
+  for (j in 1:nrow(Children)) {
+
+    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + MinParentAge
+    age_index <- Children$MatchedAge[j]-(minIndexAge -1)
+
+    if (ParentAgeCountVector[age_index] == 0) {
+
+      Children$MatchedAge[j] <- NA
+
+      while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
+
+        ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] + 1
+      }
+
+      Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + (minIndexAge -1)
+
+      }
+
+    }
 
 
 
 
 
- return(ParentAgeCountVector)
+ return(Children)
 
 
 }
