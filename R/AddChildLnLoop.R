@@ -184,9 +184,14 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   }
 
+  MatchedSecondGo<- Children %>%
+    filter(!(is.na(MatchedAge)))
+
+  MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
 
 
- return(Children)
+
+ return(MatchedChildren)
 
 
 }
