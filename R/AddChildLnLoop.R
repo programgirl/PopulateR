@@ -224,11 +224,14 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
       }
 
 
-    }
+    } else {
 
     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+    Children$DoesThisWork <- "I don't know"
 
     }
+
+  }
 
 
 
