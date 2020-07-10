@@ -1,5 +1,5 @@
 #'
-#'
+#' min parent and max parent ages must be supplied
 
 
 
@@ -23,6 +23,14 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   if (!any(duplicated(Parents[ParentIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the parent data frame must be supplied.")
+  }
+
+  if (is.null(MinParentAge)) {
+    stop("The minimum parent age must be supplied.")
+  }
+
+  if (is.null(MaxParentAge)) {
+    stop("The maximum parent age must be supplied.")
   }
 
   if (is.null(HouseholdNumVariable)) {
@@ -75,6 +83,10 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
       filter(({{ParentAgeColName}} - maxChildAge) <= MaxParentAge)
   }
 
+  # create minimum and maximum Parent ages off the data if none are supplied.
+
+
+
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
   # ensure all parent ages are represented in the data frame of counts
@@ -84,7 +96,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     group_by_at(ParentAgeVariable) %>%
     summarise(AgeCount=n()) %>%
     mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
-    #ungroup() #%>%
     complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
              fill = list(AgeCount = 0))
 
