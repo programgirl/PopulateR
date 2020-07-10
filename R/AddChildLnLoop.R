@@ -131,25 +131,19 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
          MatchedAge <- Children[[ChildAgeVariable]][j] + AgeDifference
          Children$MatchedAge[j] <- MatchedAge
 
-         Children$AgeDifference1[j] <- AgeDifference
-         Children$MatchedAge1[j] <- MatchedAge
+         if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge) {
 
- #   if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge) {
-
-         if (Children$MatchedAge[j] <=  MaxParentAge) {
-
-        age_index <- Children$MatchedAge1[j]-(minIndexAge -1)
+         age_index <- Children$MatchedAge[j]-(minIndexAge -1)
 
         # if (isTRUE(ParentAgeCountVector[age_index] > 0)) {
-          Children$AgeDifference[j] <- Children$AgeDifference1[j]
+          Children$AgeDifference[j] <- AgeDifference
 
-          Children$AgeIndex[j] <- age_index
+
         #   ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
         #
         #
           } else {
             Children$MatchedAge[j] <- NA
-            Children$AgeIndex[j] <- NA
             Children$AgeDifference[j] <- NA
 
 #
