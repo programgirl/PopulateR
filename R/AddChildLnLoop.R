@@ -152,9 +152,17 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   }
 
 
- # there may still be a relatively large number of children not matched, so repeat the matching process a second time
+  # there may still be a relatively large number of children not matched, so repeat the matching process a second time
 
+  # extract remove matched children from Children data frame
+  # the matched ones are removed from the Children data frame as doing it the other way around is a nightmare for referring
+  # to the age column in a newly constructed data frame
 
+  MatchedChildren <- Children %>%
+    filter(!(is.na(MatchedAge)))
+
+  Children <- Children %>%
+    filter(is.na(MatchedAge))
 
   # previous code that doesn't limit the age differences for matching to those within the paramters
   # for (j in 1:nrow(Children)) {
