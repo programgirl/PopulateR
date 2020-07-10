@@ -131,61 +131,30 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     set.seed(UserSeed)
   }
 
-#  cat("minimum age is ", MinParentAge, " and maximum age is ", MaxParentAge)
-
   for (j in 1:nrow(Children)) {
 
- #      if (!(is.null(MinParentAge)) & !(is.null(MaxParentAge))) {
-         AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-         Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
-         age_index <- Children$MatchedAge[j]-(minIndexAge -1)
+    AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+    age_index <- Children$MatchedAge[j]-(minIndexAge -1)
 
-         if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge & ParentAgeCountVector[age_index] > 0) {
+    if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge & ParentAgeCountVector[age_index] > 0) {
 
-           Children$AgeDifference[j] <- AgeDifference
-           ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-        #
-        #
-          } else {
-            Children$MatchedAge[j] <- NA
-            Children$AgeDifference[j] <- NA
+      Children$AgeDifference[j] <- AgeDifference
+      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
-#
-#            # will be else if (minparentage but not max) {}
-#
-#            # } else if { (max but not min) {
-#
-#            #} else both are null
-#
-#            Children$MatchedAge[j] <- NA
-#
+      } else {
+
+        Children$MatchedAge[j] <- NA
+        Children$AgeDifference[j] <- NA
+
         }
-      #
-      # }
-
-     # }
 
   }
 
 
-  #   if (Children$AgeDifference[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
-  #
-  #
-  #
-  #
-  #
-  #
-  #
-  #
-  #        }
-  #
-  #
-  #   } else {
-  #
-  #     Children$MatchedAge[j] <- NA
-  #   }
-  #
-  # }
+ # there may still be a relatively large number of children not matched, so repeat the matching process a second time
+
+
 
   # previous code that doesn't limit the age differences for matching to those within the paramters
   # for (j in 1:nrow(Children)) {
