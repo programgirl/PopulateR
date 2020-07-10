@@ -164,64 +164,27 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   Children <- Children %>%
     filter(is.na(MatchedAge))
 
-  # previous code that doesn't limit the age differences for matching to those within the paramters
-  # for (j in 1:nrow(Children)) {
-  #   Children$AgeDifference[j] <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-  #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-  #   if (Children$AgeDifference[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
-  #      age_index <- Children$MatchedAge[j]-(minIndexAge-1)
-  #      if (ParentAgeCountVector[age_index]==0) {
-  #        Children$MatchedAge[j] <- NA
-  #
-  #        } else {
-  #
-  #          ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-  #
-  #        }
-  #
-  #
-  #   } else {
-  #
-  #     Children$MatchedAge[j] <- NA
-  #   }
-  #
-  # }
+  for (j in 1:nrow(Children)) {
 
-# create second attempt to match only those who didn't match the first time
-# use same distribution
+    AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+    age_index <- Children$MatchedAge[j]-(minIndexAge -1)
 
-  # ChildrenMatched <- Children %>%
-  #   filter(!(is.na(Children$MatchedAge))) #%>%
- # # select(-c(AgeDifference, MatchedAge))
+    if (Children$MatchedAge[j] >= MinParentAge & Children$MatchedAge[j] <=  MaxParentAge & ParentAgeCountVector[age_index] > 0) {
 
-  # Children <- Children %>%
-  #   filter(is.na(Children$MatchedAge)) %>%
-  #   select(-c(AgeDifference, MatchedAge))
+      Children$AgeDifference[j] <- AgeDifference
+      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+    } else {
+
+      Children$MatchedAge[j] <- NA
+      Children$AgeDifference[j] <- NA
+
+    }
+
+  }
 
 
-  # redo code with reduced dataframe
-
-#   for (j in 1:nrow(Children)) {
-#     Children$AgeDifference[j] <- rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed)
-#     Children$MatchedAge[j] <- round(Children[[ChildAgeVariable]][j] + Children$AgeDifference[j])
-#     if (Children$MatchedAge[j] >= minIndexAge & Children$MatchedAge[j] <=  maxIndexAge) {
-#       age_index <- Children$MatchedAge[j]-(minIndexAge-1)
-#       if (ParentAgeCountVector[age_index]==0) {
-#         Children$MatchedAge[j] <- NA
-#
-#       } else {
-#
-#   #     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-#   #
-#       }
-#   #
-#   #
-#     } else {
-#
-#       Children$MatchedAge[j] <- NA
-#     }
-#
-#   }
 
  return(Children)
 
@@ -229,33 +192,4 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 }
 
 
-
-# # the mean is set to 2 years difference, with men generally being older than women
-# # the method is:
-# # 1. get the counts of women by single age
-# # 2. construct two lists of these so that one is the age and the other is the corresponding count
-# # 3. generate the skewed normal rng for the man, and the matching age is his age plus the rng number (rounded)
-# # 4. as the minimum age is 18, the matching age index is matching age - 17
-# # 5. check if there is still a non-zero count in the age list
-# # 6a. if so, keep the age as the matched age and decrease the count by 1 in the count list
-# # 6b. if the matching age has a count of 0 in the table, set the matched age to NA
-# # 7. the non-matched ages will be the May-December matches - check this (make sure there aren't too many non-matches
-#
-# # assign the matched ages to the males, the females will be randomly matched to these
-# # interactive skew plot at http://azzalini.stat.unipd.it/SN/plot-SN1.html
-# set.seed(101013)
-# for (j in 1:nrow(Partnered2PHHDiffSexMales)) {
-#   Partnered2PHHDiffSexMales$AgeDifference[j] <- rsn(1,xi=0, omega=3, alpha=4)
-#   Partnered2PHHDiffSexMales$MatchedAge[j] <- round(Partnered2PHHDiffSexMales$AssignedAge[j] - Partnered2PHHDiffSexMales$AgeDifference[j])
-#   if (Partnered2PHHDiffSexMales$MatchedAge[j] < 18) Partnered2PHHDiffSexMales$MatchedAge[j] = 18
-#   if (Partnered2PHHDiffSexMales$MatchedAge[j] > 90) Partnered2PHHDiffSexMales$MatchedAge[j] = 90
-#   age_index <- Partnered2PHHDiffSexMales$MatchedAge[j]-17
-#   if (Partnered2PHHCounts[age_index]==0) {
-#     Partnered2PHHDiffSexMales$MatchedAge[j] = 0
-#   } else {
-#     Partnered2PHHCounts[age_index] = Partnered2PHHCounts[age_index] - 1
-#
-#   }
-# }
-#
 
