@@ -236,7 +236,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
  #   Children$AgeDifference[j] <- AgeDifference
     Children$DoesThisWork[j] <- "First match worked"
-    print(AgeDifference)
+    print(age_index)
 
     }
 
