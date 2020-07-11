@@ -200,10 +200,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   for (j in 1:nrow(Children)) {
 
-    age_index <- runif(1, minIndexAge, minIndexAge)
-    print(age_index)
-#     AgeDifference <- Children[[ChildAgeVariable]][j] + age_index + 17
-#
+    age_index <- round(runif(1, minIndexAge, maxIndexAge))
+    AgeDifference[j] <- age_index + 17
+
 #     if (isTRUE(ParentAgeCountVector[age_index] == 0)) {
 #
 #       Children$MatchedAge[j] <- NA
@@ -244,10 +243,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   }
 
 
-
-print(ParentAgeCountVector)
-
-# return(length())
+  return(Children)
 
 
 }
