@@ -204,8 +204,15 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     Children$MatchedAge[j] <- MatchedAge
     Children$AgeDifference[j] <- Children$MatchedAge[j] -Children[[ChildAgeVariable]][j]
 
+    # get the minimum ages into the permitted age range
     if (Children$AgeDifference[j] < MinParentAge) {
       Children$AgeDifference[j] = Children$AgeDifference[j] +  MinParentAge
+      Children$MatchedAge[j] = Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+    }
+
+    # get the maximum ages into the permitted age range
+    if (Children$AgeDifference[j] > MaxParentAge) {
+      Children$AgeDifference[j] = Children$AgeDifference[j] -  MinParentAge
       Children$MatchedAge[j] = Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
     }
 
