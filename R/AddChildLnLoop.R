@@ -200,7 +200,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   for (j in 1:nrow(Children)) {
 
-    age_index <- sample(1, minIndexAge, minIndexAge)
+    age_index <- runif(1, minIndexAge, minIndexAge)
     print(age_index)
 #     AgeDifference <- Children[[ChildAgeVariable]][j] + age_index + 17
 #
