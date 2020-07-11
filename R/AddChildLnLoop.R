@@ -200,54 +200,54 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   for (j in 1:nrow(Children)) {
 
-    age_index <- sample(1, ParentAgeCountVector[1], tail(ParentAgeCountVector, 1))
+    age_index <- sample(1, minIndexAge, minIndexAge)
     print(age_index)
-    AgeDifference <- Children[[ChildAgeVariable]][j] + age_index + 17
-
-    if (isTRUE(ParentAgeCountVector[age_index] == 0)) {
-
-      Children$MatchedAge[j] <- NA
-      Children$AgeDifference[j] <- NA
-
-      while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
-
-        age_index <- sample(1, ParentAgeCountVector[1], tail(ParentAgeCountVector, 1))
-        Children$AgeDifference[j] <- Children[[ChildAgeVariable]][j] + age_index + minIndexAge -1
-
-      }
-
-      if (ParentAgeCountVector[age_index] != 0 & age_index <= length(ParentCountVectorEnd)) {
-
-        Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + age_index + minIndexAge -1
-        Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
-        ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-        Children$DoesThisWork <- "Middle match worked"
-
-      } else {
-
-        Children$MatchedAge[j] <- NA
-        Children$AgeDifference[j] <- NA
-
-      }
-
-
-    } else {
-
-    ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-#    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
- #   Children$AgeDifference[j] <- AgeDifference
-    Children$DoesThisWork[j] <- "First match worked"
-
-
-    }
-
+#     AgeDifference <- Children[[ChildAgeVariable]][j] + age_index + 17
+#
+#     if (isTRUE(ParentAgeCountVector[age_index] == 0)) {
+#
+#       Children$MatchedAge[j] <- NA
+#       Children$AgeDifference[j] <- NA
+#
+#       while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
+#
+#         age_index <- sample(1, ParentAgeCountVector[1], tail(ParentAgeCountVector, 1))
+#         Children$AgeDifference[j] <- Children[[ChildAgeVariable]][j] + age_index + minIndexAge -1
+#
+#       }
+#
+#       if (ParentAgeCountVector[age_index] != 0 & age_index <= length(ParentCountVectorEnd)) {
+#
+#         Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + age_index + minIndexAge -1
+#         Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
+#         ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+#         Children$DoesThisWork <- "Middle match worked"
+#
+#       } else {
+#
+#         Children$MatchedAge[j] <- NA
+#         Children$AgeDifference[j] <- NA
+#
+#       }
+#
+#
+#     } else {
+#
+#     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+# #    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+#  #   Children$AgeDifference[j] <- AgeDifference
+#     Children$DoesThisWork[j] <- "First match worked"
+#
+#
+#     }
+#
   }
 
 
 
+print(ParentAgeCountVector)
 
-
- return(Children)
+# return(length())
 
 
 }
