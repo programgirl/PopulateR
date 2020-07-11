@@ -221,12 +221,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     age_index <- Children$AgeIndex[j]
 
 
+    # replace if there are 0 parent counts available for the age at childbirth allocated
 
+    if (isTRUE(ParentAgeCountVector[age_index] == 0)) {
 
-    # if (isTRUE(ParentAgeCountVector[age_index] == 0)) {
-    #
-    #   Children$MatchedAge[j] <- NA
-    #   Children$AgeDifference[j] <- NA
+      Children$MatchedAge[j] <- NA
+      Children$AgeDifference[j] <- NA
 
 #       while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
 #
@@ -258,7 +258,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 #     Children$DoesThisWork[j] <- "First match worked"
 #
 #
-#     }
+    }
 #
   }
 
