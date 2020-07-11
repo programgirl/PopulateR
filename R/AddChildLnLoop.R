@@ -227,6 +227,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
       Children$MatchedAge[j] <- NA
       Children$AgeDifference[j] <- NA
+      Children$AgeIndex[j] <- NA
 
 #       while (ParentAgeCountVector[age_index] == 0 & age_index <= length(ParentCountVectorEnd)) {
 #
