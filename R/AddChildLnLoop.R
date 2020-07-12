@@ -198,7 +198,9 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # find first current parent age that is still available
   # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
 
-  for (j in 1:nrow(Children)) {
+ # for (j in 1:nrow(Children)) {
+
+  for (j in 1:15) {
 
     # ensure initial age selection is within min and max parent ages
 
