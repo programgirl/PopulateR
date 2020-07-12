@@ -223,8 +223,10 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
 
       while (ParentAgeCountVector[age_index] == 0 ) {
-        age_index <- age_index + round(runif(1, 0, 1))
-        Children$AgeDifference[j] <- 1 + age_index
+        age_index <- age_index + round(runif(1, 0, 1), 0)
+        Children$AgeDifference[j] <- age_index + MinParentAge - 1
+
+        print(Children$AgeDifference[j])
 
         if(Children$AgeDifference[j] < MinParentAge) {
           IndexReset <- .4 * (maxIndexAge - minIndexAge)
