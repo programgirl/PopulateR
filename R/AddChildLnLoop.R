@@ -202,6 +202,8 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   i <- 0
 
+  FirstMatchWorked <- NULL
+
   for (j in 1:nrow(Children)) {
 
     # ensure initial age selection is within min and max parent ages
@@ -212,16 +214,32 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     #
     age_index <- Children$AgeDifference[j]-(minIndexAge -1)
     Children$AgeIndex[j] <- age_index
+    Children$Okay[j] <- "No"
 
 
+   if (ParentAgeCountVector[age_index] > 0 & Children$AgeDifference[j] >= MinParentAge & Children$AgeDifference[j] <= MaxParentAge)  {
 
-    if (!(ParentAgeCountVector[age_index] > 0 | Children$AgeDifference[j] >= MinParentAge | Children$AgeDifference[j] <= MaxParentAge))  {
+      Children$Okay[j] <- "Yes"
 
       i <- i + 1
 
       print(i)
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
+
+   } else {
+
+    if (!(ParentAgeCountVector[age_index] > 0 & Children$AgeDifference[j] >= MinParentAge & Children$AgeDifference[j] <= MaxParentAge))  {
+
+      Children$Okay[j] <- "Subset"
+
+      i <- i + 1
+
+      print(i)
+
+    }
+
+    #  ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
     }
 
