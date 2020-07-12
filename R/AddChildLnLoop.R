@@ -221,26 +221,27 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
       Children$AgeIndex[j] <- NA
       Children$AgeDifference[j] <- NA
       Children$YesFirstTime[j] <- "No"
-    #
-    #
-    #   while (ParentAgeCountVector[age_index] == 0) {
-    #     age_index <- age_index + round(runif(1, 0, 1))
-    #
-    #     if(age_index < 1) {
-    #       IndexReset <- .4 * (maxIndexAge - minIndexAge)
-    #       age_index <- IndexReset - minIndexAge - 1
-    #       }
-    #
-    #     if(age_index > length(ParentAgeCountVector)) {
-    #       IndexReset <- .6 * (maxIndexAge - minIndexAge)
-    #       age_index <- IndexReset - minIndexAge - 1
-    #     }
-    #
-    #   }
-    #
-    #   Children$AgeIndex[j] <- age_index
-    #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeIndex[j] + minIndexAge - 1
-    #   Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
+
+
+      while (ParentAgeCountVector[age_index] == 0) {
+        age_index <- age_index + round(runif(1, 0, 1))
+
+        if(age_index < 1) {
+          IndexReset <- .4 * (maxIndexAge - minIndexAge)
+          age_index <- IndexReset - minIndexAge - 1
+          }
+
+        if(age_index > length(ParentAgeCountVector)) {
+          IndexReset <- .6 * (maxIndexAge - minIndexAge)
+          age_index <- IndexReset - minIndexAge - 1
+        }
+
+      }
+
+      Children$AgeIndex[j] <- age_index
+      Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeIndex[j] + minIndexAge - 1
+      Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
+      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
     #
     } else {
@@ -253,7 +254,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   }
 
 
- return(ParentAgeCountVector)
+ return(Children)
 
 
 }
