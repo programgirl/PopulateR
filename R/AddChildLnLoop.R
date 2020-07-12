@@ -209,21 +209,20 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
     #
     age_index <- Children$AgeDifference[j]-(minIndexAge -1)
-    # Children$AgeIndex[j] <- age_index
+    Children$AgeIndex[j] <- age_index
 
-    # Children$YesFirstTime[j] <- "Yes"
 
     if (ParentAgeCountVector[age_index] > 0)  {
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
-    }
+    } else {
 
     # replace if there are 0 parent counts available for the age at childbirth allocated
     # use a random walk based on starting values
     # reset age index if the random walk exceeds the min and max permitted parent ages
 
-    if (ParentAgeCountVector[age_index] == 0) {
+ #   if (ParentAgeCountVector[age_index] == 0) {
   #
       Children$MatchedAge[j] <- NA
       age_index <- which.max(ParentAgeCountVector)
@@ -250,20 +249,20 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
         #       if (Children$AgeDifference[j] < MinParentAge) {
         #         age_index <-  minIndexAge + round(runif(1, 1.1*maxIndexAge, 1.2*maxIndexAge))
-        #       }
+              }
         #
 
 
               Children$AgeIndex[j] <- age_index
               Children$AgeDifference[j] <- Children$AgeIndex[j] + (minIndexAge -1)
-              Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+             # Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
 
 
        #      print(Children$AgeDifference[j])
 
 
 
-      }
+      # }
 
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
@@ -339,7 +338,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   }
 
 
- return(ParentAgeCountVector)
+ return(Children)
 
 
 }
