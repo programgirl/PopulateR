@@ -211,9 +211,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
     Children$YesFirstTime[j] <- "Yes"
 
-    Children$ParentAgeVectorUsed[j] <- ParentAgeCountVector[age_index]
-
-
     # replace if there are 0 parent counts available for the age at childbirth allocated
     # use a random walk based on starting values
     # reset age index if the random walk exceeds the min and max permitted parent ages
@@ -256,7 +253,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   }
 
 
- return(Children)
+ return(ParentAgeCountVector)
 
 
 }
