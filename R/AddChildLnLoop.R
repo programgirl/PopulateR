@@ -229,12 +229,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
         print(Children$AgeDifference[j])
 
         if(Children$AgeDifference[j] < MinParentAge) {
-          IndexReset <- .4 * (maxIndexAge - minIndexAge)
+          IndexReset <- round(.4 * (maxIndexAge - minIndexAge), 0)
           age_index <- IndexReset - minIndexAge - 1
           }
 
         if(Children$AgeDifference[j]  > MaxParentAge) {
-          IndexReset <- .6 * (maxIndexAge - minIndexAge)
+          IndexReset <- round(.6 * (maxIndexAge - minIndexAge), 0)
           age_index <- IndexReset - minIndexAge - 1
         }
 
