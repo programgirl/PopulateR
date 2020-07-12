@@ -200,6 +200,8 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
  # for (j in 1:nrow(Children)) {
 
+  i <- 0
+
   for (j in 1:nrow(Children)) {
 
     # ensure initial age selection is within min and max parent ages
@@ -212,9 +214,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     Children$AgeIndex[j] <- age_index
 
 
-    if (ParentAgeCountVector[age_index] != 0 & Children$AgeDifference[j] < MinParentAge & Children$AgeDifference[j] > MaxParentAge)  {
 
-      print(rownames)
+    if (ParentAgeCountVector[age_index] == 0 & Children$AgeDifference[j] < MinParentAge & Children$AgeDifference[j] > MaxParentAge)  {
+
+      i <- i + 1
+
+      print(i)
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
