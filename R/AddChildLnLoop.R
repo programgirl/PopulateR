@@ -232,11 +232,13 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
       while (ParentAgeCountVector[age_index] == 0) {
 
+        print("Loop 2 entered")
+
         age_index <- which.max(ParentAgeCountVector)
         Children$AgeDifference[j] <- age_index
 
 
-        print("Loop 2 entered")
+
 
         age_index <- age_index + round(runif(1, -1, 1), 0)
 
@@ -249,9 +251,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
           age_index <- minIndexAge + 3
 
         }
-
-        age_index <-  age_index + round(runif(1, -1, 1))
-
 
 
         #       if (Children$AgeDifference[j] < MinParentAge) {
