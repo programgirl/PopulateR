@@ -255,7 +255,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
               Children$AgeIndex[j] <- age_index
               Children$AgeDifference[j] <- Children$AgeIndex[j] + (minIndexAge -1)
-             # Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+             Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
 
 
        #      print(Children$AgeDifference[j])
