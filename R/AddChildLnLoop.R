@@ -200,7 +200,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
  # for (j in 1:nrow(Children)) {
 
-  for (j in 1:15) {
+  for (j in 1:nrow()) {
 
     # ensure initial age selection is within min and max parent ages
 
@@ -220,48 +220,80 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     if (ParentAgeCountVector[age_index] == 0) {
 
       Children$MatchedAge[j] <- NA
-      Children$AgeDifference[j] <- NA
       Children$YesFirstTime[j] <- "No"
+      Children$AgeDifference[j] <- round((MaxParentAge - MinParentAge)/2, 0 )
 
 
-      while (ParentAgeCountVector[age_index] == 0 ) {
-        age_index <- age_index + round(runif(1, 0, 1), 0)
-        Children$AgeDifference[j] <- age_index + MinParentAge - 1
+      while (ParentAgeCountVector[age_index] == 0 | Children$AgeDifference[j] > MaxParentAge | Children$AgeDifference[j] < MinParentAge) {
+        i = 0
 
-        print(Children$AgeDifference[j])
-
-        if(Children$AgeDifference[j] < MinParentAge) {
-          IndexReset <- round(.4 * (maxIndexAge - minIndexAge), 0)
-          age_index <- IndexReset - minIndexAge - 1
-          }
-
-        if(Children$AgeDifference[j]  > MaxParentAge) {
-          IndexReset <- round(.6 * (maxIndexAge - minIndexAge), 0)
-          age_index <- IndexReset - minIndexAge - 1
+        if (Children$AgeDifference[j] > MaxParentAge) {
+          age_index <- round(age_index/2, 0)
         }
 
+        if (Children$AgeDifference[j] < MinParentAge) {
+          age_index <- round(age_index*2, 0)
+        }
+
+        age_index <- age_index + round(runif(1, -1, 1), 0)
+
+        if(age_index == 0) {
+          age_index <-Children[[ChildAgeVariable]][j] + (minIndexAge -1)
+        }
+
+        Children$AgeIndex[j] <- age_index
+        Children$AgeDifference[j] <- Children$AgeIndex[j] + (minIndexAge -1)
+        Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+
+        i <- i + 1
+
+       print(Children$AgeDifference[j])
+
+       # may need to leave this bit until tomorrow
+
+       if(i = 100) {
+
+         age_index <- Children$AgeDifference[j]-(minIndexAge -1)
+         Children$AgeDifference[j] <- minIndexAge
+         Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+         Children$YesFirstTime[j] <- "Third time's a charm"
+
+         while (ParentAgeCountVector[age_index] == 0 ) {
+
+           age_index <- age_index + 1
+
+
+
+       }
+
+
+      # if(Children$AgeDifference[j]  > MaxParentAge) {
+      #   IndexReset <- round(.5 * (MaxParentAge - MinParentAge), 0)
+      # #   age_index <- IndexReset - minIndexAge - 1
+      # #
+      #   print(IndexReset)
+      # }
+    #
       }
-
-      Children$AgeIndex[j] <- age_index
-      Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeIndex[j] + minIndexAge - 1
-      Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
-      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-
     #
-    } else {
+    #   Children$AgeIndex[j] <- age_index
+    #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeIndex[j] + minIndexAge - 1
+    #   Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
+    #   ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
     #
-    #
+    # #
+    } #else {
+    # #
+    # #
     ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-
-    }
+    #
+    # }
 
   }
 
 
- return(Children)
+ return(ParentAgeCountVector)
 
 
 }
-
-
 
