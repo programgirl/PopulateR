@@ -322,9 +322,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     dplyr::select(-c(2)) %>%
     ungroup()
 
-#  ChildrenReadyToMatch <- left_join(Children, ChildrenMatchPrep, by = c(names(Children[ChildIDVariable])))
-
-
   # join the matched parents to the children
   # by parent age and parent age count
   # children data frame is the one to which observations must be joined
@@ -337,27 +334,27 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     ungroup() %>%
     mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
-  # # # convert from wide to long, use .x and .y to do the split
-  # #
-  # # FirstDataframeSplit <- FullMatchedDataFrame %>%
-  # #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-  # #   rename_all(list(~gsub("\\.x$", "", .)))
-  # #
-  # # SecondDataframeSplit <- FullMatchedDataFrame %>%
-  # #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-  # #   rename_all(list(~gsub("\\.y$", "", .)))
-  # #
-  # #
-  # # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-  # #
-  # # #####################################
-  # # #####################################
-  # # # pairing the parents to children ends here
-  # # #####################################
-  # # #####################################
+  # convert from wide to long, use .x and .y to do the split
+
+  FirstDataframeSplit <- FullMatchedDataFrame %>%
+    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.x$", "", .)))
+
+  SecondDataframeSplit <- FullMatchedDataFrame %>%
+    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    rename_all(list(~gsub("\\.y$", "", .)))
 
 
- return(FullMatchedDataFrame)
+  OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+
+  #####################################
+  #####################################
+  # pairing the parents to children ends here
+  #####################################
+  #####################################
+
+
+ return(OutputDataframe)
 
 
 }
