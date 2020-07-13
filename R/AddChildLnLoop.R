@@ -209,18 +209,13 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     # ensure initial age selection is within min and max parent ages
 
     AgeDifference <- round(runif(1, MinParentAge, MaxParentAge))
- #   Children$AgeDifference[j] <- AgeDifference
     Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
     age_index <- Children$ParentAge[j]-(minIndexAge -1)
- #   Children$AgeIndex[j] <- age_index
 
    if (ParentAgeCountVector[age_index] > 0)  {
 
      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
      Children$AgeDifference[j] <- AgeDifference
-     Children$AgeIndex[j] <- NA
-
-     # works fine up to this point
 
       } else {
 
@@ -228,10 +223,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
         Children$ParentAge[j] <- NA
 
         age_index <- which.max(ParentAgeCountVector)
-        # Children$AgeDifference[j] <- age_index + (minIndexAge -1)
-        # Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-        # Children$AgeIndex[j] <- age_index
-
         Children$ParentAge[j] <- age_index + (minIndexAge -1)
         Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
 
@@ -254,7 +245,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
           Children$ParentAge[j] <- age_index + (minIndexAge -1)
           Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
-          Children$AgeIndex[j] <- age_index
         }
 
         ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
@@ -263,40 +253,40 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   }
 
-  # Combine the three Children Dataframes
+  #   Combine the three Children Dataframes
 
- # Children <- rbind(MatchedChildren, Children)
+  Children <- rbind(MatchedChildren, Children)
 
-  # # #####################################
   # #####################################
-  # # pairing the actual parent-child dyads starts here
-  # #####################################
-  # #####################################
-  # # return full donor and recipient rows as matched household pairs
-  # # extract ages counts for matching the donors
-  # MatchedParentAges <- Children %>%
-  #   dplyr::select(ParentAge) %>%
-  #   group_by(ParentAge) %>%
-  #   mutate(ParentAgeCount = row_number()) %>%
-  #   ungroup()
+  #####################################
+  # pairing the actual parent-child dyads starts here
+  #####################################
+  #####################################
+  # return full donor and recipient rows as matched household pairs
+  # extract ages counts for matching the donors
+  MatchedParentAges <- Children %>%
+    dplyr::select(ParentAge) %>%
+    group_by(ParentAge) %>%
+    mutate(ParentAgeCount = row_number()) %>%
+    ungroup()
+
+
+  # generate same AgeCount second ID variable for the parent data
+  # the AgeCount is used to ensure that the first parent with a specific age is matched first
+  # the second parent with a specific age is matched second and so forth
+  ParentsToMatch <- Parents %>%
+    group_by({{ParentAgeColName}}) %>%
+    mutate(ParentAgeCount = row_number()) %>%
+    ungroup()
+
+  # reduce pool of potentially partnered donors to only those matched to recipients
+  ParentsMatched <- left_join(MatchedParentAges,
+                              rename_at(ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[1],
+                                        ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[2]),
+                              by = c(names(MatchedParentAges)[1], "ParentAgeCount")) %>%
+    mutate(!!ParentAgeColName := ParentAge)
+
   #
-  #
-  # # generate same AgeCount second ID variable for the parent data
-  # # the AgeCount is used to ensure that the first parent with a specific age is matched first
-  # # the second parent with a specific age is matched second and so forth
-  # ParentsToMatch <- Parents %>%
-  #   group_by({{ParentAgeColName}}) %>%
-  #   mutate(ParentAgeCount = row_number()) %>%
-  #   ungroup()
-  #
-  # # reduce pool of potentially partnered donors to only those matched to recipients
-  # ParentsMatched <- left_join(MatchedParentAges,
-  #                             rename_at(ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[1],
-  #                                       ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[2]),
-  #                             by = c(names(MatchedParentAges)[1], "ParentAgeCount")) %>%
-  #   mutate(!!ParentAgeColName := ParentAge)
-  #
-  # #
   # # # construct same file for the children
   # # # need both parent age and parent age count so that the join between the children and the parents works
   # # # do not need child age as this will be a duplicate column on the merge
@@ -341,7 +331,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # # #####################################
 
 
- return(ParentAgeCountVector)
+ return(ParentsMatched)
 
 
 }
