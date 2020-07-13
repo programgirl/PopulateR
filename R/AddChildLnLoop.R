@@ -203,11 +203,10 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     # ensure initial age selection is within min and max parent ages
 
     AgeDifference <- round(runif(1, MinParentAge, MaxParentAge))
-    Children$AgeDifference[j] <- AgeDifference
-    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+    Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+    age_index <- Children$MatchedAge[j]-(minIndexAge -1)
     #
-    age_index <- Children$AgeDifference[j]-(minIndexAge -1)
-    Children$AgeIndex[j] <- age_index
+
     Children$Okay[j] <- "No"
 
     # age difference is forced to be within range, only need to test if the avaiable count is 0
@@ -222,10 +221,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
         Children$Okay[j] <- "Subset"
 
-        age_index <- which.max(ParentAgeCountVector)
-        Children$AgeDifference[j] <- age_index + (minIndexAge -1)
-
-        print(Children$AgeDifference[j])
+        # age_index <- which.max(ParentAgeCountVector)
+        # Children$AgeDifference[j] <- age_index + (minIndexAge -1)
+        # Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
+        #
+        #
+        # print(Children$MatchedAge[j])
 
 
       }
