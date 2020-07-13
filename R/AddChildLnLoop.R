@@ -189,7 +189,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
 
-  RemainingChildren <- Children %>%
+  Children <- Children %>%
     filter(is.na(MatchedAge))
 
 
@@ -207,7 +207,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
     age_index <- Children$MatchedAge[j]-(minIndexAge -1)
     #
 
-    Children$Okay[j] <- "No"
+ #   Children$Okay[j] <- "No"
 
     # age difference is forced to be within range, only need to test if the avaiable count is 0
 
@@ -215,19 +215,19 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
-     Children$Okay[j] <- "Yes"
-     Children$i[j] <- NA
+     #Children$Okay[j] <- "Yes"
+  #   Children$i[j] <- NA
      Children$AgeDifference[j] <- AgeDifference
 
 
       } else {
 
-        Children$Okay[j] <- "Subset"
+       # Children$Okay[j] <- "Subset"
 
         age_index <- which.max(ParentAgeCountVector)
         Children$AgeDifference[j] <- age_index + (minIndexAge -1)
         Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-        print(Children$MatchedAge[j])
+    #    print(Children$MatchedAge[j])
 
         #need to recalculate age index
         # age_index <- Children$MatchedAge[j]-(minIndexAge -1)
@@ -237,7 +237,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
         #   age_index <- 1
         # }
         #
-        i <- 0
+      # i <- 0
 
         while(ParentAgeCountVector[age_index] == 0 || Children$AgeDifference[j] < MinParentAge || Children$AgeDifference[j] > MaxParentAge) {
 
@@ -254,14 +254,14 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
           Children$AgeDifference[j] <- age_index + (minIndexAge -1)
           Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
 
-         i <- i + 1
+       #  i <- i + 1
 
 
         }
 
         ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-        Children$i[j] <- i
-        print(i)
+        #Children$i[j] <- i
+        #print(i)
 
 
 
@@ -269,136 +269,19 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
       }
 
-    }
+  }
 
-
-
-    #  ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-
-     # print("Loop 1 entered")
-
-    # it enters this loop
-    # replace if there are 0 parent counts available for the age at childbirth allocated
-    # use a random walk based on starting values
-    # reset age index if the random walk exceeds the min and max permitted parent ages
-
- #   if (ParentAgeCountVector[age_index] == 0) {
-  #
-      # Children$MatchedAge[j] <- NA
-       #
-
-  #     while (ParentAgeCountVector[age_index] == 0) {
-  #
-  #       print("Loop 2 entered")
-  #
-  #       age_index <- which.max(ParentAgeCountVector)
-  #       Children$AgeDifference[j] <- age_index
-  #
-  #
-  #
-  #
-  #       age_index <- age_index + round(runif(1, -1, 1), 0)
-  #
-  #        if (Children$AgeDifference[j] > MaxParentAge) {
-  #          age_index <- maxIndexAge - 3
-  #
-  #        }
-  #
-  #       if (Children$AgeDifference[j] < MinParentAge) {
-  #         age_index <- minIndexAge + 3
-  #
-  #       }
-  #
-  #
-  #       #       if (Children$AgeDifference[j] < MinParentAge) {
-  #          #     age_index <-  minIndexAge + round(runif(1, 1.1*maxIndexAge, 1.2*maxIndexAge))
-  #             }
-  #       #
-  #
-  #
-  #
-  #
-  #             Children$AgeIndex[j] <- age_index
-  #             Children$AgeDifference[j] <- Children$AgeIndex[j] + (minIndexAge -1)
-  #             Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-  #
-  #
-  #      #      print(Children$AgeDifference[j])
-  #
-  #
-  #
-  #     # }
-  #
-  #
-  #
-  # #       if (Children$AgeDifference[j] > MaxParentAge) {
-  # #         age_index <- round(age_index/2, 0)
-  # #       }
-  # #
-  # #       if (Children$AgeDifference[j] < MinParentAge) {
-  # #         age_index <- round(age_index*2, 0)
-  # #       }
-  # #
-  # #       age_index <- age_index + round(runif(1, -1, 1), 0)
-  # #
-  # #       if(age_index == 0) {
-  # #         age_index <-Children[[ChildAgeVariable]][j] + (minIndexAge -1)
-  # #       }
-  # #
-  # #       Children$AgeIndex[j] <- age_index
-  # #       Children$AgeDifference[j] <- Children$AgeIndex[j] + (minIndexAge -1)
-  # #       Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-  # #
-  # #       i <- i + 1
-  # #
-  # #      print(Children$AgeDifference[j])
-  # #
-  #     }
-  #
-  #      # may need to leave this bit until tomorrow
-  #
-  #      if(i == 100) {
-  #
-  #        Children$AgeDifference[j] <- minIndexAge
-  #        Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
-  #        age_index <- Children$MatchedAge[j] - (minIndexAge -1)
-  #        Children$AgeIndex <- AgeIndex
-  #        Children$YesFirstTime[j] <- "Third time's a charm"
-  #
-  #        while (ParentAgeCountVector[age_index] == 0 ) {
-  #
-  #          age_index <- age_index + 1
-  #
-  #        }
-  #
-  #
-  #
-  #      }
-  #
-  #
-  #     # if(Children$AgeDifference[j]  > MaxParentAge) {
-  #     #   IndexReset <- round(.5 * (MaxParentAge - MinParentAge), 0)
-  #     # #   age_index <- IndexReset - minIndexAge - 1
-  #     # #
-  #     #   print(IndexReset)
-  #     # }
-  #   #
-  #     }
-  #   #
-  #   #   Children$AgeIndex[j] <- age_index
-  #   #   Children$MatchedAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeIndex[j] + minIndexAge - 1
-  #   #   Children$AgeDifference[j] <- Children$MatchedAge[j] - Children[[ChildAgeVariable]][j]
-  #   #   ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-  #   #
-  #   # #
-  #    #else {
-  #   # #
-  #   # #
-    # ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-  #   #
-  #   # }
-  #
-
+# #  Children
+#
+#
+#   # Combine the three Children Dataframes
+#
+#
+#
+#
+#
+#
+#
 
 
  return(Children)
