@@ -290,7 +290,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # construct same file for the children
   # need both parent age and parent age count so that the join between the children and the parents works
   # do not need child age as this will be a duplicate column on the merge
-  ChildrenMatchPrep <- CurrentAgeMatch %>%
+  ChildrenMatchPrep <- Children %>%
     group_by(ParentAge) %>%
     mutate(ParentAgeCount = row_number()) %>%
     dplyr::select(-c(2)) %>%
@@ -331,7 +331,7 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # # #####################################
 
 
- return(ParentsMatched)
+ return(ChildrenMatchPrep)
 
 
 }
