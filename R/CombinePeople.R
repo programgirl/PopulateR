@@ -125,6 +125,25 @@ OccupantN <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, 
 
   }
 
+
+  # split the dataframe into the required number of subsets
+
+  for (j in 1:HouseholdSize) {
+
+
+
+  BaseDataFrame <- Occupants %>%
+    slice_sample(n=nrow()/HouseholdSize, replace = FALSE)
+
+  # remove from the original data frame
+
+
+
+  filter(!({{RecipientIDColName}} %in% c(PropPair1[,1], PropPair2[,1])))
+
+
+  }
+
   #
   # DonorCounts <- Donor %>%
   #   group_by_at(DonorAgeVariable) %>%
