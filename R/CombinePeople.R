@@ -17,9 +17,9 @@
 #' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param NumIterations The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 
-OccupantN <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, meanUsed, sdUsed, HouseholdIDValue = NULL, HouseholdNumVariable= NULL,
-                      UserSeed=NULL, pValueToStop = .01, NumIterations = 1000000)
-{
+CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, meanUsed, sdUsed, HouseholdIDValue = NULL,
+                          HouseholdNumVariable= NULL, UserSeed=NULL, pValueToStop = .01, NumIterations = 1000000)
+  {
 
   options(dplyr.summarise.inform=F)
 
@@ -117,7 +117,11 @@ OccupantN <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, 
 
   TestNumber <- nrow(Occupants)
 
-  if (TestNumber %% Occupants != 0) {
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  if (nrow(Occupants) %% TestNumber != 0) {
 
     NumExcess <- TestNumber %% Occupants
     Occupants <- Occupants %>%
@@ -125,24 +129,45 @@ OccupantN <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, 
 
   }
 
-
+  #####################################
   # split the dataframe into the required number of subsets
+  #####################################
 
-  for (j in 1:HouseholdSize) {
-
-
-
+  # create base data frame, which all the others will match to
   BaseDataFrame <- Occupants %>%
-    slice_sample(n=nrow()/HouseholdSize, replace = FALSE)
+    slice_sample(n=nrow(Occupants)/2, replace = FALSE)
 
-  # remove from the original data frame
+  # remove people from the original data frame
+  AvailablePeople <- Occupants %>%
+    anti_join(BaseDataFrame)
+
+  # loop to construct the remaining data frames
+  # is 2:householdsize as one data frame (base) has already been constructed
+
+
+  # waaaaaay too damn complicated below.
+  # just do one at at time
+  # inside the loop for the number of iterations
+  # slice one
+  # do the matching
+  # construct the ID for the first set
+  # merge the two sets of IDs into a vector
+  # check vector for IDs already used then loop
+  # removes need to construct multipel data frames.
 
 
 
-  filter(!({{RecipientIDColName}} %in% c(PropPair1[,1], PropPair2[,1])))
+  # for (j in 2:HouseholdSize) {
+  #
+  #   assign(paste0("MatchingDataframe",j)) <- AvailablePeople %>%
+  #     slice_sample(n=nrow(AvailablePeople)/2, replace = FALSE)
+  #
+  #   AvailablePeople <- AvailablePeople %>%
+  #     anti_join(paste0("MatchingDataframe",j))
+  #
+  # }
 
-
-  }
+  # bit below needs to be iterated as well
 
   #
   # DonorCounts <- Donor %>%
@@ -362,7 +387,7 @@ OccupantN <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, 
   # # print(Critical_log_chisq)
   # # print(log_chisq)
 
-  return(Occupants)
+  return(AvailablePeople)
 
 
 }
