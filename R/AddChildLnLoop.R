@@ -19,15 +19,15 @@
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param DyadIDValue The starting number for generating a variable that identifies the observations in a child-parent dyad. Must be numeric. If no value is provided, the Dyad ID starts at 1.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied, and in quotes.
+#' @param DyadIDValue The starting number for generating a variable that identifies the observations in a child-parent dyad. Must be numeric. If no value is provided, the Dyad ID starts at 1.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
 
 
 AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable, meanlogUsed, sdlogUsed,
-                           MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, DyadIDValue = NULL, HouseholdNumVariable= NULL,
+                           MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL, DyadIDValue = NULL,
                            UserSeed=NULL)
 
 {
