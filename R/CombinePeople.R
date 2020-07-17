@@ -140,9 +140,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
   BaseDataFrame <- Occupants %>%
     slice_sample(n=nrow(Occupants)/HouseholdSize, replace = FALSE) %>%
-    #TRYING TO FIX QUOSURE ERROR BELOW
-    ungroup() %>%
-    mutate(mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue)))
+    mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
   IDList <- BaseDataFrame[,IDVariable]
 
