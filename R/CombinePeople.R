@@ -135,17 +135,14 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
   # create base data frame, which all the others will match to
 
-  MaxHouseholdIDValue <- (nrow((Occupants)/HouseholdSize)-1) + HouseholdIDValue
+  MaxHouseholdIDValue <- ((nrow(Occupants)/HouseholdSize)-1) + HouseholdIDValue
 
 
   BaseDataFrame <- Occupants %>%
-    slice_sample(n=nrow(Occupants)/HouseholdSize, replace = FALSE) #%>%
-  #  mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
-
-  BaseDataFrame <- BaseDataFrame %>%
+    slice_sample(n=nrow(Occupants)/HouseholdSize, replace = FALSE) %>%
     mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
-  IDList <- BaseDataFrame[,IDVariable]
+   IDList <- BaseDataFrame[,IDVariable]
 
   # set up bins for iterations
   # enable at least some extreme age differences to be assigned to the Inf categories
