@@ -142,7 +142,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     slice_sample(n=nrow(Occupants)/HouseholdSize, replace = FALSE) #%>%
   #  mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
-  BaseDataFrame <- BaseDataframe %>%
+  BaseDataFrame <- BaseDataFrame %>%
     mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
   IDList <- BaseDataFrame[,IDVariable]
@@ -343,19 +343,19 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     # construct same file for the recipients
     # need both donor age and donor age count so that the join between the recipients and the donors works
     # do not need Recipient age as this will be a duplicate column on the merge
-    BaseDataframeMatchPrep <- CurrentAgeMatch %>%
+    BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
       group_by(DonorAge) %>%
       mutate(DonorAgeCount = row_number()) %>%
       dplyr::select(-c(2))
 
 
-    PreppedBaseDataframe <- left_join(BaseDataFrame, BaseDataframeMatchPrep, by = names(Occupants[IDVariable]))
+    PreppedBaseDataFrame <- left_join(BaseDataFrame, BaseDataFrameMatchPrep, by = names(Occupants[IDVariable]))
 
     # now merge the full data of the subset people to the base data frame
     # by donor age and donor age count
     # this merge must happen each iteration through the data frame
 
-    FullMatchedDataFrame <- left_join(PreppedBaseDataframe, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+    FullMatchedDataFrame <- left_join(PreppedBaseDataFrame, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
       dplyr::select(-DonorAge, -DonorAgeCount) %>%
       ungroup()
 
