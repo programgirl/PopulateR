@@ -308,94 +308,102 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
     }
 
+    #####################################
+    #####################################
+    # pairing the actual occupants starts here
+    #####################################
+    #####################################
 
+    # return full donor and recipient rows as matched household pairs
+    # extract ages counts for matching the donors
+    MatchedDonorAges <- CurrentAgeMatch %>%
+      dplyr::select(DonorAge) %>%
+      group_by(DonorAge) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      ungroup()
+
+    #   # generate same AgeCount second ID variable for the donor data
+    #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
+    #   # the second donor with a specific age is matched second
+    #   # and so forth
+    DonorsToMatch <- AvailablePeople %>%
+      group_by({{IDColName}}) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      ungroup()
+
+    # reduce pool of potentially partnered donors to only those matched to recipients
+    DonorsMatched <- left_join(MatchedDonorAges,
+                               rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
+                               by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+      mutate(!!AgeColName := DonorAge)
+
+    # construct same file for the recipients
+    # need both donor age and donor age count so that the join between the recipients and the donors works
+    # do not need Recipient age as this will be a duplicate column on the merge
+    BaseDataframeMatchPrep <- CurrentAgeMatch %>%
+      group_by(DonorAge) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      dplyr::select(-c(2))
+
+
+    PreppedBaseDataframe <- left_join(BaseDataFrame, BaseDataframeMatchPrep, by = names(Occupants[IDVariable]))
+
+    # now merge the full data of the subset people to the base data frame
+    # by donor age and donor age count
+    # this merge must happen each iteration through the data frame
+
+    FullMatchedDataFrame <- left_join(PreppedBaseDataframe, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+      dplyr::select(-DonorAge, -DonorAgeCount) %>%
+      ungroup()
+
+    if (exists("UpdatingDataFrame")) {
+      UpdatingDataFrame <- UpdatingDataFrame %>%
+        left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
+
+    } else {
+      UpdatingDataFrame <- FullMatchedDataFrame
+
+    }
+
+    # convert from wide to long, use .x and .y to do the split
+
+    FirstDataframeSplit <- FullMatchedDataFrame %>%
+      dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+      rename_all(list(~gsub("\\.x$", "", .)))
+
+    SecondDataframeSplit <- FullMatchedDataFrame %>%
+      dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+      rename_all(list(~gsub("\\.y$", "", .)))
+
+    if (exists("OutputDataframe")) {
+
+      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+      OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
+
+
+    } else {
+      OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+
+    }
 
 
    }
 
+  #####################################
+  #####################################
+  # Output data frame with rbinds finished here
+  #####################################
+  #####################################
 
 
-  # #
-  # #
-  # #
-  # # #####################################
-  # # #####################################
-  # # # pairing the actual couples starts here
-  # # #####################################
-  # # #####################################
-  # # # return full donor and recipient rows as matched household pairs
-  # # # extract ages counts for matching the donors
-  # # MatchedDonorAges <- CurrentAgeMatch %>%
-  # #   dplyr::select(DonorAge) %>%
-  # #   group_by(DonorAge) %>%
-  # #   mutate(DonorAgeCount = row_number()) %>%
-  # #   ungroup()
-  # #
-  # #
-  # # #   # generate same AgeCount second ID variable for the donor data
-  # # #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
-  # # #   # the second donor with a specific age is matched second
-  # # #   # and so forth
-  # # DonorsToMatch <- Donor %>%
-  # #   group_by({{DonorAgeColName}}) %>%
-  # #   mutate(DonorAgeCount = row_number()) %>%
-  # #   ungroup()
-  # #
-  # # # reduce pool of potentially partnered donors to only those matched to recipients
-  # # DonorsMatched <- left_join(MatchedDonorAges,
-  # #                            rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]),
-  # #                            by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
-  # #   mutate(!!DonorAgeColName := DonorAge)
-  # #
-  # #
-  # # # construct same file for the recipients
-  # # # need both donor age and donor age count so that the join between the recipients and the donors works
-  # # # do not need Recipient age as this will be a duplicate column on the merge
-  # # RecipientsMatchPrep <- CurrentAgeMatch %>%
-  # #   group_by(DonorAge) %>%
-  # #   mutate(DonorAgeCount = row_number()) %>%
-  # #   dplyr::select(-c(2))
-  # #
-  # # #
-  # # RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = names(Recipient[RecipientIDVariable]))
-  # #
-  # # # now merge the full data of the subset donors to the recipients
-  # # # by donor age and donor age count
-  # # # recipient data frame is the one to which observations must be joined
-  # # # also add the household numbers at this point
-  # # MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
-  # #
-  # # FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-  # #   dplyr::select(-DonorAge, -DonorAgeCount) %>%
-  # #   ungroup() %>%
-  # #   mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
-  # #
-  # # # convert from wide to long, use .x and .y to do the split
-  # #
-  # # FirstDataframeSplit <- FullMatchedDataFrame %>%
-  # #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-  # #   rename_all(list(~gsub("\\.x$", "", .)))
-  # #
-  # # SecondDataframeSplit <- FullMatchedDataFrame %>%
-  # #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-  # #   rename_all(list(~gsub("\\.y$", "", .)))
-  # #
-  # #
-  # # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-  # # #
-  # # # #####################################
-  # # # #####################################
-  # # # # pairing the actual couples ends here
-  # # # #####################################
-  # # # #####################################
-  # #
-  # # # use for checking number of iterations used, the p-value to stop, and the p-value reached
-  # # #
-  # # # print(i)
-  # # # print(Critical_log_chisq)
-  # # # print(log_chisq)
+  # use for checking number of iterations used, the p-value to stop, and the p-value reached
+  # shift to iteration where required
+  #
+  # print(i)
+  # print(Critical_log_chisq)
+  # print(log_chisq)
 
- return(AvailablePeople)
+ return(OutputDataframe)
 
 
 }
