@@ -268,8 +268,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       Current2 <- CurrentAgeMatch[Pick2,]
 
       # # proposed pairing after a swap
-      PropPair1 <- swap_donor(Current1, Current2)
-      PropPair2 <- swap_donor(Current2, Current1)
+      PropPair1 <- swap_people(Current1, Current2)
+      PropPair2 <- swap_people(Current2, Current1)
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
