@@ -227,7 +227,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
                                   BaseDataFrame[AgeVariable],
                                   DonorAge = sample(rep(DonorAges, DonorAgeCounts),
-                                                    size=nrow(Recipient),
+                                                    size=nrow(BaseDataFrame),
                                                     replace = FALSE))
 
     # set up for chi-squared test
@@ -273,7 +273,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!({{RecipientIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+        filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
         bind_rows(., PropPair1,PropPair2)
 
       # do chi-squared
@@ -314,7 +314,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     #####################################
     #####################################
 
-    # return full donor and recipient rows as matched household pairs
+    # return matched household pairs
     # extract ages counts for matching the donors
     MatchedDonorAges <- CurrentAgeMatch %>%
       dplyr::select(DonorAge) %>%
@@ -331,15 +331,14 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       mutate(DonorAgeCount = row_number()) %>%
       ungroup()
 
-    # reduce pool of potentially partnered donors to only those matched to recipients
+    # reduce pool of potentially partnered donors to only those matched
     DonorsMatched <- left_join(MatchedDonorAges,
                                rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
                                by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
       mutate(!!AgeColName := DonorAge)
 
-    # construct same file for the recipients
-    # need both donor age and donor age count so that the join between the recipients and the donors works
-    # do not need Recipient age as this will be a duplicate column on the merge
+    # need both donor age and donor age count so that the join between the base and the donors works
+    # do not need base dataframe age as this will be a duplicate column on the merge
     BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
       group_by(DonorAge) %>%
       mutate(DonorAgeCount = row_number()) %>%
