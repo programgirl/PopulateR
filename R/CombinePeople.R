@@ -139,7 +139,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
 
   BaseDataFrame <- Occupants %>%
-    slice_sample(n=nrow(Occupants)/HouseholdSize, replace = FALSE) %>%
+    slice_sample(weight_by := {{AgeVariable}}, n=nrow(Occupants)/HouseholdSize, replace = FALSE) %>%
     mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
    IDList <- BaseDataFrame[,IDVariable]
