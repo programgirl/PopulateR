@@ -149,7 +149,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   # otherwise the bins will be wrong
 
   MaxAgeDifference <-  (max(BaseDataFrame[AgeVariable]) -
-                          min(BaseDataFrame[AgeVariable]))-10
+                          min(BaseDataFrame[AgeVariable]))-5
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -287,6 +287,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       print(log_chisq)
 
       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+
+        print("check loop")
 
         CurrentAgeMatch[Pick1,] <- PropPair1
         CurrentAgeMatch[Pick2,] <- PropPair2
