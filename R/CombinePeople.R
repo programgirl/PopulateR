@@ -223,9 +223,9 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       group_by_at(AgeVariable) %>%
       summarise(AgeCount=n())
 
-    # DonorAges <- pull(DonorCounts[1])
-    # DonorAgeCounts <- pull(DonorCounts[2])
-    #
+    DonorAges <- pull(DonorCounts[1])
+    DonorAgeCounts <- pull(DonorCounts[2])
+
     # CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
     #                               BaseDataFrame[AgeVariable],
     #                               DonorAge = sample(rep(DonorAges, DonorAgeCounts),
@@ -410,7 +410,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
  #
  # return(OutputDataframe)
 
-  return(DonorCounts)
+  return(DonorAges)
 
 
 }
