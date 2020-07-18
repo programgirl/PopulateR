@@ -192,9 +192,9 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   #
   for (j in 2:HouseholdSize) {
 
-    i <- 1
+    h <- 1
 
-      if (j == HouseholdSize) {
+      if (h == HouseholdSize) {
 
         AvailablePeople <- Occupants %>%
         anti_join(IDList)
@@ -205,11 +205,11 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         # sample from the Occupant data frame
         AvailablePeople <- Occupants %>%
           anti_join(IDList) %>%
-          slice_sample(n = ((nrow(.))/(HouseholdSize - i)), replace = FALSE)
+          slice_sample(n = ((nrow(.))/(HouseholdSize - h)), replace = FALSE)
 
-        print(nrow(AvailablePeople)/(HouseholdSize - i))
+        print(nrow(AvailablePeople)/(HouseholdSize - h))
 
-        i <- i + 1
+        h <- h + 1
 
         # add used IDs to the ID list
         NewIDList <- AvailablePeople[,IDVariable]
@@ -226,33 +226,33 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     DonorAges <- pull(DonorCounts[1])
     DonorAgeCounts <- pull(DonorCounts[2])
 
-    # CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
-    #                               BaseDataFrame[AgeVariable],
-    #                               DonorAge = sample(rep(DonorAges, DonorAgeCounts),
-    #                                                 size=nrow(BaseDataFrame),
-    #                                                 replace = FALSE))
-    #
-    # # set up for chi-squared test
-    # ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-    # logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-    #
-    # # construct starting set of observed age difference values for iteration
-    # ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
-    #
-    # # set up for chi-squared
-    # log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-    # logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-    # log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-    #
-    # if (is.null(pValueToStop)) {
-    #
-    #   Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-    #
-    # } else {
-    #
-    #   Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+    CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
+                                  BaseDataFrame[AgeVariable],
+                                  DonorAge = sample(rep(DonorAges, DonorAgeCounts),
+                                                    size=nrow(BaseDataFrame),
+                                                    replace = FALSE))
 
-    # }
+    # # set up for chi-squared test
+    ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+    logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+
+    # construct starting set of observed age difference values for iteration
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
+
+    # set up for chi-squared
+    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+    if (is.null(pValueToStop)) {
+
+      Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    } else {
+
+      Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    }
 
     #####################################
     #####################################
@@ -260,50 +260,50 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     #####################################
     #####################################
 
-#
-#     for (i in 1:NumIterations) {
-#
-#       # randomly choose two pairs
-#       Pick1 <- sample(nrow(CurrentAgeMatch), 1)
-#       Pick2 <- sample(nrow(CurrentAgeMatch), 1)
-#       Current1 <- CurrentAgeMatch[Pick1,]
-#       Current2 <- CurrentAgeMatch[Pick2,]
-#
-#       # # proposed pairing after a swap
-#       PropPair1 <- swap_people(Current1, Current2)
-#       PropPair2 <- swap_people(Current2, Current1)
-#
-#
-#       # compute change in Chi-squared value from current pairing to proposed pairing
-#       PropAgeMatch <- CurrentAgeMatch %>%
-#         filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-#         bind_rows(., PropPair1,PropPair2)
-#
-#       # do chi-squared
-#       Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-#       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-#
-#       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-#
-#
-#       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
-#
-#         print("check loop")
-#
-#         CurrentAgeMatch[Pick1,] <- PropPair1
-#         CurrentAgeMatch[Pick2,] <- PropPair2
-#
-#
-#         log0ObservedAges <- Proplog0
-#         logKObservedAges <- ProplogK
-#         log_chisq <- prop_log_chisq
-#
-#        }
-#
-#       if (log_chisq <= Critical_log_chisq) {
-#         break
-#
-#       }
+
+    for (i in 1:NumIterations) {
+
+      # randomly choose two pairs
+      Pick1 <- sample(nrow(CurrentAgeMatch), 1)
+      Pick2 <- sample(nrow(CurrentAgeMatch), 1)
+      Current1 <- CurrentAgeMatch[Pick1,]
+      Current2 <- CurrentAgeMatch[Pick2,]
+
+      # # proposed pairing after a swap
+      PropPair1 <- swap_people(Current1, Current2)
+      PropPair2 <- swap_people(Current2, Current1)
+
+
+      # compute change in Chi-squared value from current pairing to proposed pairing
+      PropAgeMatch <- CurrentAgeMatch %>%
+        filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+        bind_rows(., PropPair1,PropPair2)
+
+      # do chi-squared
+      Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+      ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+
+      prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+
+
+      if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+
+        print("check loop")
+
+        CurrentAgeMatch[Pick1,] <- PropPair1
+        CurrentAgeMatch[Pick2,] <- PropPair2
+
+
+        log0ObservedAges <- Proplog0
+        logKObservedAges <- ProplogK
+        log_chisq <- prop_log_chisq
+
+       }
+
+      if (log_chisq <= Critical_log_chisq) {
+        break
+
+      }
 
       #####################################
       #####################################
@@ -327,8 +327,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     #   group_by(DonorAge) %>%
     #   mutate(DonorAgeCount = row_number()) %>%
     #   ungroup()
-    #
-    # #   # generate same AgeCount second ID variable for the donor data
+
+    #   # generate same AgeCount second ID variable for the donor data
     # #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
     # #   # the second donor with a specific age is matched second
     # #   # and so forth
@@ -392,7 +392,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     # }
     #
 
-   # }
+   }
 
  #  #####################################
  #  #####################################
@@ -410,7 +410,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
  #
  # return(OutputDataframe)
 
-  return(DonorAgeCounts)
+  return(CurrentAgeMatch)
 
 
 }
