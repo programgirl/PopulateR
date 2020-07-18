@@ -276,7 +276,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+        # filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+        filter(!(BaseDataFrame[IDVariable]) %in% c(PropPair1[,1], PropPair2[,1])) %>%
         bind_rows(., PropPair1,PropPair2)
 
       # do chi-squared
@@ -289,6 +290,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
         print("check loop")
+        print(prop_log_chisq)
 
         CurrentAgeMatch[Pick1,] <- PropPair1
         CurrentAgeMatch[Pick2,] <- PropPair2
