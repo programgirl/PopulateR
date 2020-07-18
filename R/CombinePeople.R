@@ -215,14 +215,14 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         NewIDList <- AvailablePeople[,IDVariable]
         IDList <- rbind(IDList, NewIDList)
 
-        print("Should not have entered")
+  #      print("Should not have entered")
 
       }
 
-    # DonorCounts <- AvailablePeople %>%
-    #   group_by_at(AgeVariable) %>%
-    #   summarise(AgeCount=n())
-    #
+    DonorCounts <- AvailablePeople %>%
+      group_by_at(AgeVariable) %>%
+      summarise(AgeCount=n())
+
     # DonorAges <- pull(DonorCounts[1])
     # DonorAgeCounts <- pull(DonorCounts[2])
     #
@@ -410,7 +410,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
  #
  # return(OutputDataframe)
 
-  return(AvailablePeople)
+  return(DonorCounts)
 
 
 }
