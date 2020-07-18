@@ -410,7 +410,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
  #
  # return(OutputDataframe)
 
-  return(DonorAges)
+  return(DonorAgeCounts)
 
 
 }
