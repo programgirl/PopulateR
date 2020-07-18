@@ -148,8 +148,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(BaseDataFrame[AgeVariable]) -
-                          min(BaseDataFrame[AgeVariable]))-5
+  MaxAgeDifference <-  (max(Occupants[AgeVariable]) -
+                          min(Occupants[AgeVariable]))-5
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -200,55 +200,55 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         anti_join(IDList)
 
 
-      } else {
+      # } else {
+      #
+      #   # sample from the Occupant data frame
+      #   AvailablePeople <- Occupants %>%
+      #     anti_join(IDList) %>%
+      #     slice_sample(n = ((nrow(.))/(HouseholdSize - i)), replace = FALSE)
+      #
+      #   print(nrow(AvailablePeople)/(HouseholdSize - i))
+      #
+      #   i <- i + 1
+      #
+      #   # add used IDs to the ID list
+      #   NewIDList <- AvailablePeople[,IDVariable]
+      #   IDList <- rbind(IDList, NewIDList)
+      #
+      # }
 
-        # sample from the Occupant data frame
-        AvailablePeople <- Occupants %>%
-          anti_join(IDList) %>%
-          slice_sample(n = ((nrow(.))/(HouseholdSize - i)), replace = FALSE)
-
-        print(nrow(AvailablePeople)/(HouseholdSize - i))
-
-        i <- i + 1
-
-        # add used IDs to the ID list
-        NewIDList <- AvailablePeople[,IDVariable]
-        IDList <- rbind(IDList, NewIDList)
-
-      }
-
-    DonorCounts <- AvailablePeople %>%
-      group_by_at(AgeVariable) %>%
-      summarise(AgeCount=n())
-
-    DonorAges <- pull(DonorCounts[1])
-    DonorAgeCounts <- pull(DonorCounts[2])
-
-    CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
-                                  BaseDataFrame[AgeVariable],
-                                  DonorAge = sample(rep(DonorAges, DonorAgeCounts),
-                                                    size=nrow(BaseDataFrame),
-                                                    replace = FALSE))
-
-    # set up for chi-squared test
-    ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-    logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-
-    # construct starting set of observed age difference values for iteration
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
-
-    # set up for chi-squared
-    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-
-    if (is.null(pValueToStop)) {
-
-      Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-    } else {
-
-      Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+    # DonorCounts <- AvailablePeople %>%
+    #   group_by_at(AgeVariable) %>%
+    #   summarise(AgeCount=n())
+    #
+    # DonorAges <- pull(DonorCounts[1])
+    # DonorAgeCounts <- pull(DonorCounts[2])
+    #
+    # CurrentAgeMatch <- data.frame(BaseDataFrame[IDVariable],
+    #                               BaseDataFrame[AgeVariable],
+    #                               DonorAge = sample(rep(DonorAges, DonorAgeCounts),
+    #                                                 size=nrow(BaseDataFrame),
+    #                                                 replace = FALSE))
+    #
+    # # set up for chi-squared test
+    # ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+    # logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+    #
+    # # construct starting set of observed age difference values for iteration
+    # ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
+    #
+    # # set up for chi-squared
+    # log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    # logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    # log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+    #
+    # if (is.null(pValueToStop)) {
+    #
+    #   Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+    #
+    # } else {
+    #
+    #   Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
     }
 
@@ -258,52 +258,50 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     #####################################
     #####################################
 
-
-    for (i in 1:NumIterations) {
-
-      # randomly choose two pairs
-      Pick1 <- sample(nrow(CurrentAgeMatch), 1)
-      Pick2 <- sample(nrow(CurrentAgeMatch), 1)
-      Current1 <- CurrentAgeMatch[Pick1,]
-      Current2 <- CurrentAgeMatch[Pick2,]
-
-      # # proposed pairing after a swap
-      PropPair1 <- swap_people(Current1, Current2)
-      PropPair2 <- swap_people(Current2, Current1)
-
-      # compute change in Chi-squared value from current pairing to proposed pairing
-      PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-        bind_rows(., PropPair1,PropPair2)
-
-      # do chi-squared
-      Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-      ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-
-      prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-
-      print(i)
-      print(Critical_log_chisq)
-      print(log_chisq)
-
-      if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
-
-        print("check loop")
-
-        CurrentAgeMatch[Pick1,] <- PropPair1
-        CurrentAgeMatch[Pick2,] <- PropPair2
-
-
-        log0ObservedAges <- Proplog0
-        logKObservedAges <- ProplogK
-        log_chisq <- prop_log_chisq
-
-       }
-
-      if (log_chisq <= Critical_log_chisq) {
-        break
-
-      }
+#
+#     for (i in 1:NumIterations) {
+#
+#       # randomly choose two pairs
+#       Pick1 <- sample(nrow(CurrentAgeMatch), 1)
+#       Pick2 <- sample(nrow(CurrentAgeMatch), 1)
+#       Current1 <- CurrentAgeMatch[Pick1,]
+#       Current2 <- CurrentAgeMatch[Pick2,]
+#
+#       # # proposed pairing after a swap
+#       PropPair1 <- swap_people(Current1, Current2)
+#       PropPair2 <- swap_people(Current2, Current1)
+#
+#
+#       # compute change in Chi-squared value from current pairing to proposed pairing
+#       PropAgeMatch <- CurrentAgeMatch %>%
+#         filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+#         bind_rows(., PropPair1,PropPair2)
+#
+#       # do chi-squared
+#       Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+#       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+#
+#       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+#
+#
+#       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+#
+#         print("check loop")
+#
+#         CurrentAgeMatch[Pick1,] <- PropPair1
+#         CurrentAgeMatch[Pick2,] <- PropPair2
+#
+#
+#         log0ObservedAges <- Proplog0
+#         logKObservedAges <- ProplogK
+#         log_chisq <- prop_log_chisq
+#
+#        }
+#
+#       if (log_chisq <= Critical_log_chisq) {
+#         break
+#
+#       }
 
       #####################################
       #####################################
@@ -322,77 +320,77 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
     # return matched household pairs
     # extract ages counts for matching the donors
-    MatchedDonorAges <- CurrentAgeMatch %>%
-      dplyr::select(DonorAge) %>%
-      group_by(DonorAge) %>%
-      mutate(DonorAgeCount = row_number()) %>%
-      ungroup()
+    # MatchedDonorAges <- CurrentAgeMatch %>%
+    #   dplyr::select(DonorAge) %>%
+    #   group_by(DonorAge) %>%
+    #   mutate(DonorAgeCount = row_number()) %>%
+    #   ungroup()
+    #
+    # #   # generate same AgeCount second ID variable for the donor data
+    # #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
+    # #   # the second donor with a specific age is matched second
+    # #   # and so forth
+    # DonorsToMatch <- AvailablePeople %>%
+    #   group_by({{IDColName}}) %>%
+    #   mutate(DonorAgeCount = row_number()) %>%
+    #   ungroup()
+    #
+    # # reduce pool of potentially partnered donors to only those matched
+    # DonorsMatched <- left_join(MatchedDonorAges,
+    #                            rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
+    #                            by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+    #   mutate(!!AgeColName := DonorAge)
+    #
+    # # need both donor age and donor age count so that the join between the base and the donors works
+    # # do not need base dataframe age as this will be a duplicate column on the merge
+    # BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
+    #   group_by(DonorAge) %>%
+    #   mutate(DonorAgeCount = row_number()) %>%
+    #   dplyr::select(-c(2))
+    #
+    #
+    # PreppedBaseDataFrame <- left_join(BaseDataFrame, BaseDataFrameMatchPrep, by = names(Occupants[IDVariable]))
+    #
+    # # now merge the full data of the subset people to the base data frame
+    # # by donor age and donor age count
+    # # this merge must happen each iteration through the data frame
+    #
+    # FullMatchedDataFrame <- left_join(PreppedBaseDataFrame, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+    #   dplyr::select(-DonorAge, -DonorAgeCount) %>%
+    #   ungroup()
+    #
+    # if (exists("UpdatingDataFrame")) {
+    #   UpdatingDataFrame <- UpdatingDataFrame %>%
+    #     left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
+    #
+    # } else {
+    #   UpdatingDataFrame <- FullMatchedDataFrame
+    #
+    # }
+    #
+    # # convert from wide to long, use .x and .y to do the split
+    #
+    # FirstDataframeSplit <- FullMatchedDataFrame %>%
+    #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    #   rename_all(list(~gsub("\\.x$", "", .)))
+    #
+    # SecondDataframeSplit <- FullMatchedDataFrame %>%
+    #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    #   rename_all(list(~gsub("\\.y$", "", .)))
+    #
+    # if (exists("OutputDataframe")) {
+    #
+    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #   OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
+    #
+    #
+    # } else {
+    #   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #
+    # }
+    #
 
-    #   # generate same AgeCount second ID variable for the donor data
-    #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
-    #   # the second donor with a specific age is matched second
-    #   # and so forth
-    DonorsToMatch <- AvailablePeople %>%
-      group_by({{IDColName}}) %>%
-      mutate(DonorAgeCount = row_number()) %>%
-      ungroup()
-
-    # reduce pool of potentially partnered donors to only those matched
-    DonorsMatched <- left_join(MatchedDonorAges,
-                               rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
-                               by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
-      mutate(!!AgeColName := DonorAge)
-
-    # need both donor age and donor age count so that the join between the base and the donors works
-    # do not need base dataframe age as this will be a duplicate column on the merge
-    BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
-      group_by(DonorAge) %>%
-      mutate(DonorAgeCount = row_number()) %>%
-      dplyr::select(-c(2))
-
-
-    PreppedBaseDataFrame <- left_join(BaseDataFrame, BaseDataFrameMatchPrep, by = names(Occupants[IDVariable]))
-
-    # now merge the full data of the subset people to the base data frame
-    # by donor age and donor age count
-    # this merge must happen each iteration through the data frame
-
-    FullMatchedDataFrame <- left_join(PreppedBaseDataFrame, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-      dplyr::select(-DonorAge, -DonorAgeCount) %>%
-      ungroup()
-
-    if (exists("UpdatingDataFrame")) {
-      UpdatingDataFrame <- UpdatingDataFrame %>%
-        left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
-
-    } else {
-      UpdatingDataFrame <- FullMatchedDataFrame
-
-    }
-
-    # convert from wide to long, use .x and .y to do the split
-
-    FirstDataframeSplit <- FullMatchedDataFrame %>%
-      dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.x$", "", .)))
-
-    SecondDataframeSplit <- FullMatchedDataFrame %>%
-      dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.y$", "", .)))
-
-    if (exists("OutputDataframe")) {
-
-      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-      OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
-
-
-    } else {
-      OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-
-    }
-
-
-   }
+   # }
 
   #####################################
   #####################################
