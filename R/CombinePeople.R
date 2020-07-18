@@ -200,22 +200,24 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         anti_join(IDList)
 
 
-      # } else {
-      #
-      #   # sample from the Occupant data frame
-      #   AvailablePeople <- Occupants %>%
-      #     anti_join(IDList) %>%
-      #     slice_sample(n = ((nrow(.))/(HouseholdSize - i)), replace = FALSE)
-      #
-      #   print(nrow(AvailablePeople)/(HouseholdSize - i))
-      #
-      #   i <- i + 1
-      #
-      #   # add used IDs to the ID list
-      #   NewIDList <- AvailablePeople[,IDVariable]
-      #   IDList <- rbind(IDList, NewIDList)
-      #
-      # }
+      } else {
+
+        # sample from the Occupant data frame
+        AvailablePeople <- Occupants %>%
+          anti_join(IDList) %>%
+          slice_sample(n = ((nrow(.))/(HouseholdSize - i)), replace = FALSE)
+
+        print(nrow(AvailablePeople)/(HouseholdSize - i))
+
+        i <- i + 1
+
+        # add used IDs to the ID list
+        NewIDList <- AvailablePeople[,IDVariable]
+        IDList <- rbind(IDList, NewIDList)
+
+        print("Should not have entered")
+
+      }
 
     # DonorCounts <- AvailablePeople %>%
     #   group_by_at(AgeVariable) %>%
@@ -392,21 +394,23 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
    # }
 
-  #####################################
-  #####################################
-  # Output data frame with rbinds finished here
-  #####################################
-  #####################################
+ #  #####################################
+ #  #####################################
+ #  # Output data frame with rbinds finished here
+ #  #####################################
+ #  #####################################
+ #
+ #
+ #  # use for checking number of iterations used, the p-value to stop, and the p-value reached
+ #  # shift to iteration where required
+ #  #
+ #  # print(i)
+ #  # print(Critical_log_chisq)
+ #  # print(log_chisq)
+ #
+ # return(OutputDataframe)
 
-
-  # use for checking number of iterations used, the p-value to stop, and the p-value reached
-  # shift to iteration where required
-  #
-  # print(i)
-  # print(Critical_log_chisq)
-  # print(log_chisq)
-
- return(OutputDataframe)
+  return(AvailablePeople)
 
 
 }
