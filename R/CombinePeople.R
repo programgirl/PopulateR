@@ -409,7 +409,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
  # return(OutputDataframe)
 
- return(DonorsToMatch)
+ return(FullMatchedDataFrame)
 
 
 }
