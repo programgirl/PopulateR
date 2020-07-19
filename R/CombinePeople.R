@@ -191,7 +191,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   # #
   #
   #
-  # for (j in 2:HouseholdSize) {
+  for (j in 2:HouseholdSize) {
   #
   #   h <- 1
   #
@@ -381,7 +381,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
     if (exists("OutputDataframe")) {
 
-    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
       OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
 
       print("OutputDataframe loop incorrectly entered for 2-person households")
@@ -397,7 +397,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     }
 
 
-   # }
+   }
 
   #####################################
   #####################################
