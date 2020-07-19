@@ -234,6 +234,9 @@ Testing <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, me
     PropPair1 <- swap_people(Current1, Current2)
     PropPair2 <- swap_people(Current2, Current1)
 
+    print(i)
+    # print(Current1)
+
     # compute change in Chi-squared value from current pairing to proposed pairing
     PropAgeMatch <- CurrentAgeMatch %>%
       #filter(!(BaseDataFrameIDList[,1] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
@@ -241,31 +244,26 @@ Testing <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NULL, me
       filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
       bind_rows(., PropPair1,PropPair2)
 
-    # print(nrow(PropAgeMatch)) #rows aren't being incremented at this point, according to this counter.
-
     # do chi-squared
     Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
     ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
     prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-    print(log_chisq)
-
 
     if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
-
-      print("check loop")
 
       CurrentAgeMatch[Pick1,] <- PropPair1
       CurrentAgeMatch[Pick2,] <- PropPair2
 
-      print(Current1)
-      print(CurrentAgeMatch[Pick1,])
+      # print(CurrentAgeMatch[Pick1,])
 
       log0ObservedAges <- Proplog0
       logKObservedAges <- ProplogK
       log_chisq <- prop_log_chisq
 
-      # print(log_chisq)
+      print(log_chisq)
+
+
 
     }
 

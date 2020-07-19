@@ -48,10 +48,10 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
   # pairing swap subfunction
 
-   swap_people <- function(pair1, pair2) {
+  swap_people <- function(pair1, pair2) {
     swap <- pair1
-    swap$IDVariable <- pair2$IDVariable
-    swap$AgeVariable <- pair2$AgeVariable
+    swap$DonorID <- pair2$DonorID
+    swap$DonorAge <- pair2$DonorAge
     return(swap)
   }
 
@@ -261,7 +261,6 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     #####################################
     #####################################
 
-
     for (i in 1:NumIterations) {
 
       # randomly choose two pairs
@@ -274,7 +273,6 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       PropPair1 <- swap_people(Current1, Current2)
       PropPair2 <- swap_people(Current2, Current1)
 
-
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
         #filter(!(BaseDataFrameIDList[,1] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
@@ -282,37 +280,30 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
         bind_rows(., PropPair1,PropPair2)
 
-      # print(nrow(PropAgeMatch)) #rows aren't being incremented at this point, according to this counter.
-
       # do chi-squared
       Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-      print(prop_log_chisq)
-
 
       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
-        print("check loop")
-
         CurrentAgeMatch[Pick1,] <- PropPair1
         CurrentAgeMatch[Pick2,] <- PropPair2
-
 
         log0ObservedAges <- Proplog0
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
 
-        # print(log_chisq)
+ #       print(log_chisq)
 
-       }
+
+      }
 
       if (log_chisq <= Critical_log_chisq) {
         break
 
       }
-
       #####################################
       #####################################
       # iteration for matching ages ends here
@@ -320,7 +311,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       #####################################
 
 
-    # }
+    }
 
     #####################################
     #####################################
@@ -388,19 +379,19 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
       rename_all(list(~gsub("\\.y$", "", .)))
 
-    if (exists("OutputDataframe")) {
-
-      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-      OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
-
-
-    } else {
+    # if (exists("OutputDataframe")) {
+    #
+    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #   OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
+    #
+    #
+    # } else {
       OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #
+    # }
 
-    }
 
-
-   }
+   # }
 
   #####################################
   #####################################
@@ -418,7 +409,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
  # return(OutputDataframe)
 
- return(PropAgeMatch)
+ return(OutputDataframe)
 
 
 }
