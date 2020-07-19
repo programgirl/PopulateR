@@ -381,13 +381,16 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
     if (exists("OutputDataframe")) {
 
-      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
       OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
 
       print("OutputDataframe loop incorrectly entered for 2-person households")
+      print(nrow(OutputDataframe))
 
 
     } else {
+
+      print("OutputDataframe loop correctly entered for 2-person households")
 
       OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
 
