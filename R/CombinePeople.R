@@ -193,7 +193,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   #
   for (j in 2:HouseholdSize) {
 
- #  h <- 1
+  h <- 1
 
   #    if (h == HouseholdSize) {
     if (j == HouseholdSize) {
@@ -210,7 +210,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
         # print(nrow(AvailablePeople)/(HouseholdSize - h))
 
-        # h <- h + 1
+        h <- h + 1
 
         # add used IDs to the ID list
         NewIDList <- AvailablePeople[,IDVariable]
