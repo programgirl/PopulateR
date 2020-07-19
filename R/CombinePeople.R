@@ -362,7 +362,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       UpdatingDataFrame <- UpdatingDataFrame %>%
         left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
 
-      # print("Loop incorrectly entered for 2-person households")
+      print("UpdatingDataFrame oop incorrectly entered for 2-person households")
 
     } else {
       UpdatingDataFrame <- FullMatchedDataFrame
@@ -384,7 +384,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
       OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
 
-      print("Loop incorrectly entered for 2-person households")
+      print("OutputDataframe loop incorrectly entered for 2-person households")
 
 
     } else {
