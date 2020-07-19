@@ -295,8 +295,6 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
 
- #       print(log_chisq)
-
 
       }
 
@@ -360,14 +358,16 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       dplyr::select(-DonorAge, -DonorAgeCount) %>%
       ungroup()
 
-    # if (exists("UpdatingDataFrame")) {
-    #   UpdatingDataFrame <- UpdatingDataFrame %>%
-    #     left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
-    #
-    # } else {
+    if (exists("UpdatingDataFrame")) {
+      UpdatingDataFrame <- UpdatingDataFrame %>%
+        left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
+
+      print("Loop incorrectly entered")
+
+    } else {
       UpdatingDataFrame <- FullMatchedDataFrame
 
-    # }
+    }
 
     # convert from wide to long, use .x and .y to do the split
 
