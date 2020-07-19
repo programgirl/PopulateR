@@ -192,10 +192,10 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   #
   #
   for (j in 2:HouseholdSize) {
-  #
-  #   h <- 1
-  #
-  #     if (h == HouseholdSize) {
+
+    h <- 1
+
+      if (h == HouseholdSize) {
 
         AvailablePeople <- Occupants %>%
         anti_join(IDList)
@@ -218,7 +218,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
   #      print("Should not have entered")
 
-      # }
+      }
 
     DonorCounts <- AvailablePeople %>%
       group_by_at(AgeVariable) %>%
