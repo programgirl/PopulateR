@@ -64,7 +64,6 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
 
   #####################################
   #####################################
-  # sub functions are here
   #####################################
   #####################################
   # pairing swap subfunction
