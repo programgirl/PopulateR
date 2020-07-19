@@ -332,7 +332,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       # the second donor with a specific age is matched second
       # and so forth
     DonorsToMatch <- AvailablePeople %>%
-      group_by({{IDColName}}) %>%
+      group_by_at(AgeVariable) %>%
       mutate(DonorAgeCount = row_number()) %>%
       ungroup()
 
@@ -409,7 +409,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
  # return(OutputDataframe)
 
- return(OutputDataframe)
+ return(DonorsMatched)
 
 
 }
