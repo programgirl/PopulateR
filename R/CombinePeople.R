@@ -143,6 +143,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
     mutate({{HouseholdNumVariable}} := seq(HouseholdIDValue, MaxHouseholdIDValue))
 
    IDList <- BaseDataFrame[,IDVariable]
+   BaseDataFrameIDList <- BaseDataFrame[,IDVariable]
 
   # set up bins for iterations
   # enable at least some extreme age differences to be assigned to the Inf categories
@@ -276,9 +277,11 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        # filter(!({{IDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-        filter(!(BaseDataFrame[IDVariable]) %in% c(PropPair1[,1], PropPair2[,1])) %>%
+        #filter(!(BaseDataFrameIDList[,1] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+        filter(!(BaseDataFrameIDList %in% c(PropPair1[,1], PropPair2[,1]))) %>%
         bind_rows(., PropPair1,PropPair2)
+
+      # print(nrow(PropAgeMatch)) #rows aren't being incremented at this point, according to this counter.
 
       # do chi-squared
       Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
@@ -290,7 +293,6 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
         print("check loop")
-        print(prop_log_chisq)
 
         CurrentAgeMatch[Pick1,] <- PropPair1
         CurrentAgeMatch[Pick2,] <- PropPair2
@@ -299,6 +301,8 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         log0ObservedAges <- Proplog0
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
+
+        # print(log_chisq)
 
        }
 
@@ -324,95 +328,95 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
 
     # return matched household pairs
     # extract ages counts for matching the donors
-    # MatchedDonorAges <- CurrentAgeMatch %>%
-    #   dplyr::select(DonorAge) %>%
-    #   group_by(DonorAge) %>%
-    #   mutate(DonorAgeCount = row_number()) %>%
-    #   ungroup()
+    MatchedDonorAges <- CurrentAgeMatch %>%
+      dplyr::select(DonorAge) %>%
+      group_by(DonorAge) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      ungroup()
 
-    #   # generate same AgeCount second ID variable for the donor data
-    # #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
-    # #   # the second donor with a specific age is matched second
-    # #   # and so forth
-    # DonorsToMatch <- AvailablePeople %>%
-    #   group_by({{IDColName}}) %>%
-    #   mutate(DonorAgeCount = row_number()) %>%
-    #   ungroup()
-    #
-    # # reduce pool of potentially partnered donors to only those matched
-    # DonorsMatched <- left_join(MatchedDonorAges,
-    #                            rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
-    #                            by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
-    #   mutate(!!AgeColName := DonorAge)
-    #
-    # # need both donor age and donor age count so that the join between the base and the donors works
-    # # do not need base dataframe age as this will be a duplicate column on the merge
-    # BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
-    #   group_by(DonorAge) %>%
-    #   mutate(DonorAgeCount = row_number()) %>%
-    #   dplyr::select(-c(2))
-    #
-    #
-    # PreppedBaseDataFrame <- left_join(BaseDataFrame, BaseDataFrameMatchPrep, by = names(Occupants[IDVariable]))
-    #
-    # # now merge the full data of the subset people to the base data frame
-    # # by donor age and donor age count
-    # # this merge must happen each iteration through the data frame
-    #
-    # FullMatchedDataFrame <- left_join(PreppedBaseDataFrame, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-    #   dplyr::select(-DonorAge, -DonorAgeCount) %>%
-    #   ungroup()
-    #
-    # if (exists("UpdatingDataFrame")) {
-    #   UpdatingDataFrame <- UpdatingDataFrame %>%
-    #     left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
-    #
-    # } else {
-    #   UpdatingDataFrame <- FullMatchedDataFrame
-    #
-    # }
-    #
-    # # convert from wide to long, use .x and .y to do the split
-    #
-    # FirstDataframeSplit <- FullMatchedDataFrame %>%
-    #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-    #   rename_all(list(~gsub("\\.x$", "", .)))
-    #
-    # SecondDataframeSplit <- FullMatchedDataFrame %>%
-    #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-    #   rename_all(list(~gsub("\\.y$", "", .)))
-    #
-    # if (exists("OutputDataframe")) {
-    #
-    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-    #   OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
-    #
-    #
-    # } else {
-    #   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-    #
-    # }
-    #
+      # generate same AgeCount second ID variable for the donor data
+      # the AgeCount is used to ensure that the first donor with a specific age is matched first
+      # the second donor with a specific age is matched second
+      # and so forth
+    DonorsToMatch <- AvailablePeople %>%
+      group_by({{IDColName}}) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      ungroup()
+
+    # reduce pool of potentially partnered donors to only those matched
+    DonorsMatched <- left_join(MatchedDonorAges,
+                               rename_at(DonorsToMatch, AgeVariable, ~ names(MatchedDonorAges)[1]),
+                               by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
+      mutate(!!AgeColName := DonorAge)
+
+    # need both donor age and donor age count so that the join between the base and the donors works
+    # do not need base dataframe age as this will be a duplicate column on the merge
+    BaseDataFrameMatchPrep <- CurrentAgeMatch %>%
+      group_by(DonorAge) %>%
+      mutate(DonorAgeCount = row_number()) %>%
+      dplyr::select(-c(2))
+
+
+    PreppedBaseDataFrame <- left_join(BaseDataFrame, BaseDataFrameMatchPrep, by = names(Occupants[IDVariable]))
+
+    # now merge the full data of the subset people to the base data frame
+    # by donor age and donor age count
+    # this merge must happen each iteration through the data frame
+
+    FullMatchedDataFrame <- left_join(PreppedBaseDataFrame, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
+      dplyr::select(-DonorAge, -DonorAgeCount) %>%
+      ungroup()
+
+    if (exists("UpdatingDataFrame")) {
+      UpdatingDataFrame <- UpdatingDataFrame %>%
+        left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
+
+    } else {
+      UpdatingDataFrame <- FullMatchedDataFrame
+
+    }
+
+    # convert from wide to long, use .x and .y to do the split
+
+    FirstDataframeSplit <- FullMatchedDataFrame %>%
+      dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+      rename_all(list(~gsub("\\.x$", "", .)))
+
+    SecondDataframeSplit <- FullMatchedDataFrame %>%
+      dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+      rename_all(list(~gsub("\\.y$", "", .)))
+
+    if (exists("OutputDataframe")) {
+
+      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+      OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
+
+
+    } else {
+      OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+
+    }
+
 
    }
 
- #  #####################################
- #  #####################################
- #  # Output data frame with rbinds finished here
- #  #####################################
- #  #####################################
- #
- #
- #  # use for checking number of iterations used, the p-value to stop, and the p-value reached
- #  # shift to iteration where required
- #  #
- #  # print(i)
- #  # print(Critical_log_chisq)
- #  # print(log_chisq)
- #
- # return(OutputDataframe)
+  #####################################
+  #####################################
+  # Output data frame with rbinds finished here
+  #####################################
+  #####################################
 
-  return(CurrentAgeMatch)
+
+  # use for checking number of iterations used, the p-value to stop, and the p-value reached
+  # shift to iteration where required
+  #
+  # print(i)
+  print(Critical_log_chisq)
+  print(log_chisq)
+
+ return(OutputDataframe)
+
+#  return(CurrentAgeMatch)
 
 
 }
