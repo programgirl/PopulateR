@@ -200,23 +200,22 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         AvailablePeople <- Occupants %>%
         anti_join(IDList)
 
+      } else {
 
-      # } else {
-      #
-      #   # sample from the Occupant data frame
-      #   AvailablePeople <- Occupants %>%
-      #     anti_join(IDList) %>%
-      #     slice_sample(n = ((nrow(.))/(HouseholdSize - h)), replace = FALSE)
-      #
-      #   # print(nrow(AvailablePeople)/(HouseholdSize - h))
-      #
-      #   h <- h + 1
-      #
-      #   # add used IDs to the ID list
-      #   NewIDList <- AvailablePeople[,IDVariable]
-      #   IDList <- rbind(IDList, NewIDList)
+        # sample from the Occupant data frame
+        AvailablePeople <- Occupants %>%
+          anti_join(IDList) %>%
+          slice_sample(n = ((nrow(.))/(HouseholdSize - h)), replace = FALSE)
 
-  #      print("Should not have entered")
+        # print(nrow(AvailablePeople)/(HouseholdSize - h))
+
+        h <- h + 1
+
+        # add used IDs to the ID list
+        NewIDList <- AvailablePeople[,IDVariable]
+        IDList <- rbind(IDList, NewIDList)
+
+       print("Two-person households should not have entered")
 
       }
 
