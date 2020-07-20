@@ -359,7 +359,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       ungroup()
 
     if (exists("UpdatingDataFrame")) {
-      SecondDataframeSplit <- UpdatingDataFrame %>%
+      SecondDataframeSplit <- FullMatchedDataFrame %>%
         dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
         rename_all(list(~gsub("\\.y$", "", .)))
 
