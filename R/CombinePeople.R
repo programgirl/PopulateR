@@ -363,7 +363,7 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
         dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
         rename_all(list(~gsub("\\.y$", "", .)))
 
-        OutputDataFrame <- rbind(OutputDataFrame, TemporaryBind)
+        OutputDataFrame <- rbind(OutputDataFrame, SecondDataframeSplit)
 
       print("UpdatingDataFrame loop incorrectly entered for 2-person households")
 
