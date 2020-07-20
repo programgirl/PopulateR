@@ -359,42 +359,61 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
       ungroup()
 
     if (exists("UpdatingDataFrame")) {
-      UpdatingDataFrame <- UpdatingDataFrame %>%
-        left_join(FullMatchedDataFrame, by = names(Occupants[IDVariable]))
+      SecondDataframeSplit <- UpdatingDataFrame %>%
+        dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+        rename_all(list(~gsub("\\.y$", "", .)))
 
-      print("UpdatingDataFrame oop incorrectly entered for 2-person households")
+        OutputDataFrame <- rbind(OutputDataFrame, TemporaryBind)
+
+      print("UpdatingDataFrame loop incorrectly entered for 2-person households")
 
     } else {
       UpdatingDataFrame <- FullMatchedDataFrame
+
+      FirstDataframeSplit <- UpdatingDataFrame %>%
+        dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+        rename_all(list(~gsub("\\.x$", "", .)))
+
+      SecondDataframeSplit <- UpdatingDataFrame %>%
+        dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+        rename_all(list(~gsub("\\.y$", "", .)))
+
+      OutputDataFrame <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+
+      print("Loop should only be entered on first pass")
 
     }
 
     # convert from wide to long, use .x and .y to do the split
 
-    FirstDataframeSplit <- UpdatingDataFrame %>%
-      dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.x$", "", .)))
+    # FirstDataframeSplit <- UpdatingDataFrame %>%
+    #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    #   rename_all(list(~gsub("\\.x$", "", .)))
+    #
+    # SecondDataframeSplit <- UpdatingDataFrame %>%
+    #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    #   rename_all(list(~gsub("\\.y$", "", .)))
+    #
+    # if (exists("OutputDataframe")) {
+    #
+    #   TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #   OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
+    #
+    #   print("OutputDataframe loop incorrectly entered for 2-person households")
+    #   print(nrow(OutputDataframe))
+    #
+    #
+    # } else {
+    #
+    #   print("OutputDataframe loop correctly entered for 2-person households")
+    #
+    #   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+    #
+    # }
 
-    SecondDataframeSplit <- UpdatingDataFrame %>%
-      dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-      rename_all(list(~gsub("\\.y$", "", .)))
-
-    if (exists("OutputDataframe")) {
-
-      TemporaryBind <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-      OutputDataframe <- rbind(OutputDataframe, TemporaryBind)
-
-      print("OutputDataframe loop incorrectly entered for 2-person households")
-      print(nrow(OutputDataframe))
+    # test for existing output data frame, because the second SecondDataframeSplit will be appended if this is the case
 
 
-    } else {
-
-      print("OutputDataframe loop correctly entered for 2-person households")
-
-      OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-
-    }
 
 
    }
@@ -413,9 +432,9 @@ CombinePeople <- function(Occupants, IDVariable, AgeVariable, HouseholdSize = NU
   print(Critical_log_chisq)
   print(log_chisq)
 
- # return(OutputDataframe)
+ # return(OutputDataFrame)
 
- return(OutputDataframe)
+ return(OutputDataFrame)
 
 
 }
