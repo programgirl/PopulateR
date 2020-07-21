@@ -109,10 +109,6 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
       filter(({{ParentAgeColName}} - maxChildAge) <= MaxParentAge)
   }
 
-  # create minimum and maximum Parent ages off the data if none are supplied.
-
-
-
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
   # ensure all parent ages are represented in the data frame of counts
