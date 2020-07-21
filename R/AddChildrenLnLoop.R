@@ -26,8 +26,6 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-
-
 AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
                               meanlogUsed, sdlogUsed, MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL,
                               DyadIDValue = NULL, UserSeed=NULL)
@@ -61,8 +59,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     stop("A name for the household count variable must be supplied.")
   }
 
-  if (nrow(Children) > nrow(Parents)) {
-    stop("The Children data frame cannot be smaller than the Parent dataframe.")
+  # check that there are enough parents to assign to the children
+
+  if (nrow(Parents) < (nrow(Children)/ NumChildren)) {
+    stop("The Parent data frame is too small for the number of children.")
+
   }
 
   #####################################
@@ -115,24 +116,24 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
 
 
-  # get counts for each single age from the parent data frame
+  # get counts for each single age from the children data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
-  # ensure all parent ages are represented in the data frame of counts
+  # ensure all children ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
 
-  ParentCounts <- Parents %>%
-    group_by_at(ParentAgeVariable) %>%
+  ChildCounts <- Children %>%
+    group_by_at(ChildAgeVariable) %>%
     summarise(AgeCount=n()) %>%
     mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
-    complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
+    complete({{ChildAgeVariable}}:=seq(min({{ChildAgeColName}}), max({{ChildAgeColName}})),
              fill = list(AgeCount = 0))
 
-  minIndexAge <- as.integer(ParentCounts[1,1])
-  maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
+  minIndexAge <- as.integer(ChildCounts[1,1])
+  maxIndexAge <- as.integer(ChildCounts[nrow(ChildCounts),1])
+
+ ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
 
-
-  ParentAgeCountVector <- ParentCounts$AgeCount
 
 
   #####################################
@@ -149,8 +150,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #####################################
 
   # as the minimum and maximum Parent ages are known and the child age is known,
-  # a check is made is to to see if the parent age draw is within range
-  # if so, a check is made to ensure that there is an available parent of that age
+  # a check is made is to to see if the child age draw is within range
+  # if so, a check is made to ensure that there is an available child of that age
   # if not, parent match is rejected, to be redone later
   # if still no match, third pass gives a drunkard's walk assigned to one of the
   # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
