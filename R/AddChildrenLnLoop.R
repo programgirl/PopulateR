@@ -11,7 +11,7 @@
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
-#' @param NumChildren The number of children to match to each parent.
+#' @param NumChildren The number of children to match to each parent. The default value is 2.
 #' @param TwinRate The proportion of children who are twins. As random assignment of twins occurs, the output proportion of twins may not be an exact match to this rate. The default value is 0.
 #' @param meanlogUsed The mean of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
 #'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
@@ -26,7 +26,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
+AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
                               meanlogUsed, sdlogUsed, MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL,
                               DyadIDValue = NULL, UserSeed=NULL)
 
@@ -64,6 +64,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   if (nrow(Parents) < (nrow(Children)/ NumChildren)) {
     stop("The Parent data frame is too small for the number of children.")
 
+  }
+
+  if (!(NumChildren >1)) {
+    stop("At least two children are required.")
   }
 
   #####################################
