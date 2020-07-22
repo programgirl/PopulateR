@@ -125,20 +125,25 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # ensure all children ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
 
-  ChildCounts <- Children %>%
-    group_by_at(ChildAgeVariable) %>%
+  ParentCounts <- Parents %>%
+    group_by_at(ParentAgeVariable) %>%
     summarise(AgeCount=n()) %>%
     mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
-    complete({{ChildAgeVariable}}:=seq(min({{ChildAgeColName}}), max({{ChildAgeColName}})),
+    complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
              fill = list(AgeCount = 0))
 
-  minIndexAge <- as.integer(ChildCounts[1,1])
-  maxIndexAge <- as.integer(ChildCounts[nrow(ChildCounts),1])
+  minIndexAge <- as.integer(ParentCounts[1,1])
+  maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
- ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+  ParentAgeCountVector <- ParentCounts$AgeCount
 
 
+  # get the children counts
+  ChildrenCounts <- Children %>%
+    group_by_at(ChildAgeVariable) %>%
+    summarise(AgeCount=n())
 
+  ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
   #####################################
   #####################################
