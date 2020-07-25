@@ -151,8 +151,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     print(nrow(Children))
 
     TwinsDataFrame <- Children %>%
-      #slice_sample(n = round(TwinRate/2, 0))
-      slice_sample(n = 100)
+      slice_sample(prop = TwinRate/2)
 
     # for (k in 1:nrow(TwinsDataFrame)) {
     #
