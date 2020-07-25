@@ -26,9 +26,9 @@
 
 
 
-AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable, meanlogUsed, sdlogUsed,
-                           MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL, DyadIDValue = 1,
-                           UserSeed=NULL)
+AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
+                           meanlogUsed, sdlogUsed,MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL,
+                           DyadIDValue = 1, UserSeed=NULL)
 
 {
 
@@ -123,13 +123,12 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
 
   ParentAgeCountVector <- ParentCounts$AgeCount
 
-  if (nrow(Parents) < (nrow(Children)*1.05)) {
+  if (nrow(Parents)*2.05 < nrow(Children)) {
 
     Children <- Children %>%
-      slice_sample(n = round(nrow(Parents) * .9, 0))
+      slice_sample(n = round(nrow(Parents) * 1.9), 0)
   }
 
-  print(nrow(Children))
 
 
   #####################################
@@ -137,6 +136,28 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # end set up
   #####################################
   #####################################
+
+  #####################################
+  #####################################
+  # Split into twins and non-twins
+  #####################################
+  #####################################
+
+  print(TwinRate)
+
+  if (TwinRate > 0) {
+
+    TwinsDataFrame <- Children %>%
+      slice_sample(prop = round(TwinRate/2, 0))
+
+    # for (k in 1:nrow(TwinsDataFrame)) {
+    #
+    #   # need to match each age with unselected child
+    #
+    #
+    #   }
+  }
+
 
 
   #####################################
@@ -152,209 +173,211 @@ AddChildLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, Parents,
   # if still no match, third pass gives a drunkard's walk assigned to one of the
   # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
 
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
-  }
-
-  for (j in 1:nrow(Children)) {
-
-    AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-    Children$AgeDifference[j] <- AgeDifference
-    Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
-    age_index <- Children$ParentAge[j]-(minIndexAge -1)
-
-
-    if (Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge && ParentAgeCountVector[age_index] > 0 &&
-        Children$ParentAge[j] >= minIndexAge && Children$ParentAge[j] <= maxIndexAge) {
-
-      Children$AgeDifference[j] <- AgeDifference
-      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-
-    } else {
-
-      Children$ParentAge[j] <- NA
-      Children$AgeDifference[j] <- NA
-
-    }
-
-  }
-
-
-  # there may still be a relatively large number of children not matched, so repeat the matching process a second time
-
-  # extract remove matched children from Children data frame
-  # the matched ones are removed from the Children data frame as doing it the other way around is a nightmare for referring
-  # to the age column in a newly constructed data frame
-
-  MatchedChildren <- Children %>%
-    filter(!(is.na(ParentAge)))
-
-  Children <- Children %>%
-    filter(is.na(ParentAge))
-
-  for (j in 1:nrow(Children)) {
-
-
-    AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-    Children$AgeDifference[j] <- AgeDifference
-    Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
-    age_index <- Children$ParentAge[j]-(minIndexAge -1)
-
-
-    if (Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge && ParentAgeCountVector[age_index] > 0 &&
-        Children$ParentAge[j] >= minIndexAge && Children$ParentAge[j] <= maxIndexAge) {
-
-      Children$AgeDifference[j] <- AgeDifference
-      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-
-    } else {
-
-      Children$ParentAge[j] <- NA
-      Children$AgeDifference[j] <- NA
-
-    }
-
-
-  }
-
-  MatchedSecondGo <- Children %>%
-    filter(!(is.na(ParentAge)))
-
-  MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
-
-  Children <- Children %>%
-    filter(is.na(ParentAge))
-
-  print(nrow(MatchedChildren))
-
-
-  # force last lot of children to be matched on the basis of first parent age after minimum
-  # need to work from minimum child age
-  # find first current parent age that is still available
-  # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
-
-  for (j in 1:nrow(Children)) {
-
-    # ensure initial age selection is within min and max parent ages
-
-    AgeDifference <- round(runif(1, MinParentAge, MaxParentAge))
-    Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
-    age_index <- Children$ParentAge[j]-(minIndexAge -1)
-
-    if (ParentAgeCountVector[age_index] > 0)  {
-
-      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-      Children$AgeDifference[j] <- AgeDifference
-
-    } else {
-
-      Children$AgeDifference[j] <- NA
-      Children$ParentAge[j] <- NA
-
-      age_index <- which.max(ParentAgeCountVector)
-      Children$ParentAge[j] <- age_index + (minIndexAge -1)
-      Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
-
-      while (!(ParentAgeCountVector[age_index] > 0 && Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge)) {
-
-        age_index <- age_index + round(runif(1,-2,2),0)
-
-        if(age_index < 1) {
-          age_index <- round(length(ParentAgeCountVector)*.2, 0)
-        }
-
-        if(age_index > length(ParentAgeCountVector)) {
-          age_index <- round(length(ParentAgeCountVector)*.8, 0)
-        }
-
-        Children$ParentAge[j] <- age_index + (minIndexAge -1)
-        Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
-      }
-
-      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-
-    }
-
-    print(j)
-
-  }
-
-  #   Combine the three Children Dataframes
-
-  Children <- rbind(MatchedChildren, Children)
-
+  # if (!is.null(UserSeed)) {
+  #   set.seed(UserSeed)
+  # }
+  #
+  # for (j in 1:nrow(Children)) {
+  #
+  #   AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+  #   Children$AgeDifference[j] <- AgeDifference
+  #   Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+  #   age_index <- Children$ParentAge[j]-(minIndexAge -1)
+  #
+  #
+  #   if (Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge && ParentAgeCountVector[age_index] > 0 &&
+  #       Children$ParentAge[j] >= minIndexAge && Children$ParentAge[j] <= maxIndexAge) {
+  #
+  #     Children$AgeDifference[j] <- AgeDifference
+  #     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+  #
+  #   } else {
+  #
+  #     Children$ParentAge[j] <- NA
+  #     Children$AgeDifference[j] <- NA
+  #
+  #   }
+  #
+  # }
+  #
+  #
+  # # there may still be a relatively large number of children not matched, so repeat the matching process a second time
+  #
+  # # extract remove matched children from Children data frame
+  # # the matched ones are removed from the Children data frame as doing it the other way around is a nightmare for referring
+  # # to the age column in a newly constructed data frame
+  #
+  # MatchedChildren <- Children %>%
+  #   filter(!(is.na(ParentAge)))
+  #
+  # Children <- Children %>%
+  #   filter(is.na(ParentAge))
+  #
+  # for (j in 1:nrow(Children)) {
+  #
+  #
+  #   AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+  #   Children$AgeDifference[j] <- AgeDifference
+  #   Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+  #   age_index <- Children$ParentAge[j]-(minIndexAge -1)
+  #
+  #
+  #   if (Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge && ParentAgeCountVector[age_index] > 0 &&
+  #       Children$ParentAge[j] >= minIndexAge && Children$ParentAge[j] <= maxIndexAge) {
+  #
+  #     Children$AgeDifference[j] <- AgeDifference
+  #     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+  #
+  #   } else {
+  #
+  #     Children$ParentAge[j] <- NA
+  #     Children$AgeDifference[j] <- NA
+  #
+  #   }
+  #
+  #
+  # }
+  #
+  # MatchedSecondGo <- Children %>%
+  #   filter(!(is.na(ParentAge)))
+  #
+  # MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
+  #
+  # Children <- Children %>%
+  #   filter(is.na(ParentAge))
+  #
+  # print(nrow(MatchedChildren))
+  #
+  #
+  # # force last lot of children to be matched on the basis of first parent age after minimum
+  # # need to work from minimum child age
+  # # find first current parent age that is still available
+  # # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
+  #
+  # for (j in 1:nrow(Children)) {
+  #
+  #   # ensure initial age selection is within min and max parent ages
+  #
+  #   AgeDifference <- round(runif(1, MinParentAge, MaxParentAge))
+  #   Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
+  #   age_index <- Children$ParentAge[j]-(minIndexAge -1)
+  #
+  #   if (ParentAgeCountVector[age_index] > 0)  {
+  #
+  #     ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
+  #     Children$AgeDifference[j] <- AgeDifference
+  #
+  #   } else {
+  #
+  #     Children$AgeDifference[j] <- NA
+  #     Children$ParentAge[j] <- NA
+  #
+  #     age_index <- which.max(ParentAgeCountVector)
+  #     Children$ParentAge[j] <- age_index + (minIndexAge -1)
+  #     Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
+  #
+  #     while (!(ParentAgeCountVector[age_index] > 0 && Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge)) {
+  #
+  #       age_index <- age_index + round(runif(1,-2,2),0)
+  #
+  #       if(age_index < 1) {
+  #         age_index <- round(length(ParentAgeCountVector)*.2, 0)
+  #       }
+  #
+  #       if(age_index > length(ParentAgeCountVector)) {
+  #         age_index <- round(length(ParentAgeCountVector)*.8, 0)
+  #       }
+  #
+  #       Children$ParentAge[j] <- age_index + (minIndexAge -1)
+  #       Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
+  #     }
+  #
+  #     ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
+  #
+  #   }
+  #
+  #   print(j)
+  #
+  # }
+  #
+  # #   Combine the three Children Dataframes
+  #
+  # Children <- rbind(MatchedChildren, Children)
+  #
+  # # #####################################
   # #####################################
-  #####################################
-  # pairing the actual parent-child dyads starts here
-  #####################################
-  #####################################
-  # return full donor and recipient rows as matched household pairs
-  # extract ages counts for matching the donors
-  MatchedParentAges <- Children %>%
-    dplyr::select(ParentAge) %>%
-    group_by(ParentAge) %>%
-    mutate(ParentAgeCount = row_number()) %>%
-    ungroup()
+  # # pairing the actual parent-child dyads starts here
+  # #####################################
+  # #####################################
+  # # return full donor and recipient rows as matched household pairs
+  # # extract ages counts for matching the donors
+  # MatchedParentAges <- Children %>%
+  #   dplyr::select(ParentAge) %>%
+  #   group_by(ParentAge) %>%
+  #   mutate(ParentAgeCount = row_number()) %>%
+  #   ungroup()
+  #
+  #
+  # # generate same AgeCount second ID variable for the parent data
+  # # the AgeCount is used to ensure that the first parent with a specific age is matched first
+  # # the second parent with a specific age is matched second and so forth
+  # ParentsToMatch <- Parents %>%
+  #   group_by({{ParentAgeColName}}) %>%
+  #   mutate(ParentAgeCount = row_number()) %>%
+  #   ungroup()
+  #
+  # # reduce pool of potentially partnered donors to only those matched to recipients
+  # ParentsMatched <- left_join(MatchedParentAges,
+  #                             rename_at(ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[1],
+  #                                       ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[2]),
+  #                             by = c(names(MatchedParentAges)[1], "ParentAgeCount")) %>%
+  #   mutate(!!ParentAgeColName := ParentAge)
+  #
+  #
+  # # construct same file for the children
+  # # need both parent age and parent age count so that the join between the children and the parents works
+  # # do not need child age as this will be a duplicate column on the merge
+  # ChildrenMatchPrep <- Children %>%
+  #   group_by(ParentAge) %>%
+  #   mutate(ParentAgeCount = row_number()) %>%
+  #   dplyr::select(-c(2)) %>%
+  #   ungroup()
+  #
+  # # join the matched parents to the children
+  # # by parent age and parent age count
+  # # children data frame is the one to which observations must be joined
+  # # also add the household numbers at this point
+  #
+  # MaxDyadIDValue <- (nrow(ChildrenMatchPrep)-1) + DyadIDValue
+  #
+  # FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount")) %>%
+  #   dplyr::select(-ParentAge, -ParentAgeCount) %>%
+  #   ungroup() %>%
+  #   mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
+  #
+  # # convert from wide to long, use .x and .y to do the split
+  #
+  # FirstDataframeSplit <- FullMatchedDataFrame %>%
+  #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+  #   rename_all(list(~gsub("\\.x$", "", .)))
+  #
+  # SecondDataframeSplit <- FullMatchedDataFrame %>%
+  #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+  #   rename_all(list(~gsub("\\.y$", "", .)))
+  #
+  #
+  # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+  #
+  # #####################################
+  # #####################################
+  # # pairing the parents to children ends here
+  # #####################################
+  # #####################################
+  #
+  #
+  # return(OutputDataframe)
 
-
-  # generate same AgeCount second ID variable for the parent data
-  # the AgeCount is used to ensure that the first parent with a specific age is matched first
-  # the second parent with a specific age is matched second and so forth
-  ParentsToMatch <- Parents %>%
-    group_by({{ParentAgeColName}}) %>%
-    mutate(ParentAgeCount = row_number()) %>%
-    ungroup()
-
-  # reduce pool of potentially partnered donors to only those matched to recipients
-  ParentsMatched <- left_join(MatchedParentAges,
-                              rename_at(ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[1],
-                                        ParentsToMatch, ParentAgeVariable, ~ names(MatchedParentAges)[2]),
-                              by = c(names(MatchedParentAges)[1], "ParentAgeCount")) %>%
-    mutate(!!ParentAgeColName := ParentAge)
-
-
-  # construct same file for the children
-  # need both parent age and parent age count so that the join between the children and the parents works
-  # do not need child age as this will be a duplicate column on the merge
-  ChildrenMatchPrep <- Children %>%
-    group_by(ParentAge) %>%
-    mutate(ParentAgeCount = row_number()) %>%
-    dplyr::select(-c(2)) %>%
-    ungroup()
-
-  # join the matched parents to the children
-  # by parent age and parent age count
-  # children data frame is the one to which observations must be joined
-  # also add the household numbers at this point
-
-  MaxDyadIDValue <- (nrow(ChildrenMatchPrep)-1) + DyadIDValue
-
-  FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount")) %>%
-    dplyr::select(-ParentAge, -ParentAgeCount) %>%
-    ungroup() %>%
-    mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
-
-  # convert from wide to long, use .x and .y to do the split
-
-  FirstDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-    rename_all(list(~gsub("\\.x$", "", .)))
-
-  SecondDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-    rename_all(list(~gsub("\\.y$", "", .)))
-
-
-  OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-
-  #####################################
-  #####################################
-  # pairing the parents to children ends here
-  #####################################
-  #####################################
-
-
-  return(OutputDataframe)
+  return(TwinsDataFrame)
 
 
 }
