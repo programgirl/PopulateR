@@ -154,13 +154,15 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       slice_sample(prop = TwinRate/2)
 
     NoTwinsDataFrame <- Children %>%
-      filter(!({{ChildIDColName}} %in%  names(TwinsDataFrame[6])))
+#      filter(!({{ChildIDColName}} %in%  TwinsDataFrame[[ChildIDColName]]))
+      # filter(!({{ChildIDColName}} %in% c(2537, 11952, 11890)))
+      filter({{ChildIDColName}} > 14)
 
     for (k in 1:nrow(TwinsDataFrame)) {
 
       # need to match each age with unselected child
 
-      Matched
+     # Matched
 
 
       }
