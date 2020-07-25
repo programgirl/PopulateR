@@ -146,26 +146,17 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   if (TwinRate > 0) {
 
-
-    print("Enters loop")
-    print(nrow(Children))
-
     TwinsDataFrame <- Children %>%
       slice_sample(prop = TwinRate/2)
 
     NoTwinsDataFrame <- Children %>%
      filter(!({{ChildIDColName}} %in%  TwinsDataFrame[[ChildIDColName]]))
-      # filter(!({{ChildIDColName}} %in% c(2537, 11952, 11890)))
-      # filter({{ChildAgeColName}} > 14)
 
-    for (k in 1:nrow(TwinsDataFrame)) {
+    # match twin based on age
+    TwinsMatched <- TwinsDataFrame %>%
+      # left_join(NoTwinsDataFrame, by = {{ChildAgeColName}} )
+      left_join(NoTwinsDataFrame, by = names(Children)[ChildAgeVariable])
 
-      # need to match each age with unselected child
-
-     # Matched
-
-
-      }
   }
 
 
@@ -387,7 +378,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #
   # return(OutputDataframe)
 
-  return(NoTwinsDataFrame)
+  return(TwinsMatched)
 
 
 }
