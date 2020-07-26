@@ -1,9 +1,18 @@
 #' Create a subset of observations containing only children matched to parents/guardians
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal. However, the matching is affected by the age structure of the children and parent data frames. The distribution provides a framework upon which to base the matching. The final distribution of age differences, however, may not follow a lognormal distribution.
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
-#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required..
-#' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents. The defalt value is 0, enabling a pre-cleaned data frame of parents to be used.
-#' An even number of observations is output, which is one child-parent pair.
+#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
+#'
+#'
+#'
+#' NEED TO FIX THE INFORMATION BELOW, DEPENDING ON HOW THE FUNCTION ENDS UP BEING WRITTEN.
+#'
+#' Some children and/or parents may not be matched. This situation will occur for two reasons. First, if the number of parents relative to the number of children is relatively small, there are fewer matches available at each parent age. Second, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. .
+#' The number of observations output is dependent on the ratio of children: available parents. If the parent data frame is relatively small compared to the children data frame it is possible that unmatched children will occur. The function only outputs the children and parents that have been matched.
+#'
+#'
+#'
+#'
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
@@ -27,7 +36,7 @@
 
 
 AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
-                           meanlogUsed, sdlogUsed,MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdNumVariable= NULL,
+                           meanlogUsed, sdlogUsed,MinParentAge = NULL, MaxParentAge = NULL, HouseholdNumVariable= NULL,
                            DyadIDValue = 1, UserSeed=NULL)
 
 {
@@ -114,7 +123,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   ParentCounts <- Parents %>%
     group_by_at(ParentAgeVariable) %>%
     summarise(AgeCount=n()) %>%
-    mutate(AgeCount = floor(AgeCount*(1-MinPropRemain))) %>%
     tidyr::complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
                     fill = list(AgeCount = 0))
 
@@ -190,7 +198,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       TwinsMatched$AgeDifference[c] <- AgeDifference
       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
-        }
+    }
+
+
+    # TODO ADD IN EXTRA CHILDREN FOR NUMCHILDREN >2
 
     }
 
