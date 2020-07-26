@@ -158,27 +158,36 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     # add parent
 
+    if (!is.null(UserSeed)) {
+      set.seed(UserSeed)
+    }
+
     for (c in 1:nrow(TwinsMatched)) {
 
       AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
       TwinsMatched$AgeDifference[c] <- AgeDifference
       TwinsMatched$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
       age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
+      TwinsMatched$age_index[c] <- age_index
 
-      while (TwinsMatched$AgeDifference[c] >= MinParentAge && TwinsMatched$AgeDifference[c] <= MaxParentAge &&
-             ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[c] >= minIndexAge &&
-             TwinsMatched$ParentAge[c] <= maxIndexAge) {
+      print(TwinsMatched$AgeDifference[c])
+      print(ParentAgeCountVector[age_index])
+      print(TwinsMatched$ParentAge[c])
 
-          AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-          Children$AgeDifference[c] <- AgeDifference
-          Children$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
-          age_index <- Children$ParentAge[c]-(minIndexAge -1)
+      # while (TwinsMatched$AgeDifference[c] >= MinParentAge && TwinsMatched$AgeDifference[c] <= MaxParentAge &&
+      #        ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[c] >= minIndexAge &&
+      #        TwinsMatched$ParentAge[c] <= maxIndexAge) {
+      #
+      #     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      #     Children$AgeDifference[c] <- AgeDifference
+      #     Children$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
+      #     age_index <- Children$ParentAge[c]-(minIndexAge -1)
+      #
+      #     }
 
-          }
-
-          Children$AgeDifference[c] <- AgeDifference
-          ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-
+      #     Children$AgeDifference[c] <- AgeDifference
+      #     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+      #
         }
 
     }
