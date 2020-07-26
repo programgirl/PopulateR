@@ -137,6 +137,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       slice_sample(n = round(nrow(Parents) * 1.9), 0)
   }
 
+  # TODO MAKE SURE THAT NROW(CHILDREN) %MODULO% NUMCHILDREN == O, OTHERWISE SAMPLE SO THIS IS THE STATE
+
 
 
   #####################################
@@ -178,10 +180,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
       TwinsMatched$age_index[c] <- age_index
 
-      # print(TwinsMatched$AgeDifference[c])
-      # print(ParentAgeCountVector[age_index])
-      # print(TwinsMatched$ParentAge[c])
-
       while (!(TwinsMatched$AgeDifference[c] >= MinParentAge && TwinsMatched$AgeDifference[c] <= MaxParentAge &&
              ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[c] >= minIndexAge &&
              TwinsMatched$ParentAge[c] <= maxIndexAge)) {
@@ -201,10 +199,12 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     }
 
 
-    # TODO ADD IN EXTRA CHILDREN FOR NUMCHILDREN >2
+    # TODO ADD IN EXTRA CHILDREN FOR NUMCHILDREN >2, CANNOT MATCH AGES ABOVE
 
     }
 
+
+  # TODO MATCH CHILDREN, NO TWINS, FOR OTHER KIDS
 
   #####################################
   #####################################
