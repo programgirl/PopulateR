@@ -152,11 +152,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     NoTwinsDataFrame <- Children %>%
      filter(!({{ChildIDColName}} %in%  TwinsDataFrame[[ChildIDColName]]))
 
-    # match twin based on age
-    # TwinsMatched <- TwinsDataFrame %>%
-      # left_join(NoTwinsDataFrame, by = {{ChildAgeColName}} )
-      #left_join(NoTwinsDataFrame, by = names(Children)[ChildAgeVariable])
-
     TwinsMatched <- left_join(TwinsDataFrame %>% group_by_at(names(Children)[ChildAgeVariable]) %>% mutate(Counter = row_number()),
                               NoTwinsDataFrame %>%  group_by_at(names(Children)[ChildAgeVariable]) %>% mutate(Counter = row_number()),
                               by = c(names(Children)[ChildAgeVariable], "Counter"))
