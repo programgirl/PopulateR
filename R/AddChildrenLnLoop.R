@@ -412,7 +412,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #
   # return(OutputDataframe)
 
-  return(TwinsMatched)
+  return(ParentAgeCountVector)
 
 
 }
