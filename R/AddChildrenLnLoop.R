@@ -161,22 +161,22 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     for (c in 1:nrow(TwinsMatched)) {
 
       AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-      TwinsMatched$AgeDifference[j] <- AgeDifference
-      TwinsMatched$ParentAge[j] <- TwinsMatched[[ChildAgeColName]][j] + AgeDifference
-      age_index <- TwinsMatched$ParentAge[j]-(minIndexAge -1)
+      TwinsMatched$AgeDifference[c] <- AgeDifference
+      TwinsMatched$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
+      age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
 
-      while (TwinsMatched$AgeDifference[j] >= MinParentAge && TwinsMatched$AgeDifference[j] <= MaxParentAge &&
-             ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[j] >= minIndexAge &&
-             TwinsMatched$ParentAge[j] <= maxIndexAge) {
+      while (TwinsMatched$AgeDifference[c] >= MinParentAge && TwinsMatched$AgeDifference[c] <= MaxParentAge &&
+             ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[c] >= minIndexAge &&
+             TwinsMatched$ParentAge[c] <= maxIndexAge) {
 
           AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-          Children$AgeDifference[j] <- AgeDifference
-          Children$ParentAge[j] <- TwinsMatched[[ChildAgeColName]][j] + AgeDifference
-          age_index <- Children$ParentAge[j]-(minIndexAge -1)
+          Children$AgeDifference[c] <- AgeDifference
+          Children$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
+          age_index <- Children$ParentAge[c]-(minIndexAge -1)
 
           }
 
-          Children$AgeDifference[j] <- AgeDifference
+          Children$AgeDifference[c] <- AgeDifference
           ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
         }
