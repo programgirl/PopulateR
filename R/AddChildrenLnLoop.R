@@ -156,8 +156,32 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
                               NoTwinsDataFrame %>%  group_by_at(names(Children)[ChildAgeVariable]) %>% mutate(Counter = row_number()),
                               by = c(names(Children)[ChildAgeVariable], "Counter"))
 
-  }
+    # add parent
 
+    for (c in 1:nrow(TwinsMatched)) {
+
+      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      TwinsMatched$AgeDifference[j] <- AgeDifference
+      TwinsMatched$ParentAge[j] <- TwinsMatched[[ChildAgeColName]][j] + AgeDifference
+      age_index <- TwinsMatched$ParentAge[j]-(minIndexAge -1)
+
+      while (TwinsMatched$AgeDifference[j] >= MinParentAge && TwinsMatched$AgeDifference[j] <= MaxParentAge &&
+             ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[j] >= minIndexAge &&
+             TwinsMatched$ParentAge[j] <= maxIndexAge) {
+
+          AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+          Children$AgeDifference[j] <- AgeDifference
+          Children$ParentAge[j] <- TwinsMatched[[ChildAgeColName]][j] + AgeDifference
+          age_index <- Children$ParentAge[j]-(minIndexAge -1)
+
+          }
+
+          Children$AgeDifference[j] <- AgeDifference
+          ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+        }
+
+    }
 
 
   #####################################
