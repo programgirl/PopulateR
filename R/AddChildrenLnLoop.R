@@ -84,6 +84,9 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # Child age variable
   ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
 
+  ParentsRenamed <- Parents %>%
+    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
+
   # Parent age variable
   ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
@@ -108,14 +111,14 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   if (!(is.null(MinParentAge))) {
 
-    Parents <- Parents %>%
-      filter(({{ParentAgeColName}} - minChildAge) >= MinParentAge)
+    ParentsRenamed <- ParentsRenamed %>%
+      filter((ParentAge - minChildAge) >= MinParentAge)
   }
 
   if (!(is.null(MaxParentAge))) {
 
-    Parents <- Parents %>%
-      filter(({{ParentAgeColName}} - maxChildAge) <= MaxParentAge)
+    ParentsRenamed <- ParentsRenamed %>%
+      filter((ParentAge - maxChildAge) <= MaxParentAge)
   }
 
   # get counts for each single age from the parent data frame
@@ -123,10 +126,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # ensure all parent ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
 
-  ParentCounts <- Parents %>%
-    group_by_at(ParentAgeVariable) %>%
+  ParentCounts <- ParentsRenamed %>%
+    group_by(ParentAge) %>%
     summarise(AgeCount=n()) %>%
-    tidyr::complete({{ParentAgeColName}}:=seq(min({{ParentAgeColName}}), max({{ParentAgeColName}})),
+    tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
                     fill = list(AgeCount = 0))
 
   minIndexAge <- as.integer(ParentCounts[1,1])
@@ -134,10 +137,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   ParentAgeCountVector <- ParentCounts$AgeCount
 
-  if (nrow(Parents)*2.05 < nrow(Children)) {
+  if (nrow(ParentsRenamed)*2.05 < nrow(Children)) {
 
     ChildrenRenamed <- ChildrenRenamed %>%
-      slice_sample(n = round(nrow(Parents) * 1.9), 0)
+      slice_sample(n = round(nrow(ParentsRenamed) * 1.9), 0)
   }
 
   # TODO MAKE SURE THAT NROW(CHILDREN) %MODULO% NUMCHILDREN == O, OTHERWISE SAMPLE SO THIS IS THE STATE
@@ -192,7 +195,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
           AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
           TwinsMatched$AgeDifference[c] <- AgeDifference
-          TwinsMatched$ParentAge[c] <- TwinsMatched[[ChildAgeColName]][c] + AgeDifference
+          TwinsMatched$ParentAge[c] <- TwinsMatched$ChildAge[c] + AgeDifference
           age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
 
       }
@@ -207,8 +210,28 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     NoTwinsDataFrame <- NoTwinsDataFrame %>%
       filter(!(ChildID %in%  TwinsMatched$ChildID.y))
 
+    #  add in the extra children to the twins, where there are more than 2 children in the household
 
-    # TODO ADD IN EXTRA CHILDREN FOR NUMCHILDREN >2, CANNOT MATCH AGES ABOVE
+    # create counts of children remaining so that the non-twins can be matched to the twins
+
+    ChildrenCounts <- NoTwinsDataFrame %>%
+      group_by(ChildAge) %>%
+      summarise(AgeCount=n()) %>%
+      tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
+                      fill = list(AgeCount = 0))
+
+    minChildIndexAge <- as.integer(ChildrenCounts[1,1])
+    maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
+
+    ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+
+    for (x in 3:NumChildren) {
+
+
+    }
+
+
+
 
     }
   #
@@ -432,7 +455,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(NoTwinsDataFrame)
+  return(ChildrenCounts)
 
 
 }
