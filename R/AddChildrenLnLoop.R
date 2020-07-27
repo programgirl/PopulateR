@@ -229,11 +229,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     for (x in 3:NumChildren) {
 
-      print("Two children households should not enter")
-
       UsedAgesVector[x] <- TwinsMatched$ChildAge[x]
 
-      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      print("Two children households should not enter")
+
+       AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
       TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
       age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
  #     TwinsMatched$age_index[x] <- age_index
