@@ -249,13 +249,13 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       }
 
       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-
       UsedAgesVector[x] <- c(UsedAgesVector[x], AgeDifference)
 
+      # closes for numchildren loop
+      }
 
 
-
-
+    #closes twin set of functions
     }
   #
   #
@@ -478,7 +478,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(ChildrenCounts)
+  return(TwinsMatched)
 
-
+#closes function
 }
