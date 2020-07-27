@@ -225,10 +225,31 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
+
     for (x in 3:NumChildren) {
 
+      UsedAgesVector[x] <- TwinsMatched$ChildAge[x]
 
-    }
+      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
+      age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
+ #     TwinsMatched$age_index[x] <- age_index
+
+      while (!(AgeDifference >= minChildAge && AgeDifference[x] <= maxChildAge &&
+               AgeDifference %in% UsedAgesVector[x] && ChildrenAgeCountVector[age_index] > 0)) {
+
+        print(x)
+
+        AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+        TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
+        age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
+
+      }
+
+      ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+
+      UsedAgesVector[x] <- c(UsedAgesVector[x], AgeDifference)
+
 
 
 
