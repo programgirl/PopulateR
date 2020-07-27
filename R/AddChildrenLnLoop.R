@@ -225,6 +225,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
+    if (NumChildren > 2) {
 
     for (x in 3:NumChildren) {
 
@@ -252,6 +253,9 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       UsedAgesVector[x] <- c(UsedAgesVector[x], AgeDifference)
 
       # closes for numchildren loop
+    }
+
+      #closes if numchildren test
       }
 
 
