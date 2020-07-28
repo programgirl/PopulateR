@@ -236,20 +236,22 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       # closes column name loop
      }
 
-      #now iterate through the children
- #      # nested loop must be columns within rows
- #
- #      for (x in 1:nrow(TwinsMatched)) {
- #
- #        for (y in (ncol(TwinsMatched)+1):ncol(TwinsMatched)+NumChildren-2) {
- #
- #          AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
- #          TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
- #          age_index <- TwinsMatched[x,y]-(minIndexAge -1)
- # #     TwinsMatched$age_index[x] <- age_index
- #
- #      print(TwinsMatched[x,y])
- #      print(age_index)
+ # now iterate through the children
+  # nested loop must be columns within rows
+
+      for (x in 1:nrow(TwinsMatched)) {
+
+        for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
+
+          NC = NumChildren-1
+
+          AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+          TwinsMatched[,paste0("ChildAge", NC)][x] <- TwinsMatched$ParentAge[x] - AgeDifference
+          age_index <- TwinsMatched[,paste0("ChildAge", NC)][x]-(minIndexAge -1)
+          # TwinsMatched$age_index[x,y] <- age_index
+          #
+          print(TwinsMatched[,paste0("ChildAge", NC)][x])
+          # print(age_index)
  #
  #      while (!(AgeDifference >= minChildAge && AgeDifference <= maxChildAge &&
  #               # AgeDifference %in% UsedAgesVector[x] &&
@@ -267,10 +269,12 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
  #      # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
  #
  #      # closes for column loop
- #      }
+
+          NC=NC+1
+      }
  #
  #      # closes for numchildren loop
- #    }
+    }
  #
  #      #closes if numchildren test
       }
