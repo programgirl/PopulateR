@@ -230,7 +230,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       #create the column names
     for (x in 3:NumChildren) {
 
-      TwinsMatched[[paste("ChildAge", x)]]
+      TwinsMatched %>%
+        add_column(!! paste0("ChildAge", x) := 1:nrow(.))
 
       # closes column name loop
       }
