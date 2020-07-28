@@ -229,17 +229,27 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     for (x in 3:NumChildren) {
 
-      UsedAgesVector[x] <- TwinsMatched$ChildAge[x]
+      print(TwinsMatched$ChildAge[x])
 
-      print("Two children households should not enter")
+      if (x ==3) {
 
-       AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-      TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
+        print("Entered loop")
+        # UsedAgesVector <- TwinsMatched$ChildAge[x]
+        # print(UsedAgesVector)
+
+        # close if test
+        }
+
+     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      TwinsMatched[,paste0('ChildAge', x)] <- TwinsMatched$ParentAge[x] - AgeDifference
       age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
  #     TwinsMatched$age_index[x] <- age_index
 
+      print(TwinsMatched[,paste0('ChildAge', x)])
+
       while (!(AgeDifference >= minChildAge && AgeDifference[x] <= maxChildAge &&
-               AgeDifference %in% UsedAgesVector[x] && ChildrenAgeCountVector[age_index] > 0)) {
+               # AgeDifference %in% UsedAgesVector[x] &&
+               ChildrenAgeCountVector[age_index] > 0)) {
 
         print(x)
 
@@ -247,10 +257,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
         TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
         age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
 
-      }
+        # close while test
+        }
 
-      ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-      UsedAgesVector[x] <- c(UsedAgesVector[x], AgeDifference)
+      # ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+      # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
 
       # closes for numchildren loop
     }
