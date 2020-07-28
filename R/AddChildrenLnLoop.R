@@ -229,39 +229,40 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     for (x in 3:NumChildren) {
 
-      print(TwinsMatched$ChildAge[x])
+      for (y in 1:nrow(TwinsMatched)) {
 
-      if (x ==3) {
-
-        print("Entered loop")
-        # UsedAgesVector <- TwinsMatched$ChildAge[x]
-        # print(UsedAgesVector)
-
-        # close if test
-        }
+      # if (x ==3) {
+      #
+      #   print("Entered loop")
+      #   # UsedAgesVector <- TwinsMatched$ChildAge[x]
+      #   # print(UsedAgesVector)
+      #
+      #   # close if test
+      #   }
 
      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-      TwinsMatched[,paste0('ChildAge', x)] <- TwinsMatched$ParentAge[x] - AgeDifference
-      age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
+      TwinsMatched[y,paste0('ChildAge', x)] <- TwinsMatched$ParentAge[y] - AgeDifference
+      age_index <- TwinsMatched[y,paste0('ChildAge', x)]-(minIndexAge -1)
  #     TwinsMatched$age_index[x] <- age_index
 
-      print(TwinsMatched[,paste0('ChildAge', x)])
+      print(TwinsMatched[y,paste0('ChildAge', x)])
 
-      while (!(AgeDifference >= minChildAge && AgeDifference[x] <= maxChildAge &&
+      while (!(AgeDifference >= minChildAge && AgeDifference <= maxChildAge &&
                # AgeDifference %in% UsedAgesVector[x] &&
                ChildrenAgeCountVector[age_index] > 0)) {
 
-        print(x)
-
         AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-        TwinsMatched[,paste0('ChildAge', x)] <- AgeDifference
-        age_index <- TwinsMatched[,paste0('ChildAge', x)]-(minIndexAge -1)
+        TwinsMatched[y,paste0('ChildAge', x)] <- AgeDifference
+        age_index <- TwinsMatched[y,paste0('ChildAge', x)]-(minIndexAge -1)
 
         # close while test
         }
 
       # ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
       # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
+
+      # closes for nrow loop
+      }
 
       # closes for numchildren loop
     }
