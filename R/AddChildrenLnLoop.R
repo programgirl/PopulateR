@@ -187,6 +187,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
       TwinsMatched$age_index[c] <- age_index
 
+
+
       while (!(TwinsMatched$AgeDifference[c] >= MinParentAge && TwinsMatched$AgeDifference[c] <= MaxParentAge &&
              ParentAgeCountVector[age_index] > 0 && TwinsMatched$ParentAge[c] >= minIndexAge &&
              TwinsMatched$ParentAge[c] <= maxIndexAge)) {
@@ -204,6 +206,9 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
     }
+
+    TwinsMatched <- TwinsMatched %>%
+      select(-c(AgeDifference, age_index))
 
     # remove matched twin ids from the avaiable children in the NoTwinsDataFrame
 
@@ -231,7 +236,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
    for (x in 3:NumChildren) {
 
       TwinsMatched <- TwinsMatched %>%
-        tibble::add_column(!! paste0("ChildAge", x) := 1000)
+         tibble::add_column(!! paste0("ChildAge", x) := 1000)
 
       # closes column name loop
    }
@@ -240,47 +245,48 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
       TwinsMatched <- as.data.frame(TwinsMatched)
 
- # now iterate through the children
-  # nested loop must be columns within rows
-
-      for (x in 1:nrow(TwinsMatched)) {
-
-          for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
-
-          AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-          TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
-          age_index <- TwinsMatched[x,y]-(minIndexAge -1)
-          # TwinsMatched$age_index[x,y] <- age_index
-
-          cat("minChildAge= ", minChildAge, "maxChildAge = ", maxChildAge, "\n")
-          cat("AgeDifference= ", AgeDifference, "age_index = ", age_index, "\n")
-
- #          while (!(AgeDifference >= minChildAge && AgeDifference <= maxChildAge &&
- # #               # AgeDifference %in% UsedAgesVector[x] &&
  #
- #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
+ # # now iterate through the children
+ #  # nested loop must be columns within rows
+
+      # for (x in 1:nrow(TwinsMatched)) {
+      #
+      #     for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
+      #
+      #     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+ #          TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
+ #          age_index <- TwinsMatched[x,y]-(minIndexAge -1)
+ #          # TwinsMatched$age_index[x,y] <- age_index
  #
- #            AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
- #            TwinsMatched[x,y] <- AgeDifference
- #            age_index <- TwinsMatched[x,y]-(minIndexAge -1)
+ #          # cat("TwinsMatched[x,y] = ", TwinsMatched[x,y], "ParentAge[x] = ", TwinsMatched$ParentAge[x], "\n")
+ #          # cat("AgeDifference = ", AgeDifference, "age_index = ", age_index, "\n")
  #
+ # #          while (!(AgeDifference >= minChildAge && AgeDifference <= maxChildAge &&
+ # # #               # AgeDifference %in% UsedAgesVector[x] &&
  # #
- # #        # close while test
- #          }
-
-          print(age_index)
+ # #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
+ # #
+ # #            AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+ # #            TwinsMatched[x,y] <- AgeDifference
+ # #            age_index <- TwinsMatched[x,y]-(minIndexAge -1)
+ # #
+ # # #
+ # # #        # close while test
+ # #          }
  #
- #      # ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
- #      # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
+ #          # print(age_index)
+ # #
+ # #      # ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+ # #      # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
+ # #
+ # #      # closes for column loop
  #
- #      # closes for column loop
-
-      }
- #
- #      # closes for numchildren loop
-    }
- #
- #      #closes if numchildren test
+ #      }
+ # #
+ # #      # closes for numchildren loop
+ #    }
+ # #
+ # #      #closes if numchildren test
       }
 
 
