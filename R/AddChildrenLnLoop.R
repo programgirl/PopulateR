@@ -270,7 +270,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
           cat("age_index = ", age_index, "\n")
 
-          while (age_index < minChildAge || age_index > maxChildAge) {
+          while (age_index < minChildAge || age_index > maxChildAge || ChildrenAgeCountVector[age_index] < 1) {
 
             cat("Entered while loop", "age_index = ", age_index, "\n")
  # # #               # AgeDifference %in% UsedAgesVector[x] &&
