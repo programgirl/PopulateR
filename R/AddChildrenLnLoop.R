@@ -254,6 +254,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
  for (x in 1:nrow(TwinsMatched)) {
 
+      # for (x in 1:5) {
+
   #   for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
 
    for (y in (ncol(TwinsMatched) - (NumChildren - 3)):ncol(TwinsMatched)) {
@@ -266,7 +268,9 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
           # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
           #     age_index, "\n")
 
-          while (!(age_index < minChildAge && age_index > maxChildAge)) {
+          cat("age_index = ", age_index, "\n")
+
+          while (age_index < minChildAge && age_index > maxChildAge) {
 
             cat("Entered while loop", "age_index = ", age_index, "\n")
  # # #               # AgeDifference %in% UsedAgesVector[x] &&
@@ -281,7 +285,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
  #        # close while test
           }
 
-          cat("age_index = ", age_index)
+          # cat("age_index = ", age_index)
  # #
  # #      # ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
  # #      # UsedAgesVector <- cbind(UsedAgesVector, AgeDifference)
