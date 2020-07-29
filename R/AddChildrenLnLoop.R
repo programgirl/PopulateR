@@ -231,27 +231,32 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
    for (x in 3:NumChildren) {
 
       TwinsMatched <- TwinsMatched %>%
-        tibble::add_column(!! paste0("ChildAge", x) := NA)
+        tibble::add_column(!! paste0("ChildAge", x) := 1000)
 
       # closes column name loop
-     }
+   }
+
+      # it being a tibble seemed to be the problem for the looping below.
+
+      TwinsMatched <- as.data.frame(TwinsMatched)
 
  # now iterate through the children
   # nested loop must be columns within rows
 
       for (x in 1:nrow(TwinsMatched)) {
 
-        for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
+       for (y in (ncol(TwinsMatched)-NumChildren+1):ncol(TwinsMatched)) {
 
           NC = NumChildren-1
 
           AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-          TwinsMatched[,paste0("ChildAge", NC)][x] <- TwinsMatched$ParentAge[x] - AgeDifference
-          age_index <- TwinsMatched[,paste0("ChildAge", NC)][x]-(minIndexAge -1)
+          TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
+          age_index <- TwinsMatched[x,y]-(minIndexAge -1)
           # TwinsMatched$age_index[x,y] <- age_index
-          #
-          print(TwinsMatched[,paste0("ChildAge", NC)][x])
-          # print(age_index)
+
+
+          print(TwinsMatched[x,y])
+          print(age_index)
  #
  #      while (!(AgeDifference >= minChildAge && AgeDifference <= maxChildAge &&
  #               # AgeDifference %in% UsedAgesVector[x] &&
