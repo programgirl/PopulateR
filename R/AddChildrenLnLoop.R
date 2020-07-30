@@ -263,7 +263,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
        AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
           TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
           # plus one as R counts vectors from 1 and not 0
-          age_index <- TwinsMatched[x,y] +1
+
+          age_index <- TwinsMatched[x,y]
 
           # while (age_index < minChildAge || age_index > maxChildAge) {
           #
@@ -279,7 +280,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
           while (age_index < minChildAge || age_index > maxChildAge || (ChildrenAgeCountVector[age_index]) < 1 ||
                  length(ChildrenAgeCountVector[age_index] == 0)==0) {
 
-            cat("Entered while loop", "age_index = ", age_index, "\n")
+            cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
  # # #               # AgeDifference %in% UsedAgesVector[x] &&
  # #
  # #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
