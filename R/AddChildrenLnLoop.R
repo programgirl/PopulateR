@@ -266,26 +266,35 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
      TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
 
-     age_index <- TwinsMatched[x,y]
+     age_index <- TwinsMatched[x,y] + 1
+
+     cat("Child Age is ", TwinsMatched[x,y], "and Index is ", age_index, "\n")
+
+     if (TwinsMatched[x,y] == 7) {
+
+       print("where did the 7-year-olds go?")
+     }
 
           # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
           #     age_index, "\n")
 
-          cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+          # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-          while (age_index < minChildIndexAge || age_index > maxChildIndexAge || (ChildrenAgeCountVector[age_index]) < 1 ||
+          while (age_index < 1 || age_index > length(ChildrenAgeCountVector) || (ChildrenAgeCountVector[age_index]) < 1 ||
                  length(ChildrenAgeCountVector[age_index] == 0)==0) {
 
             cat("Entered loop", "\n")
 
-            # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
- # # #               # AgeDifference %in% UsedAgesVector[x] &&
- # #
- # #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
- # #
+ #            # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
+ # # # #               # AgeDifference %in% UsedAgesVector[x] &&
+ # # #
+ # # #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
+ # # #
             AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
             TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
-            age_index <- TwinsMatched[x,y]
+            age_index <- TwinsMatched[x,y] + 1
+
+            cat("Child Age is ", TwinsMatched[x,y], "and Index is ", age_index, "\n")
 
  # # #
  # # # #
@@ -530,7 +539,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(TwinsMatched)
+  return(ChildrenAgeCountVector)
 
 #closes function
 }
