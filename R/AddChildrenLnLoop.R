@@ -19,14 +19,14 @@
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param HouseholdNumVariable The column name for the household variable in the Parents data frame. This must be supplied, and in quotes.
+#' @param HouseholdIDVariable The column name for the household variable in the Parents data frame. This must be supplied, and in quotes.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
 
 
 AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
-                           meanlogUsed, sdlogUsed,MinParentAge = NULL, MaxParentAge = NULL, HouseholdNumVariable= NULL, UserSeed=NULL)
+                           meanlogUsed, sdlogUsed,MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDVariable= NULL, UserSeed=NULL)
 
 {
 
@@ -53,7 +53,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     stop("The maximum parent age must be supplied.")
   }
 
-  if (!any(duplicated(Parents[HouseholdNumVariable])) == FALSE) {
+  if (!any(duplicated(Parents[HouseholdIDVariable])) == FALSE) {
     stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
   }
 
@@ -74,7 +74,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
 
   ParentsRenamed <- Parents %>%
-    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
+    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
+           HouseholdID = !! HouseholdIDVariable)
 
   # Parent age variable
   ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
@@ -190,12 +191,15 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
           TwinsMatched$ParentAge[c] <- TwinsMatched$ChildAge[c] + AgeDifference
           age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
 
-      }
+
+          # closes while loop
+          }
 
       TwinsMatched$AgeDifference[c] <- AgeDifference
       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
-    }
+      # closes parent match loop
+      }
 
     TwinsMatched <- TwinsMatched %>%
       select(-c(AgeDifference, age_index))
@@ -296,19 +300,46 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
  # #      #closes if numchildren test
     }
 
-    # grab the children matched in the paste0("ChildAge", x) columns
-    # for x in 3: Numchildren will work, as it did above
-    # match each column in turn
-    # first step, split these columns into separate data frames
-    # will join afterwards
 
+    # match the parents
+    # this works
+    TwinsMatched <- TwinsMatched %>%
+      group_by(ParentAge)
+
+    # this doesn't - no ParentAge variable!!!???
+    Parents <- Parents %>%
+      group_by(ParentAge)
+
+
+
+    # TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+    #                           Parents %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+    #                           by = c("ParentAge", "Counter"))
+
+
+
+  # grab the children matched in the paste0("ChildAge", x) columns
+  # for x in 3: Numchildren will work, as it did above
+  # match each column in turn
+  # first step, split these columns into separate data frames
+  # will join afterwards
+
+  # for (x in 3:3) {
+  #
+  #   MatchDataframe <- TwinsMatched %>%
+  #     filter(HouseholdID, paste0("ChildAge", x))
+  #
+  #
+  #
+  #          # closes column name loop
+  # }
 
 
     # remove children from unmatched data frame, to match to twins
 
-    TwinsMatched <- left_join(TwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-                              NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-                              by = c("ChildAge", "Counter"))
+    # TwinsMatched <- left_join(TwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+    #                           NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+    #                           by = c("ChildAge", "Counter"))
 
 
 
@@ -326,7 +357,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #####################################
 
 
-  ChildrenRenamed <- NoTwinsDataFrame
+  # ChildrenRenamed <- NoTwinsDataFrame
 
   # uses a different count as no children from the household are matched to a parent at this point
   # need parent counts
@@ -563,7 +594,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(BaseDataFrame)
+  return(TwinsMatched)
 
 #closes function
 }
