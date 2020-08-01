@@ -300,21 +300,9 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
  # #      #closes if numchildren test
     }
 
-
-    # match the parents
-    # this works
-    TwinsMatched <- TwinsMatched %>%
-      group_by(ParentAge)
-
-    # this doesn't - no ParentAge variable!!!???
-    Parents <- Parents %>%
-      group_by(ParentAge)
-
-
-
-    # TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-    #                           Parents %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-    #                           by = c("ParentAge", "Counter"))
+    TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              ParentsRenamed %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              by = c("ParentAge", "Counter"))
 
 
 
