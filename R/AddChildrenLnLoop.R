@@ -300,9 +300,32 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
  # #      #closes if numchildren test
     }
 
-    TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-                              ParentsRenamed %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-                              by = c("ParentAge", "Counter"))
+    # join in a parent
+    # but filter so that only parent ID and Household ID are joined
+    # these will be the last 2 columns in the data frame
+    # this means that the number of rbind-ed columns is known
+    # so that the ChildAge[x] column indices can be used
+    # as the Parents data frame can contain any number of rows from 3 upwards
+    # (Parent Age, Parent ID, Household ID)
+
+    ParentsSubset <- ParentsRenamed %>%
+      select(ParentAge, ParentID, HouseholdID)
+
+    # this adds an additional two columns - Parent ID and Household ID
+
+    # TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+    #                           ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+    #                           by = c("ParentAge", "Counter"))
+
+    # remove all parent information brought in via join, apart from Parent ID and Household ID
+    # need to do this so that the joins work okay
+    # as is based on column index
+
+    TwinsMatched <- TwinsMatched %>%
+      filter()
+
+
+
 
 
 
@@ -582,7 +605,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(TwinsMatched)
+  return(ParentsSubset)
 
 #closes function
 }
