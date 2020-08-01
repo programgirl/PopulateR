@@ -2,17 +2,8 @@
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal. However, the matching is affected by the age structure of the children and parent data frames. The distribution provides a framework upon which to base the matching. The final distribution of age differences, however, may not follow a lognormal distribution.
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
-#'
-#'
-#'
-#' NEED TO FIX THE INFORMATION BELOW, DEPENDING ON HOW THE FUNCTION ENDS UP BEING WRITTEN.
-#'
-#' Some children and/or parents may not be matched. This situation will occur for two reasons. First, if the number of parents relative to the number of children is relatively small, there are fewer matches available at each parent age. Second, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. .
-#' The number of observations output is dependent on the ratio of children: available parents. If the parent data frame is relatively small compared to the children data frame it is possible that unmatched children will occur. The function only outputs the children and parents that have been matched.
-#'
-#'
-#'
-#'
+#' If the parent data frame is not proportionately larger than the smaller data frame, some children may not be matched. There will be fewer matches available at each parent age, potentially leading to the situation when all suitable parent age matches have missing available parents. As well, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. Again, this can cause gaps in the range of suitable parent ages given the age of the child.
+#' The function only outputs the children and parents that have been matched.
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
