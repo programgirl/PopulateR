@@ -325,16 +325,17 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     # (Parent Age, Parent ID, Household ID)
     # this adds an additional two columns - Parent ID and Household ID
 
-    # TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-    #                           ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-    #                           by = c("ParentAge", "Counter"))
+    TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              by = c("ParentAge", "Counter"))
 
     # remove all parent information brought in via join, apart from Parent ID and Household ID
     # need to do this so that the joins work okay
     # as is based on column index
 
-    TwinsMatched <- TwinsMatched %>%
-      filter()
+    FirstTwinMatched <- TwinsMatched %>%
+      ungroup() %>%
+      select(all_of(1:NumberColsChildren), ncol(.))
 
 
 
@@ -617,7 +618,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(NumberColsChildren)
+  return(FirstTwinMatched)
 
 #closes function
 }
