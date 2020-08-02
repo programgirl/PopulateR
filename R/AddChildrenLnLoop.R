@@ -347,6 +347,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       ungroup() %>%
       select((ncol(.)-1):ncol(.))
 
+    ParentOfTwins <- left_join(ParentOfTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+
 
 
 
