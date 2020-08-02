@@ -3,7 +3,7 @@
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
 #' If the parent data frame is not proportionately larger than the smaller data frame, some children may not be matched. There will be fewer matches available at each parent age, potentially leading to the situation when all suitable parent age matches have missing available parents. As well, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. Again, this can cause gaps in the range of suitable parent ages given the age of the child.
-#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame, the number of columns and the names of the columns must be the same for both data frames.
+#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame. The number of columns in the parent data frame must be one larger than the number of columns in the children data frame, as the parents data frame is the only one that contains the household ID variable.
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
@@ -57,8 +57,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
   }
 
-  if(ncol(Children) != ncol(Parents)) {
-    stop("The number of columns in both data frames must be the same")
+  if(ncol(Children) != ncol(Parents)-1) {
+    stop("The number of columns requirement is not met.")
   }
 
 
@@ -155,7 +155,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # get the number of columns in the children data frames
   # this is important when splitting out the children matched data frames later
 
-  NumberColsChildren <- ncol(ChildrenRenamed)
+  NumberColsChildren <- as.numeric(ncol(ChildrenRenamed))
 
 
 
@@ -617,7 +617,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(ParentsSubset)
+  return(NumberColsChildren)
 
 #closes function
 }
