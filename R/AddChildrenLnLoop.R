@@ -343,11 +343,21 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       select(all_of((NumberColsChildren+2):(NumberColsChildren*2)), ChildAge,  ncol(.)) %>%
       rename_all(list(~gsub("\\.y$", "", .)))
 
+    TwinsFinal <- rbind(FirstTwinMatched, SecondTwinMatched)
+
     ParentOfTwins <- TwinsMatched %>%
       ungroup() %>%
       select((ncol(.)-1):ncol(.))
 
     ParentOfTwins <- left_join(ParentOfTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+
+    # extract remaining children and rbind these to each other
+    # will eventually be rbind'ed to the twins and parent data
+
+    # for (z in 3:NumChildren) {
+    #
+    #
+    # }
 
 
 
@@ -631,7 +641,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(ParentOfTwins)
+  return(TwinsFinal)
 
 #closes function
 }
