@@ -343,6 +343,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       select(all_of((NumberColsChildren+2):(NumberColsChildren*2)), ChildAge,  ncol(.)) %>%
       rename_all(list(~gsub("\\.y$", "", .)))
 
+    ParentOfTwins <- TwinsMatched %>%
+      ungroup() %>%
+      select((ncol(.)-1):ncol(.))
+
+
 
 
 
@@ -624,7 +629,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(SecondTwinMatched)
+  return(ParentOfTwins)
 
 #closes function
 }
