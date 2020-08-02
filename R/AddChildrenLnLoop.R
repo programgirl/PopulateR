@@ -3,7 +3,7 @@
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
 #' If the parent data frame is not proportionately larger than the smaller data frame, some children may not be matched. There will be fewer matches available at each parent age, potentially leading to the situation when all suitable parent age matches have missing available parents. As well, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. Again, this can cause gaps in the range of suitable parent ages given the age of the child.
-#' The function only outputs the children and parents that have been matched.
+#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame, the number of columns and the names of the columns must be the same for both data frames.
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
@@ -55,6 +55,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   if (!any(duplicated(Parents[HouseholdIDVariable])) == FALSE) {
     stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
+  }
+
+  if(ncol(Children) != ncol(Parents)) {
+    stop("The number of columns in both data frames must be the same")
   }
 
 
@@ -127,6 +131,13 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   ParentAgeCountVector <- ParentCounts$AgeCount
 
+  # create cut-down version (columns) for parent matching
+  # the parent data can be linked to this later
+
+  ParentsSubset <- ParentsRenamed %>%
+    select(ParentAge, ParentID, HouseholdID)
+
+
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
@@ -140,6 +151,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   # TODO MAKE SURE THAT NROW(CHILDREN) %MODULO% NUMCHILDREN == O, OTHERWISE SAMPLE SO THIS IS THE STATE
   # NOT SURE ABOUT THIS TEST DUE TO THE WAY THE CHILDREN/PARENT ARE BEING CONNECTED, COME BACK TO THIS
+
+  # get the number of columns in the children data frames
+  # this is important when splitting out the children matched data frames later
+
+  NumberColsChildren <- ncol(ChildrenRenamed)
 
 
 
@@ -307,10 +323,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     # so that the ChildAge[x] column indices can be used
     # as the Parents data frame can contain any number of rows from 3 upwards
     # (Parent Age, Parent ID, Household ID)
-
-    ParentsSubset <- ParentsRenamed %>%
-      select(ParentAge, ParentID, HouseholdID)
-
     # this adds an additional two columns - Parent ID and Household ID
 
     # TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
