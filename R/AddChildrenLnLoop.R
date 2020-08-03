@@ -471,12 +471,12 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # construct the child ages remaining into a vector
 
   BaseDataFrame <- BaseDataFrame %>%
-    select(-c(AgeDifference, age_index, counter))
+    select(-c(AgeDifference, age_index, Counter))
 
-  # # remove matched twin ids from the avaiable children in the NoTwinsDataFrame
-  #
-  # NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #   filter(!(ChildID %in%  TwinsMatched$ChildID.y))
+  # remove the matched children ids from the avaiable children in ChildrenRenamed
+
+  ChildrenRenamed <- ChildrenRenamed %>%
+    filter(!(ChildID %in%  BaseDataFrame$ChildID))
   #
   # #  add in the extra children to the twins, where there are more than 2 children in the household
   #
