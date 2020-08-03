@@ -387,22 +387,83 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     # no twins data frame is updated with no allocated children
     # continues to be the same name
 
+    ChildrenRenamed <- NoTwinsDataFrame
+
+    # update parent counts
+   # remove parents already joined
+    ParentsRenamed <- ParentsRenamed %>%
+      filter(!(ParentID %in%  ParentOfTwins$ParentID))
+
+    # ParentCounts <- ParentsRenamed %>%
+    #   group_by(ParentAge) %>%
+    #   summarise(AgeCount=n()) %>%
+    #   tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
+    #                   fill = list(AgeCount = 0))
+    #
+    # minIndexAge <- as.integer(ParentCounts[1,1])
+    # maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
+    #
+    # ParentAgeCountVector <- ParentCounts$AgeCount
+    #
+    # # create cut-down version (columns) for parent matching
+    # # the parent data can be linked to this later
+    #
+    # ParentsSubset <- ParentsRenamed %>%
+    #   select(ParentAge, ParentID, HouseholdID)
 
     #closes twin set of functions
-  }
+    }
 
   #####################################
   #####################################
   # non-twin age matching
-  # only entered if the twin rate is 0
+  # entered for all households but all matches must be non-twins
   # replicates the non-twin matching above
   # with a different start because first match is a non-twin
   # and subsequent matches are all non-twins as well
   #####################################
   #####################################
 
+  # create data frame that contains the children that form the base to which the parents and other kids will be joined
 
-  ChildrenRenamed <- NoTwinsDataFrame
+  BaseDataFrame <- ChildrenRenamed %>%
+    slice_sample(n = nrow(.)/NumChildren)
+
+
+
+  # match parent
+  # for (c in 1:nrow(BaseDataFrame)) {
+  #
+  #   AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+  #   BaseDataFrame$AgeDifference[c] <- AgeDifference
+  #   BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
+  #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+  #   BaseDataFrame$age_index[c] <- age_index
+  #
+  #
+  #
+  #   while (!(BaseDataFrame$AgeDifference[c] >= MinParentAge && BaseDataFrame$AgeDifference[c] <= MaxParentAge &&
+  #            ParentAgeCountVector[age_index] > 0 && BaseDataFrame$ParentAge[c] >= minIndexAge &&
+  #            BaseDataFrame$ParentAge[c] <= maxIndexAge)) {
+  #
+  #     print(c)
+  #
+  #     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+  #     BaseDataFrame$AgeDifference[c] <- AgeDifference
+  #     BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
+  #     age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+  #
+  #
+  #     # closes while loop
+  #   }
+  #
+  #   TwinsMatched$AgeDifference[c] <- AgeDifference
+  #   ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+  #
+  #   # closes parent match loop
+  # }
+
+
 
   # uses a different count as no children from the household are matched to a parent at this point
   # need parent counts
@@ -414,8 +475,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   # twins take a cut that is modulo 0 for household size
   # so remainder of children data must also be modulo 0
-  BaseDataFrame <- ChildrenRenamed %>%
-    slice_sample(n = nrow(.)/NumChildren)
+
 
 
   #
@@ -639,7 +699,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(TwinsFinal)
+  return(ParentsRenamed)
 
 #closes function
 }
