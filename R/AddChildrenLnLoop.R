@@ -394,22 +394,20 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     ParentsRenamed <- ParentsRenamed %>%
       filter(!(ParentID %in%  ParentOfTwins$ParentID))
 
-    # ParentCounts <- ParentsRenamed %>%
-    #   group_by(ParentAge) %>%
-    #   summarise(AgeCount=n()) %>%
-    #   tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
-    #                   fill = list(AgeCount = 0))
-    #
-    # minIndexAge <- as.integer(ParentCounts[1,1])
-    # maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
-    #
-    # ParentAgeCountVector <- ParentCounts$AgeCount
-    #
-    # # create cut-down version (columns) for parent matching
-    # # the parent data can be linked to this later
-    #
-    # ParentsSubset <- ParentsRenamed %>%
-    #   select(ParentAge, ParentID, HouseholdID)
+    ParentCounts <- ParentsRenamed %>%
+      group_by(ParentAge) %>%
+      summarise(AgeCount=n()) %>%
+      tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
+                      fill = list(AgeCount = 0))
+
+
+    ParentAgeCountVector <- ParentCounts$AgeCount
+
+    # create cut-down version (columns) for parent matching
+    # the parent data can be linked to this later
+
+    ParentsSubset <- ParentsRenamed %>%
+      select(ParentAge, ParentID, HouseholdID)
 
     #closes twin set of functions
     }
@@ -699,7 +697,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(ParentsRenamed)
+  return(ParentsSubset)
 
 #closes function
 }
