@@ -477,17 +477,18 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   ChildrenRenamed <- ChildrenRenamed %>%
     filter(!(ChildID %in%  BaseDataFrame$ChildID))
-  #
-  # #  add in the extra children to the twins, where there are more than 2 children in the household
-  #
-  # # create counts of children remaining so that the non-twins can be matched to the twins
-  #
-  # ChildrenCounts <- NoTwinsDataFrame %>%
-  #   group_by(ChildAge) %>%
-  #   summarise(AgeCount=n()) %>%
-  #   tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
-  #                   fill = list(AgeCount = 0))
-  #
+
+  #  add in the extra children to the twins, where there are more than 2 children in the household
+
+  # create counts of children remaining so that the rest of the children are brought into the dataframe
+  # also, the ChildAge variable has to start from 2 and not 3, as only one child has been matched in the BaseDataFrame
+
+  ChildrenCounts <- ChildrenRenamed %>%
+    group_by(ChildAge) %>%
+    summarise(AgeCount=n()) %>%
+    tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
+                    fill = list(AgeCount = 0))
+
   # minChildIndexAge <- as.integer(ChildrenCounts[1,1])
   # maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
   #
@@ -595,7 +596,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # # #
   # # # return(OutputDataframe)
 
-  return(BaseDataFrame)
+  return(ChildrenCounts)
 
 #closes function
 }
