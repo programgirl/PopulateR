@@ -367,14 +367,15 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
         select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
         rename(ChildAge = paste0("ChildAge", z))
 
-      # OtherKids <- left_join(OtherKids%>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-      #                        NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-      #                        by = c("ChildAge", "Counter"))
-      #
-      # TwinsFinal <- rbind(TwinsFinal, OtherKids)
-      #
-      # NoTwinsDataFrame <- NoTwinsDataFrame %>%
-      #   filter(!(ChildID %in%  OtherKids$ChildID))
+      OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                             NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                             by = c("ChildAge", "Counter")) %>%
+        select(-Counter)
+
+      TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
+
+      NoTwinsDataFrame <- NoTwinsDataFrame %>%
+        filter(!(ChildID %in%  OtherKids$ChildID))
 
       #closes extra child addition loop
     }
@@ -661,7 +662,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(OtherKids)
+  return(NoTwinsDataFrame)
 
 #closes function
 }
