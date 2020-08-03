@@ -266,7 +266,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
       TwinsMatched <- as.data.frame(TwinsMatched)
 
-
   # now iterate through the non-twins children
   # nested loop must be columns within rows
 
@@ -489,19 +488,34 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
                     fill = list(AgeCount = 0))
 
-  # minChildIndexAge <- as.integer(ChildrenCounts[1,1])
-  # maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
-  #
-  # # cat("minChildIndexAge = ", minChildIndexAge, "maxChildIndexAge = ", maxChildIndexAge)
-  #
-  # ChildrenAgeCountVector <- ChildrenCounts$AgeCount
-  #
-  #
-  #
-  #
-  #
-  #
-  # for (x in 1:nrow(BaseDataFrame)) {
+  minChildIndexAge <- as.integer(ChildrenCounts[1,1])
+  maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
+
+  cat("minChildIndexAge = ", minChildIndexAge, "maxChildIndexAge = ", maxChildIndexAge)
+
+  ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+
+
+  # match the remaining children
+  # not using the distribution otherwise may cause problems for the last rows in the BaseDataFrame
+
+  #create the column names
+  for (x in 2:BaseDataFrame) {
+
+    BaseDataFrame <- BaseDataFrame %>%
+      tibble::add_column(!! paste0("ChildAge", x) := 1000)
+
+    # closes column name loop
+  }
+
+  # it being a tibble seemed to be the problem for the looping below.
+
+  BaseDataFrame <- as.data.frame(BaseDataFrame)
+
+  # now iterate through the non-twins children
+  # nested loop must be columns within rows
+
+  # for (x in 1:nrow(TwinsMatched)) {
   #
   #   AgesUsed <- as.numeric(TwinsMatched$ChildAge[x])
   #
@@ -547,7 +561,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #   # #
   #   # #      # closes for numchildren loop
   # }
-  #
   #
   # # # # force last lot of children to be matched on the basis of first parent age after minimum
   # # # # need to work from minimum child age
@@ -596,7 +609,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # # #
   # # # return(OutputDataframe)
 
-  return(ChildrenCounts)
+  return(ChildrenAgeCountVector)
 
 #closes function
 }
