@@ -427,39 +427,37 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   BaseDataFrame <- ChildrenRenamed %>%
     slice_sample(n = nrow(.)/NumChildren)
 
-
-
   # match parent
-  # for (c in 1:nrow(BaseDataFrame)) {
-  #
-  #   AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-  #   BaseDataFrame$AgeDifference[c] <- AgeDifference
-  #   BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
-  #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-  #   BaseDataFrame$age_index[c] <- age_index
-  #
-  #
-  #
-  #   while (!(BaseDataFrame$AgeDifference[c] >= MinParentAge && BaseDataFrame$AgeDifference[c] <= MaxParentAge &&
-  #            ParentAgeCountVector[age_index] > 0 && BaseDataFrame$ParentAge[c] >= minIndexAge &&
-  #            BaseDataFrame$ParentAge[c] <= maxIndexAge)) {
-  #
-  #     print(c)
-  #
-  #     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-  #     BaseDataFrame$AgeDifference[c] <- AgeDifference
-  #     BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
-  #     age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-  #
-  #
-  #     # closes while loop
-  #   }
-  #
-  #   TwinsMatched$AgeDifference[c] <- AgeDifference
-  #   ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-  #
-  #   # closes parent match loop
-  # }
+  for (c in 1:nrow(BaseDataFrame)) {
+
+    AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+    BaseDataFrame$AgeDifference[c] <- AgeDifference
+    BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
+    age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+    BaseDataFrame$age_index[c] <- age_index
+
+
+
+    while (!(BaseDataFrame$AgeDifference[c] >= MinParentAge && BaseDataFrame$AgeDifference[c] <= MaxParentAge &&
+             ParentAgeCountVector[age_index] > 0 && BaseDataFrame$ParentAge[c] >= minIndexAge &&
+             BaseDataFrame$ParentAge[c] <= maxIndexAge)) {
+
+      print(c)
+
+      AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+      BaseDataFrame$AgeDifference[c] <- AgeDifference
+      BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
+      age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+
+
+      # closes while loop
+    }
+
+    BaseDataFrame$AgeDifference[c] <- AgeDifference
+    ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+    # closes parent match loop
+  }
 
 
 
@@ -697,7 +695,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(ParentsSubset)
+  return(BaseDataFrame)
 
 #closes function
 }
