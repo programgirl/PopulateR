@@ -695,7 +695,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(BaseDataFrame)
+  return(ParentAgeCountVector)
 
 #closes function
 }
