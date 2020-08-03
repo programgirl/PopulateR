@@ -157,21 +157,25 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   NumberColsChildren <- as.numeric(ncol(ChildrenRenamed))
 
+  #####################################
+  #####################################
+  # end set up
+  #####################################
+  #####################################
+
+  #####################################
+  #####################################
+  # Functions for twins and their siblings
+  #####################################
+  #####################################
 
 
-  # #####################################
-  # #####################################
-  # # end set up
-  # #####################################
-  # #####################################
-  #
-  # #####################################
-  # #####################################
-  # # Split into twins and non-twins
-  # #####################################
-  # #####################################
-  #
-  #
+  #####################################
+  #####################################
+  # Split into twins and non-twins
+  #####################################
+  #####################################
+
   if (TwinRate > 0) {
 
     TwinsDataFrame <- ChildrenRenamed %>%
@@ -242,6 +246,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
     ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
+    #####################################
+    # Non-twins loop
+    # only entered if there are more children required in addition to the twins
+    #####################################
+
     if (NumChildren > 2) {
 
       #create the column names
@@ -256,9 +265,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       # it being a tibble seemed to be the problem for the looping below.
 
       TwinsMatched <- as.data.frame(TwinsMatched)
-
-      # ncolStart <- ncol(TwinsMatched) - (NumChildren - 3)
-      # cat("ncol(TwinsMatched) " = ncol(TwinsMatched), "NumChildren " = NumChildren -3, "ncolStart "= ncolStart, "\n")
 
 
   # now iterate through the non-twins children
@@ -285,21 +291,19 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
             # cat("Entered loop", "\n")
 
- #            # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
- # # # #               # AgeDifference %in% UsedAgesVector[x] &&
- # # #
- # # #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
- # # #
+            # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
+               # AgeDifference %in% UsedAgesVector[x] &&
+
+ #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
+
             AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
             TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
             age_index <- TwinsMatched[x,y] + 1
 
             # cat("Child Age is ", TwinsMatched[x,y], "and Index is ", age_index, "\n")
 
- # # #
- # # # #
- # #        # close while test
-          }
+            # close while test
+            }
 
 
       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
@@ -359,8 +363,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     # extract remaining children and rbind these to each other
     # will eventually be rbind'ed to the twins and parent data
 
-    # for (z in 3:NumChildren) {
-    for (z in 3:3) {
+    for (z in 3:NumChildren) {
+    # for (z in 3:3) {
 
       OtherKids <- TwinsMatched %>%
         ungroup() %>%
@@ -380,39 +384,8 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       #closes extra child addition loop
     }
 
-
-
-
-
-
-
-  # grab the children matched in the paste0("ChildAge", x) columns
-  # for x in 3: Numchildren will work, as it did above
-  # match each column in turn
-  # first step, split these columns into separate data frames
-  # will join afterwards
-
-  # for (x in 3:3) {
-  #
-  #   MatchDataframe <- TwinsMatched %>%
-  #     filter(HouseholdID, paste0("ChildAge", x))
-  #
-  #
-  #
-  #          # closes column name loop
-  # }
-
-
-    # remove children from unmatched data frame, to match to twins
-
-    # TwinsMatched <- left_join(TwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-    #                           NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-    #                           by = c("ChildAge", "Counter"))
-
-
-
-    # means that all non-twin matching uses the same data frame name
-    # irrespective of whether twins occur or not
+    # no twins data frame is updated with no allocated children
+    # continues to be the same name
 
 
     #closes twin set of functions
@@ -421,6 +394,10 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #####################################
   #####################################
   # non-twin age matching
+  # only entered if the twin rate is 0
+  # replicates the non-twin matching above
+  # with a different start because first match is a non-twin
+  # and subsequent matches are all non-twins as well
   #####################################
   #####################################
 
@@ -662,7 +639,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(NoTwinsDataFrame)
+  return(TwinsFinal)
 
 #closes function
 }
