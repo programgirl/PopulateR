@@ -441,7 +441,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
              ParentAgeCountVector[age_index] > 0 && BaseDataFrame$ParentAge[c] >= minIndexAge &&
              BaseDataFrame$ParentAge[c] <= maxIndexAge)) {
 
-      print(c)
+      # print(c)
 
       AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
       BaseDataFrame$AgeDifference[c] <- AgeDifference
@@ -500,7 +500,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # not using the distribution otherwise may cause problems for the last rows in the BaseDataFrame
 
   #create the column names
-  for (x in 2:BaseDataFrame) {
+  for (x in 2:NumChildren) {
 
     BaseDataFrame <- BaseDataFrame %>%
       tibble::add_column(!! paste0("ChildAge", x) := 1000)
@@ -609,7 +609,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # # #
   # # # return(OutputDataframe)
 
-  return(ChildrenAgeCountVector)
+  return(BaseDataFrame)
 
 #closes function
 }
