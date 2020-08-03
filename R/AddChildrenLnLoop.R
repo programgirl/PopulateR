@@ -343,6 +343,11 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       select(all_of((NumberColsChildren+2):(NumberColsChildren*2)), ChildAge,  ncol(.)) %>%
       rename_all(list(~gsub("\\.y$", "", .)))
 
+    # remove SecondTwinMatched Child IDs from working Children data frame
+    # looks like it was done earlier, test
+    # NoTwinsDataFrame <- NoTwinsDataFrame %>%
+    #   filter(!(ChildID %in%  SecondTwinMatched$ChildID))
+
     TwinsFinal <- rbind(FirstTwinMatched, SecondTwinMatched)
 
     ParentOfTwins <- TwinsMatched %>%
@@ -355,9 +360,24 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
     # will eventually be rbind'ed to the twins and parent data
 
     # for (z in 3:NumChildren) {
-    #
-    #
-    # }
+    for (z in 3:3) {
+
+      OtherKids <- TwinsMatched %>%
+        ungroup() %>%
+        select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
+        rename(ChildAge = paste0("ChildAge", z))
+
+      # OtherKids <- left_join(OtherKids%>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+      #                        NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+      #                        by = c("ChildAge", "Counter"))
+      #
+      # TwinsFinal <- rbind(TwinsFinal, OtherKids)
+      #
+      # NoTwinsDataFrame <- NoTwinsDataFrame %>%
+      #   filter(!(ChildID %in%  OtherKids$ChildID))
+
+      #closes extra child addition loop
+    }
 
 
 
@@ -404,7 +424,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   #####################################
 
 
-  # ChildrenRenamed <- NoTwinsDataFrame
+  ChildrenRenamed <- NoTwinsDataFrame
 
   # uses a different count as no children from the household are matched to a parent at this point
   # need parent counts
@@ -641,7 +661,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # #
   # # return(OutputDataframe)
 
-  return(TwinsFinal)
+  return(OtherKids)
 
 #closes function
 }
