@@ -115,6 +115,25 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
       filter((ParentAge - maxChildAge) <= MaxParentAge)
   }
 
+
+  # create cut-down version (columns) for parent matching
+  # the parent data can be linked to this later
+
+  ParentsSubset <- ParentsRenamed %>%
+    select(ParentAge, ParentID, HouseholdID)
+
+
+  # seed must come before first sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  if ((nrow(ParentsRenamed)*NumChildren) < (nrow(Children)*1.1)) {
+
+    ChildrenRenamed <- ChildrenRenamed %>%
+      slice_sample(n = round(nrow(ParentsRenamed) *.8, 0)*NumChildren)
+  }
+
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
   # ensure all parent ages are represented in the data frame of counts
@@ -130,24 +149,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
   ParentAgeCountVector <- ParentCounts$AgeCount
-
-  # create cut-down version (columns) for parent matching
-  # the parent data can be linked to this later
-
-  ParentsSubset <- ParentsRenamed %>%
-    select(ParentAge, ParentID, HouseholdID)
-
-
-  # seed must come before first sample is cut
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
-  }
-
-  if (nrow(ParentsRenamed)*2.05 < nrow(Children)) {
-
-    ChildrenRenamed <- ChildrenRenamed %>%
-      slice_sample(n = round(nrow(ParentsRenamed) * 1.9), 0)
-  }
 
   # TODO MAKE SURE THAT NROW(CHILDREN) %MODULO% NUMCHILDREN == O, OTHERWISE SAMPLE SO THIS IS THE STATE
   # NOT SURE ABOUT THIS TEST DUE TO THE WAY THE CHILDREN/PARENT ARE BEING CONNECTED, COME BACK TO THIS
@@ -491,8 +492,6 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   minChildIndexAge <- as.integer(ChildrenCounts[1,1])
   maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
 
-  cat("minChildIndexAge = ", minChildIndexAge, "maxChildIndexAge = ", maxChildIndexAge)
-
   ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
 
@@ -514,62 +513,71 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
 
   # now iterate through the other children
   # nested loop must be columns within rows
-
-  for (x in 1:nrow(BaseDataFrame)) {
-
-    AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
-
-    for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
-
-      # NOT WEIGHTED otherwise it would select the same values for the same parent, as it is row by column
-      # and we don't want twins
-
-     BaseDataFrame[x,y] <- sample(minChildIndexAge:maxChildIndexAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
-      age_index <- BaseDataFrame[x,y] + 1
-
-      # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
-      #     age_index, "\n")
-
-      # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
-
-      cat("Child age is ", BaseDataFrame[x,y], "Age at childbirth is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y],
-          "Available children are ", ChildrenAgeCountVector[age_index], "Age Index is ", age_index,
-          "AgesUsed are ", AgesUsed, "\n")
-
-      while (#BaseDataFrame[x,y] %in% (AgesUsed) ||
-             (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) < minIndexAge ||
-             (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) > maxIndexAge ||
-             ChildrenAgeCountVector[age_index] ==0 ||
-             length(ChildrenAgeCountVector[age_index]) > 1
-             # is.na(sum(ChildrenAgeCountVector))
-             ) {
-
-        # cat("Entered loop", "\n", "ParentAge - ChildAge is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "\n")
-
-        AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-        BaseDataFrame[x,y] <- BaseDataFrame$ParentAge[x] - AgeDifference
-        age_index <- BaseDataFrame[x,y] + 1
-
-        # cat("Child Age is ", BaseDataFrame[x,y], "and Index is ", age_index, "\n")
-
-        # close while test
-      }
-
-      print(ChildrenAgeCountVector)
-      print(length(ChildrenAgeCountVector))
-
-
-      ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-
-      print(ChildrenAgeCountVector[age_index])
-      AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
-      print(ChildrenAgeCountVector)
-
-           # closes for column loop
-      }
-
-         # closes for numchildren loop
-    }
+#
+#  for (x in 1:nrow(BaseDataFrame)) {
+#    cat("Number of rows is ", nrow(BaseDataFrame))
+#
+#     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
+#
+#     for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
+#
+#       # NOT WEIGHTED otherwise it would select the same values for the same parent, as it is row by column
+#       # and we don't want twins
+#
+#      BaseDataFrame[x,y] <- sample(minChildIndexAge:maxChildIndexAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+#       age_index <- BaseDataFrame[x,y] + 1
+#
+#       # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
+#       #     age_index, "\n")
+#
+#       # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+#
+#       # cat("Child age is ", BaseDataFrame[x,y], "Age at childbirth is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y],
+#       #     "Available children are ", ChildrenAgeCountVector[age_index], "Age Index is ", age_index,
+#       #     "AgesUsed are ", AgesUsed, "\n")
+#
+#       while (age_index < 1 || age_index > length(ChildrenAgeCountVector) || (ChildrenAgeCountVector[age_index]) < 1 ||
+#              length(ChildrenAgeCountVector[age_index] == 0)==0 ||  BaseDataFrame[x,y] %in% (AgesUsed) ||
+#              (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) < minIndexAge || (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) > maxIndexAge) {
+#
+#        # while (BaseDataFrame[x,y] %in% (AgesUsed) ||
+#       #        BaseDataFrame[x,y] >
+#       #
+#              # is.na(ChildrenAgeCountVector[age_index])
+#              #(BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) < minIndexAge ||
+#              #(BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) > maxIndexAge ||
+#            #  ChildrenAgeCountVector[age_index] ==0 #||
+#
+#              #length(ChildrenAgeCountVector[age_index]) > 1
+#              # is.na(sum(ChildrenAgeCountVector))
+#              # ) {
+#         # cat("Entered loop", "\n", "ParentAge - ChildAge is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "Child age is ", BaseDataFrame[x,y], "\n")
+#
+#
+#
+#         AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
+#         BaseDataFrame[x,y] <- BaseDataFrame$ParentAge[x] - AgeDifference
+#         age_index <- BaseDataFrame[x,y] + 1
+#         # cat("Entered loop", "\n", "ParentAge - ChildAge is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "Child age is ", BaseDataFrame[x,y], "\n")
+#
+#         # cat("Child Age is ", BaseDataFrame[x,y], "and Index is ", age_index, "\n")
+#
+#         # close while test
+#       }
+#
+#       cat("Person is ", x, "Age index is ", age_index, "Vector value is ", "is true? ", length(ChildrenAgeCountVector[age_index] == 0)==0, "Is true? ",
+#           BaseDataFrame[x,y] %in% (AgesUsed), "Ages used ", AgesUsed, "Parent age is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "\n")
+#
+#       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+#
+#
+#       AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
+#
+#            # closes for column loop
+#       }
+#
+#          # closes for numchildren loop
+#     }
   #
   # # # # force last lot of children to be matched on the basis of first parent age after minimum
   # # # # need to work from minimum child age
@@ -618,7 +626,7 @@ AddChildrenLnLoop <- function(Children, ChildIDVariable, ChildAgeVariable, NumCh
   # # #
   # # # return(OutputDataframe)
 
-  return(BaseDataFrame)
+  return(TwinsMatched)
 
 #closes function
 }
