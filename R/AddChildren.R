@@ -121,15 +121,21 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   # have to restrict parent data frame to only those parent ages where there are at least min parent age + numkids
   # otherwise get into the problem of not enough parents for numkids of different ages
 
+  ParentsRenamed <- ParentsRenamed %>%
+    filter(ParentAge >= (MinParentAge + NumChildren),
+          ParentAge <= (MaxParentAge - NumChildren)
+           )
+
   ParentsSubset <- ParentsRenamed %>%
-    select(ParentAge, ParentID, HouseholdID) %>%
-    filter(ParentAge > ParentAge + NumChildren)
+    select(ParentAge, ParentID, HouseholdID)
 
 
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
   }
+
+  cat("Number of rows of parents is", nrow(ParentsRenamed), "\n", "Number of rows of children is", nrow(Children), "\n")
 
   if ((nrow(ParentsRenamed)*NumChildren) < (nrow(Children)*1.1)) {
 
@@ -141,6 +147,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
     ChildrenRenamed <- ChildrenRenamed[-sample(1:nrow(ChildrenRenamed), nrow(ChildrenRenamed) %% NumChildren), ]
   }
+
+  cat("Final size of child data frame is ", nrow(ChildrenRenamed), "\n")
 
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
@@ -284,7 +292,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
           # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-           while (TwinsMatched[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge) {
+           while (TwinsMatched[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
 
             # cat("Entered loop", "Current age is ",TwinsMatched[x,y], "Ages used are ", AgesUsed, "Parent age at childbirth is", AgeDifference, "\n")
 
@@ -400,12 +408,6 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
     ParentAgeCountVector <- ParentCounts$AgeCount
 
-    # create cut-down version (columns) for parent matching
-    # the parent data can be linked to this later
-
-    ParentsSubset <- ParentsRenamed %>%
-      select(ParentAge, ParentID, HouseholdID)
-
     #closes twin set of functions
   }
 
@@ -424,7 +426,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   BaseDataFrame <- ChildrenRenamed %>%
     slice_sample(n = nrow(.)/NumChildren)
 
-  # # match parent
+  # match parent
 
   for (c in 1:nrow(BaseDataFrame)) {
 
@@ -484,9 +486,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
-  # # match the remaining children
+  # match the remaining children
 
-  #create the column names
+  # create the column names
   for (x in 2:NumChildren) {
 
     BaseDataFrame <- BaseDataFrame %>%
@@ -499,18 +501,22 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   BaseDataFrame <- as.data.frame(BaseDataFrame)
 
-  # # there are problems with the younger parents not having children available
-  # BaseDataFrame <- BaseDataFrame %>%
-  #   arrange(ParentAge)
+  # there are problems with the younger parents not having children available
+  BaseDataFrame <- BaseDataFrame %>%
+   arrange(ParentAge)
 
   # now iterate through the other children
   # nested loop must be columns within rows
 
   for (x in 1:nrow(BaseDataFrame)) {
 
+  # for (x in 1:152) {
+
      AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
 
      for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
+
+       Counter <- 0
 
        NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
        BaseDataFrame[x,y] <- NewChildAge
@@ -519,12 +525,23 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
        # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge) {
+       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
+
+         # cat("Entered loop", "age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
          NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
          BaseDataFrame[x,y] <- NewChildAge
          AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
          age_index <- NewChildAge + 1
+
+         Counter <- Counter + 1
+
+         if (Counter == 1000 ) {
+
+           cat("Assignment of extra child is in continuous loop so loop broken at 1000 iterations", "\n", "The problem row is", x, "\n")
+           cat("Please check row for parent age at birth of child, and/or for the presence of a twin", "\n")
+           break
+         }
 
          # closes while test
          }
@@ -589,10 +606,12 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   } else {
     ChildrenFinal <- NotTwins
   }
+  #
+  # #closes function
+  #
+  # # # # # return(OutputDataframe)
 
-  #closes function
+  return(ParentOfNotTwins)
 
-  # # # # return(OutputDataframe)
-
-  return(ChildrenFinal)
-}
+  # closes function
+   }
