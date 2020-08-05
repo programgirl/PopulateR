@@ -11,6 +11,8 @@
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
+#' @param NumChildren The number of children that are required in each household.
+#' @param TwinRate The proportion of the child population who are twins.
 #' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame should contain more observations than the Children data frame. The relative sizes of the data frames are compared. If the Parens data frame is not sufficiently larger than the Children data frame, the latter is randomly sampled to construct a smaller data frame.
 #' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
 #' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
@@ -116,9 +118,12 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   # create cut-down version (columns) for parent matching
   # the parent data can be linked to this later
+  # have to restrict parent data frame to only those parent ages where there are at least min parent age + numkids
+  # otherwise get into the problem of not enough parents for numkids of different ages
 
   ParentsSubset <- ParentsRenamed %>%
-    select(ParentAge, ParentID, HouseholdID)
+    select(ParentAge, ParentID, HouseholdID) %>%
+    filter(ParentAge > ParentAge + NumChildren)
 
 
   # seed must come before first sample is cut
@@ -130,6 +135,11 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
     ChildrenRenamed <- ChildrenRenamed %>%
       slice_sample(n = round(nrow(ParentsRenamed) *.8, 0)*NumChildren)
+  }
+
+  if (nrow(ChildrenRenamed) %% NumChildren != 0) {
+
+    ChildrenRenamed <- ChildrenRenamed[-sample(1:nrow(ChildrenRenamed), nrow(ChildrenRenamed) %% NumChildren), ]
   }
 
   # get counts for each single age from the parent data frame
@@ -205,419 +215,369 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
         # closes while loop
         }
 
-      cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
-          "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
-
+      # cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
+      #     "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
 
             ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
       # closes parent match loop
     }
-  #
-  #   TwinsMatched <- TwinsMatched %>%
-  #     select(-c(AgeDifference, age_index))
-  #
-  #   # remove matched twin ids from the avaiable children in the NoTwinsDataFrame
-  #
-  #   NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #     filter(!(ChildID %in%  TwinsMatched$ChildID.y))
-  #
-  #   #  add in the extra children to the twins, where there are more than 2 children in the household
-  #
-  #   # create counts of children remaining so that the non-twins can be matched to the twins
-  #
-  #   ChildrenCounts <- NoTwinsDataFrame %>%
-  #     group_by(ChildAge) %>%
-  #     summarise(AgeCount=n()) %>%
-  #     tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
-  #                     fill = list(AgeCount = 0))
-  #
-  #   minChildIndexAge <- as.integer(ChildrenCounts[1,1])
-  #   maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
-  #
-  #   # cat("minChildIndexAge = ", minChildIndexAge, "maxChildIndexAge = ", maxChildIndexAge)
-  #
-  #   ChildrenAgeCountVector <- ChildrenCounts$AgeCount
-  #
-  #   #####################################
-  #   # Non-twins loop
-  #   # only entered if there are more children required in addition to the twins
-  #   #####################################
-  #
-  #   if (NumChildren > 2) {
-  #
-  #     #create the column names
-  #     for (x in 3:NumChildren) {
-  #
-  #       TwinsMatched <- TwinsMatched %>%
-  #         tibble::add_column(!! paste0("ChildAge", x) := 1000)
-  #
-  #       # closes column name loop
-  #     }
-  #
-  #     # it being a tibble seemed to be the problem for the looping below.
-  #
-  #     TwinsMatched <- as.data.frame(TwinsMatched)
-  #
-  #     # now iterate through the non-twins children
-  #     # nested loop must be columns within rows
-  #
-  #     for (x in 1:nrow(TwinsMatched)) {
-  #
-  #       AgesUsed <- as.numeric(TwinsMatched$ChildAge[x])
-  #
-  #       for (y in (ncol(TwinsMatched) - (NumChildren - 3)):ncol(TwinsMatched)) {
-  #
-  #         AgeDifference <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-  #         TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
-  #
-  #         age_index <- TwinsMatched[x,y] + 1
-  #
-  #         # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
-  #         #     age_index, "\n")
-  #
-  #         # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
-  #
-  #         while (TwinsMatched[x,y] %in% (AgesUsed) || ChildrenAgeCountVector[age_index] == 0) {
-  #
-  #           # cat("Entered loop", "\n")
-  #
-  #           # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
-  #           # AgeDifference %in% UsedAgesVector[x] &&
-  #
-  #           #                age_index < 1 && age_index > length(ChildrenAgeCountVector))) {
-  #
-  #           AgeDifference <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-  #           TwinsMatched[x,y] <- TwinsMatched$ParentAge[x] - AgeDifference
-  #           age_index <- TwinsMatched[x,y] + 1
-  #
-  #           # cat("Child Age is ", TwinsMatched[x,y], "and Index is ", age_index, "\n")
-  #
-  #           # close while test
-  #         }
-  #
-  #
-  #         ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-  #         AgesUsed <- cbind(AgesUsed, TwinsMatched[x,y])
-  #         # print(AgesUsed)
-  #         # #
-  #         # #      # closes for column loop
-  #         #
-  #       }
-  #       # #
-  #       # #      # closes for numchildren loop
-  #     }
-  #     # #
-  #     # #      #closes if numchildren test
-  #   }
-  #
-  #   # join in a parent
-  #   # but filter so that only parent ID and Household ID are joined
-  #   # these will be the last 2 columns in the data frame
-  #   # this means that the number of rbind-ed columns is known
-  #   # so that the ChildAge[x] column indices can be used
-  #   # as the Parents data frame can contain any number of rows from 3 upwards
-  #   # (Parent Age, Parent ID, Household ID)
-  #   # this adds an additional two columns - Parent ID and Household ID
-  #
-  #   TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-  #                             ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-  #                             by = c("ParentAge", "Counter"))
-  #
-  #   # remove all parent information brought in via join, apart from Parent ID and Household ID
-  #   # need to do this so that the joins work okay
-  #   # as is based on column index
-  #
-  #   FirstTwinMatched <- TwinsMatched %>%
-  #     ungroup() %>%
-  #     select(all_of(1:NumberColsChildren), ncol(.)) %>%
-  #     rename_all(list(~gsub("\\.x$", "", .)))
-  #
-  #   SecondTwinMatched <- TwinsMatched %>%
-  #     ungroup() %>%
-  #     select(all_of((NumberColsChildren+2):(NumberColsChildren*2)), ChildAge,  ncol(.)) %>%
-  #     rename_all(list(~gsub("\\.y$", "", .)))
-  #
-  #   # remove SecondTwinMatched Child IDs from working Children data frame
-  #   # looks like it was done earlier, test
-  #   # NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #   #   filter(!(ChildID %in%  SecondTwinMatched$ChildID))
-  #
-  #   TwinsFinal <- rbind(FirstTwinMatched, SecondTwinMatched)
-  #
-  #   ParentOfTwins <- TwinsMatched %>%
-  #     ungroup() %>%
-  #     select((ncol(.)-1):ncol(.))
-  #
-  #   ParentOfTwins <- left_join(ParentOfTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
-  #
-  #   # extract remaining children and rbind these to each other
-  #   # will eventually be rbind'ed to the twins and parent data
-  #
-  #   for (z in 3:NumChildren) {
-  #     # for (z in 3:3) {
-  #
-  #     OtherKids <- TwinsMatched %>%
-  #       ungroup() %>%
-  #       select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
-  #       rename(ChildAge = paste0("ChildAge", z))
-  #
-  #     OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                            NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                            by = c("ChildAge", "Counter")) %>%
-  #       select(-Counter)
-  #
-  #     TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
-  #
-  #     NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #       filter(!(ChildID %in%  OtherKids$ChildID))
-  #
-  #     #closes extra child addition loop
-  #   }
-  #
-  #   # no twins data frame is updated with no allocated children
-  #   # continues to be the same name
-  #
-  #   ChildrenRenamed <- NoTwinsDataFrame
-  #
-  #   # update parent counts
-  #   # remove parents already joined
-  #   ParentsRenamed <- ParentsRenamed %>%
-  #     filter(!(ParentID %in%  ParentOfTwins$ParentID))
-  #
-  #   ParentCounts <- ParentsRenamed %>%
-  #     group_by(ParentAge) %>%
-  #     summarise(AgeCount=n()) %>%
-  #     tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
-  #                     fill = list(AgeCount = 0))
-  #
-  #
-  #   ParentAgeCountVector <- ParentCounts$AgeCount
-  #
-  #   # create cut-down version (columns) for parent matching
-  #   # the parent data can be linked to this later
-  #
-  #   ParentsSubset <- ParentsRenamed %>%
-  #     select(ParentAge, ParentID, HouseholdID)
+
+    TwinsMatched <- TwinsMatched %>%
+      select(-c(AgeDifference, age_index))
+
+    # remove matched twin ids from the available children in the NoTwinsDataFrame
+
+    NoTwinsDataFrame <- NoTwinsDataFrame %>%
+      filter(!(ChildID %in%  TwinsMatched$ChildID.y))
+
+    #  add in the extra children to the twins, where there are more than 2 children in the household
+
+    # create counts of children remaining so that the non-twins can be matched to the twins
+
+    ChildrenCounts <- NoTwinsDataFrame %>%
+      group_by(ChildAge) %>%
+      summarise(AgeCount=n()) %>%
+      tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
+                      fill = list(AgeCount = 0))
+
+    minChildIndexAge <- as.integer(ChildrenCounts[1,1])
+    maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
+
+    # cat("minChildIndexAge = ", minChildIndexAge, "maxChildIndexAge = ", maxChildIndexAge)
+
+    ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+
+    #####################################
+    # Non-twins loop
+    # only entered if there are more children required in addition to the twins
+    #####################################
+
+    if (NumChildren > 2) {
+
+      #create the column names
+      for (x in 3:NumChildren) {
+
+        TwinsMatched <- TwinsMatched %>%
+          tibble::add_column(!! paste0("ChildAge", x) := 1000)
+
+        # closes column name loop
+      }
+
+      # it being a tibble seemed to be the problem for the looping below.
+
+      TwinsMatched <- as.data.frame(TwinsMatched)
+
+      # now iterate through the non-twins children
+      # nested loop must be columns within rows
+
+      for (x in 1:nrow(TwinsMatched)) {
+
+        AgesUsed <- as.numeric(TwinsMatched$ChildAge[x])
+
+        for (y in (ncol(TwinsMatched) - (NumChildren - 3)):ncol(TwinsMatched)) {
+
+          NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+          TwinsMatched[x,y] <- NewChildAge
+          AgeDifference <- TwinsMatched$ParentAge[x]- TwinsMatched[x,y]
+          age_index <- NewChildAge + 1
+
+          # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+
+           while (TwinsMatched[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge) {
+
+            # cat("Entered loop", "Current age is ",TwinsMatched[x,y], "Ages used are ", AgesUsed, "Parent age at childbirth is", AgeDifference, "\n")
+
+            # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
+            # AgeDifference %in% UsedAgesVector[x] &&
+
+            NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+            TwinsMatched[x,y] <- NewChildAge
+            AgeDifference <- TwinsMatched$ParentAge[x]- TwinsMatched[x,y]
+            age_index <- NewChildAge + 1
+
+            # cat("Child Age is ", TwinsMatched[x,y], "and Index is ", age_index, "\n")
+
+            # close while test
+          }
+
+          # cat("Current age is ",TwinsMatched[x,y], "Ages used are ", AgesUsed, "Parent age at childbirth is", AgeDifference, "\n")
+
+          ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+          AgesUsed <- cbind(AgesUsed, TwinsMatched[x,y])
+          # print(AgesUsed)
+          # #
+          # #      # closes for column loop
+          #
+        }
+        # #
+        # #      # closes for numchildren loop
+      }
+      # #
+      # #      #closes if numchildren test
+    }
+
+    # join in a parent to the parent age
+    # but filter so that only parent ID and Household ID are joined
+    # these will be the last 2 columns in the data frame
+    # this means that the number of rbind-ed columns is known
+    # so that the ChildAge[x] column indices can be used
+    # as the Parents data frame can contain any number of rows from 3 upwards
+    # (Parent Age, Parent ID, Household ID)
+    # this adds an additional two columns - Parent ID and Household ID
+
+    TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                              by = c("ParentAge", "Counter"))
+
+    # remove all parent information brought in via join, apart from Parent ID and Household ID
+    # need to do this so that the joins work okay
+    # as is based on column index
+
+    FirstTwinMatched <- TwinsMatched %>%
+      ungroup() %>%
+      select(all_of(1:NumberColsChildren), ncol(.)) %>%
+      rename_all(list(~gsub("\\.x$", "", .)))
+
+    SecondTwinMatched <- TwinsMatched %>%
+      ungroup() %>%
+      select(all_of((NumberColsChildren+2):(NumberColsChildren*2)), ChildAge,  ncol(.)) %>%
+      rename_all(list(~gsub("\\.y$", "", .)))
+
+    # remove SecondTwinMatched Child IDs from working Children data frame
+    # looks like it was done earlier, test
+    # NoTwinsDataFrame <- NoTwinsDataFrame %>%
+    #   filter(!(ChildID %in%  SecondTwinMatched$ChildID))
+
+    TwinsFinal <- rbind(FirstTwinMatched, SecondTwinMatched)
+
+    ParentOfTwins <- TwinsMatched %>%
+      ungroup() %>%
+      select((ncol(.)-1):ncol(.))
+
+    ParentOfTwins <- left_join(ParentOfTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+
+    # extract remaining children and rbind these to each other
+    # will eventually be rbind'ed to the twins and parent data
+
+    for (z in 3:NumChildren) {
+      # for (z in 3:3) {
+
+      OtherKids <- TwinsMatched %>%
+        ungroup() %>%
+        select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
+        rename(ChildAge = paste0("ChildAge", z))
+
+      OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                             NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                             by = c("ChildAge", "Counter")) %>%
+        select(-Counter)
+
+      TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
+
+      NoTwinsDataFrame <- NoTwinsDataFrame %>%
+        filter(!(ChildID %in%  OtherKids$ChildID))
+
+      #closes extra child addition loop
+    }
+
+    # no twins data frame is updated with no allocated children
+    # continues to be the same name
+
+    ChildrenRenamed <- NoTwinsDataFrame
+
+    # update parent counts
+    # remove parents already joined
+    ParentsRenamed <- ParentsRenamed %>%
+      filter(!(ParentID %in%  ParentOfTwins$ParentID))
+
+    ParentCounts <- ParentsRenamed %>%
+      group_by(ParentAge) %>%
+      summarise(AgeCount=n()) %>%
+      tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
+                      fill = list(AgeCount = 0))
+
+
+    ParentAgeCountVector <- ParentCounts$AgeCount
+
+    # create cut-down version (columns) for parent matching
+    # the parent data can be linked to this later
+
+    ParentsSubset <- ParentsRenamed %>%
+      select(ParentAge, ParentID, HouseholdID)
 
     #closes twin set of functions
   }
-  #
-  # #####################################
-  # #####################################
-  # # non-twin age matching
-  # # entered for all households but all matches must be non-twins
-  # # replicates the non-twin matching above
-  # # with a different start because first match is a non-twin
-  # # and subsequent matches are all non-twins as well
-  # #####################################
-  # #####################################
-  #
-  # # create data frame that contains the children that form the base to which the parents and other kids will be joined
-  #
-  # BaseDataFrame <- ChildrenRenamed %>%
-  #   slice_sample(n = nrow(.)/NumChildren)
-  #
+
+  #####################################
+  #####################################
+  # non-twin age matching
+  # entered for all households but all matches must be non-twins
+  # replicates the non-twin matching above
+  # with a different start because first match is a non-twin
+  # and subsequent matches are all non-twins as well
+  #####################################
+  #####################################
+
+  # create data frame that contains the children that form the base to which the parents and other kids will be joined
+
+  BaseDataFrame <- ChildrenRenamed %>%
+    slice_sample(n = nrow(.)/NumChildren)
+
   # # match parent
-  # for (c in 1:nrow(BaseDataFrame)) {
-  #
-  #   AgeDifference <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-  #   BaseDataFrame$AgeDifference[c] <- AgeDifference
-  #   BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
-  #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-  #   BaseDataFrame$age_index[c] <- age_index
-  #
-  #
-  #
-  #   while (!(BaseDataFrame$AgeDifference[c] >= MinParentAge && BaseDataFrame$AgeDifference[c] <= MaxParentAge &&
-  #            ParentAgeCountVector[age_index] > 0 && BaseDataFrame$ParentAge[c] >= minIndexAge &&
-  #            BaseDataFrame$ParentAge[c] <= maxIndexAge)) {
-  #
-  #     # print(c)
-  #
-  #     AgeDifference <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-  #     BaseDataFrame$AgeDifference[c] <- AgeDifference
-  #     BaseDataFrame$ParentAge[c] <- BaseDataFrame$ChildAge[c] + AgeDifference
-  #     age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-  #
-  #
-  #     # closes while loop
-  #   }
-  #
-  #   BaseDataFrame$AgeDifference[c] <- AgeDifference
-  #   ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-  #
-  #   # closes parent match loop
-  # }
-  #
-  # BaseDataFrame <- left_join(BaseDataFrame %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-  #                            ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-  #                            by = c("ParentAge", "Counter"))
-  #
-  # # no longer need parents as they are all matched at this point
-  # # don't use the distribution any more as will create problems for later matching
-  # # just do random draws of ages between the minimum and maximum child age
-  # # and stay within permitted parent age boundaries
-  #
-  # # construct the child ages remaining into a vector
-  #
-  # BaseDataFrame <- BaseDataFrame %>%
-  #   select(-c(AgeDifference, age_index, Counter))
-  #
-  # # remove the matched children ids from the avaiable children in ChildrenRenamed
-  #
-  # ChildrenRenamed <- ChildrenRenamed %>%
-  #   filter(!(ChildID %in%  BaseDataFrame$ChildID))
-  #
-  # #  add in the extra children to the twins, where there are more than 2 children in the household
-  #
-  # # create counts of children remaining so that the rest of the children are brought into the dataframe
-  # # also, the ChildAge variable has to start from 2 and not 3, as only one child has been matched in the BaseDataFrame
-  #
-  # ChildrenCounts <- ChildrenRenamed %>%
-  #   group_by(ChildAge) %>%
-  #   summarise(AgeCount=n()) %>%
-  #   tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
-  #                   fill = list(AgeCount = 0))
-  #
-  # minChildIndexAge <- as.integer(ChildrenCounts[1,1])
-  # maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
-  #
-  # ChildrenAgeCountVector <- ChildrenCounts$AgeCount
-  #
-  #
+
+  for (c in 1:nrow(BaseDataFrame)) {
+
+    CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
+    BaseDataFrame$ParentAge[c] <- CurrentAge
+    BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
+    age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+    BaseDataFrame$age_index[c] <- age_index
+
+    while (ParentAgeCountVector[age_index] == 0 || BaseDataFrame$AgeDifference[c] < MinParentAge || BaseDataFrame$AgeDifference[c] > MaxParentAge) {
+
+      CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
+      BaseDataFrame$ParentAge[c] <- CurrentAge
+      BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
+      age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+      BaseDataFrame$age_index[c] <- age_index
+
+      # closes while loop
+    }
+
+    # cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
+    #     "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
+
+    ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+    # closes parent match loop
+  }
+
+
+  BaseDataFrame <- left_join(BaseDataFrame %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                             ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
+                             by = c("ParentAge", "Counter"))
+
+  # construct the child ages remaining into a vector
+
+  BaseDataFrame <- BaseDataFrame %>%
+    select(-c(AgeDifference, age_index, Counter))
+
+  # remove the matched children ids from the available children in ChildrenRenamed
+
+  ChildrenRenamed <- ChildrenRenamed %>%
+    filter(!(ChildID %in%  BaseDataFrame$ChildID))
+
+  #  add in the extra children to the twins, where there are more than 2 children in the household
+
+  # create counts of children remaining so that the rest of the children are brought into the dataframe
+  # also, the ChildAge variable has to start from 2 and not 3, as only one child has been matched in the BaseDataFrame
+
+  ChildrenCounts <- ChildrenRenamed %>%
+    group_by(ChildAge) %>%
+    summarise(AgeCount=n()) %>%
+    tidyr::complete(ChildAge = seq(min(ChildAge), max(ChildAge)),
+                    fill = list(AgeCount = 0))
+
+  minChildIndexAge <- as.integer(ChildrenCounts[1,1])
+  maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
+
+  ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+
   # # match the remaining children
-  # # not using the distribution otherwise may cause problems for the last rows in the BaseDataFrame
+
+  #create the column names
+  for (x in 2:NumChildren) {
+
+    BaseDataFrame <- BaseDataFrame %>%
+      tibble::add_column(!! paste0("ChildAge", x) := 1000)
+
+    # closes column name loop
+  }
+
+  # it being a tibble seemed to be the problem for the looping below.
+
+  BaseDataFrame <- as.data.frame(BaseDataFrame)
+
+  # # there are problems with the younger parents not having children available
+  # BaseDataFrame <- BaseDataFrame %>%
+  #   arrange(ParentAge)
+
+  # now iterate through the other children
+  # nested loop must be columns within rows
+
+  for (x in 1:nrow(BaseDataFrame)) {
+
+     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
+
+     for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
+
+       NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+       BaseDataFrame[x,y] <- NewChildAge
+       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
+       age_index <- NewChildAge + 1
+
+       # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+
+       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge) {
+
+         NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+         BaseDataFrame[x,y] <- NewChildAge
+         AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
+         age_index <- NewChildAge + 1
+
+         # closes while test
+         }
+
+       # cat("Row is ", x, "Current age is ", BaseDataFrame[x,y], "Ages used are ", AgesUsed, "Parent age is ", BaseDataFrame$ParentAge[x], "\n")
+
+       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+       AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
+
+       # closes for column loop
+       }
+
+     # closes for numchildren loop
+     }
+
+
+  FirstNonTwinMatched <- BaseDataFrame %>%
+    ungroup() %>%
+    select(all_of(1:NumberColsChildren), NumberColsChildren+3)
+
+  ParentOfNotTwins <- BaseDataFrame %>%
+    ungroup() %>%
+    select(all_of((NumberColsChildren+2) : (NumberColsChildren+3)))
+
+  ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+
+  # # extract remaining children and rbind these to each other
+  # # will eventually be rbind'ed to the twins and parent data
   #
-  # #create the column names
-  # for (x in 2:NumChildren) {
+  # for (z in 3:NumChildren) {
+  #   # for (z in 3:3) {
   #
-  #   BaseDataFrame <- BaseDataFrame %>%
-  #     tibble::add_column(!! paste0("ChildAge", x) := 1000)
+  #   OtherKids <- TwinsMatched %>%
+  #     ungroup() %>%
+  #     select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
+  #     rename(ChildAge = paste0("ChildAge", z))
   #
-  #   # closes column name loop
+  #   OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+  #                          NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+  #                          by = c("ChildAge", "Counter")) %>%
+  #     select(-Counter)
+  #
+  #   TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
+  #
+  #   NoTwinsDataFrame <- NoTwinsDataFrame %>%
+  #     filter(!(ChildID %in%  OtherKids$ChildID))
+  #
+  #   #closes extra child addition loop
   # }
-  #
-  # # it being a tibble seemed to be the problem for the looping below.
-  #
-  # BaseDataFrame <- as.data.frame(BaseDataFrame)
-  #
-  # # now iterate through the other children
-  # # nested loop must be columns within rows
-  # #
-  # #  for (x in 1:nrow(BaseDataFrame)) {
-  # #    cat("Number of rows is ", nrow(BaseDataFrame))
-  # #
-  # #     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
-  # #
-  # #     for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
-  # #
-  # #       # NOT WEIGHTED otherwise it would select the same values for the same parent, as it is row by column
-  # #       # and we don't want twins
-  # #
-  # #      BaseDataFrame[x,y] <- sample(minChildIndexAge:maxChildIndexAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
-  # #       age_index <- BaseDataFrame[x,y] + 1
-  # #
-  # #       # cat("TwinsMatched$ParentAge[x] = ", TwinsMatched$ParentAge[x], "TwinsMatched[x,y] = ", TwinsMatched[x,y], "age_index  =",
-  # #       #     age_index, "\n")
-  # #
-  # #       # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
-  # #
-  # #       # cat("Child age is ", BaseDataFrame[x,y], "Age at childbirth is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y],
-  # #       #     "Available children are ", ChildrenAgeCountVector[age_index], "Age Index is ", age_index,
-  # #       #     "AgesUsed are ", AgesUsed, "\n")
-  # #
-  # #       while (age_index < 1 || age_index > length(ChildrenAgeCountVector) || (ChildrenAgeCountVector[age_index]) < 1 ||
-  # #              length(ChildrenAgeCountVector[age_index] == 0)==0 ||  BaseDataFrame[x,y] %in% (AgesUsed) ||
-  # #              (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) < minIndexAge || (BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) > maxIndexAge) {
-  # #
-  # #        # while (BaseDataFrame[x,y] %in% (AgesUsed) ||
-  # #       #        BaseDataFrame[x,y] >
-  # #       #
-  # #              # is.na(ChildrenAgeCountVector[age_index])
-  # #              #(BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) < minIndexAge ||
-  # #              #(BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y]) > maxIndexAge ||
-  # #            #  ChildrenAgeCountVector[age_index] ==0 #||
-  # #
-  # #              #length(ChildrenAgeCountVector[age_index]) > 1
-  # #              # is.na(sum(ChildrenAgeCountVector))
-  # #              # ) {
-  # #         # cat("Entered loop", "\n", "ParentAge - ChildAge is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "Child age is ", BaseDataFrame[x,y], "\n")
-  # #
-  # #
-  # #
-  # #         AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
-  # #         BaseDataFrame[x,y] <- BaseDataFrame$ParentAge[x] - AgeDifference
-  # #         age_index <- BaseDataFrame[x,y] + 1
-  # #         # cat("Entered loop", "\n", "ParentAge - ChildAge is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "Child age is ", BaseDataFrame[x,y], "\n")
-  # #
-  # #         # cat("Child Age is ", BaseDataFrame[x,y], "and Index is ", age_index, "\n")
-  # #
-  # #         # close while test
-  # #       }
-  # #
-  # #       cat("Person is ", x, "Age index is ", age_index, "Vector value is ", "is true? ", length(ChildrenAgeCountVector[age_index] == 0)==0, "Is true? ",
-  # #           BaseDataFrame[x,y] %in% (AgesUsed), "Ages used ", AgesUsed, "Parent age is ", BaseDataFrame$ParentAge[x] - BaseDataFrame[x,y], "\n")
-  # #
-  # #       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-  # #
-  # #
-  # #       AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
-  # #
-  # #            # closes for column loop
-  # #       }
-  # #
-  # #          # closes for numchildren loop
-  # #     }
-  # #
-  # # # # # force last lot of children to be matched on the basis of first parent age after minimum
-  # # # # # need to work from minimum child age
-  # # # # # find first current parent age that is still available
-  # # # # # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
-  # # # #
-  # # # # for (j in 1:nrow(Children)) {
-  # # # #
-  # # # #   # ensure initial age selection is within min and max parent ages
-  # # # #
-  # # # #   AgeDifference <- round(runif(1, MinParentAge, MaxParentAge))
-  # # # #   Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + AgeDifference
-  # # # #   age_index <- Children$ParentAge[j]-(minIndexAge -1)
-  # # # #
-  # # # #   if (ParentAgeCountVector[age_index] > 0)  {
-  # # # #
-  # # # #     ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-  # # # #     Children$AgeDifference[j] <- AgeDifference
-  # # # #
-  # # # #   } else {
-  # # # #
-  # # # #     Children$AgeDifference[j] <- NA
-  # # # #     Children$ParentAge[j] <- NA
-  # # # #
-  # # # #     age_index <- which.max(ParentAgeCountVector)
-  # # # #     Children$ParentAge[j] <- age_index + (minIndexAge -1)
-  # # # #     Children$AgeDifference[j] <- Children$ParentAge[j] - Children[[ChildAgeVariable]][j]
-  # # # #
-  # # # #     while (!(ParentAgeCountVector[age_index] > 0 && Children$AgeDifference[j] >= MinParentAge && Children$AgeDifference[j] <= MaxParentAge)) {
-  # # # #
-  # # # #       age_index <- age_index + round(runif(1,-2,2),0)
-  # # # #
-  # # # #       if(age_index < 1) {
-  # # # #         age_index <- round(length(ParentAgeCountVector)*.2, 0)
-  # # # # # reduce pool of potentially partnered donors to only those matched to recipients
-  # #
-  # #
-  # # # # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
-  # # # #
-  # # # # #####################################
-  # # # # #####################################
-  # # # # # data frame merging ends here
-  # # # # #####################################
-  # # # # #####################################
-  # # # #
-  # # # #
+
   # # # # return(OutputDataframe)
 
-  return(TwinsMatched)
+  return(FirstNonTwinMatched)
 
   #closes function
 }
