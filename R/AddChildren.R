@@ -541,7 +541,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
      }
 
 
-  FirstNonTwinMatched <- BaseDataFrame %>%
+  NotTwins <- BaseDataFrame %>%
     ungroup() %>%
     select(all_of(1:NumberColsChildren), NumberColsChildren+3)
 
@@ -551,33 +551,48 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
 
-  # # extract remaining children and rbind these to each other
-  # # will eventually be rbind'ed to the twins and parent data
-  #
-  # for (z in 3:NumChildren) {
-  #   # for (z in 3:3) {
-  #
-  #   OtherKids <- TwinsMatched %>%
-  #     ungroup() %>%
-  #     select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
-  #     rename(ChildAge = paste0("ChildAge", z))
-  #
-  #   OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                          NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                          by = c("ChildAge", "Counter")) %>%
-  #     select(-Counter)
-  #
-  #   TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
-  #
-  #   NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #     filter(!(ChildID %in%  OtherKids$ChildID))
-  #
-  #   #closes extra child addition loop
-  # }
+  # extract remaining children and rbind these to each other
+  # will eventually be rbind'ed to the twins and parent data
+
+  for (z in 2:NumChildren) {
+
+  #   cat("z is ", z, " and child age column is", BaseDataFrame[(NumberColsChildren + z + 1),])
+
+    OtherNotTwins <- BaseDataFrame %>%
+      ungroup() %>%
+      select(all_of(c((NumberColsChildren+3), (NumberColsChildren + z + 2)))) %>%
+      rename(ChildAge = paste0("ChildAge", z))
+
+    OtherNotTwins <- left_join(OtherNotTwins %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                           NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                           by = c("ChildAge", "Counter")) %>%
+      select(-Counter)
+
+    NotTwins <- bind_rows(NotTwins, OtherNotTwins)
+
+    NoTwinsDataFrame <- NoTwinsDataFrame %>%
+      filter(!(ChildID %in%  OtherNotTwins$ChildID))
+
+    #closes extra child addition loop
+  }
+
+  #####################################
+  #####################################
+  # join all the data frames together
+  #####################################
+  #####################################
+
+
+  if (exists("TwinsFinal")) {
+    ChildrenFinal <- rbind(TwinsFinal, NotTwins)
+
+  } else {
+    ChildrenFinal <- NotTwins
+  }
+
+  #closes function
 
   # # # # return(OutputDataframe)
 
-  return(FirstNonTwinMatched)
-
-  #closes function
+  return(ChildrenFinal)
 }
