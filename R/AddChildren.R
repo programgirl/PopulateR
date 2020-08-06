@@ -570,6 +570,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ungroup() %>%
     select(all_of((NumberColsChildren+2) : (NumberColsChildren+3)))
 
+  ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+
   # ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
 
   # extract remaining children and rbind these to each other
@@ -610,12 +612,18 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   } else {
     ChildrenFinal <- NotTwins
   }
-  #
-  # #closes function
+
+  if (exists("ParentOfTwins")) {
+    ParentsFinal <- rbind(ParentOfTwins, ParentOfNotTwins)
+
+  } else {
+    ParentsFinal <- ParentOfNotTwins
+  }
+
   #
   # # # # # return(OutputDataframe)
 
-  return(ChildrenFinal)
+  return(ParentsFinal)
 
   # closes function
    }
