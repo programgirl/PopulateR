@@ -122,8 +122,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   # otherwise get into the problem of not enough parents for numkids of different ages
 
   ParentsRenamed <- ParentsRenamed %>%
-    filter(ParentAge >= (MinParentAge + NumChildren),
-          ParentAge <= (MaxParentAge - NumChildren)
+    filter(ParentAge >= MinParentAge + (NumChildren*2) ,
+         ParentAge <= MaxParentAge + maxChildAge - (NumChildren*2)
            )
 
   ParentsSubset <- ParentsRenamed %>%
@@ -505,8 +505,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   BaseDataFrame <- as.data.frame(BaseDataFrame)
 
   # there are problems with the younger parents not having children available
-  BaseDataFrame <- BaseDataFrame %>%
-   arrange(ParentAge)
+  # BaseDataFrame <- BaseDataFrame %>%
+  #  arrange(ParentAge)
 
   # now iterate through the other children
   # nested loop must be columns within rows
@@ -566,18 +566,20 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ungroup() %>%
     select(all_of(1:NumberColsChildren), NumberColsChildren+3)
 
+     NoTwinsDataFrame <- NoTwinsDataFrame %>%
+       filter(!(ChildID %in%  NotTwins$ChildID))
+
   ParentOfNotTwins <- BaseDataFrame %>%
     ungroup() %>%
     select(all_of((NumberColsChildren+2) : (NumberColsChildren+3)))
 
   ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
 
-  # ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
-
   # extract remaining children and rbind these to each other
   # will eventually be rbind'ed to the twins and parent data
 
-  for (z in 2:NumChildren) {
+ for (z in 2:NumChildren) {
+
 
   #   cat("z is ", z, " and child age column is", BaseDataFrame[(NumberColsChildren + z + 1),])
 
@@ -591,7 +593,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
                            by = c("ChildAge", "Counter")) %>%
       select(-Counter)
 
-    NotTwins <- bind_rows(NotTwins, OtherNotTwins)
+   NotTwins <- bind_rows(NotTwins, OtherNotTwins)
 
     NoTwinsDataFrame <- NoTwinsDataFrame %>%
       filter(!(ChildID %in%  OtherNotTwins$ChildID))
@@ -620,10 +622,16 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ParentsFinal <- ParentOfNotTwins
   }
 
-  #
-  # # # # # return(OutputDataframe)
+  ChildrenFinal <- ChildrenFinal %>%
+    rename(PersonID = ChildID, Age = ChildAge)
 
-  return(ParentsFinal)
+  ParentsFinal <- ParentsFinal %>%
+    rename(PersonID = ParentID, Age = ParentAge)
+
+  OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+
+  return(OutputDataframe)
+
 
   # closes function
    }
