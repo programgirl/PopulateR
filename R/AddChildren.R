@@ -2,8 +2,8 @@
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal. However, the matching is affected by the age structure of the children and parent data frames. The distribution provides a framework upon which to base the matching. The final distribution of age differences, however, may not follow a lognormal distribution.
 #' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
-#' If the parent data frame is not proportionately larger than the smaller data frame, some children may not be matched. There will be fewer matches available at each parent age, potentially leading to the situation when all suitable parent age matches have missing available parents. As well, if the age structure of the children has a poor alignment with the age structure of the parents, given the lognormal distribution used, some parent ages will be upsampled relative to their frequency. Again, this can cause gaps in the range of suitable parent ages given the age of the child.
-#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame. The number of columns in the parent data frame must be one larger than the number of columns in the children data frame, as the parents data frame is the only one that contains the household ID variable.
+#' It is possible that some children may not be matched, or will be matched incorrectly. While the code attempts to prevent this, incorrect matching may occur. First, twins may be allocated to a household not selected for the presence of twins. Second, there may be no suitable parent ages for the remaining child ages. If either of these problems occur, a message will be printed to the console, identifying the problem household. Testing has shown that use of a different set.seed() may remove the problem. Alternatively, a manual fix can be performed after using this function.
+#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame. The number of columns in the parent data frame must be one larger than the number of columns in the children data frame, as the parents data frame is the only one that contains the household ID variable. In the case where a problem in matching has occurred, a combined parent/children data frame is still output.
 #'
 #' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
 #'
@@ -399,6 +399,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ParentsRenamed <- ParentsRenamed %>%
       filter(!(ParentID %in%  ParentOfTwins$ParentID))
 
+    ParentsSubset <- ParentsRenamed %>%
+      select(ParentAge, ParentID, HouseholdID)
+
     ParentCounts <- ParentsRenamed %>%
       group_by(ParentAge) %>%
       summarise(AgeCount=n()) %>%
@@ -538,8 +541,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
          if (Counter == 1000 ) {
 
-           cat("Assignment of extra child is in continuous loop so loop broken at 1000 iterations", "\n", "The problem row is", x, "\n")
-           cat("Please check row for parent age at birth of child, and/or for the presence of a twin", "\n")
+           cat("The assignment of children to households without twins has encountered a problem", "\n")
+           cat("Assignment of extra child is in continuous loop so the loop was broken at 1000 iterations", "\n", "The problem household is", BaseDataFrame$HouseholdID[x], "\n")
+           cat("Please check the household for an out-of-range parent age at birth of child, and/or for the presence of a twin", "\n")
            break
          }
 
@@ -566,7 +570,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ungroup() %>%
     select(all_of((NumberColsChildren+2) : (NumberColsChildren+3)))
 
-  ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
+  # ParentOfNotTwins <- left_join(ParentOfNotTwins, ParentsRenamed, by = c("ParentID", "HouseholdID"))
 
   # extract remaining children and rbind these to each other
   # will eventually be rbind'ed to the twins and parent data
@@ -611,7 +615,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #
   # # # # # return(OutputDataframe)
 
-  return(ParentOfNotTwins)
+  return(ChildrenFinal)
 
   # closes function
    }
