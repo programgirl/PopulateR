@@ -69,22 +69,15 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   ChildrenRenamed <- Children %>%
     rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
 
-  # Child ID variable
-  ChildIDColName <- sym(names(Children[ChildIDVariable]))
-
-  # Child age variable
-  ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
 
   ParentsRenamed <- Parents %>%
     rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
            HouseholdID = !! HouseholdIDVariable)
 
-  # Parent age variable
-  ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
-  minChildAge <- min(Children[ChildAgeVariable])
+  minChildAge <- min(ChildrenRenamed$ChildAge)
 
-  maxChildAge <- max(Children[ChildAgeVariable])
+  maxChildAge <- max(ChildrenRenamed$ChildAge)
 
   #####################################
   #####################################
@@ -103,14 +96,14 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
 
   if (!(is.null(MinParentAge))) {
 
-    Parents <- Parents %>%
-      filter(({{ParentAgeColName}} - minChildAge) >= MinParentAge)
+    ParentsRenamed <- ParentsRenamed %>%
+      filter((ParentAge - minChildAge) >= MinParentAge)
   }
 
   if (!(is.null(MaxParentAge))) {
 
-    Parents <- Parents %>%
-      filter(({{ParentAgeColName}} - maxChildAge) <= MaxParentAge)
+    ParentsRenamed <- ParentsRenamed %>%
+      filter((ParentAge - maxChildAge) <= MaxParentAge)
   }
 
   # get counts for each single age from the parent data frame
@@ -122,7 +115,10 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     group_by(ParentAge) %>%
     summarise(AgeCount=n()) %>%
     tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
-                    fill = list(AgeCount = 0))
+         fill = list(AgeCount = 0))
+
+
+
 
   minIndexAge <- as.integer(ParentCounts[1,1])
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
@@ -195,7 +191,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   ChildrenRenamed <- ChildrenRenamed %>%
     filter(is.na(ParentAge))
 
-  for (j in 1:nrow(Children)) {
+  for (j in 1:nrow(ChildrenRenamed)) {
 
     AgeDifference <- round(rlnorm(1, meanlog=meanlogUsed, sdlog=sdlogUsed))
     ChildrenRenamed$AgeDifference[j] <- AgeDifference
@@ -308,7 +304,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     ungroup()
 
   # reduce pool of potentially partnered donors to only those matched to recipients
-  ParentsMatched <- left_join(MatchedParentAges,
+  ParentsMatched <- left_join(ParentsToMatch, MatchedParentAges,
                               by = c("ParentAge", "ParentAgeCount"))
 
 
@@ -318,7 +314,6 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   ChildrenMatchPrep <- ChildrenRenamed %>%
     group_by(ParentAge) %>%
     mutate(ParentAgeCount = row_number()) %>%
-    dplyr::select(-c(2)) %>%
     ungroup()
 
   # join the matched parents to the children
@@ -326,22 +321,27 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   # children data frame is the one to which observations must be joined
   # also add the household numbers at this point
 
-   FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount")) %>%
-    dplyr::select(-ParentAge, -ParentAgeCount) %>%
-    ungroup()
+   FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount"))
 
-  # separate child and parent in data frames , use .x and .y to do the split
+  # separate child and parent in data frames
+   ChildrenFinal <- FullMatchedDataFrame %>%
+     ungroup() %>%
+     select(all_of(1:NumberColsChildren), ncol(.)) %>%
+     rename_all(list(~gsub("\\.x$", "", .)))
 
-  # FirstDataframeSplit <- FullMatchedDataFrame %>%
-  #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-  #   rename_all(list(~gsub("\\.x$", "", .)))
-  #
-  # SecondDataframeSplit <- FullMatchedDataFrame %>%
-  #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-  #   rename_all(list(~gsub("\\.y$", "", .)))
-  #
-  #
-  # OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+   ParentsFinal <- FullMatchedDataFrame %>%
+     ungroup() %>%
+     select(all_of((NumberColsChildren+1): ncol(.))) %>%
+     rename_all(list(~gsub("\\.y$", "", .)))
+
+   ChildrenFinal <- ChildrenFinal %>%
+     rename(PersonID = ChildID, Age = ChildAge)
+
+   ParentsFinal <- ParentsFinal %>%
+     rename(PersonID = ParentID, Age = ParentAge) %>%
+     select(-c(AgeDifference, ParentAgeCount))
+
+   OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
   #####################################
   #####################################
@@ -350,7 +350,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   #####################################
 
 
-  return(FullMatchedDataFrame)
+  return(OutputDataframe)
 
 
 }
