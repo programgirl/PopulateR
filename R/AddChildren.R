@@ -19,11 +19,8 @@
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param HouseholdIDVariable The column name for the household variable in the Parents data frame. This must be supplied, and in quotes.
+#' @param HouseholdIDVariable The column number for the household variable in the Parents data frame. This must be provided.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-
-
-
 
 AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
                               MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDVariable= NULL, UserSeed=NULL)
