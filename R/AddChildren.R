@@ -71,22 +71,15 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   ChildrenRenamed <- Children %>%
     rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
 
-  # Child ID variable
-  ChildIDColName <- sym(names(Children[ChildIDVariable]))
-
-  # Child age variable
-  ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
-
   ParentsRenamed <- Parents %>%
     rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
            HouseholdID = !! HouseholdIDVariable)
 
   # Parent age variable
-  ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
-  minChildAge <- min(Children[ChildAgeVariable])
+  minChildAge <- min(ChildrenRenamed$ChildAge)
 
-  maxChildAge <- max(Children[ChildAgeVariable])
+  maxChildAge <- max(ChildrenRenamed$ChildAge)
 
   #####################################
   #####################################
