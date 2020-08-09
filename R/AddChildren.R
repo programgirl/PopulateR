@@ -359,7 +359,6 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # will eventually be rbind'ed to the twins and parent data
 
     for (z in 3:NumChildren) {
-      # for (z in 3:3) {
 
       OtherKids <- TwinsMatched %>%
         ungroup() %>%
@@ -621,6 +620,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
   return(OutputDataframe)
+
 
 
   # closes function
