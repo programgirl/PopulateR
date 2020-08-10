@@ -53,8 +53,12 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     summarise(AgeCount = n())
 
   SchoolsCountTest <- SchoolsRenamed %>%
+    group_by(SchoolAge) %>%
+    summarise(SchoolAgeCount = sum(ChildCounts))
+
+  CountComparison <- full_join(ChildrenCountTest, SchoolsCountTest, by = c("ChildAge" = "SchoolAge"))
 
 
-  return(ChildrenCountTest)
+  return(CountComparison)
 
 }
