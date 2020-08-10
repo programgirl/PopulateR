@@ -12,19 +12,49 @@
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
 #' @param ChildSexVariable The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
+#' @param HouseholdIDVariable The column number for the household variable in the Children data frame. This must be provided.
 #' @param Schools A data frame containing the school observations.
-#' @param SchoolIDVariable The column number for the ID variable in the Schools data frame.
-#' @param SchoolAgeVariable The column number for the Age variable in the Schools data frame.
-#' @param SchoolChildCountVariable The number of children for that age, within the school.
-#' @param SchoolCoEdStatus An indicator variable used to determine whether the school is single-sex or co-educational. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
-#' @param HouseholdIDVariable The column number for the household variable in the Parents data frame. This must be provided.
+#' @param SchoolNameVariable The column number for the variable in the Schools data frame that contains the name of each school.
+#' @param SchoolAgeVariable The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
+#' @param SchoolRollCount The number of places available for children at that school age, within the school.
+#' @param SchoolCoEdStatus An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
+
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
-AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVariable, Schools, SchoolIDVariable, SchoolAgeVariable, SchoolChildCountVariable,
-                       SchoolCoEdStatus, HouseholdIDVariable= NULL, UserSeed=NULL)
-
-{
+AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVariable, HouseholdIDVariable = NULL,
+                       Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, UserSeed=NULL)
+  {
 
   options(dplyr.summarise.inform=F)
+
+
+  #####################################################################
+  #####################################################################
+  # Set up variables for use
+  #####################################################################
+  #####################################################################
+
+  ChildrenRenamed <- Children %>%
+    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable, ChildSex = !! ChildSexVariable,
+           HouseholdID = !! HouseholdIDVariable)
+
+
+  SchoolsRenamed <- Schools %>%
+    rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
+           ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus)
+
+
+  if(nrow(Children) > sum(SchoolsRenamed$ChildCounts)) {
+    stop("The total number of children exceeds the total number of the student roll count.")
+  }
+
+  ChildrenCountTest <- ChildrenRenamed %>%
+    group_by(ChildAge) %>%
+    summarise(AgeCount = n())
+
+  SchoolsCountTest <- SchoolsRenamed %>%
+
+
+  return(ChildrenCountTest)
 
 }
