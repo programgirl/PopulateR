@@ -52,14 +52,30 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     summarise(SchoolAgeCount = sum(ChildCounts))
 
   CountComparison <- full_join(ChildrenCountTest, SchoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
-   mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
-         SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0)) %>%
+     mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
+         SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0),
+         CountDiff = SchoolAgeCount - AgeCount) %>%
     filter(SchoolAgeCount != 0, AgeCount != 0)
+
+  TooManyKids <- CountComparison %>%
+    filter(CountDiff < 0) %>%
+    select(ChildAge)
+
+  # TooManyKids <- as_tibble(CountComparison$ChildAge) # testing if loop
+
+
+  if (!(nrow(TooManyKids)==0)) {
+
+    TooManyKids <- as.vector(TooManyKids)
+
+    stop(paste("The number of children at these ages exceeds the available school roll places: ", shQuote(TooManyKids), collapse=", "))
+
+  }
 
   cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
 
-  return(CountComparison)
+  return(TooManyKids)
 
 }
