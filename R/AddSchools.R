@@ -30,7 +30,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
   #####################################################################
   #####################################################################
-  # Set up variables for use
+  # Test for any problem ages, stop function if this situation exists
   #####################################################################
   #####################################################################
 
@@ -75,7 +75,21 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
+  # restrict child and school data frames to these minimum and maximum ages
+  # get age range
+  AgeRestriction <- CountComparison %>%
+    filter(CountDiff >= 0) %>%
+    select(ChildAge)
 
-  return(TooManyKids)
+  # apply to children
+
+  ChildrenRenamed <- left_join(AgeRestriction, ChildrenRenamed, by = "ChildAge")
+
+  SchoolsRenamed <- left_join(AgeRestriction, SchoolsRenamed, by = c("ChildAge" = "SchoolAge"))
+
+
+
+
+  return(SchoolsRenamed)
 
 }
