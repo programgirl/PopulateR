@@ -43,11 +43,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
            ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus)
 
-
-  if(nrow(Children) > sum(SchoolsRenamed$ChildCounts)) {
-    stop("The total number of children exceeds the total number of the student roll count.")
-  }
-
   ChildrenCountTest <- ChildrenRenamed %>%
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
@@ -56,7 +51,13 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     group_by(SchoolAge) %>%
     summarise(SchoolAgeCount = sum(ChildCounts))
 
-  CountComparison <- full_join(ChildrenCountTest, SchoolsCountTest, by = c("ChildAge" = "SchoolAge"))
+  CountComparison <- full_join(ChildrenCountTest, SchoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
+   mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
+         SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0)) %>%
+    filter(SchoolAgeCount != 0, AgeCount != 0)
+
+  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
+
 
 
   return(CountComparison)
