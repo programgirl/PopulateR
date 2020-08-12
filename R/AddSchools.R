@@ -72,6 +72,8 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
   }
 
+  MaxSchoolAge <- as.numeric(CountComparison[nrow(CountComparison), 1])
+
   cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
@@ -88,8 +90,36 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   SchoolsRenamed <- left_join(AgeRestriction, SchoolsRenamed, by = c("ChildAge" = "SchoolAge"))
 
 
+  #####################################################################
+  #####################################################################
+  # Create a separate vector of age counts for each school
+  #####################################################################
+  #####################################################################
+
+  # convert the schools file from long to wide ahead of vector construction
+
+  # SchoolsLong <- reshape(SchoolsRenamed, idvar = c("SchoolID", "SchoolType"), v.names = ("ChildAge"), ids = ("ChildCounts"), direction = "wide")
+
+  SchoolsWide <- SchoolsRenamed %>%
+    select(SchoolID, ChildAge, ChildCounts, SchoolType) %>%
+   tidyr::pivot_wider(names_from = ChildAge, values_from = ChildCounts)
+
+  # SchoolsRenamed <- Schools %>%
+  #   rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
+  #          ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus)
+
+  # for (s in 1:nrow(SchoolsRenamed)) {
+  #
+  #   for(v in 1:blah blah)
+  #
+  #   cat(SchoolsRenamed$SchoolID, "\n")
+  #
+  # }
 
 
-  return(SchoolsRenamed)
+
+
+
+  return(SchoolsWide)
 
 }
