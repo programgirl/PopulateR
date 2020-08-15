@@ -104,22 +104,46 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     select(SchoolID, ChildAge, ChildCounts, SchoolType) %>%
    tidyr::pivot_wider(names_from = ChildAge, values_from = ChildCounts)
 
-  # SchoolsRenamed <- Schools %>%
-  #   rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
-  #          ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus)
+  # get the number of households
+  NumberHouseholds <- as.numeric(ChildrenRenamed %>%
+    dplyr::summarise(Count = n_distinct(HouseholdID)) %>%
+    pull(Count))
 
-  # for (s in 1:nrow(SchoolsRenamed)) {
-  #
-  #   for(v in 1:blah blah)
-  #
-  #   cat(SchoolsRenamed$SchoolID, "\n")
-  #
-  # }
+  # get list of household IDs
+  HouseholdIDList <- as.data.frame(ChildrenRenamed %>%
+    distinct(HouseholdID))
 
 
+  # split out the households
+  for (x in 1:NumberHouseholds) {
+
+    WorkingChildren <- ChildrenRenamed %>%
+      filter(HouseholdID == HouseholdIDList[x,1]) %>%
+      mutate(AgeToMatch = )
+
+    if (nrow(WorkingChildren > 1)) {
+
+    # put child ages into a vector
+    for (y in 1:nrow(WorkingChildren)) {
+
+      SchoolMatches <- WorkingChildren %>%
+        left_join(SchoolsRenamed, by = ChildAge)
+
+      #closes for y statement
+    }
+
+      # if nrow(Children) else statements below
+    } else { # this is for households with only one child
+
+      #closes else statement
+    }
+
+
+    # closes for x statement
+  }
 
 
 
-  return(SchoolsWide)
+  return(WorkingChildren)
 
 }
