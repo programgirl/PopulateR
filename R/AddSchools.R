@@ -130,7 +130,16 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
     for (y in 1:nrow(WorkingChildren)) {
 
-      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge")
+      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+        filter(ChildCounts != 0)
+
+      # identify schools that exist multiple times from the join
+      # this is the selection for the most number of children in the household to one school
+
+      NumberTimesSchoolSelected <- SchoolMatches %>%
+        select(SchoolID, ChildAge) %>%
+        group_by(SchoolID) %>%
+        summarise(TimesSelected = n())
 
       #closes for y statement
     }
@@ -139,7 +148,14 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   # for (x in 1:NumberHouseholds) {
   #
   #   WorkingChildren <- ChildrenRenamed %>%
-  #     filter(HouseholdID == HouseholdIDList[x,1]) %>%
+  #     filter(HouseholdID == HouseholdIDList[x,1])
+
+  # get child age counts for each age in DF, if twins then count == 2 rather than 1
+
+  # WorkingChildrenAgeCounts <- WorkingChildren %>%
+  #   select(ChildAge) %>%
+  #   group_by(ChildAge) %>%
+  #   summarise(AgeCount = n())
   #
   #   if (nrow(WorkingChildren > 1)) {
   #
@@ -163,6 +179,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-  return(WorkingChildrenAgeCounts)
+  return(NumberTimesSchoolSelected)
 
 }
