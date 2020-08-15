@@ -114,36 +114,55 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     distinct(HouseholdID))
 
 
-  # split out the households
-  for (x in 1:NumberHouseholds) {
 
-    WorkingChildren <- ChildrenRenamed %>%
-      filter(HouseholdID == HouseholdIDList[x,1]) %>%
-      mutate(AgeToMatch = )
+  # testing on household 1914 as this contains primary and secondary school children.
 
-    if (nrow(WorkingChildren > 1)) {
+  WorkingChildren <- ChildrenRenamed %>%
+    filter(HouseholdID == HouseholdIDList[30,1])
 
-    # put child ages into a vector
+  # get child age counts for each age in DF, if twins then count == 2 rather than 1
+
+  WorkingChildrenAgeCounts <- WorkingChildren %>%
+    select(ChildAge) %>%
+    group_by(ChildAge) %>%
+    summarise(AgeCount = n())
+
+
     for (y in 1:nrow(WorkingChildren)) {
 
-      SchoolMatches <- WorkingChildren %>%
-        left_join(SchoolsRenamed, by = ChildAge)
+      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge")
 
       #closes for y statement
     }
 
-      # if nrow(Children) else statements below
-    } else { # this is for households with only one child
+  # # split out the households
+  # for (x in 1:NumberHouseholds) {
+  #
+  #   WorkingChildren <- ChildrenRenamed %>%
+  #     filter(HouseholdID == HouseholdIDList[x,1]) %>%
+  #
+  #   if (nrow(WorkingChildren > 1)) {
+  #
+  #   # match in relevant schools
+  #   for (y in 1:nrow(WorkingChildren)) {
+  #
+  #     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge")
+  #
+  #     #closes for y statement
+  #   }
+  #
+  #     # if nrow(Children) else statements below
+  #   } else { # this is for households with only one child
+  #
+  #     #closes else statement
+  #   }
+  #
+  #
+  #   # closes for x statement
+  # }
 
-      #closes else statement
-    }
 
 
-    # closes for x statement
-  }
-
-
-
-  return(WorkingChildren)
+  return(WorkingChildrenAgeCounts)
 
 }
