@@ -126,7 +126,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     summarise(AgeCount = n())
 
   #  for (y in 1:nrow(WorkingChildren)) {
-  if (exists("WorkingChildren")) {
+  while (!(is.na(WorkingChildren$ChildID[1])) == TRUE) {
 
       SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
         filter(ChildCounts != 0)
@@ -140,7 +140,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         summarise(TimesSelected = n())
 
       # create subset of schools limited to those of the maximum number, and loop
-     for (z in 1:nrow(NumberTimesSchoolSelected)) {
+#     for (z in 1:nrow(NumberTimesSchoolSelected)) {
 
       # extract out first set of schools to match
         MaxSchoolDuplicates <- max(NumberTimesSchoolSelected$TimesSelected)
@@ -158,6 +158,16 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
         FinalSchoolMerged <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
           select(ChildID, SchoolID)
+
+        for (a in 1:nrow(FinalSchoolMerged)) {
+
+          SchoolsRenamed$ChildCounts <- ifelse(SchoolsRenamed$SchoolID == FinalSchoolMerged$SchoolID[a] &&
+                                                 SchoolsRenamed$ChildAge == FinalSchoolMerged$ChildAge[a],
+                                               SchoolsRenamed$ChildCounts - 1, SchoolsRenamed$ChildCounts)
+        }
+
+
+
 
         # create child data frame with school joined
 
@@ -178,7 +188,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
           filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
         # closes for z statement
-       }
+       # }
 
       #closes for y statement
   }
@@ -218,6 +228,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-     return(FinalMatchedChildren)
+     return(SchoolsRenamed)
 
     }
