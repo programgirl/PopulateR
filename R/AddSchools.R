@@ -113,8 +113,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   HouseholdIDList <- as.data.frame(ChildrenRenamed %>%
     distinct(HouseholdID))
 
-
-
   # testing on household 1914 as this contains primary and secondary school children.
 
   WorkingChildren <- ChildrenRenamed %>%
@@ -126,7 +124,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     select(ChildAge) %>%
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
-
 
     for (y in 1:nrow(WorkingChildren)) {
 
@@ -158,6 +155,27 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
           slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
           select(SchoolID)
 
+        FinalSchoolMerged <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
+          select(ChildID, SchoolID)
+
+        # create child data frame with school joined
+
+        CurrentMatchedChildren <- left_join(FinalSchoolMerged, WorkingChildren, by = "ChildID")
+
+        if (exists("FinalMatchedChildren")) {
+
+          FinalMatchedChildren <- bind_rows(FinalMatchedChildren, CurrentMatchedChildren)
+
+        } else {
+
+          FinalMatchedChildren <- CurrentMatchedChildren
+
+          # closes if statement
+        }
+
+
+
+        # closes for z statement
         }
 
       #closes for y statement
@@ -198,6 +216,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-  return(FinalSchoolSelected)
+  return(FinalMatchedChildren)
 
 }
