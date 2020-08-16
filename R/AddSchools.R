@@ -141,6 +141,25 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         group_by(SchoolID) %>%
         summarise(TimesSelected = n())
 
+      # create subset of schools limited to those of the maximum number, and loop
+      for (z in 1:nrow(NumberTimesSchoolSelected)) {
+
+        # extract out first set of schools to match
+        MaxSchoolDuplicates <- max(NumberTimesSchoolSelected$TimesSelected)
+
+        FirstSetSchools <- NumberTimesSchoolSelected %>%
+          filter(TimesSelected == MaxSchoolDuplicates) %>%
+          select(-TimesSelected)
+
+        # create constrained data frame based off SchoolMatches
+        RestrictedSchoolMatches <- left_join(FirstSetSchools, SchoolMatches, by = "SchoolID")
+
+        FinalSchoolSelected <- RestrictedSchoolMatches %>%
+          slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
+          select(SchoolID)
+
+        }
+
       #closes for y statement
     }
 
@@ -179,6 +198,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-  return(NumberTimesSchoolSelected)
+  return(FinalSchoolSelected)
 
 }
