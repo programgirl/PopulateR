@@ -125,7 +125,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
 
-    for (y in 1:nrow(WorkingChildren)) {
+  #  for (y in 1:nrow(WorkingChildren)) {
 
       SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
         filter(ChildCounts != 0)
@@ -139,7 +139,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         summarise(TimesSelected = n())
 
       # create subset of schools limited to those of the maximum number, and loop
-      for (z in 1:nrow(NumberTimesSchoolSelected)) {
+     # for (z in 1:nrow(NumberTimesSchoolSelected)) {
 
         # extract out first set of schools to match
         MaxSchoolDuplicates <- max(NumberTimesSchoolSelected$TimesSelected)
@@ -173,13 +173,16 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
           # closes if statement
         }
 
+        WorkingChildren <- WorkingChildren %>%
+          filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+
 
 
         # closes for z statement
-        }
+      #  }
 
       #closes for y statement
-    }
+ #   }
 
   # # split out the households
   # for (x in 1:NumberHouseholds) {
@@ -216,6 +219,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-  return(FinalMatchedChildren)
+  return(WorkingChildren)
 
 }
