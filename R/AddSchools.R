@@ -126,6 +126,7 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     summarise(AgeCount = n())
 
   #  for (y in 1:nrow(WorkingChildren)) {
+  if (exists("WorkingChildren")) {
 
       SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
         filter(ChildCounts != 0)
@@ -139,9 +140,9 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         summarise(TimesSelected = n())
 
       # create subset of schools limited to those of the maximum number, and loop
-     # for (z in 1:nrow(NumberTimesSchoolSelected)) {
+     for (z in 1:nrow(NumberTimesSchoolSelected)) {
 
-        # extract out first set of schools to match
+      # extract out first set of schools to match
         MaxSchoolDuplicates <- max(NumberTimesSchoolSelected$TimesSelected)
 
         FirstSetSchools <- NumberTimesSchoolSelected %>%
@@ -176,49 +177,47 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         WorkingChildren <- WorkingChildren %>%
           filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
-
-
         # closes for z statement
-      #  }
+       }
 
       #closes for y statement
- #   }
+  }
 
   # # split out the households
-  # for (x in 1:NumberHouseholds) {
-  #
-  #   WorkingChildren <- ChildrenRenamed %>%
-  #     filter(HouseholdID == HouseholdIDList[x,1])
+     # for (x in 1:NumberHouseholds) {
+       #
+       #   WorkingChildren <- ChildrenRenamed %>%
+       #     filter(HouseholdID == HouseholdIDList[x,1])
 
-  # get child age counts for each age in DF, if twins then count == 2 rather than 1
+       # get child age counts for each age in DF, if twins then count == 2 rather than 1
 
-  # WorkingChildrenAgeCounts <- WorkingChildren %>%
-  #   select(ChildAge) %>%
-  #   group_by(ChildAge) %>%
-  #   summarise(AgeCount = n())
-  #
-  #   if (nrow(WorkingChildren > 1)) {
-  #
-  #   # match in relevant schools
-  #   for (y in 1:nrow(WorkingChildren)) {
-  #
-  #     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge")
-  #
-  #     #closes for y statement
-  #   }
-  #
-  #     # if nrow(Children) else statements below
-  #   } else { # this is for households with only one child
-  #
-  #     #closes else statement
-  #   }
-  #
-  #
-  #   # closes for x statement
-  # }
+       # WorkingChildrenAgeCounts <- WorkingChildren %>%
+       #   select(ChildAge) %>%
+       #   group_by(ChildAge) %>%
+       #   summarise(AgeCount = n())
+       #
+       #   if (nrow(WorkingChildren > 1)) {
+       #
+       #   # match in relevant schools
+       #   for (y in 1:nrow(WorkingChildren)) {
+       #
+       #     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge")
+       #
+       #     #closes for y statement
+       #   }
+       #
+       #     # if nrow(Children) else statements below
+       #   } else { # this is for households with only one child
+       #
+       #     #closes else statement
+       #   }
+       #
+       #
+       #   # closes for x statement
+       # }
 
 
 
-  return(WorkingChildren)
+     return(FinalMatchedChildren)
 
-}
+    }
