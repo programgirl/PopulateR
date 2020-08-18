@@ -41,7 +41,8 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
   SchoolsRenamed <- Schools %>%
     rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
-           ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus)
+           ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus) %>%
+    mutate_if(is.factor, as.character)
 
   ChildrenCountTest <- ChildrenRenamed %>%
     group_by(ChildAge) %>%
@@ -88,6 +89,36 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   ChildrenRenamed <- left_join(AgeRestriction, ChildrenRenamed, by = "ChildAge")
 
   SchoolsRenamed <- left_join(AgeRestriction, SchoolsRenamed, by = c("ChildAge" = "SchoolAge"))
+
+  #####################################################################
+  #####################################################################
+  # Single-value injection function for changing school counts
+  # see https://stackoverflow.com/a/7972038/1030648
+  #####################################################################
+  #####################################################################
+  replace.df <- function(x,y,by,cols=NULL) {
+    nx <- nrow(x)
+    ny <- nrow(y)
+
+    bx <- x[,by,drop=FALSE]
+    by <- y[,by,drop=FALSE]
+    bz <- do.call("paste", c(rbind(bx, by), sep = "\r"))
+
+    bx <- bz[seq_len(nx)]
+    by <- bz[nx + seq_len(ny)]
+
+    idx <- match(by,bx)
+    idy <- match(bx,by)
+    idy <- idy[!is.na(idy)]
+
+    if(is.null(cols)) {
+      cols <- intersect(names(x),names(y))
+      cols <- cols[!cols %in% by]
+    }
+
+    x[idx,cols] <- y[idy,cols]
+    x
+  }
 
 
   #####################################################################
@@ -159,11 +190,30 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         FinalSchoolMerged <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
           select(ChildID, SchoolID)
 
+        # test code below with pretend multiple values for same age at same school
+        # SchoolCountDecreases <- data.frame("SchoolID" = c("Bluestone School", "Bluestone School", "Bluestone School", "New School 1", "New School 2"),
+        #                                    "ChildAge" = c(5, 5, 8, 5, 6),
+        #                                    "ChildCounts" = c(74, 74, 64, 93, 85), stringsAsFactors = FALSE)
+        #
+        # SchoolCountsUsed <- SchoolCountDecreases %>%
+        #   group_by(SchoolID, ChildAge) %>%
+        #   mutate(FinalCounts = ChildCounts - n()) %>%
+        #   ungroup() %>%
+        #   distinct() %>%
+        #   select(-ChildCounts) %>%
+        #   rename(ChildCounts = FinalCounts)
+
+        SchoolCountDecreases <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
+          group_by(SchoolID, ChildAge) %>%
+            mutate(FinalCounts = ChildCounts - n()) %>%
+            ungroup() %>%
+            distinct() %>%
+            select(-ChildCounts) %>%
+            rename(ChildCounts = FinalCounts)
+
         for (a in 1:nrow(FinalSchoolMerged)) {
 
-          SchoolsRenamed$ChildCounts <- ifelse(SchoolsRenamed$SchoolID == FinalSchoolMerged$SchoolID[a] &&
-                                                 SchoolsRenamed$ChildAge == FinalSchoolMerged$ChildAge[a],
-                                               SchoolsRenamed$ChildCounts - 1, SchoolsRenamed$ChildCounts)
+           replace.df(SchoolsRenamed, SchoolCountDecreases, by = c("SchoolID", "ChildAge"), cols = "ChildCounts")
         }
 
 
