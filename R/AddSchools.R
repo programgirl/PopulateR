@@ -90,35 +90,38 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
   SchoolsRenamed <- left_join(AgeRestriction, SchoolsRenamed, by = c("ChildAge" = "SchoolAge"))
 
-  #####################################################################
-  #####################################################################
-  # Single-value injection function for changing school counts
-  # see https://stackoverflow.com/a/7972038/1030648
-  #####################################################################
-  #####################################################################
-  replace.df <- function(x,y,by,cols=NULL) {
-    nx <- nrow(x)
-    ny <- nrow(y)
 
-    bx <- x[,by,drop=FALSE]
-    by <- y[,by,drop=FALSE]
-    bz <- do.call("paste", c(rbind(bx, by), sep = "\r"))
+  SchoolsCountColIndex <- as.numeric(which(colnames(SchoolsRenamed) == "ChildCounts"))
 
-    bx <- bz[seq_len(nx)]
-    by <- bz[nx + seq_len(ny)]
-
-    idx <- match(by,bx)
-    idy <- match(bx,by)
-    idy <- idy[!is.na(idy)]
-
-    if(is.null(cols)) {
-      cols <- intersect(names(x),names(y))
-      cols <- cols[!cols %in% by]
-    }
-
-    x[idx,cols] <- y[idy,cols]
-    x
-  }
+  # #####################################################################
+  # #####################################################################
+  # # Single-value injection function for changing school counts
+  # # see https://stackoverflow.com/a/7972038/1030648
+  # #####################################################################
+  # #####################################################################
+  # replace.df <- function(x,y,by,cols=NULL) {
+  #   nx <- nrow(x)
+  #   ny <- nrow(y)
+  #
+  #   bx <- x[,by,drop=FALSE]
+  #   by <- y[,by,drop=FALSE]
+  #   bz <- do.call("paste", c(rbind(bx, by), sep = "\r"))
+  #
+  #   bx <- bz[seq_len(nx)]
+  #   by <- bz[nx + seq_len(ny)]
+  #
+  #   idx <- match(by,bx)
+  #   idy <- match(bx,by)
+  #   idy <- idy[!is.na(idy)]
+  #
+  #   if(is.null(cols)) {
+  #     cols <- intersect(names(x),names(y))
+  #     cols <- cols[!cols %in% by]
+  #   }
+  #
+  #   x[idx,cols] <- y[idy,cols]
+  #   x
+  # }
 
 
   #####################################################################
@@ -130,10 +133,10 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   # convert the schools file from long to wide ahead of vector construction
 
   # SchoolsLong <- reshape(SchoolsRenamed, idvar = c("SchoolID", "SchoolType"), v.names = ("ChildAge"), ids = ("ChildCounts"), direction = "wide")
-
-  SchoolsWide <- SchoolsRenamed %>%
-    select(SchoolID, ChildAge, ChildCounts, SchoolType) %>%
-   tidyr::pivot_wider(names_from = ChildAge, values_from = ChildCounts)
+#
+#   SchoolsWide <- SchoolsRenamed %>%
+#     select(SchoolID, ChildAge, ChildCounts, SchoolType) %>%
+#    tidyr::pivot_wider(names_from = ChildAge, values_from = ChildCounts)
 
   # get the number of households
   NumberHouseholds <- as.numeric(ChildrenRenamed %>%
@@ -211,9 +214,15 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
             select(-ChildCounts) %>%
             rename(ChildCounts = FinalCounts)
 
-        for (a in 1:nrow(FinalSchoolMerged)) {
+        cat("Before the loop the column value is", SchoolsChildAgeColIndex, "\n")
 
-           replace.df(SchoolsRenamed, SchoolCountDecreases, by = c("SchoolID", "ChildAge"), cols = "ChildCounts")
+        for (a in 1:nrow(SchoolCountDecreases)) {
+
+          SchoolRowIndex <- as.numeric(which((SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID[a]) &
+                                    (SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge[a])))
+
+            SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts[a]
+
         }
 
 
