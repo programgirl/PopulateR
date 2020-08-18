@@ -118,9 +118,14 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
     distinct(HouseholdID))
 
   # testing on household 1914 as this contains primary and secondary school children.
+  # WorkingChildren <- ChildrenRenamed %>%
+  #   filter(HouseholdID == HouseholdIDList[30,1])
 
-  WorkingChildren <- ChildrenRenamed %>%
-    filter(HouseholdID == HouseholdIDList[30,1])
+  # single household test worked, expand to entire child data frame
+  for (x in 1:NumberHouseholds) {
+
+    WorkingChildren <- ChildrenRenamed %>%
+      filter(HouseholdID == HouseholdIDList[x,1])
 
 
   # TODO use this to identify twins. Not yet implemented. Needs to work with while loop below.
@@ -131,7 +136,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 #     group_by(ChildAge) %>%
 #     summarise(AgeCount = n())
 
-  #  for (y in 1:nrow(WorkingChildren)) {
   while (!(is.na(WorkingChildren$ChildID[1])) == TRUE) {
 
     # cat(WorkingChildren$ChildID[1], "\n")
@@ -148,9 +152,8 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         summarise(TimesSelected = n())
 
       # create subset of schools limited to those of the maximum number, and loop
-#     for (z in 1:nrow(NumberTimesSchoolSelected)) {
-
       # extract out first set of schools to match
+
         MaxSchoolDuplicates <- max(NumberTimesSchoolSelected$TimesSelected)
 
         FirstSetSchools <- NumberTimesSchoolSelected %>%
@@ -204,10 +207,10 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         WorkingChildren <- WorkingChildren %>%
           filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
-        # closes for z statement
-       # }
+      #closes while loop
+  }
 
-      #closes for y statement
+    # closes x loop
   }
 
   # # split out the households
@@ -245,6 +248,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
 
 
 
-     return(SchoolsRenamed)
+     return(FinalMatchedChildren)
 
     }
