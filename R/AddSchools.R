@@ -152,15 +152,19 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
   WorkingChildren <- ChildrenRenamed %>%
     filter(HouseholdID == HouseholdIDList[30,1])
 
-  # get child age counts for each age in DF, if twins then count == 2 rather than 1
 
-  WorkingChildrenAgeCounts <- WorkingChildren %>%
-    select(ChildAge) %>%
-    group_by(ChildAge) %>%
-    summarise(AgeCount = n())
+  # TODO use this to identify twins. Not yet implemented. Needs to work with while loop below.
+  # get child age counts for each age in DF, if twins then count == 2 rather than 1
+#
+#   WorkingChildrenAgeCounts <- WorkingChildren %>%
+#     select(ChildAge) %>%
+#     group_by(ChildAge) %>%
+#     summarise(AgeCount = n())
 
   #  for (y in 1:nrow(WorkingChildren)) {
   while (!(is.na(WorkingChildren$ChildID[1])) == TRUE) {
+
+    # cat(WorkingChildren$ChildID[1], "\n")
 
       SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
         filter(ChildCounts != 0)
@@ -193,19 +197,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
         FinalSchoolMerged <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
           select(ChildID, SchoolID)
 
-        # test code below with pretend multiple values for same age at same school
-        # SchoolCountDecreases <- data.frame("SchoolID" = c("Bluestone School", "Bluestone School", "Bluestone School", "New School 1", "New School 2"),
-        #                                    "ChildAge" = c(5, 5, 8, 5, 6),
-        #                                    "ChildCounts" = c(74, 74, 64, 93, 85), stringsAsFactors = FALSE)
-        #
-        # SchoolCountsUsed <- SchoolCountDecreases %>%
-        #   group_by(SchoolID, ChildAge) %>%
-        #   mutate(FinalCounts = ChildCounts - n()) %>%
-        #   ungroup() %>%
-        #   distinct() %>%
-        #   select(-ChildCounts) %>%
-        #   rename(ChildCounts = FinalCounts)
-
         SchoolCountDecreases <- left_join(FinalSchoolSelected, SchoolMatches, by = "SchoolID") %>%
           group_by(SchoolID, ChildAge) %>%
             mutate(FinalCounts = ChildCounts - n()) %>%
@@ -214,7 +205,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
             select(-ChildCounts) %>%
             rename(ChildCounts = FinalCounts)
 
-        cat("Before the loop the column value is", SchoolsChildAgeColIndex, "\n")
 
         for (a in 1:nrow(SchoolCountDecreases)) {
 
@@ -224,8 +214,6 @@ AddSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVari
             SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts[a]
 
         }
-
-
 
 
         # create child data frame with school joined
