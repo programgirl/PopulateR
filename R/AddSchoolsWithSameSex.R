@@ -145,24 +145,49 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
       SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
         filter(ChildCounts != 0)
 
+      SameSexSchoolMatches <- SchoolMatches %>%
+        filter(SchoolMatches$SchoolType !="C")
+
       SelectedSchool <- SchoolMatches %>%
-        slice_max(ChildCounts, n = 1, with_ties = FALSE)
+        slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
+        select(SchoolID)
+
+      # reduce children to those who are in that school
+      SchoolMatches <- left_join(SelectedSchool, SchoolMatches, by = "SchoolID")
+
+      # random number generator to see if there is a same sex assignment
+      # seed must come before first sample is cut
+      if (!is.null(UserSeed)) {
+        set.seed(UserSeed)
+      }
+
+      ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
 
       # test to see if school appropriate, checking sex alignment
+      for(s in 1:nrow(SchoolMatches)) {
 
-      while (SelectedSchool$SchoolType !="C" & SelectedSchool$SchoolType != SelectedSchool$ChildSex) {
+        cat("Child is", SchoolMatches$ChildID[s], "and child sex is", SchoolMatches$ChildSex[s],
+            "and school is ", SchoolMatches$SchoolID, "and school status is", SchoolMatches$SchoolType, "\n")
 
-        cat("Household is", HouseholdIDList[x,1], "Child is ", SchoolMatches$ChildID[x],
-          "School is ", SelectedSchool$SchoolType, "and Child sex is ", SelectedSchool$ChildSex, "\n")
 
-        SchoolMatches <- SchoolMatches %>%
-          filter(SchoolID != SelectedSchool$SchoolID)
-
-        SelectedSchool <- SchoolMatches %>%
-          slice_max(ChildCounts, n = 1, with_ties = FALSE)
-
-         #close while
       }
+
+
+#
+#       while (SelectedSchool$SchoolType !="C" & SelectedSchool$SchoolType != SelectedSchool$ChildSex) {
+#
+#         cat("Household is", HouseholdIDList[x,1], "Child is ", SchoolMatches$ChildID[x],
+#           "School is ", SelectedSchool$SchoolType, "and Child sex is ", SelectedSchool$ChildSex, "\n")
+#
+#         SchoolMatches <- SchoolMatches %>%
+#           filter(SchoolID != SelectedSchool$SchoolID)
+#
+#         SelectedSchool <- SchoolMatches %>%
+#           slice_max(ChildCounts, n = 1, with_ties = FALSE)
+#
+#
+#          #close while
+#       }
 
 
       # identify schools that exist multiple times from the join
@@ -270,6 +295,6 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
 
 
-  return(SelectedSchool)
+  return(ProbSameSexAlignment)
 
 }
