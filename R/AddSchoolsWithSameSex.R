@@ -148,8 +148,21 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
       SelectedSchool <- SchoolMatches %>%
         slice_max(ChildCounts, n = 1, with_ties = FALSE)
 
+      # test to see if school appropriate, checking sex alignment
 
-      #if ()
+      while (SelectedSchool$SchoolType !="C" & SelectedSchool$SchoolType != SelectedSchool$ChildSex) {
+
+        cat("Household is", HouseholdIDList[x,1], "Child is ", SchoolMatches$ChildID[x],
+          "School is ", SelectedSchool$SchoolType, "and Child sex is ", SelectedSchool$ChildSex, "\n")
+
+        SchoolMatches <- SchoolMatches %>%
+          filter(SchoolID != SelectedSchool$SchoolID)
+
+        SelectedSchool <- SchoolMatches %>%
+          slice_max(ChildCounts, n = 1, with_ties = FALSE)
+
+         #close while
+      }
 
 
       # identify schools that exist multiple times from the join
