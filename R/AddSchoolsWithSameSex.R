@@ -117,17 +117,80 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
   HouseholdIDList <- as.data.frame(ChildrenRenamed %>%
                                      distinct(HouseholdID))
 
-  # testing on household 1914 as this contains primary and secondary school children.
-  # WorkingChildren <- ChildrenRenamed %>%
-  #   filter(HouseholdID == HouseholdIDList[30,1])
+  # testing on household 1114 as this a mix of ages and sexes.
+  # TODO need a for loop in here for 1:nrow(HouseholdIDList)
+  WorkingChildren <- ChildrenRenamed %>%
+    filter(HouseholdID == HouseholdIDList[3,1])
+
+
+  # random number generator to see if there is a same sex assignment
+  # seed must come before first sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  # set the probabilities for same-sex matching to schools
+  if(HouseholdProp == 0 | HouseholdProp == 1){
+    ProbSameSexAlignment <- HouseholdProp
+
+  } else {
+    ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
+
+    # choses if
+  }
+
+  for (x in 1:nrow(WorkingChildren)) {
+
+    TempChild <- WorkingChildren %>%
+      filter(row_number() == x)
+
+    AvailableSchools <- SchoolsRenamed %>%
+      filter(ChildAge == WorkingChildren$ChildAge[x],
+             SchoolType %in% c(WorkingChildren$ChildSex[x], "C"),
+             ChildCounts > 1)
+
+    SchoolTypeList <- AvailableSchools %>%
+     pull(SchoolType)
+
+    TempSelectedSchool <- AvailableSchools %>%
+      slice_max(ChildCounts, n = 1, with_ties = FALSE)
+
+
+    SchoolMerged <- left_join(TempSelectedSchool, TempChild, by = "ChildAge")
+
+    # if(WorkingChildren$ChildSex[x] %in% c(SchoolTypeList)) {
+    #   WorkingChildren$SameSexInd[x] <- "Y"
+    #
+    # } else {
+    #   WorkingChildren$SameSexInd[x] <- "N"
+    #
+    #   # closes if-else
+    # }
+
+    # if (exists(TempHouseholdSchoolsMatched)) {
+    #
+    #   TempHouseholdSchoolsMatched <- rbind(TempHouseholdSchoolsMatched, SchoolMerged)
+    # } else {
+    #
+    #   TempHouseholdSchoolsMatched <- SchoolMerged
+    #
+    #   # closes if-else
+    # }
+
+
+    # closes for x
+  }
+
 
   # single household test worked, expand to entire child data frame
-  for (x in 1:NumberHouseholds) {
 
-    WorkingChildren <- ChildrenRenamed %>%
-      filter(HouseholdID == HouseholdIDList[x,1])
+  # TODO uncomment the three lines below
+  # for (x in 1:NumberHouseholds) {
 
-    cat("HouseholdID is", HouseholdIDList[x,1], "\n")
+    # WorkingChildren <- ChildrenRenamed %>%
+    #   filter(HouseholdID == HouseholdIDList[x,1])
+
+    # cat("HouseholdID is", HouseholdIDList[x,1], "\n")
 
 
     # TODO use this to identify twins. Not yet implemented. Needs to work with while loop below.
@@ -139,39 +202,61 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     #     summarise(AgeCount = n())
 
     # while (!(is.na(WorkingChildren$ChildID[1])) == TRUE) {
+    # #
+    # #   # cat(WorkingChildren$ChildID[1], "\n")
     #
-    #   # cat(WorkingChildren$ChildID[1], "\n")
+    #   SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+    #     filter(ChildCounts != 0)
+    #
+    #   SameSexSchoolMatches <- SchoolMatches %>%
+    #     filter(SchoolMatches$SchoolType !="C")
+    #
+    #   SelectedSchool <- SchoolMatches %>%
+    #     slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
+    #     select(SchoolID)
+    #
+    #   # reduce children to those who are in that school
+    #   CurrentSchoolMatches <- left_join(SelectedSchool, SchoolMatches, by = "SchoolID")
+    #
+    #
+    #   # test to see if school appropriate, checking sex alignment
+    #   for(s in 1:nrow(CurrentSchoolMatches)) {
+    #
+    #     cat("Row is ", s, "Child is", CurrentSchoolMatches$ChildID[s], "and child sex is", CurrentSchoolMatches$ChildSex[s],
+    #         "and school is ", CurrentSchoolMatches$SchoolID[s], "and school status is", CurrentSchoolMatches$SchoolType[s], "\n")
+    #
+    #     # creates loop to enter if there is a same-sex school assigned
+    #     if (CurrentSchoolMatches$ChildSex[s] == CurrentSchoolMatches$SchoolType[s]) {
+    #       cat("Same sex school matched ", "\n")
+    #
+    #       SameSexPresent <- "Yes"
+    #
+    #
+    #       # closes if
+    #     }
+    #
+    #
+    #     # closes for s
+    #   }
 
-      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
-        filter(ChildCounts != 0)
 
-      SameSexSchoolMatches <- SchoolMatches %>%
-        filter(SchoolMatches$SchoolType !="C")
-
-      SelectedSchool <- SchoolMatches %>%
-        slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
-        select(SchoolID)
-
-      # reduce children to those who are in that school
-      SchoolMatches <- left_join(SelectedSchool, SchoolMatches, by = "SchoolID")
-
-      # random number generator to see if there is a same sex assignment
-      # seed must come before first sample is cut
-      if (!is.null(UserSeed)) {
-        set.seed(UserSeed)
-      }
-
-      ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
-
-      # test to see if school appropriate, checking sex alignment
-      for(s in 1:nrow(SchoolMatches)) {
-
-        cat("Child is", SchoolMatches$ChildID[s], "and child sex is", SchoolMatches$ChildSex[s],
-            "and school is ", SchoolMatches$SchoolID, "and school status is", SchoolMatches$SchoolType, "\n")
-
-
-      }
-
+      # create child data frame with school joined
+#
+#       CurrentMatchedChildren <- left_join(SchoolMatches, WorkingChildren, by = "ChildID")
+#
+#       if (exists("FinalMatchedChildren")) {
+#
+#         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, CurrentMatchedChildren)
+#
+#       } else {
+#
+#         FinalMatchedChildren <- CurrentMatchedChildren
+#
+#         # closes if statement
+#       }
+#
+#       WorkingChildren <- WorkingChildren %>%
+#         filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
 #
 #       while (SelectedSchool$SchoolType !="C" & SelectedSchool$SchoolType != SelectedSchool$ChildSex) {
@@ -258,7 +343,7 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     # }
 
     # closes x loop
-  }
+  # }
 
   # # split out the households
   # for (x in 1:NumberHouseholds) {
@@ -295,6 +380,6 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
 
 
-  return(ProbSameSexAlignment)
+  return(SchoolMerged)
 
 }
