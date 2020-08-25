@@ -18,11 +18,11 @@
 #' @param SchoolAgeVariable The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
 #' @param SchoolRollCount The number of places available for children at that school age, within the school.
 #' @param SchoolCoEdStatus An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
-#' @param HouseholdProp If one child is assigned to a same-sex school, the proportion of other children in the household who are also assigned to a same-sex school. If an eqivalent same-sex school is not available, the other child/ren will be assigned to a co-ed school. The default value is 1, so that all children in the same household should be assigned to same-sex schools.
+#' @param ChildProb If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an eqivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all children in the same household will be assigned to same-sex schools, or to co-educational schools. A probability of 0 means that, if one child is assigned to a same-sex school, all other children will be assigned to co-educational schools. The assignment is affected by the number of boy-only and girl-only schools, and the age distribution covered by these schools..
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVariable, HouseholdIDVariable = NULL,
-                       Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, HouseholdProp = 1, UserSeed=NULL)
+                       Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, ChildProb = 1, UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
@@ -129,20 +129,21 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     set.seed(UserSeed)
   }
 
-  # set the probabilities for same-sex matching to schools
-  if(HouseholdProp == 0 | HouseholdProp == 1){
-    ProbSameSexAlignment <- HouseholdProp
-
-  } else {
-    ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
-
-    # choses if
-  }
+  # # set the probabilities for same-sex matching to schools
+  # if(HouseholdProp == 0 | HouseholdProp == 1){
+  #   ProbSameSexAlignment <- HouseholdProp
+  #
+  # } else {
+  #   ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
+  #
+  #   # choses if
+  # }
 
   for (x in 1:nrow(WorkingChildren)) {
 
     TempChild <- WorkingChildren %>%
-      filter(row_number() == x)
+      filter(row_number() == x) %>%
+      mutate(ProbToSameSex = runif(1, min = 0, max =1))
 
     AvailableSchools <- SchoolsRenamed %>%
       filter(ChildAge == WorkingChildren$ChildAge[x],
@@ -158,27 +159,43 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
     SchoolMerged <- left_join(TempSelectedSchool, TempChild, by = "ChildAge")
 
-    # if(WorkingChildren$ChildSex[x] %in% c(SchoolTypeList)) {
-    #   WorkingChildren$SameSexInd[x] <- "Y"
-    #
-    # } else {
-    #   WorkingChildren$SameSexInd[x] <- "N"
-    #
-    #   # closes if-else
-    # }
+    if(TempChild$ChildSex %in% c(SchoolTypeList)) {
+      SchoolMerged$SameSexInd <- "Y"
 
-    # if (exists(TempHouseholdSchoolsMatched)) {
-    #
-    #   TempHouseholdSchoolsMatched <- rbind(TempHouseholdSchoolsMatched, SchoolMerged)
-    # } else {
-    #
-    #   TempHouseholdSchoolsMatched <- SchoolMerged
-    #
-    #   # closes if-else
-    # }
+    } else {
+      SchoolMerged$SameSexInd <- "N"
+
+      # closes if-else
+    }
+
+    if (exists("TempHouseholdSchoolsMatched")) {
+
+      TempHouseholdSchoolsMatched <- rbind(TempHouseholdSchoolsMatched, SchoolMerged)
+    } else {
+
+      TempHouseholdSchoolsMatched <- SchoolMerged
+
+      # closes if-else
+    }
 
 
     # closes for x
+  }
+
+  SameSexSchoolPresent <- TempHouseholdSchoolsMatched %>%
+    filter(SameSexInd == "Y") %>%
+    slice(1) %>%
+    pull(SameSexInd)
+
+  if ("Y" %in% c(SameSexSchoolPresent) == TRUE) {
+
+    cat("Same sex household is TRUE", "\n")
+
+  # TempHouseholdSchoolsMatched <- TempHouseholdSchoolsMatched %>%
+  #   arrange(Child)
+  #
+  # close if
+
   }
 
 
@@ -380,6 +397,6 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
 
 
-  return(SchoolMerged)
+  return(SameSexSchoolPresent)
 
 }
