@@ -42,7 +42,8 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
   SchoolsRenamed <- Schools %>%
     rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
            ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus) %>%
-    mutate_if(is.factor, as.character)
+    mutate_if(is.factor, as.character) %>%
+    select(SchoolID, SchoolAge, ChildCounts, SchoolType)
 
   ChildrenCountTest <- ChildrenRenamed %>%
     group_by(ChildAge) %>%
@@ -159,21 +160,29 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
     SchoolMerged <- left_join(TempSelectedSchool, TempChild, by = "ChildAge")
 
+    # indicator to see if any same-sex schools available to the child, even if not currently matched
     if(TempChild$ChildSex %in% c(SchoolTypeList)) {
       SchoolMerged$SameSexInd <- "Y"
-
-    } else {
+      } else {
       SchoolMerged$SameSexInd <- "N"
-
       # closes if-else
     }
 
-    if (exists("TempHouseholdSchoolsMatched")) {
+    # indictor for whether same-sex school is already matched
+    if(SchoolMerged$ChildSex == SchoolMerged$SchoolType) {
+      SchoolMerged$SexMatch <- "Y"
+    } else {
+      SchoolMerged$SexMatch <- "N"
+      # closes if-else
+    }
 
-      TempHouseholdSchoolsMatched <- rbind(TempHouseholdSchoolsMatched, SchoolMerged)
+
+    if (exists("TempSchoolsMatched")) {
+
+      TempSchoolsMatched <- rbind(TempSchoolsMatched, SchoolMerged)
     } else {
 
-      TempHouseholdSchoolsMatched <- SchoolMerged
+      TempSchoolsMatched <- SchoolMerged
 
       # closes if-else
     }
@@ -182,7 +191,7 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     # closes for x
   }
 
-  SameSexSchoolPresent <- TempHouseholdSchoolsMatched %>%
+  SameSexSchoolPresent <- TempSchoolsMatched %>%
     filter(SameSexInd == "Y") %>%
     slice(1) %>%
     pull(SameSexInd)
@@ -190,6 +199,47 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
   if ("Y" %in% c(SameSexSchoolPresent) == TRUE) {
 
     cat("Same sex household is TRUE", "\n")
+
+    # sort households by same-sex then roll count
+    # same-sex with largest roll count will be automatically assigned
+    FirstChildMatched <- TempSchoolsMatched %>%
+      arrange(desc(SexMatch), ChildCounts) %>%
+      slice_head(n=1)
+
+    RemainingChildren <- TempSchoolsMatched %>%
+      filter(!(ChildID %in% c(FirstChildMatched$ChildID)))
+
+    # assign children to same-sex schools based on
+    # 1. whether additional children are in the family
+    # 2. if additional children, then prob of being assigned to same sex school
+    # NOTE: sorted by whether same-sex school exists as
+    # high prob intersected with no same-sex school available decreases achieved prob
+    # to a level much lower than that expected on the basis of entering a prob > 0
+    if (!(is.na(RemainingChildren$ChildID[1])) == TRUE) {
+
+      ReorderedProbs <- RemainingChildren %>%
+        select(ProbToSameSex) %>%
+        arrange(desc(ProbToSameSex))
+
+      RemainingChildren <- RemainingChildren %>%
+        arrange(desc(SameSexInd), ChildCounts) %>%
+        select(-ProbToSameSex)
+
+      RemainingChildren <- bind_cols(RemainingChildren, ReorderedProbs)
+
+
+      # close if
+    }
+
+    # for (a in 1:nrow(SchoolCountDecreases)) {
+    #
+    #   SchoolRowIndex <- as.numeric(which((SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID[a]) &
+    #                                        (SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge[a])))
+    #
+    #   SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts[a]
+    #
+    # }
+
 
   # TempHouseholdSchoolsMatched <- TempHouseholdSchoolsMatched %>%
   #   arrange(Child)
@@ -397,6 +447,6 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
 
 
-  return(SameSexSchoolPresent)
+  return(RemainingChildren)
 
 }
