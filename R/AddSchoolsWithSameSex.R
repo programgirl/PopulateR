@@ -137,8 +137,8 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
   for (x in 1:nrow(WorkingChildren)) {
 
     TempChild <- WorkingChildren %>%
-      filter(row_number() == x) %>%
-      mutate(ProbToSameSex = runif(1, min = 0, max = 1))
+      filter(row_number() == x) #%>%
+    #   mutate(ProbToSameSex = runif(1, min = 0, max = 1))
 
     AvailableSchools <- SchoolsRenamed %>%
       filter(ChildAge == WorkingChildren$ChildAge[x],
@@ -185,23 +185,39 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     # closes for x
   }
 
-  SameSexSchoolPresent <- TempSchoolsMatched %>%
-    filter(SameSexInd == "Y") %>%
-    slice(1) %>%
-    pull(SameSexInd)
+  # only need to do the following for households of more than one child
+  # no impossible age/sex matching has been done
+  # therefore single children are correctly matched at this point
 
-  if ("Y" %in% c(SameSexSchoolPresent) == TRUE) {
+  if (nrow(TempSchoolsMatched) > 1 ) {
 
-    cat("Same sex household is TRUE", "\n")
+    TempSchoolsMatched <- TempSchoolsMatched %>%
+     mutate(ProbToSameSex = runif(1, min = 0, max = 1))
 
+    SameSexSchoolPresent <- TempSchoolsMatched %>%
+      filter(SameSexInd == "Y") %>%
+      slice(1) %>%
+      pull(SameSexInd)
+
+  # if ("Y" %in% c(SameSexSchoolPresent) == TRUE) {
+  #
+  #   cat("Same sex school presence is TRUE for at least one child", "\n")
+#
     # sort households by same-sex then roll count
     # same-sex with largest roll count will be automatically assigned
-    FirstChildMatched <- TempSchoolsMatched %>%
-      arrange(desc(SexMatch), ChildCounts) %>%
-      slice_head(n=1)
 
-    RemainingChildren <- TempSchoolsMatched %>%
-      filter(!(ChildID %in% c(FirstChildMatched$ChildID)))
+    # don't take out first child matched - no point as testing will be the same as for the
+    # subsequent children
+    # FirstChildMatched <- TempSchoolsMatched %>%
+    #   arrange(desc(SexMatch), ChildCounts) %>%
+    #   slice_head(n=1)
+    #
+    #
+    #
+    # if (FirstChildMatched$ProbToSameSex <= ChildProb & FirstChildMatched$SameSexInd == "Y" & FirstChildMatched$SexMatch == "N")
+    #
+    # RemainingChildren <- TempSchoolsMatched %>%
+    #   filter(!(ChildID %in% c(FirstChildMatched$ChildID)))
 
     # assign children to same-sex schools based on
     # 1. whether additional children are in the family
@@ -209,43 +225,44 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     # NOTE: sorted by whether same-sex school exists as
     # high prob intersected with no same-sex school available decreases achieved prob
     # to a level much lower than that expected on the basis of entering a prob > 0
-    if (!(is.na(RemainingChildren$ChildID[1])) == TRUE) {
 
-      ReorderedProbs <- RemainingChildren %>%
-        select(ProbToSameSex) %>%
-        arrange(desc(ProbToSameSex))
+    # if (!(is.na(TempSchoolsMatched$ChildID[1])) == TRUE) {
+    #
+    #   ReorderedProbs <- TempSchoolsMatched %>%
+    #     select(ProbToSameSex) %>%
+    #     arrange(desc(ProbToSameSex))
 
-      RemainingChildren <- RemainingChildren %>%
-        arrange(desc(SameSexInd), ChildCounts) %>%
-        select(-ProbToSameSex)
+      # TempSchoolsMatched <- TempSchoolsMatched %>%
+      #   arrange(desc(SameSexInd), ChildCounts) %>%
+      #   select(-ProbToSameSex)
 
-      RemainingChildren <- bind_cols(RemainingChildren, ReorderedProbs)
+      # TempSchoolsMatched <- bind_cols(TempSchoolsMatched, ReorderedProbs)
 
       # code below still only relevant for households with more than one child
       # so for resides inside the if.
 
-      for (y in 1:nrow(RemainingChildren)) {
+      # for (y in 1:nrow(TempSchoolsMatched)) {
+      #
+      #   CurrentChild <- TempSchoolsMatched %>%
+      #     filter(row_number() == y)
+      #
+      #   cat("Current child is ", CurrentChild$ChildID, "\n")
+      #
+      #   # same/sex co-ed schools attachment fixed
+      #
+      #   if(CurrentChild$ProbToSameSex <= ChildProb & CurrentChild$SameSexInd == "Y" & CurrentChild$SexMatch == "N")
+      #
+      #     cat("Current child is ", CurrentChild$ChildID,"Needs to be in same-sex school as one is available", "\n")
+      #
+      #
+      #
+      #
+      #   # closes for y loop
+      # }
 
-        CurrentChild <- RemainingChildren %>%
-          filter(row_number() == y)
 
-        cat("Current child is ", CurrentChild$ChildID, "\n")
-
-        # same/sex co-ed schools attachment fixed
-
-        if(CurrentChild$ProbToSameSex <= ChildProb & CurrentChild$SameSexInd == "Y" & CurrentChild$SexMatch == "N")
-
-          cat("Current child is ", CurrentChild$ChildID,"Needs to be in same-sex school as one is available", "\n")
-
-
-
-
-        # closes for y loop
-      }
-
-
-      # close if test for more than one child
-    }
+      # close if test for looping through multiple-child households
+    # }
 
     # for (a in 1:nrow(SchoolCountDecreases)) {
     #
@@ -260,8 +277,10 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
   # TempHouseholdSchoolsMatched <- TempHouseholdSchoolsMatched %>%
   #   arrange(Child)
   #
-  # close if
+  # close if test for whether same-sex schools exist for the children in multiple-child households
+  # }
 
+  # closes if test for whether the household is multiple-child
   }
 
 
@@ -463,6 +482,6 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
 
 
-  return(RemainingChildren)
+  return(TempSchoolsMatched)
 
 }
