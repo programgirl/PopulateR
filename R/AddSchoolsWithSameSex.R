@@ -227,8 +227,23 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
 
       RemainingChildren <- bind_cols(RemainingChildren, ReorderedProbs)
 
+      # code below still only relevant for households with more than one child
+      # so for resides inside the if.
 
-      # close if
+      for (y in 1:nrow(RemainingChildren)) {
+
+        CurrentChild <- RemainingChildren %>%
+          filter(row_number() == y)
+
+        cat("Current child is ", CurrentChild$ChildID, "\n")
+
+
+
+        # closes for y loop
+      }
+
+
+      # close if test for more than one child
     }
 
     # for (a in 1:nrow(SchoolCountDecreases)) {
