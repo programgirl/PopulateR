@@ -130,21 +130,15 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
     set.seed(UserSeed)
   }
 
-  # # set the probabilities for same-sex matching to schools
-  # if(HouseholdProp == 0 | HouseholdProp == 1){
-  #   ProbSameSexAlignment <- HouseholdProp
-  #
-  # } else {
-  #   ProbSameSexAlignment <- runif(1, min = 0, max = HouseholdProp)
-  #
-  #   # choses if
-  # }
+  # set the probabilities for same-sex matching to schools
+  # this creates the probability against which the rolled probability will be tested
+  # hence the need for the range to be 0 through 1.
 
   for (x in 1:nrow(WorkingChildren)) {
 
     TempChild <- WorkingChildren %>%
       filter(row_number() == x) %>%
-      mutate(ProbToSameSex = runif(1, min = 0, max =1))
+      mutate(ProbToSameSex = runif(1, min = 0, max = 1))
 
     AvailableSchools <- SchoolsRenamed %>%
       filter(ChildAge == WorkingChildren$ChildAge[x],
@@ -236,6 +230,13 @@ AddSchoolsInclSameSex <- function(Children, ChildIDVariable, ChildAgeVariable, C
           filter(row_number() == y)
 
         cat("Current child is ", CurrentChild$ChildID, "\n")
+
+        # same/sex co-ed schools attachment fixed
+
+        if(CurrentChild$ProbToSameSex <= ChildProb & CurrentChild$SameSexInd == "Y" & CurrentChild$SexMatch == "N")
+
+          cat("Current child is ", CurrentChild$ChildID,"Needs to be in same-sex school as one is available", "\n")
+
 
 
 
