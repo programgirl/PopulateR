@@ -147,8 +147,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     Child <- WorkingChildren
 
     AvailableSchools <- SchoolsRenamed %>%
-      filter(ChildAge == WorkingChildren$ChildAge[x],
-             SchoolType %in% c(WorkingChildren$ChildSex[x], "C"),
+      filter(ChildAge == Child$ChildAge,
+             SchoolType %in% c(Child$ChildSex, "C"),
              ChildCounts > 1)
 
      SelectedSchool <- AvailableSchools %>%
@@ -170,17 +170,17 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
        SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
 
-     # create child data frame with school joined
-
-     CurrentMatchedChildren <- left_join(SchoolMerged, WorkingChildren, by = "ChildID")
+     # # create child data frame with school joined
+     #
+     # CurrentMatchedChildren <- left_join(SchoolMerged, WorkingChildren, by = "ChildID")
 
      if (exists("FinalMatchedChildren")) {
 
-       FinalMatchedChildren <- bind_rows(FinalMatchedChildren, CurrentMatchedChildren)
+       FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
      } else {
 
-       FinalMatchedChildren <- CurrentMatchedChildren
+       FinalMatchedChildren <- SchoolMerged
 
        # closes if statement for existance of FinalMatchedChildren
      }
@@ -202,6 +202,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(FinalMatchedChildren)
+  return(SchoolsRenamed)
 
 }
