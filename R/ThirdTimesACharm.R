@@ -137,16 +137,61 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     WorkingChildren <- ChildrenRenamed %>%
     filter(HouseholdID %in% HouseholdIDList[x,1])
 
-  cat("ChildID is ", WorkingChildren$ChildID, "and the nrow of WorkingChildren is ", nrow(WorkingChildren) , "\n")
+  # cat("ChildID is ", WorkingChildren$ChildID, "and the nrow of WorkingChildren is ", nrow(WorkingChildren) , "\n")
 
 
   if (nrow(WorkingChildren) == 1) {
 
     cat("The household with only 1 child is", WorkingChildren$HouseholdID, "\n")
 
+    Child <- WorkingChildren
+
+    AvailableSchools <- SchoolsRenamed %>%
+      filter(ChildAge == WorkingChildren$ChildAge[x],
+             SchoolType %in% c(WorkingChildren$ChildSex[x], "C"),
+             ChildCounts > 1)
+
+     SelectedSchool <- AvailableSchools %>%
+      slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
+       select(SchoolID, ChildAge, ChildCounts)
+
+     SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
+
+     SchoolCountDecreases <- SchoolMerged %>%
+       mutate(FinalCounts = ChildCounts - n()) %>%
+       ungroup() %>%
+       distinct() %>%
+       select(-ChildCounts) %>%
+       rename(ChildCounts = FinalCounts)
+
+       SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                            SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+       SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+
+     # create child data frame with school joined
+
+     CurrentMatchedChildren <- left_join(SchoolMerged, WorkingChildren, by = "ChildID")
+
+     if (exists("FinalMatchedChildren")) {
+
+       FinalMatchedChildren <- bind_rows(FinalMatchedChildren, CurrentMatchedChildren)
+
+     } else {
+
+       FinalMatchedChildren <- CurrentMatchedChildren
+
+       # closes if statement for existance of FinalMatchedChildren
+     }
+
+     WorkingChildren <- WorkingChildren %>%
+       filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+
+
   } else {
 
-    cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
+    # cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
 
 
     # closes else when there are >1 child per family
@@ -157,6 +202,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(WorkingChildren)
+  return(FinalMatchedChildren)
 
 }
