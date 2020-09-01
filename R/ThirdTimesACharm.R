@@ -152,6 +152,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
              ChildCounts > 1)
 
      SelectedSchool <- AvailableSchools %>%
+    #   slice_sample(weight_by = ChildCounts, n = 1) %>%
       slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
        select(SchoolID, ChildAge, ChildCounts)
 
@@ -202,6 +203,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(SchoolsRenamed)
+  return(FinalMatchedChildren)
 
 }
