@@ -142,8 +142,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
   if (nrow(WorkingChildren) == 1) {
 
-    cat("The household with only 1 child is", WorkingChildren$HouseholdID, "\n")
-
     Child <- WorkingChildren
 
     AvailableSchools <- SchoolsRenamed %>%
@@ -152,8 +150,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
              ChildCounts > 1)
 
      SelectedSchool <- AvailableSchools %>%
-    #   slice_sample(weight_by = ChildCounts, n = 1) %>%
-      slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
+       slice_sample(weight_by = ChildCounts, n = 1) %>%
+       # slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
        select(SchoolID, ChildAge, ChildCounts)
 
      SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
@@ -170,29 +168,25 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
        SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
+       # add matched children to the output dataframe
+         if (exists("FinalMatchedChildren")) {
 
-     # # create child data frame with school joined
-     #
-     # CurrentMatchedChildren <- left_join(SchoolMerged, WorkingChildren, by = "ChildID")
+         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
-     if (exists("FinalMatchedChildren")) {
-
-       FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-
-     } else {
-
-       FinalMatchedChildren <- SchoolMerged
+         } else {
+           FinalMatchedChildren <- SchoolMerged
 
        # closes if statement for existance of FinalMatchedChildren
-     }
+         }
 
-     WorkingChildren <- WorkingChildren %>%
-       filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+       # remove matched children from the working dataframe (i.e. from those still to be matched)
+       WorkingChildren <- WorkingChildren %>%
+         filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
 
   } else {
 
-    # cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
+    cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
 
 
     # closes else when there are >1 child per family
