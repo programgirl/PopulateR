@@ -186,8 +186,20 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
   } else {
 
-    cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
+ #   cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
 
+    # TODO look at whether twin probabilties need to be addressed
+    # current assumption is that twins are assigned to the same school with P == 1
+
+    for (y in 1:nrow(WorkingChildren)) {
+
+    Child <- WorkingChildren %>%
+      filter(row_number() == y)
+
+    cat( "ChildID is ", Child$ChildID, "Household ID is ", Child$HouseholdID, "\n")
+
+    # ends y loop through the multi-child working children subset
+    }
 
     # closes else when there are >1 child per family
   }
@@ -197,6 +209,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(FinalMatchedChildren)
+  return(Child)
 
 }
