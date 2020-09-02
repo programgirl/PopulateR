@@ -252,6 +252,14 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       if (mean(NextChild$ChildAge) %in% c(TwinsAge)) {
         cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
+
+        NextChildType <- NextChild %>%
+          group_by(ChildType) %>%
+          pull(ChildType)
+
+          cat("Next Child ID is ", NextChild$ChildID, "and Child type is ", NextChildType, "\n")
+
+
    #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
       #
       #   # assign same school if possible
