@@ -97,6 +97,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   ChildrenRenamed <- as.data.frame(ChildrenRenamed)
   SchoolsRenamed <- as.data.frame(SchoolsRenamed)
 
+
   #####################################################################
   #####################################################################
   # Create a separate vector of age counts for each school
@@ -324,6 +325,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(TwinsInfo)
+  return()
 
 }
