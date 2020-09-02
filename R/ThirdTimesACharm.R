@@ -35,7 +35,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   #####################################################################
 
   ChildrenRenamed <- Children %>%
-    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable, ChildSex = !! ChildSexVariable,
+    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable, ChildType = !! ChildSexVariable,
            HouseholdID = !! HouseholdIDVariable)
 
 
@@ -137,7 +137,11 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     WorkingChildren <- ChildrenRenamed %>%
     filter(HouseholdID %in% HouseholdIDList[x,1])
 
-  # cat("ChildID is ", WorkingChildren$ChildID, "and the nrow of WorkingChildren is ", nrow(WorkingChildren) , "\n")
+    #####################################################################
+    #####################################################################
+    # match single child households
+    #####################################################################
+    #####################################################################
 
 
   if (nrow(WorkingChildren) == 1) {
@@ -146,12 +150,11 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     AvailableSchools <- SchoolsRenamed %>%
       filter(ChildAge == Child$ChildAge,
-             SchoolType %in% c(Child$ChildSex, "C"),
-             ChildCounts > 1)
+             SchoolType %in% c(Child$ChildType, "C"),
+             ChildCounts > 0)
 
      SelectedSchool <- AvailableSchools %>%
        slice_sample(weight_by = ChildCounts, n = 1) %>%
-       # slice_max(ChildCounts, n = 1, with_ties = FALSE) %>%
        select(SchoolID, ChildAge, ChildCounts)
 
      SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
@@ -174,6 +177,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
          FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
          } else {
+
+
            FinalMatchedChildren <- SchoolMerged
 
        # closes if statement for existance of FinalMatchedChildren
@@ -186,20 +191,54 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
   } else {
 
+    #####################################################################
+    #####################################################################
+    # matching multiple-child households
+    #####################################################################
+    #####################################################################
+
  #   cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
 
     # TODO look at whether twin probabilties need to be addressed
     # current assumption is that twins are assigned to the same school with P == 1
 
-    for (y in 1:nrow(WorkingChildren)) {
+    # randomise order of children within the household
+    # this removes any systematic bias in child ordering
 
-    Child <- WorkingChildren %>%
-      filter(row_number() == y)
+    WorkingChildren <- WorkingChildren %>%
+      slice(sample(1:n()))
 
-    cat( "ChildID is ", Child$ChildID, "Household ID is ", Child$HouseholdID, "\n")
+    # get school list match for all children in the household
+    SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+      filter(ChildCounts > 0)
 
-    # ends y loop through the multi-child working children subset
+    # note at this point, match on sex hasn't been made
+    # start the matching
+
+    # do a random draw from the list of schools, based on classroom size
+    # must ensure that sex is matched
+    FirstChild <- SchoolMatches %>%
+      slice_sample(weight_by = ChildCounts, n = 1)
+
+    # make sure that the first child is in a correctly matched same-sex or co-ed school
+    while (!FirstChild$SchoolType %in% c(FirstChild$ChildType, "C")) {
+
+      FirstChild <- SchoolMatches %>%
+        slice_sample(weight_by = ChildCounts, n = 1)
     }
+
+    RemainingChildren <- WorkingChildren %>%
+      filter(ChildID == FirstChild$ChildID)
+
+    # for (y in 1:nrow(SchoolMatches)) {
+    #
+    # Child <- WorkingChildren %>%
+    #   filter(row_number() == y)
+    #
+    # cat( "ChildID is ", Child$ChildID, "Household ID is ", Child$HouseholdID, "\n")
+    #
+    # # ends y loop through the multi-child working children subset
+    # }
 
     # closes else when there are >1 child per family
   }
@@ -209,6 +248,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(Child)
+  return(RemainingChildren)
 
 }
