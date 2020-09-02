@@ -3,9 +3,8 @@
 #' Two data frames are required. The Children data frame contains the children data, to which the Schools data will be applied.
 #' No minimum or maximum child ages are required, as the function limits the ages within the age range across the schools Thus, pre-cleaning the Children data frame is not required.
 #' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. #' Co-educational, single-sex, or both types of schools can be included in the Schools data frame. If at least one same-sex school is included, similarly aged children of the opposite sex will be assigned to the equivalent school for the opposite sex, if present, otherwise they will be assigned to a co-educational school. Because of the semi-summary nature of the Schools data frame, this information must be repeated for each row.
-#' Children within a family will be assigned to the same school, where the age and/or sex structure requires this. It is possible that some children may be matched to a school with no available slots for that age, resulting in an overcount of children at that age in the school. While the code attempts to prevent this, this outcome may still occur. In this situation, a message will be printed to the console, identifying the problem household. Testing has shown that use of a different set.seed() may remove the problem. Alternatively, a manual fix can be performed after using this function.
-
-#' The function performs a reasonableness check for child ID, child age, and counts for the number of children of each age versus the number of available age slots across all schools..
+#' Children within a family will be assigned to the same school, where the age and/or sex structure requires this, using the probability supplied by the user. Twins are the exception to this rule. Twins and other multiples will be allocated to the same school with probability 1, except when the structure of single-sex schools prevents this. If there are single-sex schools for each twin/multiple, and one child is randomly allocated to a single-sex school, then all those children will be assigned to a single-sex school assuming that is available.The allocation is robust for the number of children in a household who are the same age.
+#' The function performs a reasonableness check for child ID, child age, and counts for the number of children of each age versus the number of available age slots across all schools.
 #'
 #' @export
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
@@ -212,6 +211,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       slice(sample(1:n()))
 
     # get school list match for all children in the household
+     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+      filter(ChildCounts > 0, SchoolType %in% c(ChildType, "C"))
 
     # get twin ages, will only be non-empty if twins present
     TwinsAge <- WorkingChildren %>%
@@ -222,8 +223,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     cat("Twin age/s is/are ", TwinsAge, "and Household ID is ", mean(WorkingChildren$HouseholdID), "\n")
 
-    SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
-      filter(ChildCounts > 0)
 
     # note at this point, match on sex hasn't been made
     # start the matching
