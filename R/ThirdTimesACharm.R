@@ -94,6 +94,9 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
   SchoolsCountColIndex <- as.numeric(which(colnames(SchoolsRenamed) == "ChildCounts"))
 
+  # get rid of the tibbles
+  ChildrenRenamed <- as.data.frame(ChildrenRenamed)
+  SchoolsRenamed <- as.data.frame(SchoolsRenamed)
 
   #####################################################################
   #####################################################################
@@ -209,8 +212,27 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       slice(sample(1:n()))
 
     # get school list match for all children in the household
+
+    # put in test for twins here
+    TwinsPresent <- WorkingChildren %>%
+      group_by(ChildAge) %>%
+      summarise(Count = n()) %>%
+      filter(Count >1)
+
+    if (!(is.na(TwinsPresent$ChildAge[1])) == TRUE) {
+
+      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+        filter(ChildCounts > 1)
+
+    # now need an if in here where child count at an age is 2, indicating twins
+
+      } else {
+
     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
       filter(ChildCounts > 0)
+
+    # closes if to set minimum child count differently if there are twins
+      }
 
     # note at this point, match on sex hasn't been made
     # start the matching
@@ -227,8 +249,44 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         slice_sample(weight_by = ChildCounts, n = 1)
     }
 
-    RemainingChildren <- WorkingChildren %>%
+    RemainingChildren <- SchoolMatches %>%
       filter(ChildID == FirstChild$ChildID)
+
+    HouseholdMatchedChildren <- FirstChild
+
+    for (y in 1:nrow(RemainingChildren)) {
+
+      NextChild <- RemainingChildren[y,]
+
+      # assign twins
+
+      if (NextChild$ChildAge == 2) {
+   #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
+      #
+      #   # assign same school if possible
+      #   # next to test if the already assigned school is same-sex and the other twin can go to that same-sex school
+      #   # first, get the school already used
+      #
+      #   TwinSchoolAlreadyMatched <- HouseholdMatchedChildren %>%
+      #     filter(ChildAge == NextChild$ChildAge) %>%
+      #     select(SchoolID, ChildCounts, SchoolType)
+      #
+      #
+      #   # assign same-sex twinScho
+      #   SchoolMatched <- NextChild %>%
+      #     filter(SchoolID )
+      #
+      #   SchoolToMatch <- NextChild %>%
+      #     filter(ChildAge == NextChild$ChildAge)
+      #
+      #   #closes if for twins test
+      }
+
+
+      #closes for y loop that cycles through the remaining multiple children
+    }
+
+    #
 
     # for (y in 1:nrow(SchoolMatches)) {
     #
@@ -248,6 +306,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(RemainingChildren)
+  return(NextChild)
 
 }
