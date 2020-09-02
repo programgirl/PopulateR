@@ -214,12 +214,19 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
       filter(ChildCounts > 0, SchoolType %in% c(ChildType, "C"))
 
-    # get twin ages, will only be non-empty if twins present
-    TwinsAge <- WorkingChildren %>%
-      group_by(ChildAge) %>%
+    # # get twin ages, will only be non-empty if twins present
+    # TwinsAge <- WorkingChildren %>%
+    #   group_by(ChildAge) %>%
+    #   summarise(Count = n()) %>%
+    #   filter(Count >1) %>%
+    #   pull(ChildAge)
+
+     # only need this info is more than one child is the same sex AND same age
+    TwinsInfo <- WorkingChildren %>%
+      group_by(ChildType, ChildAge) %>%
       summarise(Count = n()) %>%
-      filter(Count >1) %>%
-      pull(ChildAge)
+      filter(Count >1)
+
 
     cat("Twin age/s is/are ", TwinsAge, "and Household ID is ", mean(WorkingChildren$HouseholdID), "\n")
 
@@ -258,6 +265,18 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
           pull(ChildType)
 
           cat("Next Child ID is ", NextChild$ChildID, "and Child type is ", NextChildType, "\n")
+
+          # if a twin has already been allocated, this child needs to go to the same school
+          # if previous twin has been assigned to same-sex school and this child is the other sex
+          # then this twin needs to go to an equivalent same-sex school
+          # if no equivalent same-sex school then an equivalent co-ed school
+          # there may be more than one equivalent same-sex school
+          # otherwise random draw, EXCLUDING SAME SEX SCHOOLS
+
+          if (FirstChild$ChildAge == NextChild$ChildAge & FirstChild$ChildType == NextChildType) {
+
+
+          }
 
 
    #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
@@ -305,6 +324,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(SchoolMatches)
+  return(TwinsInfo)
 
 }
