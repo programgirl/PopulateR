@@ -213,26 +213,17 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     # get school list match for all children in the household
 
-    # put in test for twins here
-    TwinsPresent <- WorkingChildren %>%
+    # get twin ages, will only be non-empty if twins present
+    TwinsAge <- WorkingChildren %>%
       group_by(ChildAge) %>%
       summarise(Count = n()) %>%
-      filter(Count >1)
+      filter(Count >1) %>%
+      pull(ChildAge)
 
-    if (!(is.na(TwinsPresent$ChildAge[1])) == TRUE) {
-
-      SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
-        filter(ChildCounts > 1)
-
-    # now need an if in here where child count at an age is 2, indicating twins
-
-      } else {
+    cat("Twin age/s is/are ", TwinsAge, "and Household ID is ", mean(WorkingChildren$HouseholdID), "\n")
 
     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
       filter(ChildCounts > 0)
-
-    # closes if to set minimum child count differently if there are twins
-      }
 
     # note at this point, match on sex hasn't been made
     # start the matching
@@ -242,15 +233,15 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     FirstChild <- SchoolMatches %>%
       slice_sample(weight_by = ChildCounts, n = 1)
 
-    # make sure that the first child is in a correctly matched same-sex or co-ed school
-    while (!FirstChild$SchoolType %in% c(FirstChild$ChildType, "C")) {
-
-      FirstChild <- SchoolMatches %>%
-        slice_sample(weight_by = ChildCounts, n = 1)
-    }
+    # # make sure that the first child is in a correctly matched same-sex or co-ed school
+    # while (!FirstChild$SchoolType %in% c(FirstChild$ChildType, "C")) {
+    #
+    #   FirstChild <- SchoolMatches %>%
+    #     slice_sample(weight_by = ChildCounts, n = 1)
+    # }
 
     RemainingChildren <- SchoolMatches %>%
-      filter(ChildID == FirstChild$ChildID)
+      filter(!(ChildID == FirstChild$ChildID))
 
     HouseholdMatchedChildren <- FirstChild
 
@@ -258,9 +249,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       NextChild <- RemainingChildren[y,]
 
-      # assign twins
+      # check if twin
 
-      if (NextChild$ChildAge == 2) {
+      if (mean(NextChild$ChildAge) %in% c(TwinsAge)) {
+        cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
    #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
       #
       #   # assign same school if possible
@@ -306,6 +298,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-  return(NextChild)
+  return(SchoolMatches)
 
 }
