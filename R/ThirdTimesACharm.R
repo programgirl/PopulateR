@@ -21,7 +21,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVariable, HouseholdIDVariable = NULL,
-                                  Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, ChildProb = 1, UserSeed=NULL)
+                             Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, ChildProb = 1, UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
@@ -97,17 +97,22 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   ChildrenRenamed <- as.data.frame(ChildrenRenamed)
   SchoolsRenamed <- as.data.frame(SchoolsRenamed)
 
-  # get the number of households
+  # get the number of householdså
   NumberHouseholds <- as.numeric(ChildrenRenamed %>%
                                    dplyr::summarise(Count = n_distinct(HouseholdID)) %>%
                                    pull(Count))
+
+  #################
+  # TODO  create an indicator to show if the household contains twins
+  #################
 
   # get list of household IDs
   HouseholdIDList <- as.data.frame(ChildrenRenamed %>%
                                      distinct(HouseholdID))
 
-  # testing on household 1114 as this a mix of ages and sexes.
-  # TODO need a for loop in here for 1:nrow(HouseholdIDList)
+  #################
+  # TODO ensure that households containing twins are NOT in the bottom 10% of households
+  #################
 
   # random number generator to see if there is a same sex assignment
   # seed must come before first sample is cut
@@ -130,7 +135,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   for (x in 1:nrow(HouseholdIDList)) {
 
     WorkingChildren <- ChildrenRenamed %>%
-    filter(HouseholdID %in% HouseholdIDList[x,1])
+      filter(HouseholdID %in% HouseholdIDList[x,1])
 
     #####################################################################
     #####################################################################
@@ -139,214 +144,428 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     #####################################################################
 
 
-  if (nrow(WorkingChildren) == 1) {
+    if (nrow(WorkingChildren) == 1) {
 
-    Child <- WorkingChildren
+      Child <- WorkingChildren
 
-    AvailableSchools <- SchoolsRenamed %>%
-      filter(ChildAge == Child$ChildAge,
-             SchoolType %in% c(Child$ChildType, "C"),
-             ChildCounts > 0)
+      AvailableSchools <- SchoolsRenamed %>%
+        filter(ChildAge == Child$ChildAge,
+               SchoolType %in% c(Child$ChildType, "C"),
+               ChildCounts > 0)
 
-     SelectedSchool <- AvailableSchools %>%
-       slice_sample(weight_by = ChildCounts, n = 1) %>%
-       select(SchoolID, ChildAge, ChildCounts)
+      SelectedSchool <- AvailableSchools %>%
+        slice_sample(weight_by = ChildCounts, n = 1) %>%
+        select(SchoolID, ChildAge, ChildCounts)
 
-     SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
-
-
-
-     SchoolCountDecreases <- SchoolMerged %>%
-       mutate(FinalCounts = ChildCounts - n()) %>%
-       ungroup() %>%
-       distinct() %>%
-       select(-ChildCounts) %>%
-       rename(ChildCounts = FinalCounts)
-
-       SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-                                            SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-
-       SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-
-       # add matched children to the output dataframe
-         if (exists("FinalMatchedChildren")) {
-
-         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-
-         } else {
+      SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
 
 
-           FinalMatchedChildren <- SchoolMerged
 
-       # closes if statement for existance of FinalMatchedChildren
-         }
+      SchoolCountDecreases <- SchoolMerged %>%
+        mutate(FinalCounts = ChildCounts - n()) %>%
+        ungroup() %>%
+        distinct() %>%
+        select(-ChildCounts) %>%
+        rename(ChildCounts = FinalCounts)
 
-       # remove matched children from the working dataframe (i.e. from those still to be matched)
-       WorkingChildren <- WorkingChildren %>%
-         filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+      SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                           SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
 
+      SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
-  } else {
+      # add matched children to the output dataframe
+      if (exists("FinalMatchedChildren")) {
 
-    #####################################################################
-    #####################################################################
-    # matching multiple-child households
-    #####################################################################
-    #####################################################################
+        FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
- #   cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
-
-    # randomise order of children within the household
-    # this removes any systematic bias in child ordering
-
-    WorkingChildren <- WorkingChildren %>%
-      slice(sample(1:n()))
-
-    # get school list match for all children in the household
-     SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
-      filter(ChildCounts > 0, SchoolType %in% c(ChildType, "C"))
-
-    # get twin ages, will only be non-empty if twins present
-    TwinsAge <- WorkingChildren %>%
-      group_by(ChildAge) %>%
-      summarise(Count = n()) %>%
-      filter(Count >1) %>%
-      pull(ChildAge)
-
-     # only need this info is more than one child is the same sex AND same age
-     # the data frame below holds only the children in the household that are the same age AND same sex
-     # not sure this is required, commented out
-    # TwinsSameSex <- WorkingChildren %>%
-    #   group_by(ChildType, ChildAge) %>%
-    #   summarise(Count = n()) %>%
-    #   filter(Count >1)
+      } else {
 
 
-    # note at this point, match on sex hasn't been made
-    # start the matching
+        FinalMatchedChildren <- SchoolMerged
 
-    #####################################################################
-    # Match one ("first") child
-    #####################################################################
+        # closes if statement for existance of FinalMatchedChildren
+      }
 
-    # do a random draw from the list of schools, based on classroom size
-    FirstChild <- SchoolMatches %>%
-      slice_sample(weight_by = ChildCounts, n = 1)
-
-    cat("First child age is", FirstChild$ChildAge, "and household is", FirstChild$HouseholdID ,"and first child is", FirstChild$ChildID, "\n")
-
-    # decrement school count by the first child
-    # it is important to do this now
-    # so that we know if a classroom swap is needed for any same-sex twin
-    # don't need a loop as the code just related to the first child
-    # looping through the household occurs below, for the remaining children
-
-    SchoolCountDecrease <- FirstChild %>%
-      select(ChildCounts, SchoolID, ChildAge) %>%
-      mutate(FinalCounts = ChildCounts - 1) %>%
-      select(-ChildCounts) %>%
-      rename(ChildCounts = FinalCounts)
-
-    # test which schools are decremented
-    cat("School is ", SchoolCountDecrease$SchoolID, "and child age is ", SchoolCountDecrease$ChildAge, "and new count is ", SchoolCountDecrease$ChildCounts, "\n")
-
-      SchoolRowIndex <- as.numeric(which((SchoolsRenamed$SchoolID==SchoolCountDecrease$SchoolID) &
-                                           (SchoolsRenamed$ChildAge==SchoolCountDecrease$ChildAge)))
-
-      SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecrease$ChildCounts
+      # remove matched children from the working dataframe (i.e. from those still to be matched)
+      WorkingChildren <- WorkingChildren %>%
+        filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
 
-    #####################################################################
-    # Remove the first matched child from the unmatched children
-    #####################################################################
+    } else {
 
-    RemainingChildren <- SchoolMatches %>%
-      filter(!(ChildID == FirstChild$ChildID))
+      #####################################################################
+      #####################################################################
+      # matching multiple-child households
+      #####################################################################
+      #####################################################################
 
-    HouseholdMatchedChildren <- FirstChild
+      #   cat("The household with more than 1 child is", WorkingChildren$HouseholdID, "\n")
 
-    #####################################################################
-    # Match the remaining children
-    #####################################################################
+      # check for presence of twins
 
+      TwinsAge <- WorkingChildren %>%
+        group_by(ChildAge) %>%
+        summarise(Count = n()) %>%
+        filter(Count >1) %>%
+        pull(ChildAge)
 
-    for (y in 1:nrow(RemainingChildren)) {
+      #####################################################################
+      # matching households containing twins
+      #####################################################################
 
-      NextChild <- RemainingChildren[y,]
+      if (length(TwinsAge) > 0) {
 
-      cat("Next child age is", NextChild$ChildAge, "and Household ID is", NextChild$HouseholdID, "\n")
-
-      # check if twin
-
-      if (mean(NextChild$ChildAge) %in% c(TwinsAge)) {
-        # cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
-
-        NextChildType <- NextChild %>%
-          group_by(ChildType) %>%
-          pull(ChildType)
-
-          # cat("Next Child ID is ", NextChild$ChildID, "and Child type is ", NextChildType, "\n")
-
-          # if a twin has already been allocated, this child needs to go to the same school
-          # if previous twin has been assigned to same-sex school and this child is the other sex
-          # then this twin needs to go to an equivalent same-sex school
-          # if no equivalent same-sex school then an equivalent co-ed school
-          # there may be more than one equivalent same-sex school
-          # otherwise random draw, EXCLUDING SAME SEX SCHOOLS
-
-          if (FirstChild$ChildAge == NextChild$ChildAge & FirstChild$ChildType == NextChildType) {
-
-            # cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
+        cat("There are twins in the ", WorkingChildren$HouseholdID, "household", "\n")
 
 
+        # randomise order of children within the household
+        # this removes any systematic bias in child ordering
+        # must be DONE ahead of separating twins
+        # otherwise it introduces selection bias in households with twins
+
+        FirstChild <- WorkingChildren %>%
+          slice_sample(n = 1)
+
+        NotFirstChild <- WorkingChildren %>%
+          filter(WorkingChildren$ChildID != FirstChild$ChildID )
+
+        # is this selected child a twin?
+        # code will be different depending on whether a twin or not
+
+        if (FirstChild$ChildAge %in% TwinsAge) {
+
+          # cat("First child", FirstChild$ChildID, "in household", FirstChild$HouseholdID, "is a twin", "\n")
+
+          # subset the twins
+          TheTwins <- WorkingChildren %>%
+            filter(ChildAge == FirstChild$ChildAge)
+
+          NotTwins <- WorkingChildren %>%
+            filter(!(ChildID %in% TheTwins$ChildID))
+
+          # initial school match
+          # there may be opposite-sex twins
+          # so retain the count > 0 at this point
+          TwinSchoolMatches <- left_join(TheTwins, SchoolsRenamed, by = "ChildAge") %>%
+            filter(ChildCounts > 0, SchoolType %in% c(ChildType, "C"))
+
+          # randomly select one school match
+          # again, match done ahead of classroom minimum size to reduce selection bias as probability is used for selection
+          # whether this selection is okay is done in a loop below
+          TheSchoolMatch <- TwinSchoolMatches %>%
+            slice_sample(n=1)
+
+          # loop to ensure that
+          # 1. if same sex, there is at least the same number as the number of twins classroom places
+          # 2. if opposite sex and co-ed school is chosen for first, then all others go to the co-ed school
+          # thus approach with  co-ed school is the same as for the same-sex twins
+          # 3. if opposite sex and same-sex school is chosen, then check for same-sex school for other child/ren
+          # else assign to co-ed.
+          # 4. for households with triplets etc there may be a combination of same-sex and opposite-sex children
+
+          if (TheSchoolMatch$SchoolType %in% c("F", "M")) {
+
+            # working with the same-sex schools
+            # need to fix this below.
+            # TODO same sex school selection should only match if the twins are the same sex.
+            # currently the code is not doing that
+
+            cat("The school type is", TheSchoolMatch$SchoolType, "for the twins in household", TheSchoolMatch$HouseholdID, "\n")
+
+            # limits the data to only same-sex school matches
+            # if other twin is a different sex then they won't be included in this data frame
+            SameSexSchoolTwins <- TwinSchoolMatches %>%
+              filter(SchoolID == TheSchoolMatch$SchoolID)
+
+            # if loop is needed as split between same-sex and co-ed schools into separate data frames
+            # only needs to be done once
+            # and these would be reconstructed for each loop of the while loop
+
+            if (SameSexSchoolTwins$ChildCounts < nrow(SameSexSchoolTwins)) {
+
+              SameSexSchools <- TwinSchoolMatches %>%
+                filter(SchoolType %in% c("M", "F"), TwinSchoolMatches$ChildCounts > nrow(SameSexSchoolTwins)) %>%
+                slice_sample(n=1)
+
+              TwinMatch <- SameSexSchools
+
+              # if there isn't a sufficiently large same-sex school available
+              # put the same-sex twins into a co-ed
+              if (is.na(SameSexSchools$SchoolType[1]) == TRUE) {
+
+                TwinsSchoolMerged <- TwinSchoolMatches %>%
+                  filter(SchoolType == "C", TwinSchoolMatches$ChildCounts > nrow(SameSexSchoolTwins)) %>%
+                  slice_sample(n=1)
+
+                TwinMatch <- SameSexSchools
+
+                # closes if switch to co-ed schools if there are no same-sex schools that have classroom places for the twins
+
+              }
+
+
+              # close if loop where twins are all assigned to the one same-sex school or all to the one co-ed school
+            }
+
+            # add in bit here so that opposite sex twins are either all to same-sex schools or all to co-ed schools
+            # check if any twins are unallocated
+            NumberTwinsRemaining <- nrow(TheTwins) - nrow(TwinMatch)
+
+            # return(TwinsRemaining)
+
+            # this will only be an opposite-sex twin where the other sex has been allocated to a same-sex school
+
+            if (!(is_empty(TwinsRemaining)) == TRUE) {
+
+              SameSexEquivalent <- TwinSchoolMatches %>%
+                filter(!(ChildID %in% TwinMatch$ChildID), SchoolType != "C", ChildCounts < nrow(TwinsRemaining)) %>%
+                slice_sample(n=1)
+
+              # there may be no equivalent same-sex school OR
+              # there may be no classroom places available
+              # put to co-ed school instead if either situation occurred
+              if (is.na(SameSexEquivalent$SchoolType[1]) == TRUE) {
+
+                CoedEquivalent <- TwinSchoolMatches %>%
+                  filter(!(ChildID %in% TwinMatch$ChildID), SchoolType == "C", ChildCounts < nrow(TwinsRemaining)) %>%
+                  slice_sample(n=1)
+
+                # ends if test for putting twins into coed equivalent
+              }
+
+
+
+
+
+
+              # closes if for allocation when twins are opposite sex and NOT in a co-ed school
+            }
+
+
+          } else {
+
+            # now working with ONLY the co-ed schools
+
+            SameSexSchoolTwins <- TwinSchoolMatches %>%
+              filter(SchoolID == TheSchoolMatch$SchoolID)
+
+
+            # closes if loop for school selection for twins
           }
 
+        } else {
 
-   #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
-      #
-      #   # assign same school if possible
-      #   # next to test if the already assigned school is same-sex and the other twin can go to that same-sex school
-      #   # first, get the school already used
-      #
-      #   TwinSchoolAlreadyMatched <- HouseholdMatchedChildren %>%
-      #     filter(ChildAge == NextChild$ChildAge) %>%
-      #     select(SchoolID, ChildCounts, SchoolType)
-      #
-      #
-      #   # assign same-sex twinScho
-      #   SchoolMatched <- NextChild %>%
-      #     filter(SchoolID )
-      #
-      #   SchoolToMatch <- NextChild %>%
-      #     filter(ChildAge == NextChild$ChildAge)
-      #
-      #   #closes if for twins test
+          cat("First child", FirstChild$ChildID, "in household", FirstChild$HouseholdID, "is NOT a twin", "\n")
+
+          # closes differential if for treating twin first selected versus
+          # first selected is not a twin
+        }
+
+        #  # get school list match for all children in the household
+        #   SchoolMatches <- left_join(WorkingChildren, SchoolsRenamed, by = "ChildAge") %>%
+        #    filter(ChildCounts > 0, SchoolType %in% c(ChildType, "C"))
+        #
+
+      } else {
+
+        # cat("There are NO twins in the ", WorkingChildren$HouseholdID, "household", "\n")
+
+        #####################################################################
+        # matching households that do not contain twins
+        #####################################################################
+
+
+        # closes if test for separating households with twins
       }
 
 
-      #closes for y loop that cycles through the remaining multiple children
+      # closes if test for whether household contains 1 child or multiple children
     }
 
-    #
 
-    # for (y in 1:nrow(SchoolMatches)) {
-    #
-    # Child <- WorkingChildren %>%
-    #   filter(row_number() == y)
-    #
-    # cat( "ChildID is ", Child$ChildID, "Household ID is ", Child$HouseholdID, "\n")
-    #
-    # # ends y loop through the multi-child working children subset
-    # }
-
-    # closes else when there are >1 child per family
+    # closes for x loop that moves through the households
   }
 
-  # closes for x loop through household ID list
-  }
+  # return()
 
-
-
-  return(SchoolsRenamed)
-
+  # closes function
 }
+
+
+
+
+
+
+
+
+#
+#   # only need this info is more than one child is the same sex AND same age
+#   # the data frame below holds only the children in the household that are the same age AND same sex
+#   # not sure this is required, commented out
+#  # TwinsSameSex <- WorkingChildren %>%
+#  #   group_by(ChildType, ChildAge) %>%
+#  #   summarise(Count = n()) %>%
+#  #   filter(Count >1)
+#
+#
+#  # note at this point, match on sex hasn't been made
+#  # start the matching
+#
+#  } else {
+#
+#    cat("There are no twins in the ", WorkingChildren$HouseholdID, "household", "\n")
+#
+#  #####################################################################
+#  # Match one ("first") child
+#  #####################################################################
+#
+#  # do a random draw from the list of schools, based on classroom size
+#  FirstChild <- SchoolMatches %>%
+#    slice_sample(weight_by = ChildCounts, n = 1)
+#
+#  cat("First child age is", FirstChild$ChildAge, "and household is", FirstChild$HouseholdID ,"and first child is", FirstChild$ChildID, "\n")
+#
+#  # decrement school count by the first child
+#  # it is important to do this now
+#  # so that we know if a classroom swap is needed for any same-sex twin
+#  # don't need a loop as the code just related to the first child
+#  # looping through the household occurs below, for the remaining children
+#
+#  SchoolCountDecrease <- FirstChild %>%
+#    select(ChildCounts, SchoolID, ChildAge) %>%
+#    mutate(FinalCounts = ChildCounts - 1) %>%
+#    select(-ChildCounts) %>%
+#    rename(ChildCounts = FinalCounts)
+#
+#  # test which schools are decremented
+#  cat("School is ", SchoolCountDecrease$SchoolID, "and child age is ", SchoolCountDecrease$ChildAge, "and new count is ", SchoolCountDecrease$ChildCounts, "\n")
+#
+#    SchoolRowIndex <- as.numeric(which((SchoolsRenamed$SchoolID==SchoolCountDecrease$SchoolID) &
+#                                         (SchoolsRenamed$ChildAge==SchoolCountDecrease$ChildAge)))
+#
+#    SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecrease$ChildCounts
+#
+#
+#  #####################################################################
+#  # Remove the first matched child from the unmatched children
+#  #####################################################################
+#
+#  RemainingChildren <- SchoolMatches %>%
+#    filter(!(ChildID == FirstChild$ChildID))
+#
+#  HouseholdMatchedChildren <- FirstChild
+#
+#  #####################################################################
+#  # Match the remaining children
+#  #####################################################################
+#
+#  # need to remove the existing matches
+#  # cannot do this earlier as the random child/school match requires the school roll data
+#  RemainingChildren <- RemainingChildren %>%
+#    mutate(TempChildAge = ChildAge) %>%
+#    select(-c(colnames(SchoolsRenamed))) %>%
+#    mutate(ChildAge = TempChildAge) %>%
+#    distinct() %>%
+#    select(-TempChildAge)
+#
+#
+#  for (y in 1:nrow(RemainingChildren)) {
+#
+#    NextChild <- RemainingChildren[y,]
+#
+#    cat("Next child is ", NextChild$ChildID, " in household", NextChild$HouseholdID, "\n")
+#   # check if twin
+#
+#    if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
+#      # cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
+#
+#      NextChildType <- NextChild %>%
+#        pull(ChildType)
+#
+#      MatchingData <- HouseholdMatchedChildren %>%
+#        filter(ChildAge == NextChild$ChildAge)
+#
+#      # check for same-sex match as this has priority
+#
+#
+#  #    cat("Next twin is", NextChild$ChildID[1], "in household", NextChild$HouseholdID, "\n")
+#
+#        # cat("Next Child ID is ", NextChild$ChildID, "and Child type is ", NextChildType, "\n")
+#
+#        # if a twin has already been allocated, this child needs to go to the same school
+#        # if previous twin has been assigned to same-sex school and this child is the other sex
+#        # then this twin needs to go to an equivalent same-sex school
+#        # if no equivalent same-sex school then an equivalent co-ed school
+#        # there may be more than one equivalent same-sex school
+#        # otherwise random draw, EXCLUDING SAME SEX SCHOOLS
+#
+#        if (NextChildType %in% c(HouseholdMatchedChildren$ChildType)) {
+#
+#          # if same sex
+#          # cat("NextChildID ", NextChild[["ChildID"]][1], " is the same sex as the first child", "\n")
+#
+#
+#
+#          # cat("Household ID is ", mean(NextChild$HouseholdID), "Child ID is", mean(NextChild$ChildID), "Child age is ", mean(NextChild$ChildAge), "\n")
+#
+#
+#        } else {
+#
+#          # if opposite sex
+#
+#
+# #   if (NextChild$ChildAge %in% HouseholdMatchedChildren$ChildAge) {
+#    #
+#    #   # assign same school if possible
+#    #   # next to test if the already assigned school is same-sex and the other twin can go to that same-sex school
+#    #   # first, get the school already used
+#    #
+#    #   TwinSchoolAlreadyMatched <- HouseholdMatchedChildren %>%
+#    #     filter(ChildAge == NextChild$ChildAge) %>%
+#    #     select(SchoolID, ChildCounts, SchoolType)
+#    #
+#    #
+#    #   # assign same-sex twinScho
+#    #   SchoolMatched <- NextChild %>%
+#    #     filter(SchoolID )
+#    #
+#    #   SchoolToMatch <- NextChild %>%
+#    #     filter(ChildAge == NextChild$ChildAge)
+#
+#          #closes test if test that divides the treatment of same-sex and opposite-sex twins
+#
+#        }
+#    #
+#    #   #closes if for twins test
+#    }
+#
+#
+#     #   #closes for y loop that cycles through the remaining multiple children
+#     # }
+#     #
+#     # # closes new if twins list
+#     # }
+#
+#     #
+#
+#     # for (y in 1:nrow(SchoolMatches)) {
+#     #
+#     # Child <- WorkingChildren %>%
+#     #   filter(row_number() == y)
+#     #
+#     # cat( "ChildID is ", Child$ChildID, "Household ID is ", Child$HouseholdID, "\n")
+#     #
+#     # # ends y loop through the multi-child working children subset
+#     # }
+#
+#     # closes else when there are >1 child per family
+#   }
+#
+#   # closes for x loop through household ID list
+#   }
+#
+#
+#
+#   return(MatchingData)
+#
+# }
