@@ -110,6 +110,9 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                                      distinct(HouseholdID))
 
   # identify the households containing twins
+  # only matters for children of school age
+  # children not of school age are screened out already
+
   LimitedToTwinsHouseholds <- KidsForSchools %>%
     group_by(HouseholdID, Age) %>%
     summarise(CountsByAge = n(), .groups = "keep") %>%
@@ -410,7 +413,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   #   # closes for x loop that moves through the households
   # }
 
-  return(HouseholdIDList)
+  return(ChildrenRenamed)
 
   # closes function
 }
