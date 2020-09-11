@@ -97,14 +97,13 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   ChildrenRenamed <- as.data.frame(ChildrenRenamed)
   SchoolsRenamed <- as.data.frame(SchoolsRenamed)
 
-  # get the number of householdså
+  #####################################################################
+  # Create household meta data data frame
+  #####################################################################
+    # get the number of households
   NumberHouseholds <- as.numeric(ChildrenRenamed %>%
                                    dplyr::summarise(Count = n_distinct(HouseholdID)) %>%
                                    pull(Count))
-
-  #################
-  # TODO  create an indicator to show if the household contains twins
-  #################
 
   # get list of household IDs
   HouseholdIDList <- as.data.frame(ChildrenRenamed %>%
@@ -120,10 +119,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   HouseholdIDList <- HouseholdIDList %>%
     mutate(TwinMarker = ifelse(HouseholdID %in% LimitedToTwinsHouseholds$HouseholdID, "Y", "N"))
 
-  # #################
-  # # TODO ensure that households containing twins are NOT in the bottom 10% of households
-  # #################
-  #
+  #################
+  # TODO ensure that households containing twins are NOT in the bottom 10% of households
+  #################
+
   # # random number generator to see if there is a same sex assignment
   # # seed must come before first sample is cut
   # if (!is.null(UserSeed)) {
