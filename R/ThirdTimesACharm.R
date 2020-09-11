@@ -119,23 +119,38 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   HouseholdIDList <- HouseholdIDList %>%
     mutate(TwinMarker = ifelse(HouseholdID %in% LimitedToTwinsHouseholds$HouseholdID, "Y", "N"))
 
-  #################
-  # TODO ensure that households containing twins are NOT in the bottom 10% of households
-  #################
+  # ensure that households containing twins are NOT in the bottom 10% of households
 
-  # # random number generator to see if there is a same sex assignment
-  # # seed must come before first sample is cut
-  # if (!is.null(UserSeed)) {
-  #   set.seed(UserSeed)
-  # }
-  #
-  #
-  # #####################################################################
-  # #####################################################################
-  # # end data preparation
-  # #####################################################################
-  # #####################################################################
-  #
+  TwinHouseholdSubset <- HouseholdIDList %>%
+    filter(TwinMarker == "Y")
+
+  NoTwinsHouseholdSubset <- HouseholdIDList %>%
+    filter(TwinMarker == "N")
+
+  # this is the first part of the code that requires randomness
+  # so seed is applied here
+
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  BottomNoTwins <- NoTwinsHouseholdSubset %>%
+    slice_sample(n=(nrow(HouseholdIDList)*.1))
+
+  TopNoTwins <- NoTwinsHouseholdSubset %>%
+    filter(!(HouseholdID %in% BottomNoTwins$HouseholdID))
+
+  InitialHouseholdRebind <- bind_rows(TwinHouseholdSubset, TopNoTwins) %>%
+    slice_sample(n = nrow(InitialHouseholdRebind))
+
+  HouseholdIDList <- bind_rows(InitialHouseholdRebind, BottomNoTwins)
+
+  #####################################################################
+  #####################################################################
+  # end data preparation
+  #####################################################################
+  #####################################################################
+
   # # set the probabilities for same-sex matching to schools
   # # this creates the probability against which the rolled probability will be tested
   # # hence the need for the range to be 0 through 1.
