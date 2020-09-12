@@ -223,137 +223,137 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # wonders if anyone other than me bothers to read the code comments
     }
 
-    # #####################################################################
-    # #####################################################################
-    # # match multi-child households NO TWINS
-    # #####################################################################
-    # #####################################################################
-    #
-    # if (nrow(WorkingChildren) > 1 & HouseholdIDList[x,2] == "N") {
-    #
-    #   # cat("Multi-child household with no twins", HouseholdIDList[x,1], "\n")
-    #
-    #   # random sort the children
-    #   WorkingChildren <- WorkingChildren %>%
-    #     slice_sample(n = nrow(WorkingChildren))
-    #
-    #   # assign the first child
-    #   # this one is assigned independent of the others
-    #   FirstChild <- WorkingChildren %>%
-    #     slice_head(n=1)
-    #
-    #   AvailableSchools <- SchoolsRenamed %>%
-    #     filter(ChildAge == FirstChild$ChildAge,
-    #            SchoolType %in% c(FirstChild$ChildType, "C"),
-    #            ChildCounts > 0)
-    #
-    #   SelectedSchool <- AvailableSchools %>%
-    #     slice_sample(weight_by = ChildCounts, n = 1) %>%
-    #     select(SchoolID, ChildAge, ChildCounts)
-    #
-    #   SchoolMerged <- left_join(SelectedSchool, FirstChild, by = "ChildAge")
-    #
-    #   SchoolCountDecreases <- SchoolMerged %>%
-    #     mutate(FinalCounts = ChildCounts - 1) %>%
-    #     ungroup() %>%
-    #     distinct() %>%
-    #     select(-ChildCounts) %>%
-    #     rename(ChildCounts = FinalCounts)
-    #
-    #   SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-    #                                        SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-    #
-    #   SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-    #
-    #   SchoolList <- as.vector(SelectedSchool$SchoolID)
-    #
-    #   if (exists("FinalMatchedChildren")) {
-    #
-    #     FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-    #
-    #   } else {
-    #
-    #
-    #     FinalMatchedChildren <- SchoolMerged
-    #
-    #     # closes if statement for existence of FinalMatchedChildren
-    #   }
-    #
-    #   WorkingChildren <- WorkingChildren %>%
-    #     filter(WorkingChildren$ChildID != FirstChild$ChildID)
-    #
-    #   # loop through the other children
-    #   for (y in 1:nrow(WorkingChildren)) {
-    #
-    #     CurrentChild <- WorkingChildren[y,]
-    #
-    #     RandomRollResult <- runif(1, 0, 1)
-    #
-    #      AvailableSchools <- SchoolsRenamed %>%
-    #       filter(ChildAge == CurrentChild$ChildAge,
-    #              SchoolType %in% c(CurrentChild$ChildType, "C"),
-    #              ChildCounts > 0)
-    #
-    #      if (RandomRollResult <= ChildProb) {
-    #
-    #        SelectedSchool <- AvailableSchools %>%
-    #          filter(SchoolID %in% SchoolList)
-    #
-    #        # fix the problem if there the classroom count is 0
-    #        if (is.na(SelectedSchool$SchoolType[1]) == TRUE) {
-    #
-    #          SelectedSchool <- AvailableSchools %>%
-    #            slice_sample(weight_by = ChildCounts, n = 1) %>%
-    #            select(SchoolID, ChildAge, ChildCounts)
-    #
-    #          # closes if fix for putting in a school replacement where no classroom space available
-    #        }
-    #
-    #
-    #      } else {
-    #        # ensure that match is to a school not in the school list, as the child cannot be allocated to the same school as another one in the family
-    #
-    #        AvailableSchools <- SchoolsRenamed %>%
-    #          filter(ChildAge == CurrentChild$ChildAge,
-    #                 SchoolType %in% c(CurrentChild$ChildType, "C"),
-    #                 ChildCounts > 0,
-    #                 !(SchoolID %in% c(SchoolList)))
-    #
-    #
-    #        SelectedSchool <- AvailableSchools %>%
-    #          slice_sample(weight_by = ChildCounts, n = 1) %>%
-    #          select(SchoolID, ChildAge, ChildCounts)
-    #
-    #        # closes if for school match using the rolled probability
-    #      }
-    #
-    #      SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
-    #
-    #      SchoolCountDecreases <- SchoolMerged %>%
-    #        mutate(FinalCounts = ChildCounts - 1) %>%
-    #        ungroup() %>%
-    #        distinct() %>%
-    #        select(-ChildCounts) %>%
-    #        rename(ChildCounts = FinalCounts)
-    #
-    #      SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-    #                                           SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-    #
-    #      SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-    #
-    #      SchoolList <- c(SchoolList, SchoolMerged$ID)
-    #
-    #      FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-    #
-    #      # remove the matched children from the working dataframe (i.e. from those still to be matched)
-    #      # WorkingChildren <- WorkingChildren %>%
-    #      #   filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
-    #
-    #     # close for loop that circles through the n-1 children in the multiple-child-and-no-twins household
-    #   }
-    #
-    #   # closes if loop for multi-child household that does not contain twins
-    # }
+    #####################################################################
+    #####################################################################
+    # match multi-child households NO TWINS
+    #####################################################################
+    #####################################################################
+
+    if (nrow(WorkingChildren) > 1 & HouseholdIDList[x,2] == "N") {
+
+      # cat("Multi-child household with no twins", HouseholdIDList[x,1], "\n")
+
+      # random sort the children
+      WorkingChildren <- WorkingChildren %>%
+        slice_sample(n = nrow(WorkingChildren))
+
+      # assign the first child
+      # this one is assigned independent of the others
+      FirstChild <- WorkingChildren %>%
+        slice_head(n=1)
+
+      AvailableSchools <- SchoolsRenamed %>%
+        filter(ChildAge == FirstChild$ChildAge,
+               SchoolType %in% c(FirstChild$ChildType, "C"),
+               ChildCounts > 0)
+
+      SelectedSchool <- AvailableSchools %>%
+        slice_sample(weight_by = ChildCounts, n = 1) %>%
+        select(SchoolID, ChildAge, ChildCounts)
+
+      SchoolMerged <- left_join(SelectedSchool, FirstChild, by = "ChildAge")
+
+      SchoolCountDecreases <- SchoolMerged %>%
+        mutate(FinalCounts = ChildCounts - 1) %>%
+        ungroup() %>%
+        distinct() %>%
+        select(-ChildCounts) %>%
+        rename(ChildCounts = FinalCounts)
+
+      SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                           SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+      SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+      SchoolList <- as.vector(SelectedSchool$SchoolID)
+
+      if (exists("FinalMatchedChildren")) {
+
+        FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+      } else {
+
+
+        FinalMatchedChildren <- SchoolMerged
+
+        # closes if statement for existence of FinalMatchedChildren
+      }
+
+      WorkingChildren <- WorkingChildren %>%
+        filter(WorkingChildren$ChildID != FirstChild$ChildID)
+
+      # loop through the other children
+      for (y in 1:nrow(WorkingChildren)) {
+
+        CurrentChild <- WorkingChildren[y,]
+
+        RandomRollResult <- runif(1, 0, 1)
+
+         AvailableSchools <- SchoolsRenamed %>%
+          filter(ChildAge == CurrentChild$ChildAge,
+                 SchoolType %in% c(CurrentChild$ChildType, "C"),
+                 ChildCounts > 0)
+
+         if (RandomRollResult <= ChildProb) {
+
+           SelectedSchool <- AvailableSchools %>%
+             filter(SchoolID %in% SchoolList)
+
+           # fix the problem if there the classroom count is 0
+           if (is.na(SelectedSchool$SchoolType[1]) == TRUE) {
+
+             SelectedSchool <- AvailableSchools %>%
+               slice_sample(weight_by = ChildCounts, n = 1) %>%
+               select(SchoolID, ChildAge, ChildCounts)
+
+             # closes if fix for putting in a school replacement where no classroom space available
+           }
+
+
+         } else {
+           # ensure that match is to a school not in the school list, as the child cannot be allocated to the same school as another one in the family
+
+           AvailableSchools <- SchoolsRenamed %>%
+             filter(ChildAge == CurrentChild$ChildAge,
+                    SchoolType %in% c(CurrentChild$ChildType, "C"),
+                    ChildCounts > 0,
+                    !(SchoolID %in% c(SchoolList)))
+
+
+           SelectedSchool <- AvailableSchools %>%
+             slice_sample(weight_by = ChildCounts, n = 1) %>%
+             select(SchoolID, ChildAge, ChildCounts)
+
+           # closes if for school match using the rolled probability
+         }
+
+         SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
+
+         SchoolCountDecreases <- SchoolMerged %>%
+           mutate(FinalCounts = ChildCounts - 1) %>%
+           ungroup() %>%
+           distinct() %>%
+           select(-ChildCounts) %>%
+           rename(ChildCounts = FinalCounts)
+
+         SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                              SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+         SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+         SchoolList <- c(SchoolList, SchoolMerged$ID)
+
+         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+         # remove the matched children from the working dataframe (i.e. from those still to be matched)
+         # WorkingChildren <- WorkingChildren %>%
+         #   filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+
+        # close for loop that circles through the n-1 children in the multiple-child-and-no-twins household
+      }
+
+      # closes if loop for multi-child household that does not contain twins
+    }
 
    #
   #   } else {
@@ -551,7 +551,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(FinalMatchedChildren)
+  return(SchoolsRenamed)
 
   # closes function
 }
