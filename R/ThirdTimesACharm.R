@@ -282,7 +282,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       WorkingChildren <- WorkingChildren %>%
         filter(WorkingChildren$ChildID != FirstChild$ChildID)
 
-      # loop through the children
+      # loop through the other children
       for (y in 1:nrow(WorkingChildren)) {
 
         CurrentChild <- WorkingChildren[y,]
@@ -345,20 +345,17 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
          FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
+         # remove the matched children from the working dataframe (i.e. from those still to be matched)
+         # WorkingChildren <- WorkingChildren %>%
+         #   filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
 
         # close for loop that circles through the n-1 children in the multiple-child-and-no-twins household
       }
 
-
       # closes if loop for multi-child household that does not contain twins
-
     }
 
-      # remove matched children from the working dataframe (i.e. from those still to be matched)
-      # WorkingChildren <- WorkingChildren %>%
-      #   filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
-
-  #
+   #
   #   } else {
   #
   #     #####################################################################
