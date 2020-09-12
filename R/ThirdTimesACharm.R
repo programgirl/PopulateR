@@ -554,7 +554,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(HouseholdIDList)
+  return(SchoolsRenamed)
 
   # closes function
 }
