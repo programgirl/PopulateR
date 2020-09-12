@@ -113,8 +113,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
   # only matters for children of school age
   # children not of school age are screened out already
 
-  LimitedToTwinsHouseholds <- KidsForSchools %>%
-    group_by(HouseholdID, Age) %>%
+  LimitedToTwinsHouseholds <- ChildrenRenamed %>%
+    group_by(HouseholdID, ChildAge) %>%
     summarise(CountsByAge = n(), .groups = "keep") %>%
     filter(CountsByAge >1)
 
@@ -165,63 +165,63 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     WorkingChildren <- ChildrenRenamed %>%
       filter(HouseholdID %in% HouseholdIDList[x,1])
 
-   #  #####################################################################
-   #  #####################################################################
-   #  # match single child households
-   #  #####################################################################
-   #  #####################################################################
-   #
-   #
-   #  if (nrow(WorkingChildren) == 1) {
-   #
-   # #   cat("Household is", WorkingChildren$HouseholdID, "\n")
-   #
-   #    Child <- WorkingChildren
-   #
-   #    AvailableSchools <- SchoolsRenamed %>%
-   #      filter(ChildAge == Child$ChildAge,
-   #             SchoolType %in% c(Child$ChildType, "C"),
-   #             ChildCounts > 0)
-   #
-   #    SelectedSchool <- AvailableSchools %>%
-   #      slice_sample(weight_by = ChildCounts, n = 1) %>%
-   #      select(SchoolID, ChildAge, ChildCounts)
-   #
-   #    SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
-   #
-   #    SchoolCountDecreases <- SchoolMerged %>%
-   #      mutate(FinalCounts = ChildCounts - 1) %>%
-   #      ungroup() %>%
-   #      distinct() %>%
-   #      select(-ChildCounts) %>%
-   #      rename(ChildCounts = FinalCounts)
-   #
-   #    SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-   #                                         SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-   #
-   #    SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-   #
-   #    # add matched children to the output dataframe
-   #    if (exists("FinalMatchedChildren")) {
-   #
-   #      FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-   #
-   #    } else {
-   #
-   #
-   #      FinalMatchedChildren <- SchoolMerged
-   #
-   #      # closes if statement for existence of FinalMatchedChildren
-   #    }
-   #
-   #    # closes loop for single-child households
-   #    # NOTE: NOT running a series of if-else as there is no evidence this is quicker
-   #    # also, there are two elses, and both differ on one variable
-   #    # which would mean an if else nested under an if else
-   #    # more readable just to use separate if statements, too
-   #    # finally, makes code testing a breeze as an entire if statement can be commented out
-   #    # wonders if anyone other than me bothers to read the code comments
-   #  }
+    #####################################################################
+    #####################################################################
+    # match single child households
+    #####################################################################
+    #####################################################################
+
+
+    if (nrow(WorkingChildren) == 1) {
+
+   #   cat("Household is", WorkingChildren$HouseholdID, "\n")
+
+      Child <- WorkingChildren
+
+      AvailableSchools <- SchoolsRenamed %>%
+        filter(ChildAge == Child$ChildAge,
+               SchoolType %in% c(Child$ChildType, "C"),
+               ChildCounts > 0)
+
+      SelectedSchool <- AvailableSchools %>%
+        slice_sample(weight_by = ChildCounts, n = 1) %>%
+        select(SchoolID, ChildAge, ChildCounts)
+
+      SchoolMerged <- left_join(SelectedSchool, Child, by = "ChildAge")
+
+      SchoolCountDecreases <- SchoolMerged %>%
+        mutate(FinalCounts = ChildCounts - 1) %>%
+        ungroup() %>%
+        distinct() %>%
+        select(-ChildCounts) %>%
+        rename(ChildCounts = FinalCounts)
+
+      SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                           SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+      SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+      # add matched children to the output dataframe
+      if (exists("FinalMatchedChildren")) {
+
+        FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+      } else {
+
+
+        FinalMatchedChildren <- SchoolMerged
+
+        # closes if statement for existence of FinalMatchedChildren
+      }
+
+      # closes loop for single-child households
+      # NOTE: NOT running a series of if-else as there is no evidence this is quicker
+      # also, there are two elses, and both differ on one variable
+      # which would mean an if else nested under an if else
+      # more readable just to use separate if statements, too
+      # finally, makes code testing a breeze as an entire if statement can be commented out
+      # wonders if anyone other than me bothers to read the code comments
+    }
 
     #####################################################################
     #####################################################################
@@ -265,6 +265,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
+      SchoolList <- as.vector(SelectedSchool$SchoolID)
+
       if (exists("FinalMatchedChildren")) {
 
         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
@@ -285,7 +287,63 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
         CurrentChild <- WorkingChildren[y,]
 
-        CurrentChild$RandomRollResult <- runif(1, 0, 1)
+        RandomRollResult <- runif(1, 0, 1)
+
+         AvailableSchools <- SchoolsRenamed %>%
+          filter(ChildAge == CurrentChild$ChildAge,
+                 SchoolType %in% c(CurrentChild$ChildType, "C"),
+                 ChildCounts > 0)
+
+         if (RandomRollResult <= ChildProb) {
+
+           SelectedSchool <- AvailableSchools %>%
+             filter(SchoolID %in% SchoolList)
+
+           # fix the problem if there the classroom count is 0
+           if (is.na(SelectedSchool$SchoolType[1]) == TRUE) {
+
+             SelectedSchool <- AvailableSchools %>%
+               slice_sample(weight_by = ChildCounts, n = 1) %>%
+               select(SchoolID, ChildAge, ChildCounts)
+
+             # closes if fix for putting in a school replacement where no classroom space available
+           }
+
+
+         } else {
+           # ensure that match is to a school not in the school list, as the child cannot be allocated to the same school as another one in the family
+
+           AvailableSchools <- SchoolsRenamed %>%
+             filter(ChildAge == CurrentChild$ChildAge,
+                    SchoolType %in% c(CurrentChild$ChildType, "C"),
+                    ChildCounts > 0,
+                    !(SchoolID %in% c(SchoolList)))
+
+
+           SelectedSchool <- AvailableSchools %>%
+             slice_sample(weight_by = ChildCounts, n = 1) %>%
+             select(SchoolID, ChildAge, ChildCounts)
+
+           # closes if for school match using the rolled probability
+         }
+
+         SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
+
+         SchoolCountDecreases <- SchoolMerged %>%
+           mutate(FinalCounts = ChildCounts - 1) %>%
+           ungroup() %>%
+           distinct() %>%
+           select(-ChildCounts) %>%
+           rename(ChildCounts = FinalCounts)
+
+         SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                              SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+         SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+         SchoolList <- c(SchoolList, SchoolMerged$ID)
+
+         FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
 
 
         # close for loop that circles through the n-1 children in the multiple-child-and-no-twins household
@@ -496,7 +554,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(SchoolsRenamed)
+  return(HouseholdIDList)
 
   # closes function
 }
