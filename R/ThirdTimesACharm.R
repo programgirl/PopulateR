@@ -388,13 +388,19 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       TwinsSubset <- TwinsSubset %>%
         slice_sample(n=nrow(TwinsSubset))
 
-         if (exists("AllTwinsAges")) {
+      # draw first twin
 
-           AllTwinsAges <- bind_rows(AllTwinsAges, TwinsSubset)
+      FirstTwin <- TwinsSubset %>%
+          slice_head(n=1)
+
+
+         if (exists("FirstTwinOutput")) {
+
+           FirstTwinOutput <- bind_rows(FirstTwinOutput, FirstTwin)
 
          } else {
 
-           AllTwinsAges <- TwinsSubset
+           FirstTwinOutput <- FirstTwin
          }
 
       # closes if t loop through twins
@@ -703,7 +709,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(AllTwinsAges)
+  return(FirstTwinOutput)
 
   # closes function
 }
