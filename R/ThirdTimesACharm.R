@@ -375,36 +375,59 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         summarise(Twins = n()) %>%
         filter(Twins > 1)
 
-      # NOTE: could be more than one set of multiple births in the same household
-      # loop through the TwinsAges subset
-      for (t in 1: nrow(TwinsAges)) {
+      # # NOTE: could be more than one set of multiple births in the same household
+      # # loop through the TwinsAges subset
+      # for (t in 1: nrow(TwinsAges)) {
+      #
+      #   cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+      #
+      # TwinsSubset <- WorkingChildren %>%
+      #   filter(ChildAge %in% TwinsAges$ChildAge)
+      #
+      # # randomise order of twins
+      # TwinsSubset <- TwinsSubset %>%
+      #   slice_sample(n=nrow(TwinsSubset))
+      #
+      # # draw first twin
+      # FirstTwin <- TwinsSubset %>%
+      #     slice_head(n=1)
+      #
+      # # subset the multiples at that age
+      # OthersSameAge <- TwinsSubset %>%
+      #   filter(!(ChildID %in% FirstTwin$ChildID),
+      #          ChildAge == FirstTwin$ChildAge)
+      #
+      # # remove these children from the working children data frame
+      # WorkingChildren <- WorkingChildren %>%
+      #   filter(!(ChildID %in% FirstTwin$ChildID),
+      #          !(ChildID %in% OthersSameAge$ChildID))
+      #
+      # # need to extract twin age by twin count
+      # # there may be triplets etc, so school counts may be affected by this
+      # # gets more complicated if there is a mixture of same-sex AND opposite-sex multiples of the same age
+      #
+      #
+      #
+      #
+      #
+      #
+      # AvailableSchools <- SchoolsRenamed %>%
+      #   filter(ChildAge == FirstChild$ChildAge,
+      #          SchoolType %in% c(FirstChild$ChildType, "C"),
+      #          ChildCounts > 0)
+      #
+      #
+         if (exists("TwinsAgesSubset")) {
 
-        cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
-
-      TwinsSubset <- WorkingChildren %>%
-        filter(ChildAge %in% TwinsAges$ChildAge)
-
-      # randomise order of twins
-      TwinsSubset <- TwinsSubset %>%
-        slice_sample(n=nrow(TwinsSubset))
-
-      # draw first twin
-
-      FirstTwin <- TwinsSubset %>%
-          slice_head(n=1)
-
-
-         if (exists("FirstTwinOutput")) {
-
-           FirstTwinOutput <- bind_rows(FirstTwinOutput, FirstTwin)
+           TwinsAgesSubset <- bind_rows(TwinsAgesSubset, TwinsAges)
 
          } else {
 
-           FirstTwinOutput <- FirstTwin
+           TwinsAgesSubset <- TwinsAges
          }
-
-      # closes if t loop through twins
-      }
+      #
+      # # closes if t loop through twins
+      # }
 
 
 
@@ -709,10 +732,48 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(FirstTwinOutput)
+  return(TwinsAgesSubset)
 
   # closes function
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
