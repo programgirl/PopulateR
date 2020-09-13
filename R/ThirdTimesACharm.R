@@ -375,16 +375,22 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         summarise(Twins = n()) %>%
         filter(Twins > 1)
 
-      # # NOTE: could be more than one set of multiple births in the same household
-      # # loop through the TwinsAges subset
-      # for (t in 1: nrow(TwinsAges)) {
-      #
-      #   cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
-      #
-      # TwinsSubset <- WorkingChildren %>%
-      #   filter(ChildAge %in% TwinsAges$ChildAge)
-      #
-      # # randomise order of twins
+      # NOTE: could be more than one set of multiple births in the same household
+      # loop through the TwinsAges subset
+      for (t in 1: nrow(TwinsAges)) {
+
+        cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+
+      TwinsSubset <- WorkingChildren %>%
+        filter(ChildAge %in% TwinsAges$ChildAge)
+
+      # get number of children for each sex
+
+      TwinsPyramid <- TwinsSubset %>%
+        group_by(ChildType) %>%
+        summarise(TypeCount = n())
+
+      # randomise order of twins
       # TwinsSubset <- TwinsSubset %>%
       #   slice_sample(n=nrow(TwinsSubset))
       #
@@ -397,11 +403,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       #   filter(!(ChildID %in% FirstTwin$ChildID),
       #          ChildAge == FirstTwin$ChildAge)
       #
-      # # remove these children from the working children data frame
-      # WorkingChildren <- WorkingChildren %>%
-      #   filter(!(ChildID %in% FirstTwin$ChildID),
-      #          !(ChildID %in% OthersSameAge$ChildID))
-      #
+      # remove these children from the working children data frame
+      WorkingChildren <- WorkingChildren %>%
+        filter(!(ChildID %in% TwinsSubset$ChildID))
+
       # # need to extract twin age by twin count
       # # there may be triplets etc, so school counts may be affected by this
       # # gets more complicated if there is a mixture of same-sex AND opposite-sex multiples of the same age
@@ -425,9 +430,9 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
            TwinsAgesSubset <- TwinsAges
          }
-      #
-      # # closes if t loop through twins
-      # }
+
+      # closes if t loop through twins
+      }
 
 
 
@@ -732,7 +737,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(TwinsAgesSubset)
+  return(TwinsPyramid)
 
   # closes function
 }
