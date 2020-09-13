@@ -364,7 +364,45 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     if (HouseholdIDList[x,2] == "Y") {
 
-      cat("Multi-child household with no twins", HouseholdIDList[x,1], "\n")
+ #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+
+      WorkingChildren <- ChildrenRenamed %>%
+        filter(HouseholdID %in% HouseholdIDList[x,1])
+
+      # get the age of the twins
+      TwinsAges <- WorkingChildren %>%
+        group_by(ChildAge) %>%
+        summarise(Twins = n()) %>%
+        filter(Twins > 1)
+
+      # NOTE: could be more than one set of multiple births in the same household
+      # loop through the TwinsAges subset
+      for (t in 1: nrow(TwinsAges)) {
+
+        cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+
+      TwinsSubset <- WorkingChildren %>%
+        filter(ChildAge %in% TwinsAges$ChildAge)
+
+      # randomise order of twins
+      TwinsSubset <- TwinsSubset %>%
+        slice_sample(n=nrow(TwinsSubset))
+
+         if (exists("AllTwinsAges")) {
+
+           AllTwinsAges <- bind_rows(AllTwinsAges, TwinsSubset)
+
+         } else {
+
+           AllTwinsAges <- TwinsSubset
+         }
+
+      # closes if t loop through twins
+      }
+
+
+
+
 
       # # random sort the children
       # WorkingChildren <- WorkingChildren %>%
@@ -665,7 +703,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(HouseholdIDList)
+  return(AllTwinsAges)
 
   # closes function
 }
