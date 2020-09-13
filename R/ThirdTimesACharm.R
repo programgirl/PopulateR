@@ -410,9 +410,49 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
         cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of this sex are", nrow(TwinsSubset), "\n")
 
+        SelectedSchool <- AvailableSchools %>%
+          slice_sample(weight_by = ChildCounts, n = 1) %>%
+          select(SchoolID, ChildAge, ChildCounts)
+
+       # create the data frame that contains all the twins in the household
+        AllTwins <- TwinsSubset %>%
+          filter(ChildAge == SelectedSchool$ChildAge)
+
+        # add the same school to all the twins
+
+        SchoolMerged <- inner_join(SelectedSchool, AllTwins, by = "ChildAge")
+
+        # decrease school counts
+        SchoolCountDecreases <- SchoolMerged %>%
+          slice_head(n=1) %>%
+          mutate(FinalCounts = ChildCounts - nrow(TwinsSubset)) %>%
+          ungroup() %>%
+          distinct() %>%
+          select(-ChildCounts) %>%
+          rename(ChildCounts = FinalCounts)
+
+        SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                             SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+        SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+        SchoolList <- as.vector(SelectedSchool$SchoolID)
+
+
+        if (exists("FinalMatchedChildren")) {
+
+          FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+        } else {
+
+          FinalMatchedChildren <- SchoolMerged
+        }
+
+        # closes if t loop through twins
       }
 
-     # test if how many twins are that sex
+
+      }
 
 
       # subset the multiples at that age
@@ -439,17 +479,17 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       #          ChildCounts > 0)
       #
       #
-         if (exists("TwinsAgesSubset")) {
-
-           TwinsAgesSubset <- bind_rows(TwinsAgesSubset, TwinsAges)
-
-         } else {
-
-           TwinsAgesSubset <- TwinsAges
-         }
-
-      # closes if t loop through twins
-      }
+      #    if (exists("FinalMatchedChildren")) {
+      #
+      #      FinalMatchedChildren <- bind_rows(FinalMatchedChildren, AllTwins)
+      #
+      #    } else {
+      #
+      #      FinalMatchedChildren <- AllTwins
+      #    }
+      #
+      # # closes if t loop through twins
+      # }
 
 
 
@@ -754,7 +794,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(TwinsPyramid)
+  return(SchoolsRenamed)
 
   # closes function
 }
