@@ -391,14 +391,31 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         summarise(TypeCount = n())
 
       # randomise order of twins
-      # TwinsSubset <- TwinsSubset %>%
-      #   slice_sample(n=nrow(TwinsSubset))
-      #
-      # # draw first twin
-      # FirstTwin <- TwinsSubset %>%
-      #     slice_head(n=1)
-      #
-      # # subset the multiples at that age
+      TwinsSubset <- TwinsSubset %>%
+        slice_sample(n=nrow(TwinsSubset))
+
+      # draw first twin
+      FirstTwin <- TwinsSubset %>%
+          slice_head(n=1)
+
+      if (nrow(TwinsPyramid) == 1) {
+
+        # indicates that there is only one sex present for that twin age
+        # all twins can be allocated to the same school, irrespective of whether the school is same-sex or co-ed
+
+        AvailableSchools <- SchoolsRenamed %>%
+          filter(ChildAge == FirstTwin$ChildAge,
+                 SchoolType %in% c(FirstTwin$ChildType, "C"),
+                 ChildCounts >= nrow(TwinsSubset))
+
+        cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of this sex are", nrow(TwinsSubset), "\n")
+
+      }
+
+     # test if how many twins are that sex
+
+
+      # subset the multiples at that age
       # OthersSameAge <- TwinsSubset %>%
       #   filter(!(ChildID %in% FirstTwin$ChildID),
       #          ChildAge == FirstTwin$ChildAge)
