@@ -409,8 +409,11 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
  #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
 
-
       if (nrow(TwinsPyramid) == 1) {
+
+        #####################################################################
+        # twins are all the one sex
+        #####################################################################
 
         # indicates that there is only one sex present for that twin age
         # all twins can be allocated to the same school, irrespective of whether the school is same-sex or co-ed
@@ -452,39 +455,47 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         # closes if loop for same-sex twins
       }
 
+       #####################################################################
+       # twins are both sexes
+       #####################################################################
+
+
       if (nrow(TwinsPyramid) == 2) {
 
         TwinsSubset <- TwinsSubset %>%
           filter(ChildID != FirstTwin$ChildID)
 
-        cat("Household", FirstTwin$HouseholdID, "has opposite sex twins", "\n")
+        # cat("Household", FirstTwin$HouseholdID, "has opposite sex twins", "\n")
 
 
         SelectedSchool <- merge(x = SelectedSchool, y = SchoolsRenamed[, c("SchoolID", "ChildAge", "ChildCounts", "SchoolType")], by = c("SchoolID", "ChildAge", "ChildCounts"))
 
         # subset other twin the same sex
-
         OtherTwinSameSex <- TwinsSubset %>%
           filter(ChildType == FirstTwin$ChildType)
 
+
+        # subset other twin the same sex
         OtherTwinOppositeSex <- TwinsSubset %>%
           filter(ChildType != FirstTwin$ChildType)
 
-        # if (!(is.na(OtherTwinSameSex$ChildID[1]) == TRUE)) {
-        #
-        #     cat("Same sex twin in household", FirstTwin$HouseholdID, "\n")
-        #
-        #
-        #   # closes loop to deal with same sex twin in a household containing opposite sex twins
-        #   }
+        # loop for same-sex twin
+        if (!(is.na(OtherTwinSameSex$ChildID[1]) == TRUE)) {
 
-        # if (!(is.na(OtherTwinOppositeSex$ChildID[1]) == TRUE)) {
-        #
-        #   cat("Opposite sex twin in household", FirstTwin$HouseholdID, "\n")
-        #
-        #
-        #    # closes loop to deal with opposite sex twins in a household containing opposite sex twins
-        # }
+            cat("Same sex twin in household", FirstTwin$HouseholdID, "\n")
+
+
+          # closes loop to deal with same sex twin in a household containing opposite sex twins
+          }
+
+        # loop for same-sex twin
+        if (!(is.na(OtherTwinOppositeSex$ChildID[1]) == TRUE)) {
+
+          cat("Opposite sex twin in household", FirstTwin$HouseholdID, "\n")
+
+
+           # closes loop to deal with opposite sex twins in a household containing opposite sex twins
+        }
 
       #
         # closes loop for opposite-sex twins
@@ -510,7 +521,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(OtherTwinOppositeSex)
+  return(OtherTwinSameSex)
 
   # closes function
 }
