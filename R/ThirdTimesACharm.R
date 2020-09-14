@@ -398,23 +398,24 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       FirstTwin <- TwinsSubset %>%
           slice_head(n=1)
 
+      AvailableSchools <- SchoolsRenamed %>%
+        filter(ChildAge == FirstTwin$ChildAge,
+               SchoolType %in% c(FirstTwin$ChildType, "C"),
+               ChildCounts >= nrow(TwinsSubset))
+
+       SelectedSchool <- AvailableSchools %>%
+        slice_sample(weight_by = ChildCounts, n = 1) %>%
+        select(SchoolID, ChildAge, ChildCounts)
+
+ #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
+
+
       if (nrow(TwinsPyramid) == 1) {
 
         # indicates that there is only one sex present for that twin age
         # all twins can be allocated to the same school, irrespective of whether the school is same-sex or co-ed
 
-        AvailableSchools <- SchoolsRenamed %>%
-          filter(ChildAge == FirstTwin$ChildAge,
-                 SchoolType %in% c(FirstTwin$ChildType, "C"),
-                 ChildCounts >= nrow(TwinsSubset))
-
-        cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of this sex are", nrow(TwinsSubset), "\n")
-
-        SelectedSchool <- AvailableSchools %>%
-          slice_sample(weight_by = ChildCounts, n = 1) %>%
-          select(SchoolID, ChildAge, ChildCounts)
-
-       # create the data frame that contains all the twins in the household
+      # create the data frame that contains all the twins in the household
         AllTwins <- TwinsSubset %>%
           filter(ChildAge == SelectedSchool$ChildAge)
 
@@ -448,10 +449,30 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
           FinalMatchedChildren <- SchoolMerged
         }
 
-        # closes if t loop through twins
+        # closes if loop for same-sex twins
       }
 
+      if (nrow(TwinsPyramid) == 2) {
+      #
+      #   AvailableSchools <- SchoolsRenamed %>%
+      #     filter(ChildAge == FirstTwin$ChildAge,
+      #            SchoolType %in% c(FirstTwin$ChildType, "C"),
+      #            ChildCounts >= nrow(TwinsSubset))
+      #
+      #   cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of this sex are", nrow(TwinsSubset), "\n")
+      #
+      #   SelectedSchool <- AvailableSchools %>%
+      #     slice_sample(weight_by = ChildCounts, n = 1) %>%
+      #     select(SchoolID, ChildAge, ChildCounts)
+      #
+      #
 
+        cat("This household", FirstTwin$HouseholdID, "has opposite sex twins", "\n")
+      #
+        # closes lop for opposite-sex twins
+      }
+
+      # closes for t loop through twins
       }
 
 
@@ -794,7 +815,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(SchoolsRenamed)
+  return(FinalMatchedChildren)
 
   # closes function
 }
