@@ -365,6 +365,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     if (HouseholdIDList[x,2] == "Y") {
 
  #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+      # need a loop through the working children here
+      # loop is: UNTIL THERE ARE NO WORKING CHILDREN
+      # cannot loop through 1:nrow because of the way the children are being handled
+      # twins represent two childrne removed, not one
 
       WorkingChildren <- WorkingChildren %>%
         slice_sample(n = nrow(WorkingChildren))
@@ -375,9 +379,12 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         summarise(Twins = n()) %>%
         filter(Twins > 1)
 
+      return(TwinsAges)
 
       # NOTE: could be more than one set of multiple births in the same household
       # loop through the TwinsAges subset
+      # look to remove this and simply loop through the children
+      # this means that the twins age structure will be reconstructed each time
       for (t in 1: nrow(TwinsAges)) {
 
         # cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
@@ -456,6 +463,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
         # TODO remove the relevant rows from TwinsAges
+        # TODO loop through any non-twins in the data
 
         # closes if loop for same-sex twins
       }
@@ -691,7 +699,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(WorkingChildren)
+  return()
 
   # closes function
 }
