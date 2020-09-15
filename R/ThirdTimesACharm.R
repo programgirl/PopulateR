@@ -366,14 +366,15 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
  #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
 
-      WorkingChildren <- ChildrenRenamed %>%
-        filter(HouseholdID %in% HouseholdIDList[x,1])
+      WorkingChildren <- WorkingChildren %>%
+        slice_sample(n = nrow(WorkingChildren))
 
       # get the age of the twins
       TwinsAges <- WorkingChildren %>%
         group_by(ChildAge) %>%
         summarise(Twins = n()) %>%
         filter(Twins > 1)
+
 
       # NOTE: could be more than one set of multiple births in the same household
       # loop through the TwinsAges subset
@@ -462,50 +463,28 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       if (nrow(TwinsPyramid) == 2) {
 
-        TwinsSubset <- TwinsSubset %>%
-          filter(ChildID != FirstTwin$ChildID)
+        cat("Household", FirstTwin$HouseholdID, "has opposite sex twins", "\n")
 
-        # cat("Household", FirstTwin$HouseholdID, "has opposite sex twins", "\n")
+        AvailableSchools <- SchoolsRenamed %>%
+          filter(ChildAge == FirstTwin$ChildAge,
+                 SchoolType %in% c(FirstTwin$ChildType, "C"),
+                 ChildCounts >= nrow(TwinsSubset))
 
+        SelectedSchool <- AvailableSchools %>%
+          slice_sample(weight_by = ChildCounts, n = 1) %>%
+          select(SchoolID, ChildAge, ChildCounts, SchoolType)
 
-        SelectedSchool <- merge(x = SelectedSchool, y = SchoolsRenamed[, c("SchoolID", "ChildAge", "ChildCounts", "SchoolType")], by = c("SchoolID", "ChildAge", "ChildCounts"))
+        # attach other twins who can also be in that school
+        # this will differ depending on whether the school or co-ed or same-sex
 
-        # subset other twin the same sex
-        OtherTwinSameSex <- TwinsSubset %>%
-          filter(ChildType == FirstTwin$ChildType)
+        # work with same-sex school
+        if (SelectedSchool$SchoolType != "C") {
 
+          AllTwinsSameSex <- TwinsSubset %>%
+            filter(ChildAge == SelectedSchool$ChildAge,
+                   ChildType == FirstTwin$ChildType)
 
-        # subset other twin the same sex
-        OtherTwinOppositeSex <- TwinsSubset %>%
-          filter(ChildType != FirstTwin$ChildType)
-
-        # loop for same-sex twin
-        if (!(is.na(OtherTwinSameSex$ChildID[1]) == TRUE)) {
-
-            cat("Same sex twin in household", FirstTwin$HouseholdID, "\n")
-
-          # merge with the FirstChild data frame
-
-
-          # closes loop to deal with same sex twin in a household containing opposite sex twins
-          }
-
-        # loop for opposite--sex twin
-        if (!(is.na(OtherTwinOppositeSex$ChildID[1]) == TRUE)) {
-
-          cat("Opposite sex twin in household", FirstTwin$HouseholdID, "\n")
-
-          # the opposite sex twins can be dealt with in toto
-          AvailableSchools <- SchoolsRenamed %>%
-            filter(ChildAge == OtherTwinOppositeSex$ChildAge,
-                   SchoolType %in% c(OtherTwinOppositeSex$ChildType, "C"),
-                   ChildCounts >= nrow(OtherTwinOppositeSex))
-
-          SelectedSchool <- AvailableSchools %>%
-            slice_sample(weight_by = ChildCounts, n = 1) %>%
-            select(SchoolID, ChildAge, ChildCounts)
-
-          SchoolMerged <- inner_join(SelectedSchool, AllTwins, by = "ChildAge")
+          SchoolMerged <- inner_join(SelectedSchool, AllTwinsSameSex, by = "ChildAge")
 
           # decrease school counts
           SchoolCountDecreases <- SchoolMerged %>%
@@ -524,19 +503,96 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
           SchoolList <- as.vector(SelectedSchool$SchoolID)
 
 
-          # if (exists("FinalMatchedChildren")) {
-          #
-          #   FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-          #
-          # } else {
-          #
-          #   FinalMatchedChildren <- SchoolMerged
-          # }
+          if (exists("FinalMatchedChildren")) {
 
-           # closes loop to deal with opposite sex twins in a household containing opposite sex twins
+            FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+          } else {
+
+            FinalMatchedChildren <- SchoolMerged
+          }
+
         }
 
+        # work with same-sex schools
+        if (SelectedSchool$SchoolType == "C") {
+
+
+
+        }
+
+
       #
+      #
+      #   SelectedSchool <- merge(x = SelectedSchool, y = SchoolsRenamed[, c("SchoolID", "ChildAge", "ChildCounts", "SchoolType")], by = c("SchoolID", "ChildAge", "ChildCounts"))
+      #
+      #   # subset other twin the same sex
+      #   OtherTwinSameSex <- TwinsSubset %>%
+      #     filter(ChildType == FirstTwin$ChildType)
+      #
+      #
+      #   # subset other twin the same sex
+      #   OtherTwinOppositeSex <- TwinsSubset %>%
+      #     filter(ChildType != FirstTwin$ChildType)
+      #
+      #   # loop for same-sex twin
+      #   if (!(is.na(OtherTwinSameSex$ChildID[1]) == TRUE)) {
+      #
+      #       cat("Same sex twin in household", FirstTwin$HouseholdID, "\n")
+      #
+      #     # merge with the FirstChild data frame
+      #
+      #
+      #     # closes loop to deal with same sex twin in a household containing opposite sex twins
+      #     }
+      #
+      #   # loop for opposite--sex twin
+      #   if (!(is.na(OtherTwinOppositeSex$ChildID[1]) == TRUE)) {
+      #
+      #     cat("Opposite sex twin in household", FirstTwin$HouseholdID, "\n")
+      #
+      #     # the opposite sex twins can be dealt with in toto
+      #     AvailableSchools <- SchoolsRenamed %>%
+      #       filter(ChildAge == OtherTwinOppositeSex$ChildAge,
+      #              SchoolType %in% c(OtherTwinOppositeSex$ChildType, "C"),
+      #              ChildCounts >= nrow(OtherTwinOppositeSex))
+      #
+      #     SelectedSchool <- AvailableSchools %>%
+      #       slice_sample(weight_by = ChildCounts, n = 1) %>%
+      #       select(SchoolID, ChildAge, ChildCounts)
+      #
+      #     SchoolMerged <- inner_join(SelectedSchool, AllTwins, by = "ChildAge")
+      #
+      #     # decrease school counts
+      #     SchoolCountDecreases <- SchoolMerged %>%
+      #       slice_head(n=1) %>%
+      #       mutate(FinalCounts = ChildCounts - nrow(TwinsSubset)) %>%
+      #       ungroup() %>%
+      #       distinct() %>%
+      #       select(-ChildCounts) %>%
+      #       rename(ChildCounts = FinalCounts)
+      #
+      #     SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+      #                                          SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+      #
+      #     SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+      #
+      #     SchoolList <- as.vector(SelectedSchool$SchoolID)
+      #
+      #
+      #     # if (exists("FinalMatchedChildren")) {
+      #     #
+      #     #   FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+      #     #
+      #     # } else {
+      #     #
+      #     #   FinalMatchedChildren <- SchoolMerged
+      #     # }
+      #
+      #      # closes loop to deal with opposite sex twins in a household containing opposite sex twins
+      #   }
+      #
+      # #
         # closes loop for opposite-sex twins
       }
 
