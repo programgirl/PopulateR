@@ -484,6 +484,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
             filter(ChildAge == SelectedSchool$ChildAge,
                    ChildType == FirstTwin$ChildType)
 
+          # work with all twins who are the same sex
           SchoolMerged <- inner_join(SelectedSchool, AllTwinsSameSex, by = "ChildAge")
 
           # decrease school counts
@@ -512,12 +513,53 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
             FinalMatchedChildren <- SchoolMerged
           }
 
+          # fix for twins who are the opposite sex
+          # extract them
+          AllTwinsOppositeSex <- TwinsSubset %>%
+            filter(ChildAge == SelectedSchool$ChildAge,
+                   ChildType != FirstTwin$ChildType)
+
+
         }
 
-        # work with same-sex schools
+        # work with co-ed schools
         if (SelectedSchool$SchoolType == "C") {
 
+          AllTwins <- TwinsSubset %>%
+            filter(ChildAge == SelectedSchool$ChildAge)
 
+
+          # add the same school to all the twins
+
+          SchoolMerged <- inner_join(SelectedSchool, AllTwins, by = "ChildAge")
+
+          # decrease school counts
+          SchoolCountDecreases <- SchoolMerged %>%
+            slice_head(n=1) %>%
+            mutate(FinalCounts = ChildCounts - nrow(TwinsSubset)) %>%
+            ungroup() %>%
+            distinct() %>%
+            select(-ChildCounts) %>%
+            rename(ChildCounts = FinalCounts)
+
+          SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                               SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+          SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+          SchoolList <- as.vector(SelectedSchool$SchoolID)
+
+
+          if (exists("FinalMatchedChildren")) {
+
+            FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+          } else {
+
+            FinalMatchedChildren <- SchoolMerged
+          }
+
+          # ends if loop for opposite sex twins, where the school is co-educational
 
         }
 
@@ -616,7 +658,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(FinalMatchedChildren)
+  return(AllTwinsOppositeSex)
 
   # closes function
 }
