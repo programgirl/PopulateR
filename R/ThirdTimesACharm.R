@@ -453,6 +453,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
           FinalMatchedChildren <- SchoolMerged
         }
 
+
+
+        # TODO remove the relevant rows from TwinsAges
+
         # closes if loop for same-sex twins
       }
 
@@ -519,7 +523,103 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
             filter(ChildAge == SelectedSchool$ChildAge,
                    ChildType != FirstTwin$ChildType)
 
+          if (!(is.na(AllTwinsOppositeSex$ChildID[1]))) {
 
+          WorkingChildType <- AllTwinsOppositeSex %>%
+            slice_head(n=1) %>%
+            pull(ChildType)
+
+           RandomRollResult <- runif(1, 0, 1)
+
+          if (RandomRollResult <= ChildProb) {
+
+            AvailableSchools <- SchoolsRenamed %>%
+              filter(ChildAge == FirstTwin$ChildAge,
+                     SchoolType == WorkingChildType,
+                     ChildCounts >= nrow(AllTwinsOppositeSex))
+
+            SelectedSchool <- AvailableSchools %>%
+              slice_sample(weight_by = ChildCounts, n = 1) %>%
+              select(SchoolID, ChildAge, ChildCounts, SchoolType)
+
+            # but will go to co-ed if no same-sex school available
+            if (is.na(AvailableSchools$SchoolType[1]) == TRUE) {
+
+              AvailableSchools <- SchoolsRenamed %>%
+                filter(ChildAge == FirstTwin$ChildAge,
+                       SchoolType == "C",
+                       ChildCounts >= nrow(AllTwinsOppositeSex))
+
+              SelectedSchool <- AvailableSchools %>%
+                slice_sample(weight_by = ChildCounts, n = 1) %>%
+                select(SchoolID, ChildAge, ChildCounts, SchoolType)
+
+              # put to co-ed if no same-sex school available
+            }
+
+            # if random roll not high enough, goes to co-ed school
+          } else {
+
+            AvailableSchools <- SchoolsRenamed %>%
+              filter(ChildAge == FirstTwin$ChildAge,
+                     SchoolType == "C",
+                     ChildCounts >= nrow(AllTwinsOppositeSex))
+
+            SelectedSchool <- AvailableSchools %>%
+              slice_sample(weight_by = ChildCounts, n = 1) %>%
+              select(SchoolID, ChildAge, ChildCounts, SchoolType)
+
+
+            # but will go to same-sex if no co-ed available
+            if (is.na(AvailableSchools$SchoolType[1]) == TRUE) {
+
+              AvailableSchools <- SchoolsRenamed %>%
+                filter(ChildAge == FirstTwin$ChildAge,
+                       SchoolType == WorkingChildType,
+                       ChildCounts >= nrow(AllTwinsOppositeSex))
+
+              SelectedSchool <- AvailableSchools %>%
+                slice_sample(weight_by = ChildCounts, n = 1) %>%
+                select(SchoolID, ChildAge, ChildCounts, SchoolType)
+
+              # closes loop for going to same-sex if no co-ed available
+              }
+
+          # closes if loop for random roll
+          }
+
+           SchoolMerged <- inner_join(SelectedSchool, AllTwinsSameSex, by = "ChildAge")
+
+           # decrease school counts
+           SchoolCountDecreases <- SchoolMerged %>%
+             slice_head(n=1) %>%
+             mutate(FinalCounts = ChildCounts - nrow(TwinsSubset)) %>%
+             ungroup() %>%
+             distinct() %>%
+             select(-ChildCounts) %>%
+             rename(ChildCounts = FinalCounts)
+
+           SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                                SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+           SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+           SchoolList <- as.vector(SelectedSchool$SchoolID)
+
+
+           if (exists("FinalMatchedChildren")) {
+
+             FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+           } else {
+
+             FinalMatchedChildren <- SchoolMerged
+           }
+
+           # closes school assignment when opposite-sex twins exist
+          }
+
+           # closes loop for when first twin is assigned to a same-sex school
         }
 
         # work with co-ed schools
@@ -560,83 +660,11 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
           }
 
           # ends if loop for opposite sex twins, where the school is co-educational
+          }
 
+
+         # closes loop for opposite-sex twins
         }
-
-
-      #
-      #
-      #   SelectedSchool <- merge(x = SelectedSchool, y = SchoolsRenamed[, c("SchoolID", "ChildAge", "ChildCounts", "SchoolType")], by = c("SchoolID", "ChildAge", "ChildCounts"))
-      #
-      #   # subset other twin the same sex
-      #   OtherTwinSameSex <- TwinsSubset %>%
-      #     filter(ChildType == FirstTwin$ChildType)
-      #
-      #
-      #   # subset other twin the same sex
-      #   OtherTwinOppositeSex <- TwinsSubset %>%
-      #     filter(ChildType != FirstTwin$ChildType)
-      #
-      #   # loop for same-sex twin
-      #   if (!(is.na(OtherTwinSameSex$ChildID[1]) == TRUE)) {
-      #
-      #       cat("Same sex twin in household", FirstTwin$HouseholdID, "\n")
-      #
-      #     # merge with the FirstChild data frame
-      #
-      #
-      #     # closes loop to deal with same sex twin in a household containing opposite sex twins
-      #     }
-      #
-      #   # loop for opposite--sex twin
-      #   if (!(is.na(OtherTwinOppositeSex$ChildID[1]) == TRUE)) {
-      #
-      #     cat("Opposite sex twin in household", FirstTwin$HouseholdID, "\n")
-      #
-      #     # the opposite sex twins can be dealt with in toto
-      #     AvailableSchools <- SchoolsRenamed %>%
-      #       filter(ChildAge == OtherTwinOppositeSex$ChildAge,
-      #              SchoolType %in% c(OtherTwinOppositeSex$ChildType, "C"),
-      #              ChildCounts >= nrow(OtherTwinOppositeSex))
-      #
-      #     SelectedSchool <- AvailableSchools %>%
-      #       slice_sample(weight_by = ChildCounts, n = 1) %>%
-      #       select(SchoolID, ChildAge, ChildCounts)
-      #
-      #     SchoolMerged <- inner_join(SelectedSchool, AllTwins, by = "ChildAge")
-      #
-      #     # decrease school counts
-      #     SchoolCountDecreases <- SchoolMerged %>%
-      #       slice_head(n=1) %>%
-      #       mutate(FinalCounts = ChildCounts - nrow(TwinsSubset)) %>%
-      #       ungroup() %>%
-      #       distinct() %>%
-      #       select(-ChildCounts) %>%
-      #       rename(ChildCounts = FinalCounts)
-      #
-      #     SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-      #                                          SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-      #
-      #     SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-      #
-      #     SchoolList <- as.vector(SelectedSchool$SchoolID)
-      #
-      #
-      #     # if (exists("FinalMatchedChildren")) {
-      #     #
-      #     #   FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-      #     #
-      #     # } else {
-      #     #
-      #     #   FinalMatchedChildren <- SchoolMerged
-      #     # }
-      #
-      #      # closes loop to deal with opposite sex twins in a household containing opposite sex twins
-      #   }
-      #
-      # #
-        # closes loop for opposite-sex twins
-      }
 
       # closes for t loop through twins
       }
@@ -651,6 +679,11 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       WorkingChildren <- WorkingChildren %>%
         filter(!(ChildID %in% TwinsSubset$ChildID))
 
+
+
+      # something about here
+      # TODO remove the relevant rows from TwinsAges
+
       # closes if loop for multi-child household that DOES CONTAIN twins
     }
 
@@ -658,7 +691,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
     # closes for x loop that moves through the households
   }
 
-  return(AllTwinsOppositeSex)
+  return(WorkingChildren)
 
   # closes function
 }
