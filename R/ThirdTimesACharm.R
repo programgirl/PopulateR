@@ -150,6 +150,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
   HouseholdIDList <- bind_rows(InitialHouseholdRebind, BottomNoTwins)
 
+  return(HouseholdIDList)
+
   #####################################################################
   #####################################################################
   # end data preparation
@@ -379,7 +381,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
         summarise(Twins = n()) %>%
         filter(Twins > 1)
 
-      return(TwinsAges)
 
       # NOTE: could be more than one set of multiple births in the same household
       # loop through the TwinsAges subset
