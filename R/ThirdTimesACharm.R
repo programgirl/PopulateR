@@ -390,25 +390,46 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       if (!(is.na(TwinsAges$Twins[1])) == TRUE) {
 
+        # cat("Multi-child household with twins", HouseholdIDList[x,1], "and twin age is", TwinsAges$ChildAge[1], "\n")
         # grab the first row, which is the twins age to use
 
-        cat("Multi-child household with twins", HouseholdIDList[x,1], "and twin age is", TwinsAges$ChildAge[1], "\n")
+        TwinsSubset <- WorkingChildren %>%
+          filter(ChildAge == TwinsAges$ChildAge[1])
 
-      TwinsSubset <- WorkingChildren %>%
-        filter(ChildAge == TwinsAges$ChildAge[1])
+        # now working with ONLY the twins that are in that subset
+        # NOTE: they may be either all one sex or both sexes
+        # For triplets etc, both same-sex AND opposite may exist for the age
+
+             # get number of children for each sex
+
+             TwinsPyramid <- TwinsSubset %>%
+               group_by(ChildType) %>%
+               summarise(TypeCount = n())
+
+             # randomise order of twins
+             TwinsSubset <- TwinsSubset %>%
+               slice_sample(n=nrow(TwinsSubset))
+
+             # draw first twin
+             FirstTwin <- TwinsSubset %>%
+                 slice_head(n=1)
+
+        #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
+
+
 
             # remove the matched children from the working dataframe (i.e. from those still to be matched)
             WorkingChildren <- WorkingChildren %>%
               filter(!(ChildID %in%  TwinsSubset$ChildID))
 
-               if (exists("FinalTwinsSubset")) {
+               if (exists("FirstTwinsOnly")) {
 
-                 FinalTwinsSubset <- bind_rows(FinalTwinsSubset, TwinsSubset)
+                 FirstTwinsOnly <- bind_rows(FirstTwinsOnly, FirstTwin)
 
                } else {
 
 
-                 FinalTwinsSubset <- TwinsSubset
+                 FirstTwinsOnly <- FirstTwin
 
 
 
@@ -444,7 +465,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # closes for x loop that moves through the households
     }
 
-    return(FinalTwinsSubset)
+    return(FirstTwinsOnly)
 
     # closes function
   }
@@ -454,21 +475,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
- #      # get number of children for each sex
- #
- #      TwinsPyramid <- TwinsSubset %>%
- #        group_by(ChildType) %>%
- #        summarise(TypeCount = n())
- #
- #      # randomise order of twins
- #      TwinsSubset <- TwinsSubset %>%
- #        slice_sample(n=nrow(TwinsSubset))
- #
- #      # draw first twin
- #      FirstTwin <- TwinsSubset %>%
- #          slice_head(n=1)
- #
- # #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
  #
  #      if (nrow(TwinsPyramid) == 1) {
  #
