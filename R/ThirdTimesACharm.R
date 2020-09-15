@@ -416,6 +416,20 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
         #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
 
+             #####################################################################
+             # twins are all the one sex
+             #####################################################################
+             # indicates that there is only one sex present for that twin age
+             # all twins can be allocated to the same school, irrespective of whether the school is same-sex or co-ed
+                  if (nrow(TwinsPyramid) == 1) {
+
+                    cat("Household", FirstTwin$HouseholdID, "contains same-sex twins for age", FirstTwin$ChildAge, "\n")
+
+
+                    # closes test for whether all twins are the same sex
+                  }
+
+
 
 
             # remove the matched children from the working dataframe (i.e. from those still to be matched)
@@ -440,7 +454,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # closes if statement for looping through the sets of twins
       } else {
 
-        cat("Loop entered", "\n")
+        # cat("Loop entered", "\n")
         # and now for the non-twins
 
         # for the moment, just remove them from the working children so that we move through the households
