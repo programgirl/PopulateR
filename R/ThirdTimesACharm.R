@@ -365,6 +365,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     if (HouseholdIDList[x,2] == "Y") {
 
+      SchoolList <- vector()
+
  #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
       # need a loop through the working children here
       # loop is: UNTIL THERE ARE NO WORKING CHILDREN
@@ -423,24 +425,31 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
              # all twins can be allocated to the same school, irrespective of whether the school is same-sex or co-ed
                   if (nrow(TwinsPyramid) == 1) {
 
-                    cat("Household", FirstTwin$HouseholdID, "contains same-sex twins for age", FirstTwin$ChildAge, "\n")
-
-                    # get the counts for that age/sex
+                     # get the counts for that age/sex
 
                     NumberOfTwins <- WorkingChildren %>%
                       filter(ChildAge == FirstTwin$ChildAge) %>%
                       summarise(NumberThatAge = n()) %>%
                       pull(NumberThatAge)
 
-
                     cat("In household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
 
-                    # get the available schools for the first twin
+                   # get the available schools for the first twin
 
-                    #        AvailableSchools <- SchoolsRenamed %>%
-                    #          filter(ChildAge == FirstTwin$ChildAge,
-                    #                 SchoolType %in% c(FirstTwin$ChildType, "C"),
-                    #                 ChildCounts >= nrow(TwinsSubset))
+                    AvailableSchools <- SchoolsRenamed %>%
+                      filter(ChildAge == FirstTwin$ChildAge,
+                             SchoolType %in% c(FirstTwin$ChildType, "C"),
+                             ChildCounts >= nrow(TwinsSubset))
+
+                    # if a school list already exists for previous twins, add them to it
+
+                    if (length(SchoolList) == 0) {
+
+                      cat("There is no School List file", "\n")
+                    }
+
+
+
 
 
 
