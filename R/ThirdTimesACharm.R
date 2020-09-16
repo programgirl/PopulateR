@@ -425,6 +425,24 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     cat("Household", FirstTwin$HouseholdID, "contains same-sex twins for age", FirstTwin$ChildAge, "\n")
 
+                    # get the counts for that age/sex
+
+                    NumberOfTwins <- WorkingChildren %>%
+                      filter(ChildAge == FirstTwin$ChildAge) %>%
+                      summarise(NumberThatAge = n()) %>%
+                      pull(NumberThatAge)
+
+
+                    cat("In household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
+
+                    # get the available schools for the first twin
+
+                    #        AvailableSchools <- SchoolsRenamed %>%
+                    #          filter(ChildAge == FirstTwin$ChildAge,
+                    #                 SchoolType %in% c(FirstTwin$ChildType, "C"),
+                    #                 ChildCounts >= nrow(TwinsSubset))
+
+
 
                     # closes test for whether all twins are the same sex
                   }
