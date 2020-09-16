@@ -439,21 +439,92 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                     AvailableSchools <- SchoolsRenamed %>%
                       filter(ChildAge == FirstTwin$ChildAge,
                              SchoolType %in% c(FirstTwin$ChildType, "C"),
-                             ChildCounts >= nrow(TwinsSubset))
+                             ChildCounts >= NumberOfTwins)
 
                     # if a school list already exists for previous twins, add them to it
 
-                    if (length(SchoolList) == 0) {
+                    if (length(SchoolList) > 0) {
 
-                      cat("There is no School List file", "\n")
+                      cat("There is a School List file", "\n")
+
+                      RandomRollResult <- runif(1, 0, 1)
+
+                      if (RandomRollResult <= ChildProb) {
+
+                        # when twins should be allocated to the same school
+
+                      RestrictedAvailableSchools <- AvailableSchools %>%
+                        filter(SchoolID %in% SchoolList)
+
+                      } else {
+
+                        # roll means that twins should go to a different school
+
+                        RestrictedAvailableSchools <- AvailableSchools %>%
+                          filter(!(SchoolID %in% SchoolList))
+
+                        # closes random roll effect
+                      }
+
+                      # closes if loop for when schools have already been allocated to previous children
                     }
 
+                    # select the school
+
+                    if (exists("RestrictedAvailableSchools") == TRUE) {
+
+                      SelectedSchool <- RestrictedAvailableSchools %>%
+                        slice_sample(weight_by = ChildCounts, n = 1)  %>%
+                        select(SchoolID, ChildAge, ChildCounts)
+
+                    } else {
+
+                      SelectedSchool <- AvailableSchools %>%
+                        slice_sample(weight_by = ChildCounts, n = 1) %>%
+                        select(SchoolID, ChildAge, ChildCounts)
+
+                      # closes loop for selecting the school
+                    }
+
+                    # add the selected school to the twins
+
+                    CurrentTwins <- WorkingChildren %>%
+                      filter(ChildAge == FirstTwin$ChildAge)
+
+                    SchoolMerged <- right_join(SelectedSchool, CurrentTwins, by = "ChildAge")
+
+                    SchoolCountDecreases <- SchoolMerged %>%
+                      slice_head(n=1) %>%
+                      mutate(FinalCounts = ChildCounts - nrow(CurrentTwins)) %>%
+                      ungroup() %>%
+                      distinct() %>%
+                      select(-ChildCounts) %>%
+                      rename(ChildCounts = FinalCounts)
+
+                    SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                                               SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+                    SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+                    SchoolList <- c(SchoolList, SchoolCountDecreases$ID)
 
 
+                    # put the children who have been assigned to schools into the output file
+
+                            if (exists("FinalMatchedChildren")) {
+
+                              FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+
+                            } else {
 
 
+                              FinalMatchedChildren <- SchoolMerged
 
-                    # closes test for whether all twins are the same sex
+                              # closes if statement for existence of FinalMatchedChildren
+                            }
+
+
+                 # closes test for whether all twins are the same sex
                   }
 
 
@@ -463,14 +534,14 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
             WorkingChildren <- WorkingChildren %>%
               filter(!(ChildID %in%  TwinsSubset$ChildID))
 
-               if (exists("FirstTwinsOnly")) {
+               if (exists("SchoolsToTwins")) {
 
-                 FirstTwinsOnly <- bind_rows(FirstTwinsOnly, FirstTwin)
+                 SchoolsToTwins <- bind_rows(SchoolsToTwins, SelectedSchool)
 
                } else {
 
 
-                 FirstTwinsOnly <- FirstTwin
+                 SchoolsToTwins <- SelectedSchool
 
 
 
@@ -506,7 +577,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # closes for x loop that moves through the households
     }
 
-    return(FirstTwinsOnly)
+    return(FinalMatchedChildren)
 
     # closes function
   }
