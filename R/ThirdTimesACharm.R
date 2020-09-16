@@ -432,7 +432,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                       summarise(NumberThatAge = n()) %>%
                       pull(NumberThatAge)
 
-                    cat("In household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
+                    # cat("In household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
 
                    # get the available schools for the first twin
 
@@ -550,6 +550,24 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
              if (nrow(TwinsPyramid) == 2) {
 
+                # if there is a co-ed school already in existence, with a suitable roll size, complexity below disappears
+                # test for presence of co-ed school already present in data
+                # will only exist if twins of another age have already been allocated to a co-ed school
+                # but still, worth a shot
+
+                if (length(SchoolList) > 0) {
+
+                   RestrictedSchools <- SchoolsRenamed %>%
+                      filter(SchoolID %in% c(SchoolList),
+                             SchoolType == "C",
+                             ChildAge == FirstTwin$ChildAge,
+                             ChildCounts >= nrow(TwinsSubset))
+
+                }
+
+                # TODO  deal with restricted schools that are co-ed AND incorporate random roll
+                # TODO will need a random roll in here w.r.t. restricted school list
+
                  # deal with the twins who are the same sex as the first twin drawn
                 OtherTwinsThatSex <- TwinsSubset %>%
                    filter(ChildType == FirstTwin$ChildType)
@@ -565,6 +583,13 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                     "and", NumberTwinsOppositeSex, "who are not",  "\n")
 
 
+                # need to do two sets of code here, one for those in NumberTwinsSameSex and a second for NumberTwinsOppositeSex
+
+
+
+
+
+                # closes if loop for twins of opposite sex
              }
 
 
