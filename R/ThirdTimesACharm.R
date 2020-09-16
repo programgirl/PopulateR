@@ -393,7 +393,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       if (!(is.na(TwinsAges$Twins[1])) == TRUE) {
 
         # cat("Multi-child household with twins", HouseholdIDList[x,1], "and twin age is", TwinsAges$ChildAge[1], "\n")
-        # grab the first row, which is the twins age to use
+        # grab the first row, which is the twins' age to use
 
         TwinsSubset <- WorkingChildren %>%
           filter(ChildAge == TwinsAges$ChildAge[1])
@@ -453,8 +453,12 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                         # when twins should be allocated to the same school
 
+                         cat("Random roll is to allocate to same school", "\n")
+
                       RestrictedAvailableSchools <- AvailableSchools %>%
                         filter(SchoolID %in% SchoolList)
+
+                      cat("The number of possible schools are", nrow(RestrictedAvailableSchools), "\n")
 
                       } else {
 
@@ -462,6 +466,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                         RestrictedAvailableSchools <- AvailableSchools %>%
                           filter(!(SchoolID %in% SchoolList))
+
+                        cat("Child must go to a different school", "\n")
 
                         # closes random roll effect
                       }
@@ -471,7 +477,13 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     # select the school
 
-                    if (exists("RestrictedAvailableSchools") == TRUE) {
+                    if (exists("RestrictedAvailableSchools") && !(is.na(RestrictedAvailableSchools$SchoolID[1])) == TRUE) {
+
+                       cat("Now dealing with the all the restricted schools of which there are", nrow(RestrictedAvailableSchools), "\n")
+
+                       # loop isn't entered
+
+                       # cat("Restricted schools list available for household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
 
                       SelectedSchool <- RestrictedAvailableSchools %>%
                         slice_sample(weight_by = ChildCounts, n = 1)  %>%
@@ -506,7 +518,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
-                    SchoolList <- c(SchoolList, SchoolCountDecreases$ID)
+                    SchoolList <- c(SchoolList, SchoolCountDecreases$SchoolID)
 
 
                     # put the children who have been assigned to schools into the output file
