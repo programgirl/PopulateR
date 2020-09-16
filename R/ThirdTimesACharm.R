@@ -445,7 +445,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     if (length(SchoolList) > 0) {
 
-                      cat("There is a School List file", "\n")
+                      # cat("There is a School List file", "\n")
 
                       RandomRollResult <- runif(1, 0, 1)
 
@@ -453,12 +453,12 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                         # when twins should be allocated to the same school
 
-                         cat("Random roll is to allocate to same school", "\n")
+                         # cat("Random roll is to allocate to same school", "\n")
 
                       RestrictedAvailableSchools <- AvailableSchools %>%
                         filter(SchoolID %in% SchoolList)
 
-                      cat("The number of possible schools are", nrow(RestrictedAvailableSchools), "\n")
+                      # cat("The number of possible schools is", nrow(RestrictedAvailableSchools), "\n")
 
                       } else {
 
@@ -467,7 +467,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                         RestrictedAvailableSchools <- AvailableSchools %>%
                           filter(!(SchoolID %in% SchoolList))
 
-                        cat("Child must go to a different school", "\n")
+                        # cat("Child must go to a different school", "\n")
 
                         # closes random roll effect
                       }
@@ -479,7 +479,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     if (exists("RestrictedAvailableSchools") && !(is.na(RestrictedAvailableSchools$SchoolID[1])) == TRUE) {
 
-                       cat("Now dealing with the all the restricted schools of which there are", nrow(RestrictedAvailableSchools), "\n")
+                       # cat("Now dealing with the all the restricted schools of which there are", nrow(RestrictedAvailableSchools), "\n")
 
                        # loop isn't entered
 
@@ -538,6 +538,34 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                  # closes test for whether all twins are the same sex
                   }
+
+
+             #####################################################################
+             # twins are different sexes
+             #####################################################################
+             # indicates that there are two sexes present for that twin age
+             # all twins can be allocated to the same school ONLY when a co-ed school is picked first
+             # if a same-sex school is picked for the first twin, all subsequent opposite-sex twins should ALSO go
+             # to a same-sex if one is available, otherwise to a co-ed school
+
+             if (nrow(TwinsPyramid) == 2) {
+
+                 # deal with the twins who are the same sex as the first twin drawn
+                OtherTwinsThatSex <- TwinsSubset %>%
+                   filter(ChildType == FirstTwin$ChildType)
+
+                NumberTwinsSameSex <- nrow(OtherTwinsThatSex)
+
+                OtherTwinsOppositeSex <- TwinsSubset %>%
+                   filter(ChildType != FirstTwin$ChildType)
+
+                NumberTwinsOppositeSex <- nrow(OtherTwinsOppositeSex)
+
+                cat("In household", FirstTwin$HouseholdID, "there are ", NumberTwinsSameSex, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType,
+                    "and", NumberTwinsOppositeSex, "who are not",  "\n")
+
+
+             }
 
 
 
