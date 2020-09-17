@@ -377,7 +377,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       WorkingChildren <- WorkingChildren %>%
         slice_sample(n = nrow(WorkingChildren))
 
-     cat("HouseholdID is", WorkingChildren$HouseholdID[1], "and the school list contains", paste0(SchoolList), "\n")
+     # cat("HouseholdID is", WorkingChildren$HouseholdID[1], "and the school list contains", paste0(SchoolList), "\n")
 
       # loop through the children in the household
       # the number of children will decrease more than one for twins
@@ -453,6 +453,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     RandomRollResult <- runif(1, 0, 1)
 
+                    # there are four possible combinations of random roll and school list
+                    # have done these separately so I don't get multiple nested if loops
+
+                    # significant random roll and a school match exists
                     if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
                        SelectedSchool <- AvailableSchools %>%
@@ -461,6 +465,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     }
 
+                    # non-significant random roll and a school match exists
                     if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
                        SelectedSchool <- AvailableSchools %>%
@@ -469,17 +474,17 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     }
 
-                    if (RandomRollResult <= ChildProb && !(SchoolList %in% AvailableSchools$SchoolID)) {
+                    # just need the one, it only matters if the school DOES not exist in the schools list
+                    # can therefore ignore the random roll result
+                    # as no school matching problem exists
+                    if (!(SchoolList %in% AvailableSchools$SchoolID)) {
 
                        SelectedSchool <- AvailableSchools %>%
                           slice_sample(weight_by = ChildCounts, n = 1)
 
                     }
 
-
-
-                    #closes SchoolList actions
-
+                     #closes SchoolList actions
                     }
 
                     # add the selected school to the twins
