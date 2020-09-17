@@ -365,7 +365,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
     if (HouseholdIDList[x,2] == "Y") {
 
-      SchoolList <- vector()
+       SchoolList <- c()
+
 
  #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
       # need a loop through the working children here
@@ -375,6 +376,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
       WorkingChildren <- WorkingChildren %>%
         slice_sample(n = nrow(WorkingChildren))
+
+     cat("HouseholdID is", WorkingChildren$HouseholdID[1], "and the school list contains", paste0(SchoolList), "\n")
 
       # loop through the children in the household
       # the number of children will decrease more than one for twins
@@ -441,61 +444,33 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                              SchoolType %in% c(FirstTwin$ChildType, "C"),
                              ChildCounts >= NumberOfTwins)
 
-                    # if a school list already exists for previous twins, add them to it
+                    if (length(SchoolList) == 0) {
 
-                    if (length(SchoolList) > 0) {
-
-                      # cat("There is a School List file", "\n")
-
-                      RandomRollResult <- runif(1, 0, 1)
-
-                      if (RandomRollResult <= ChildProb) {
-
-                        # when twins should be allocated to the same school
-
-                         # cat("Random roll is to allocate to same school", "\n")
-
-                      RestrictedAvailableSchools <- AvailableSchools %>%
-                        filter(SchoolID %in% SchoolList)
-
-                      # cat("The number of possible schools is", nrow(RestrictedAvailableSchools), "\n")
-
-                      } else {
-
-                        # roll means that twins should go to a different school
-
-                        RestrictedAvailableSchools <- AvailableSchools %>%
-                          filter(!(SchoolID %in% SchoolList))
-
-                        # cat("Child must go to a different school", "\n")
-
-                        # closes random roll effect
-                      }
-
-                      # closes if loop for when schools have already been allocated to previous children
-                    }
-
-                    # select the school
-
-                    if (exists("RestrictedAvailableSchools") && !(is.na(RestrictedAvailableSchools$SchoolID[1])) == TRUE) {
-
-                       # cat("Now dealing with the all the restricted schools of which there are", nrow(RestrictedAvailableSchools), "\n")
-
-                       # loop isn't entered
-
-                       # cat("Restricted schools list available for household", FirstTwin$HouseholdID, "there are ", NumberOfTwins, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType, "\n")
-
-                      SelectedSchool <- RestrictedAvailableSchools %>%
-                        slice_sample(weight_by = ChildCounts, n = 1)  %>%
-                        select(SchoolID, ChildAge, ChildCounts)
+                       SelectedSchool <- AvailableSchools %>%
+                          slice_sample(weight_by = ChildCounts, n = 1)
 
                     } else {
 
-                      SelectedSchool <- AvailableSchools %>%
-                        slice_sample(weight_by = ChildCounts, n = 1) %>%
-                        select(SchoolID, ChildAge, ChildCounts)
+                    RandomRollResult <- runif(1, 0, 1)
 
-                      # closes loop for selecting the school
+                    if (RandomRollResult <= ChildProb & SchoolList %in% AvailableSchools$SchoolID) {
+
+                       SelectedSchool <- AvailableSchools %>%
+                          filter(SchoolID %in% SchoolList) %>%
+                          slice_sample(weight_by = ChildCounts, n = 1)
+
+                    }
+
+                    if (RandomRollResult > ChildProb & SchoolList %in% AvailableSchools$SchoolID) {
+
+                       SelectedSchool <- AvailableSchools %>%
+                          filter(!(SchoolID %in% SchoolList)) %>%
+                          slice_sample(weight_by = ChildCounts, n = 1)
+
+                    }
+
+                    #closes SchoolList actions
+
                     }
 
                     # add the selected school to the twins
@@ -504,6 +479,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                       filter(ChildAge == FirstTwin$ChildAge)
 
                     SchoolMerged <- right_join(SelectedSchool, CurrentTwins, by = "ChildAge")
+
+                    cat("School just added is", SchoolMerged$SchoolID[1], "\n")
 
                     SchoolCountDecreases <- SchoolMerged %>%
                       slice_head(n=1) %>%
@@ -518,7 +495,21 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
 
-                    SchoolList <- c(SchoolList, SchoolCountDecreases$SchoolID)
+                    if(exists("SchoolList")) {
+
+                       SchoolList <- c(SchoolList, SchoolCountDecreases$SchoolID)
+
+                    } else {
+
+                       SchoolList <- SchoolCountDecreases$SchoolID
+
+                    cat(SchoolCountDecreases$SchoolID, "has been added to the School List", "\n")
+
+                        cat("Household is",  FirstTwin$HouseholdID, "and schoolID is", SchoolCountDecreases$SchoolID, "\n")
+                        cat("The SchoolList now contains", paste0(SchoolList), "\n")
+
+                        # closes school list loop
+                        }
 
 
                     # put the children who have been assigned to schools into the output file
@@ -579,8 +570,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                 NumberTwinsOppositeSex <- nrow(OtherTwinsOppositeSex)
 
-                cat("In household", FirstTwin$HouseholdID, "there are ", NumberTwinsSameSex, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType,
-                    "and", NumberTwinsOppositeSex, "who are not",  "\n")
+                # cat("In household", FirstTwin$HouseholdID, "there are ", NumberTwinsSameSex, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType,
+                #     "and", NumberTwinsOppositeSex, "who are not",  "\n")
 
 
                 # need to do two sets of code here, one for those in NumberTwinsSameSex and a second for NumberTwinsOppositeSex
