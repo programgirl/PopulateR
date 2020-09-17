@@ -453,7 +453,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     RandomRollResult <- runif(1, 0, 1)
 
-                    if (RandomRollResult <= ChildProb & SchoolList %in% AvailableSchools$SchoolID) {
+                    if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
                        SelectedSchool <- AvailableSchools %>%
                           filter(SchoolID %in% SchoolList) %>%
@@ -461,13 +461,22 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
                     }
 
-                    if (RandomRollResult > ChildProb & SchoolList %in% AvailableSchools$SchoolID) {
+                    if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
                        SelectedSchool <- AvailableSchools %>%
                           filter(!(SchoolID %in% SchoolList)) %>%
                           slice_sample(weight_by = ChildCounts, n = 1)
 
                     }
+
+                    if (RandomRollResult <= ChildProb && !(SchoolList %in% AvailableSchools$SchoolID)) {
+
+                       SelectedSchool <- AvailableSchools %>%
+                          slice_sample(weight_by = ChildCounts, n = 1)
+
+                    }
+
+
 
                     #closes SchoolList actions
 
