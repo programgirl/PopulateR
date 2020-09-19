@@ -622,15 +622,19 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # closes if statement for looping through the sets of twins
       } else {
 
-          # and now for the non-twins
+         # for the moment, just remove them from the working children so that we move through the households
 
-        # for the moment, just remove them from the working children so that we move through the households
+         CurrentChild <- WorkingChildren[1,]
 
-        CurrentChild <- WorkingChildren[1,]
+         WorkingChildren <- WorkingChildren %>%
+            filter(!(ChildID %in%  TwinsSubset$ChildID) &
+                      !( ChildID %in%  CurrentChild$ChildID))
 
-        WorkingChildren <- WorkingChildren %>%
-          filter(!(ChildID %in%  TwinsSubset$ChildID) &
-                   !( ChildID %in%  CurrentChild$ChildID))
+      }
+
+         #####################################################################
+         # assign the non-twins who are in the twin households
+         #####################################################################
 
            # loop through the other children
            for (y in 1:nrow(WorkingChildren)) {
@@ -644,38 +648,37 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                       SchoolType %in% c(CurrentChild$ChildType, "C"),
                       ChildCounts > 0)
 
-              if (RandomRollResult <= ChildProb) {
+                  # there are four possible combinations of random roll and school list
+                 # have done these separately so I don't get multiple nested if loops
 
-                SelectedSchool <- AvailableSchools %>%
-                  filter(SchoolID %in% SchoolList)
+                 # significant random roll and a school match exists
+                 if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
-                # fix the problem if there the classroom count is 0
-                if (is.na(SelectedSchool$SchoolType[1]) == TRUE) {
+                    SelectedSchool <- AvailableSchools %>%
+                       filter(SchoolID %in% SchoolList) %>%
+                       slice_sample(weight_by = ChildCounts, n = 1)
 
-                  SelectedSchool <- AvailableSchools %>%
-                    slice_sample(weight_by = ChildCounts, n = 1) %>%
-                    select(SchoolID, ChildAge, ChildCounts)
+                 }
 
-                  # closes if fix for putting in a school replacement where no classroom space available
-                }
+                 # non-significant random roll and a school match exists
+                 if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
 
+                    SelectedSchool <- AvailableSchools %>%
+                       filter(!(SchoolID %in% SchoolList)) %>%
+                       slice_sample(weight_by = ChildCounts, n = 1)
 
-              } else {
-                # ensure that match is to a school not in the school list, as the child cannot be allocated to the same school as another one in the family
+                 }
 
-                AvailableSchools <- SchoolsRenamed %>%
-                  filter(ChildAge == CurrentChild$ChildAge,
-                         SchoolType %in% c(CurrentChild$ChildType, "C"),
-                         ChildCounts > 0,
-                         !(SchoolID %in% c(SchoolList)))
+                 # just need the one, it only matters if the school DOES not exist in the schools list
+                 # can therefore ignore the random roll result
+                 # as no school matching problem exists
+                 if (!(SchoolList %in% AvailableSchools$SchoolID)) {
 
+                    SelectedSchool <- AvailableSchools %>%
+                       slice_sample(weight_by = ChildCounts, n = 1)
 
-                SelectedSchool <- AvailableSchools %>%
-                  slice_sample(weight_by = ChildCounts, n = 1) %>%
-                  select(SchoolID, ChildAge, ChildCounts)
+                 }
 
-                # closes if for school match using the rolled probability
-              }
 
               SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
 
@@ -704,7 +707,6 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-        #THESE BITS BELOW ARE ALL WRONG
       # closes while statement for working through the children in the household
       }
 
