@@ -540,6 +540,10 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
                               # closes if statement for existence of FinalMatchedChildren
                             }
 
+                    # remove the twins from the working children
+                    WorkingChildren <- WorkingChildren %>%
+                       filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+
 
                  # closes test for whether all twins are the same sex
                   }
@@ -626,9 +630,122 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
          CurrentChild <- WorkingChildren[1,]
 
+         cat("Current child is", CurrentChild$ChildID, "\n")
+
+         ########### added in bit starts here
+           RandomRollResult <- runif(1, 0, 1)
+
+            AvailableSchools <- SchoolsRenamed %>%
+             filter(ChildAge == CurrentChild$ChildAge,
+                    SchoolType %in% c(CurrentChild$ChildType, "C"),
+                    ChildCounts > 0)
+
+            cat("The school list is", paste0(SchoolList), "\n")
+                # there are four possible combinations of random roll and school list
+               # have done these separately so I don't get multiple nested if loops
+
+
+            # TODO ###########################3
+            # ########## ADDED IN BECAUSE OPPOSITE SEX TWINS NOT YET IMPLEMENTED
+            # significant random roll and a school match exists
+            #    if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+            #
+            #       cat("Died in this first loop", "\n")
+            #
+            #       SelectedSchool <- AvailableSchools %>%
+            #          filter(SchoolID %in% SchoolList) %>%
+            #          slice_sample(weight_by = ChildCounts, n = 1)
+            #
+            #    }
+            # ############ REMOVE THIS SUBSECTION WHEN OPPOSITE TWINS IMPLEMENTED
+            # #########################3
+            #
+            #
+            #
+            # TODO ###########################3
+            # ########## ADDED IN BECAUSE OPPOSITE SEX TWINS NOT YET IMPLEMENTED
+            #
+            #    # non-significant random roll and a school match exists
+            #    if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+            #
+            #       cat("Died in this second loop", "\n")
+            #
+            #       SelectedSchool <- AvailableSchools %>%
+            #          filter(!(SchoolID %in% SchoolList)) %>%
+            #          slice_sample(weight_by = ChildCounts, n = 1)
+            #
+            #    }
+            # TODO ############ UNCOMMENT THIS SUBSECTION WHEN OPPOSITE TWINS IMPLEMENTED
+            # #########################
+            #
+            #
+            #
+            # TODO ###########################3
+            # ########## ADDED IN BECAUSE OPPOSITE SEX TWINS NOT YET IMPLEMENTED
+            #    # just need the one, it only matters if the school DOES not exist in the schools list
+            #    # can therefore ignore the random roll result
+            #    # as no school matching problem exists
+            #    if (!(SchoolList %in% AvailableSchools$SchoolID)) {
+            #
+            #       cat("Died in this third loop", "\n")
+            #
+            #       SelectedSchool <- AvailableSchools %>%
+            #          slice_sample(weight_by = ChildCounts, n = 1)
+            #
+            #    }
+            # ############ UNCOMMENT THIS SUBSECTION WHEN OPPOSITE TWINS IMPLEMENTED
+            # #########################3
+            #
+            #
+            #
+            # TODO ###########################3
+            # ########## ADDED IN BECAUSE OPPOSITE SEX TWINS NOT YET IMPLEMENTED
+            if (!(exists("SchoolList")) == TRUE) {
+
+               SelectedSchool <- AvailableSchools %>%
+                  slice_sample(weight_by = ChildCounts, n = 1)
+
+
+            }
+            # ############ REMOVE THIS SUBSECTION WHEN OPPOSITE TWINS IMPLEMENTED
+            # #########################3
+
+
+            SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
+
+            cat("School being merged is", SelectedSchool$SchoolID, "to child", CurrentChild$ChildID, "and school merged file size is", nrow(SchoolMerged), "\n")
+
+            # somehow this bit not working
+            SchoolCountDecreases <- SchoolMerged %>%
+              mutate(FinalCounts = ChildCounts - 1) %>%
+              ungroup() %>%
+              distinct() %>%
+              select(-ChildCounts) %>%
+              rename(ChildCounts = FinalCounts)
+
+            SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+                                                 SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+
+            SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+
+            SchoolList <- c(SchoolList, SchoolMerged$ID)
+
+            FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+            # not working bit ends here
+
+
+          ######### added in bit ends here
+
+
+
          WorkingChildren <- WorkingChildren %>%
             filter(!(ChildID %in%  TwinsSubset$ChildID) &
                       !( ChildID %in%  CurrentChild$ChildID))
+
+         #####################################################################
+         # assign the non-twins who are in the twin households
+         #####################################################################
+
 
       }
 
@@ -636,74 +753,82 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
          # assign the non-twins who are in the twin households
          #####################################################################
 
-           # loop through the other children
-           for (y in 1:nrow(WorkingChildren)) {
-
-             CurrentChild <- WorkingChildren[y,]
-
-             RandomRollResult <- runif(1, 0, 1)
-
-              AvailableSchools <- SchoolsRenamed %>%
-               filter(ChildAge == CurrentChild$ChildAge,
-                      SchoolType %in% c(CurrentChild$ChildType, "C"),
-                      ChildCounts > 0)
-
-                  # there are four possible combinations of random roll and school list
-                 # have done these separately so I don't get multiple nested if loops
-
-                 # significant random roll and a school match exists
-                 if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
-
-                    SelectedSchool <- AvailableSchools %>%
-                       filter(SchoolID %in% SchoolList) %>%
-                       slice_sample(weight_by = ChildCounts, n = 1)
-
-                 }
-
-                 # non-significant random roll and a school match exists
-                 if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
-
-                    SelectedSchool <- AvailableSchools %>%
-                       filter(!(SchoolID %in% SchoolList)) %>%
-                       slice_sample(weight_by = ChildCounts, n = 1)
-
-                 }
-
-                 # just need the one, it only matters if the school DOES not exist in the schools list
-                 # can therefore ignore the random roll result
-                 # as no school matching problem exists
-                 if (!(SchoolList %in% AvailableSchools$SchoolID)) {
-
-                    SelectedSchool <- AvailableSchools %>%
-                       slice_sample(weight_by = ChildCounts, n = 1)
-
-                 }
-
-
-              SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
-
-              SchoolCountDecreases <- SchoolMerged %>%
-                mutate(FinalCounts = ChildCounts - 1) %>%
-                ungroup() %>%
-                distinct() %>%
-                select(-ChildCounts) %>%
-                rename(ChildCounts = FinalCounts)
-
-              SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
-                                                   SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
-
-              SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
-
-              SchoolList <- c(SchoolList, SchoolMerged$ID)
-
-              FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
-
-              # remove the matched children from the working dataframe (i.e. from those still to be matched)
-              WorkingChildren <- WorkingChildren %>%
-                filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
-
-              # closes the loop for working through the other, non-twin, children in the household
-              }
+           # # loop through the other children
+           # for (y in 1:nrow(WorkingChildren)) {
+           #
+           #  CurrentChild <- WorkingChildren[y,]
+           #
+           #  cat("Got to the end child, who is",CurrentChild$ChildID, "in household", CurrentChild$HouseholdID , "\n")
+           #
+           #   RandomRollResult <- runif(1, 0, 1)
+           #
+           #    AvailableSchools <- SchoolsRenamed %>%
+           #     filter(ChildAge == CurrentChild$ChildAge,
+           #            SchoolType %in% c(CurrentChild$ChildType, "C"),
+           #            ChildCounts > 0)
+           #
+           #        # there are four possible combinations of random roll and school list
+           #       # have done these separately so I don't get multiple nested if loops
+           #
+           #       # significant random roll and a school match exists
+           #       if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+           #
+           #          cat("Died in this first loop", "\n")
+           #
+           #          SelectedSchool <- AvailableSchools %>%
+           #             filter(SchoolID %in% SchoolList) %>%
+           #             slice_sample(weight_by = ChildCounts, n = 1)
+           #
+           #       }
+           #
+           #       # non-significant random roll and a school match exists
+           #       if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+           #
+           #          cat("Died in this second loop", "\n")
+           #
+           #          SelectedSchool <- AvailableSchools %>%
+           #             filter(!(SchoolID %in% SchoolList)) %>%
+           #             slice_sample(weight_by = ChildCounts, n = 1)
+           #
+           #       }
+           #
+           #       # just need the one, it only matters if the school DOES not exist in the schools list
+           #       # can therefore ignore the random roll result
+           #       # as no school matching problem exists
+           #       if (!(SchoolList %in% AvailableSchools$SchoolID)) {
+           #
+           #          cat("Died in this third loop", "\n")
+           #
+           #          SelectedSchool <- AvailableSchools %>%
+           #             slice_sample(weight_by = ChildCounts, n = 1)
+           #
+           #       }
+           #
+           #
+           #    SchoolMerged <- left_join(SelectedSchool, CurrentChild, by = "ChildAge")
+           #
+           #    SchoolCountDecreases <- SchoolMerged %>%
+           #      mutate(FinalCounts = ChildCounts - 1) %>%
+           #      ungroup() %>%
+           #      distinct() %>%
+           #      select(-ChildCounts) %>%
+           #      rename(ChildCounts = FinalCounts)
+           #
+           #    SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountDecreases$SchoolID &
+           #                                         SchoolsRenamed$ChildAge==SchoolCountDecreases$ChildAge))
+           #
+           #    SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolCountDecreases$ChildCounts
+           #
+           #    SchoolList <- c(SchoolList, SchoolMerged$ID)
+           #
+           #    FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+           #
+           #    # remove the matched children from the working dataframe (i.e. from those still to be matched)
+           #    WorkingChildren <- WorkingChildren %>%
+           #      filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+           #
+           #    # closes the loop for working through the other, non-twin, children in the household
+           #    }
 
 
 
