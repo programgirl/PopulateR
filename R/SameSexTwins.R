@@ -284,7 +284,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               # have done these separately so I don't get multiple nested if loops
 
               # significant random roll and a school match exists
-              if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult <= ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(SchoolID %in% SchoolList) %>%
@@ -293,7 +293,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               }
 
               # non-significant random roll and a school match exists
-              if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult > ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(!(SchoolID %in% SchoolList)) %>%
@@ -304,7 +304,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               # just need the one, it only matters if the school DOES not exist in the schools list
               # can therefore ignore the random roll result
               # as no school matching problem exists
-              if (!(SchoolList %in% AvailableSchools$SchoolID)) {
+              if (!(any(AvailableSchools$SchoolID %in% SchoolList))) {
 
                 SelectedSchool <- AvailableSchools %>%
                   slice_sample(weight_by = ChildCounts, n = 1)
@@ -418,7 +418,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               # have done these separately so I don't get multiple nested if loops
 
               # significant random roll and a school match exists
-              if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult <= ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(SchoolID %in% SchoolList) %>%
@@ -427,7 +427,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               }
 
               # non-significant random roll and a school match exists
-              if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult > ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(!(SchoolID %in% SchoolList)) %>%
@@ -529,7 +529,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               # have done these separately so I don't get multiple nested if loops
 
               # significant random roll and a school match exists
-              if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult <= ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(SchoolID %in% SchoolList) %>%
@@ -538,7 +538,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
               }
 
               # non-significant random roll and a school match exists
-              if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+              if (RandomRollResult > ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
                 SelectedSchool <- AvailableSchools %>%
                   filter(!(SchoolID %in% SchoolList)) %>%
@@ -623,7 +623,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
         # twins are opposite sexes
         #####################################################################
 
-            cat("Entered not-twins loop", "\n")
+        cat("Entered not-twins loop", "\n")
 
         CurrentChild <- WorkingChildren %>%
           slice_head(n=1)
@@ -646,7 +646,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
           # have done these separately so I don't get multiple nested if loops
 
           # significant random roll and a school match exists
-          if (RandomRollResult <= ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+          if (RandomRollResult <= ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
             SelectedSchool <- AvailableSchools %>%
               filter(SchoolID %in% SchoolList) %>%
@@ -655,7 +655,7 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
           }
 
           # non-significant random roll and a school match exists
-          if (RandomRollResult > ChildProb && SchoolList %in% AvailableSchools$SchoolID) {
+          if (RandomRollResult > ChildProb && any(AvailableSchools$SchoolID %in% SchoolList)) {
 
             SelectedSchool <- AvailableSchools %>%
               filter(!(SchoolID %in% SchoolList)) %>%
@@ -748,6 +748,6 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
 
   } # closes for x loop that moves through the households
 
-  return(FinalMatchedChildren)
+  return(SchoolsRenamed)
 
 } # closes function
