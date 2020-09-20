@@ -166,18 +166,20 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
 
     WorkingChildren <- ChildrenRenamed %>%
       filter(HouseholdID %in% HouseholdIDList[x,1])
-  #
-  #
-  #
-  #   #####################################################################
-  #   #####################################################################
-  #   # match multi-child households WITH TWINS
-  #   #####################################################################
-  #   #####################################################################
-  #
-  #   if (HouseholdIDList[x,2] == "Y") {
-  #
-  #     SchoolList <- c()
+
+
+
+    #####################################################################
+    #####################################################################
+    # match multi-child households WITH TWINS
+    #####################################################################
+    #####################################################################
+
+    if (HouseholdIDList[x,2] == "Y") {
+
+      SchoolList <- c()
+
+      cat("The household with twins is", HouseholdIDList[x,1], "\n")
   #
   #
   #     #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
@@ -431,8 +433,8 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
   #
   #     } # closes while loop for testing children still need school allocation in multi-child household that DOES CONTAIN twins
   #
-  #   } # closes loop that diverts twin households into the subfunctions above or a twin-containing household
-  #
+    } # closes loop that diverts twin households into the subfunctions above or a twin-containing household
+
   } # closes for x loop that moves through the households
 
   return()
