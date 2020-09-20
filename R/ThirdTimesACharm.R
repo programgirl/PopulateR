@@ -384,6 +384,8 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
       # so the loop must be WHILE there are children, not from 1 to the number of children
       while (!(is.na(WorkingChildren$ChildAge[1])) == TRUE) {
 
+         cat("The first row of the working children file is", WorkingChildren$ChildAge[1], "\n")
+
       # get the age of the twins
       TwinsAges <- WorkingChildren %>%
         group_by(ChildAge) %>%
@@ -557,82 +559,82 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
              # if a same-sex school is picked for the first twin, all subsequent opposite-sex twins should ALSO go
              # to a same-sex if one is available, otherwise to a co-ed school
 
-             if (nrow(TwinsPyramid) == 2) {
-
-                # if there is a co-ed school already in existence, with a suitable roll size, complexity below disappears
-                # test for presence of co-ed school already present in data
-                # will only exist if twins of another age have already been allocated to a co-ed school
-                # but still, worth a shot
-
-                if (length(SchoolList) > 0) {
-
-                   RestrictedSchools <- SchoolsRenamed %>%
-                      filter(SchoolID %in% c(SchoolList),
-                             SchoolType == "C",
-                             ChildAge == FirstTwin$ChildAge,
-                             ChildCounts >= nrow(TwinsSubset))
-
-                }
-
-                # TODO  deal with restricted schools that are co-ed AND incorporate random roll
-                # TODO will need a random roll in here w.r.t. restricted school list
-
-                 # deal with the twins who are the same sex as the first twin drawn
-                OtherTwinsThatSex <- TwinsSubset %>%
-                   filter(ChildType == FirstTwin$ChildType)
-
-                NumberTwinsSameSex <- nrow(OtherTwinsThatSex)
-
-                OtherTwinsOppositeSex <- TwinsSubset %>%
-                   filter(ChildType != FirstTwin$ChildType)
-
-                NumberTwinsOppositeSex <- nrow(OtherTwinsOppositeSex)
-
-                # cat("In household", FirstTwin$HouseholdID, "there are ", NumberTwinsSameSex, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType,
-                #     "and", NumberTwinsOppositeSex, "who are not",  "\n")
-
-
-                # need to do two sets of code here, one for those in NumberTwinsSameSex and a second for NumberTwinsOppositeSex
-
-
-
-
-
-                # closes if loop for twins of opposite sex
-             }
-
-
-
-
-            # remove the matched children from the working dataframe (i.e. from those still to be matched)
-            WorkingChildren <- WorkingChildren %>%
-              filter(!(ChildID %in%  TwinsSubset$ChildID))
-
-               if (exists("SchoolsToTwins")) {
-
-                 SchoolsToTwins <- bind_rows(SchoolsToTwins, SelectedSchool)
-
-               } else {
-
-
-                 SchoolsToTwins <- SelectedSchool
-
-
-
-                 # closes if statement for existence of FinalTwinsSubset
-               }
-
-
-      # closes if statement for looping through the sets of twins
-      } else {
+#              if (nrow(TwinsPyramid) == 2) {
+#
+#                 # if there is a co-ed school already in existence, with a suitable roll size, complexity below disappears
+#                 # test for presence of co-ed school already present in data
+#                 # will only exist if twins of another age have already been allocated to a co-ed school
+#                 # but still, worth a shot
+#
+#                 if (length(SchoolList) > 0) {
+#
+#                    RestrictedSchools <- SchoolsRenamed %>%
+#                       filter(SchoolID %in% c(SchoolList),
+#                              SchoolType == "C",
+#                              ChildAge == FirstTwin$ChildAge,
+#                              ChildCounts >= nrow(TwinsSubset))
+#
+#                 }
+#
+#                 # TODO  deal with restricted schools that are co-ed AND incorporate random roll
+#                 # TODO will need a random roll in here w.r.t. restricted school list
+#
+#                  # deal with the twins who are the same sex as the first twin drawn
+#                 OtherTwinsThatSex <- TwinsSubset %>%
+#                    filter(ChildType == FirstTwin$ChildType)
+#
+#                 NumberTwinsSameSex <- nrow(OtherTwinsThatSex)
+#
+#                 OtherTwinsOppositeSex <- TwinsSubset %>%
+#                    filter(ChildType != FirstTwin$ChildType)
+#
+#                 NumberTwinsOppositeSex <- nrow(OtherTwinsOppositeSex)
+#
+#                 # cat("In household", FirstTwin$HouseholdID, "there are ", NumberTwinsSameSex, "aged", FirstTwin$ChildAge, "who are", FirstTwin$ChildType,
+#                 #     "and", NumberTwinsOppositeSex, "who are not",  "\n")
+#
+#
+#                 # need to do two sets of code here, one for those in NumberTwinsSameSex and a second for NumberTwinsOppositeSex
+#
+#
+# #
+# #                 if (exists("SchoolsToTwins")) {
+# #
+# #                    SchoolsToTwins <- bind_rows(SchoolsToTwins, SelectedSchool)
+# #
+# #                 } else {
+# #
+# #
+# #                    SchoolsToTwins <- SelectedSchool
+#
+#
+#                 # closes if loop for twins of opposite sex
+#              }
+#
+#
+#
+#
+#             # remove the matched children from the working dataframe (i.e. from those still to be matched)
+#             WorkingChildren <- WorkingChildren %>%
+#               filter(!(ChildID %in%  TwinsSubset$ChildID))
+#
+#
+#
+#       # closes if statement for looping through the sets of twins
+      } #else {
 
          # for the moment, just remove them from the working children so that we move through the households
+
+
+         #####################################################################
+         # assign the non-twins who are in the twin households
+         #####################################################################
 
          CurrentChild <- WorkingChildren[1,]
 
          cat("Current child is", CurrentChild$ChildID, "\n")
 
-         ########### added in bit starts here
+         # ########### added in bit starts here
            RandomRollResult <- runif(1, 0, 1)
 
             AvailableSchools <- SchoolsRenamed %>%
@@ -730,8 +732,12 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
             SchoolList <- c(SchoolList, SchoolMerged$ID)
 
-            FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
+            cat("School being merged is", SchoolMerged$SchoolID, "to child", SchoolMerged$ChildID, "and school merged file size is", nrow(SchoolMerged), "\n")
+
+            # FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
             # not working bit ends here
+
+            FinalMatchedChildren <- bind_rows(FinalMatchedChildren, CurrentChild)
 
 
           ######### added in bit ends here
@@ -739,15 +745,27 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
          WorkingChildren <- WorkingChildren %>%
-            filter(!(ChildID %in%  TwinsSubset$ChildID) &
-                      !( ChildID %in%  CurrentChild$ChildID))
+            filter(!(ChildID %in%  CurrentChild$ChildID))
 
-         #####################################################################
-         # assign the non-twins who are in the twin households
-         #####################################################################
 
 
       }
+
+      # closes while statement for working through the children in the household
+      }
+
+
+      # closes if loop for multi-child household that DOES CONTAIN twins
+    }
+
+
+    # closes for x loop that moves through the households
+  }
+
+  return(FinalMatchedChildren)
+
+  # closes function
+}
 
          #####################################################################
          # assign the non-twins who are in the twin households
@@ -832,21 +850,7 @@ ThirdTimesACharm <- function(Children, ChildIDVariable, ChildAgeVariable, ChildS
 
 
 
-      # closes while statement for working through the children in the household
-      }
 
-
-      # closes if loop for multi-child household that DOES CONTAIN twins
-      }
-
-
-      # closes for x loop that moves through the households
-    }
-
-    return(FinalMatchedChildren)
-
-    # closes function
-  }
 
 
 
