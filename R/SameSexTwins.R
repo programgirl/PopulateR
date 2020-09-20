@@ -179,63 +179,67 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
 
       SchoolList <- c()
 
-      cat("The household with twins is", HouseholdIDList[x,1], "\n")
-  #
-  #
-  #     #     cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
-  #     # need a loop through the working children here
-  #     # loop is: UNTIL THERE ARE NO WORKING CHILDREN
-  #     # cannot loop through 1:nrow because of the way the children are being handled
-  #     # twins represent two childrne removed, not one
-  #
-  #     WorkingChildren <- WorkingChildren %>%
-  #       slice_sample(n = nrow(WorkingChildren))
+      cat("Multi-child household with twins", HouseholdIDList[x,1], "\n")
+      # need a loop through the working children here
+      # loop is: UNTIL THERE ARE NO WORKING CHILDREN
+      # cannot loop through 1:nrow because of the way the children are being handled
+      # twins represent two childrne removed, not one
+
+      WorkingChildren <- WorkingChildren %>%
+        slice_sample(n = nrow(WorkingChildren))
   #
   #     # cat("HouseholdID is", WorkingChildren$HouseholdID[1], "and the school list contains", paste0(SchoolList), "\n")
   #
   #     # loop through the children in the household
   #     # the number of children will decrease more than one for twins
   #     # so the loop must be WHILE there are children, not from 1 to the number of children
-  #     while (nrow(WorkingChildren) > 0) {
-  #
-  #       # cat("The first row of the working children file is", WorkingChildren$ChildAge[1], "\n")
-  #
-  #       # get the age of the twins
-  #       TwinsAges <- WorkingChildren %>%
-  #         group_by(ChildAge) %>%
-  #         summarise(Twins = n()) %>%
-  #         filter(Twins > 1)
-  #
-  #       # note: there will be a time when there are NOT twins
-  #       # so need an if statement here to check if there are still unassigned twins in the household
-  #
-  #       if (nrow(TwinsAges) > 0) {
+      while (nrow(WorkingChildren) > 0) {
+
+        # cat("The first row of the working children file is", WorkingChildren$ChildAge[1], "\n")
+
+        # get the age of the twins
+        TwinsAges <- WorkingChildren %>%
+          group_by(ChildAge) %>%
+          summarise(Twins = n()) %>%
+          filter(Twins > 1)
+
+
+        # note: there will be a time when there are NOT twins
+        # so need an if statement here to check if there are still unassigned twins in the household
+
+        if (nrow(TwinsAges) > 0) {
+
+          # cat("The first row of the working children file is", WorkingChildren$ChildAge[1], "\n")
   #
   #         cat("Multi-child household with twins", HouseholdIDList[x,1], "and twin age is", TwinsAges$ChildAge[1], "\n")
-  #         # grab the first row, which is the twins' age to use
-  #
-  #         TwinsSubset <- WorkingChildren %>%
-  #           filter(ChildAge == TwinsAges$ChildAge[1])
-  #
-  #         # now working with ONLY the twins that are in that subset
-  #         # NOTE: they may be either all one sex or both sexes
-  #         # For triplets etc, both same-sex AND opposite may exist for the age
-  #
-  #         # get number of children for each sex
-  #
-  #         TwinsPyramid <- TwinsSubset %>%
-  #           group_by(ChildType) %>%
-  #           summarise(TypeCount = n())
-  #
-  #         # randomise order of twins
-  #         TwinsSubset <- TwinsSubset %>%
-  #           slice_sample(n=nrow(TwinsSubset))
-  #
-  #         # draw first twin
-  #         FirstTwin <- TwinsSubset %>%
-  #           slice_head(n=1)
-  #
-  #         #      cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
+          # grab the first row, which is the twins' age to use
+
+          TwinsSubset <- WorkingChildren %>%
+            filter(ChildAge == TwinsAges$ChildAge[1])
+
+          # cat("The length of the twins subset is", length(TwinsAges), "\n")
+          #
+          # cat("Multi-child household with twins", HouseholdIDList[x,1], "has", nrow(TwinsSubset), "twins at age", TwinsAges$ChildAge[1], "\n")
+
+          # now working with ONLY the twins that are in that subset
+          # NOTE: they may be either all one sex or both sexes
+          # For triplets etc, both same-sex AND opposite may exist for the age
+
+          # get number of children for each sex
+
+          TwinsPyramid <- TwinsSubset %>%
+            group_by(ChildType) %>%
+            summarise(TypeCount = n())
+
+          # randomise order of twins
+          TwinsSubset <- TwinsSubset %>%
+            slice_sample(n=nrow(TwinsSubset))
+
+          # draw first twin
+          FirstTwin <- TwinsSubset %>%
+            slice_head(n=1)
+
+          cat("Household is ", FirstTwin$HouseholdID, "first child is", FirstTwin$ChildID , "Sex of first child is", FirstTwin$ChildType , "number of sexes are", nrow(TwinsPyramid), "\n")
   #
   #         #####################################################################
   #         # twins are all the one sex
@@ -421,22 +425,27 @@ SameSexTwins <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVa
   #
   #           FinalMatchedChildren <- bind_rows(FinalMatchedChildren, SchoolMerged)
   #
-  #           # remove the matched children from the working dataframe (i.e. from those still to be matched)
-  #           WorkingChildren <- WorkingChildren %>%
-  #             filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
+            # remove the matched children from the working dataframe (i.e. from those still to be matched)
+            # WorkingChildren <- WorkingChildren %>%
+            #   filter(!(ChildID %in%  FinalMatchedChildren$ChildID))
   #
   #
   #         } # closes if loop for working through same-sex twin pyramid {
   #
   #
-  #       } # closes if test for the presence of twins
+        } # closes if test for the presence of twins
+
+        # TODO  REMOVE WORKING CHILD WALKTHROUGH HERE
+        FirstChild <- WorkingChildren[1,]
+        WorkingChildren <- WorkingChildren %>%
+          filter(!(ChildID %in% FirstChild))
   #
-  #     } # closes while loop for testing children still need school allocation in multi-child household that DOES CONTAIN twins
+      } # closes while loop for testing children still need school allocation in multi-child household that DOES CONTAIN twins
   #
     } # closes loop that diverts twin households into the subfunctions above or a twin-containing household
 
   } # closes for x loop that moves through the households
 
-  return()
+  return(TwinsAges)
 
 } # closes function
