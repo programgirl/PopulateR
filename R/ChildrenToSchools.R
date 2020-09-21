@@ -221,7 +221,7 @@ ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, Child
     #####################################################################
     #####################################################################
 
-    if (nrow(WorkingChildren) > 2 & HouseholdIDList[x,2] == "N") {
+    if (nrow(WorkingChildren) > 1 & HouseholdIDList[x,2] == "N") {
 
       # cat("Household is", WorkingChildren$HouseholdID, "\n")
       # cat("Multi-child household with no twins", HouseholdIDList[x,1], "\n")
@@ -567,7 +567,7 @@ ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, Child
 
             # cat("Number of same sex twins is", nrow(SameSexTwins), "\n")
             #
-            # cat("Number of opposite sex twins is", nrow(OppositeSexTwins), "\n")
+            # cat("Number of opposite sex twins is", nrow(OppositeSexTwins), "in Household", OppositeSexTwins$HouseholdID[1], "\n")
 
             #####################################################################
             # same sexes, could be triplets, etc
