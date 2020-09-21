@@ -214,7 +214,6 @@ ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, Child
       # closes loop through single child households
     }
 
-
     #####################################################################
     #####################################################################
     # match multiple child households, no twins
