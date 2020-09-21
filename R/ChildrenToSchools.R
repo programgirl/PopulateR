@@ -157,11 +157,7 @@ ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, Child
   #####################################################################
   #####################################################################
 
-  for (x in 1:148) {
-
-    # TODO testing above for a subset of households, once working use the for below
-
-    # for (x in 1:nrow(HouseholdIDList)) {
+      for (x in 1:nrow(HouseholdIDList)) {
 
     WorkingChildren <- ChildrenRenamed %>%
       filter(HouseholdID %in% HouseholdIDList[x,1])
