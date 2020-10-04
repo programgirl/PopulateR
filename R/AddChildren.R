@@ -692,7 +692,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
 
  # return(OutputDataframe)
-  return(PossibleSwapChildren)
+  return(ParentTooYoung)
 
 
   # closes function
