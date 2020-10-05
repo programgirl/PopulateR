@@ -670,7 +670,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # locate person who can swap with these
 
     PossibleSwapHouseholds <- ParentsFinal %>%
-      filter(!(PersonID %in% ProblemHousehold$PersonID),
+      filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+             !(PersonID %in% ParentOfTwins$ParentID),
              between(Age, min(ProblemHouseholdChildren$Age) + 18, max(ProblemHouseholdChildren$Age) + MaxParentAge))
 
     # deselect parents who have children out of age range for swap
@@ -692,7 +693,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
 
  # return(OutputDataframe)
-  return(ParentTooYoung)
+  return(PossibleSwapHouseholds)
 
 
   # closes function
