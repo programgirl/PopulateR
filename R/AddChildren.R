@@ -693,7 +693,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     OkayAges <- ProblemHousehold %>%
       filter(!(PersonID %in% ProblemHouseholdParent$PersonID) &
                !(PersonID %in% ProblemHouseholdChildren$PersonID)) %>%
-      select(Age)
+      select(Age) %>%
+      pull(Age)
 
     for (b in 1:nrow(ProblemHouseholdChildren)) {
 
@@ -740,7 +741,13 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
       ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
 
+      SwqpChildAge <- ChildToSwap %>%
+        pull(Age)
 
+     OkayAges <- c(OkayAges, SwqpChildAge)
+
+      cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
+      return(OkayAges)
     }
 
     # close fix for the households with children who are too old
@@ -768,10 +775,22 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     ProblemHouseholdKids <- ProblemHousehold %>%
       slice(-1)
 
-  }
+    # duplicates may have been fixed by the swaps in the earlier section
+    # see if age duplicates exist and, if, so the age of the duplicates
+
+    DuplicatedAge <- ProblemHouseholdKids %>%
+      group_by(Age) %>%
+      summarise(DuplicateAge = n()) %>%
+      filter(DuplicateAge > 1)
+
+    # need to extract DuplicatedAge - 1 children for swap, for each duplicated age (household may have triplets, or more than 1 twin)
+    # add add ages to a "UsedAges" vector so that no age in there is resampled during child replacement
+
+
+    }
 
  # return(OutputDataframe)
-  return(ProblemHouseholdKids)
+  #return(DuplicatedAge)
 
 
   # closes function
