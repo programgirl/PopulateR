@@ -667,12 +667,29 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
                !(PersonID %in% ProblemHouseholdChildren$PersonID)) %>%
       select(Age)
 
+    for (b in 1:nrow(ProblemHouseholdChildren)) {
+
+      print(ProblemHouseholdChildren$PersonID[b])
+
+      PossibleSwapHouseholds <- ParentsFinal %>%
+        filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+               !(PersonID %in% ParentOfTwins$ParentID),
+               between(Age, ProblemHouseholdChildren$Age[b] + 18, ProblemHouseholdChildren$Age[b] + MaxParentAge))
+
+      cat("Minimum parent age is", ProblemHouseholdChildren$Age[b] + 18, "and maximum parent age is", ProblemHouseholdChildren$Age[b] + MaxParentAge,
+      "for household", ProblemHousehold$HouseholdID[b], "\n")
+
+    }
+
     # locate person who can swap with these
 
-    PossibleSwapHouseholds <- ParentsFinal %>%
-      filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
-             !(PersonID %in% ParentOfTwins$ParentID),
-             between(Age, min(ProblemHouseholdChildren$Age) + 18, max(ProblemHouseholdChildren$Age) + MaxParentAge))
+    # PossibleSwapHouseholds <- ParentsFinal %>%
+    #   filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+    #          !(PersonID %in% ParentOfTwins$ParentID),
+    #          between(Age, min(ProblemHouseholdChildren$Age) + 18, max(ProblemHouseholdChildren$Age) + MaxParentAge))
+    #
+    # cat("Minimum parent age is", min(ProblemHouseholdChildren$Age) + 18, "and maximum parent age is", max(ProblemHouseholdChildren$Age) + MaxParentAge,
+    # "for household", ProblemHousehold$HouseholdID, "\n")
 
     # deselect parents who have children out of age range for swap
 
@@ -687,13 +704,20 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # remove these households from consideration
     PossibleSwapChildren <- PossibleSwapChildren %>%
       filter(!(HouseholdID %in% HouseholdSubsetAgeDups))
+
+
+    # random draw from PossibleSwapChildren
+    ChildToSwap <- PossibleSwapChildren %>%
+      slice_sample(n = 2)
+
     # close fix for the households with children who are too old
   }
 
 
 
+
  # return(OutputDataframe)
-  return(PossibleSwapChildren)
+  return(ChildToSwap)
 
 
   # closes function
