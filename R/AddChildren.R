@@ -638,6 +638,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
+  # # test that the column number is still available to the function
+  # cat("Household column number is", HouseholdIDVariable, "\n")
+
   # fix the out-of-bounds ages
 
   for (a in 1:length(ParentTooYoung)) {
@@ -656,7 +659,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
     PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
 
-    cat("Minimum child age is", PermittedChildAgeMin, "maximum child age is", PermittedChildAgeMax, "for parent age of", ProblemHouseholdParent$Age, "\n")
+    # test parent permitted age conditions
+    # cat("Minimum child age is", PermittedChildAgeMin, "maximum child age is", PermittedChildAgeMax, "for parent age of", ProblemHouseholdParent$Age, "\n")
 
     ProblemHouseholdChildren <- ProblemHousehold %>%
       slice(- 1) %>%
@@ -676,8 +680,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
                !(PersonID %in% ParentOfTwins$ParentID),
                between(Age, ProblemHouseholdChildren$Age[b] + 18, ProblemHouseholdChildren$Age[b] + MaxParentAge))
 
-      cat("Minimum parent age is", ProblemHouseholdChildren$Age[b] + 18, "and maximum parent age is", ProblemHouseholdChildren$Age[b] + MaxParentAge,
-      "for household", ProblemHousehold$HouseholdID[b], "\n")
+      # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+      # cat("Minimum parent age is", ProblemHouseholdChildren$Age[b] + 18, "and maximum parent age is", ProblemHouseholdChildren$Age[b] + MaxParentAge,
+      # "for household", ProblemHousehold$HouseholdID[b], "\n")
 
       PossibleSwapChildren <- ChildrenFinal %>%
         filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
@@ -693,6 +698,24 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       # randomly select a child to swap, what will actually swap is the household ID
       ChildToSwap <- PossibleSwapChildren %>%
         slice_sample(n = 1)
+
+      SwapChildHouseholdID <- ChildToSwap$HouseholdID
+      ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[b]
+
+      cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[b],
+          "in", ProblemHouseholdChildren$HouseholdID[b], "\n")
+
+      # perform the swapping, only household ID to be swapped
+
+      SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+      ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[b]))
+
+      cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+
+      # do the swapping
+      ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+      ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+
 
     }
 
@@ -731,7 +754,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
 
  # return(OutputDataframe)
-  return(ChildToSwap)
+  return(ChildrenFinal)
 
 
   # closes function
