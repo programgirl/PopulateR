@@ -167,6 +167,15 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #####################################
   #####################################
 
+
+  #####################################
+  # GENERAL APPROACH
+  # PICK ONE CHILD
+  # MATCH THEM TO A MOTHER
+  # MATCH OTHER CHILDREN TO GET A WIDE FILE
+  # TRANSFORM INTO LONG FILE
+  #####################################
+
   #####################################
   #####################################
   # Functions for twins and their siblings
