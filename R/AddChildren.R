@@ -650,7 +650,13 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   # # test that the column number is still available to the function
   # cat("Household column number is", HouseholdIDVariable, "\n")
 
+  #####################################
+  #####################################
   # fix the out-of-bounds ages
+  #####################################
+  #####################################
+
+  if(exists("ParentTooYoung")) {
 
   for (a in 1:length(ParentTooYoung)) {
 
@@ -731,11 +737,32 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # close fix for the households with children who are too old
   }
 
+    # close test for whether households with children too old exist
+  }
 
+  #####################################
+  #####################################
+  # fix the households who incorrectly contain twins
+  #####################################
+  #####################################
 
+  for (a in 1:length(ShouldNotBeTwins)) {
+
+    #   print(ParentTooYoung[a])
+
+    # extract problem household
+    ProblemHousehold <- InterimDataframe %>%
+      filter(HouseholdID == ShouldNotBeTwins[a])
+
+    # identify the ages out of range
+    # extract parent
+    ProblemHouseholdKids <- ProblemHousehold %>%
+      slice(-1)
+
+  }
 
  # return(OutputDataframe)
-  return(ShouldNotBeTwins)
+  return(ProblemHouseholdKids)
 
 
   # closes function
