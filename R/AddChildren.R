@@ -686,14 +686,14 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
     # remove these households from consideration
     PossibleSwapChildren <- PossibleSwapChildren %>%
-      filter(HouseholdID %in% HouseholdSubsetAgeDups)
+      filter(!(HouseholdID %in% HouseholdSubsetAgeDups))
     # close fix for the households with children who are too old
   }
 
 
 
  # return(OutputDataframe)
-  return(PossibleSwapHouseholds)
+  return(PossibleSwapChildren)
 
 
   # closes function
