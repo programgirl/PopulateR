@@ -754,6 +754,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # close fix for the households with children who are too old
   }
 
+    # reconstruct interim data frame so corrected with children
+    InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
+
     # close test for whether households with children too old exist
   }
 
@@ -763,66 +766,129 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #####################################
   #####################################
 
-  for (a in 1:length(ShouldNotBeTwins)) {
+ for (c in 1:length(ShouldNotBeTwins)) {
 
     #   print(ParentTooYoung[a])
 
     # extract problem household
     ProblemHousehold <- InterimDataframe %>%
-      filter(HouseholdID == ShouldNotBeTwins[a])
+      filter(HouseholdID == ShouldNotBeTwins[c])
+
+    ProblemHouseholdParent <- ProblemHousehold %>%
+      slice_head(1)
+
+    PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
+    PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
 
     # identify the ages out of range
     # extract parent
-    ProblemHouseholdKids <- ProblemHousehold %>%
+    ProblemHouseholdChildren <- ProblemHousehold %>%
       slice(-1)
 
     # duplicates may have been fixed by the swaps in the earlier section
     # see if age duplicates exist and, if, so the age of the duplicates
 
-    DuplicatedAge <- ProblemHouseholdKids %>%
+    DuplicatedAge <- ProblemHouseholdChildren %>%
       group_by(Age) %>%
       summarise(DuplicateAge = n()) %>%
       filter(DuplicateAge > 1) %>%
       mutate(NumberToReplace = DuplicateAge - 1)
+
+    # there may no longer be any incorrect duplicates after fixing the incorrectly aged children
+    # so put this bit in a wrapper to test whether the DuplicatedAge dataframe has any content
+
+    while(!(is.na(DuplicatedAge$Age[1])) == TRUE) {
 
     # deduct 1 from each duplicate age as only need to match one of them
     # but also need to grab out the okay ages so these aren't selected by random
     # which would create twins, rather than removing them
     # NOTE: the age of the shouldn-be-twins is fine, because one twin is NOT being replaced
 
-    OkayAges <- ProblemHouseholdKids %>%
+    OkayAges <- ProblemHouseholdChildren %>%
       select(Age) %>%
+      distinct(Age) %>%
       pull(Age)
 
     # cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
     #
     # print(a)
 
+
     # this needs to loop just in case there is more than one duplicated age
-    for (c in 1:nrow(DuplicatedAge)) {
+    for (d in 1:nrow(DuplicatedAge)) {
 
       # select child to replace, or children in the case of multiple births like triplets
-      ChildToSwap <- ProblemHouseholdKids %>%
-        filter(Age == DuplicatedAge[c]) %>%
+      ProblemAges <- ProblemHouseholdChildren %>%
+        filter(Age == DuplicatedAge$Age[d]) %>%
         slice(-1) # removes one child from being replaced
 
       #loop through all the rows for these twins/triplets
+      for (e in 1:nrow(ProblemAges)) {
+
+        PossibleSwapHouseholds <- ParentsFinal %>%
+          filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+                 !(PersonID %in% ParentOfTwins$ParentID),
+                 between(Age, ProblemAges$Age[e] + 18, ProblemAges$Age[e] + MaxParentAge))
+
+        # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+        # cat("Minimum parent age is", ProblemAges$Age[e] + 18, "and maximum parent age is", ProblemAges$Age[e] + MaxParentAge,
+        # "for household", ProblemAges$HouseholdID[e], "\n")
+
+        PossibleSwapChildren <- ChildrenFinal %>%
+          filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
+
+        WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+          filter(Age %in% OkayAges)
+
+        # delete these households from the possible children list
+        PossibleSwapChildren <- PossibleSwapChildren %>%
+          filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+                 between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+
+        # randomly select a child to swap, what will actually swap is the household ID
+        ChildToSwap <- PossibleSwapChildren %>%
+          slice_sample(n = 1)
+
+        SwapChildHouseholdID <- ChildToSwap$HouseholdID
+        ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[e]
+
+        cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[e],
+            "in", ProblemHouseholdChildren$HouseholdID[e], "\n")
+
+        # perform the swapping, only household ID to be swapped
+
+        SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+        ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[e]))
+
+        cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+
+        # # do the swapping
+        # # note: this is directly to the file used, so there is no interim file
+        # ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+        # ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+        #
+        # SwqpChildAge <- ChildToSwap %>%
+        #   pull(Age)
+
+        OkayAges <- c(OkayAges, SwqpChildAge)
 
 
+        # closes loop through the problem ages that are all the same age
+        }
 
-
-      # need to extract DuplicatedAge - 1 children for swap, for each duplicated age (household may have triplets, or more than 1 twin)
-      # add add ages to a "UsedAges" vector so that no age in there is resampled during child replacement
 
       # closes loop for all should-not-be twins in the same household
     }
 
 
+    # closes loop while test for whether there is a DuplicatedAges dataframe
+    }
+
     # closes loop through all households that should not contain twins, but do
     }
 
  # return(OutputDataframe)
-  return(ChildToSwap)
+  return(InterimDataframe)
 
 
   # closes function
