@@ -738,6 +738,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
 
       # do the swapping
+      # note: this is directly to the file used, so there is no interim file
       ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
       ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
 
@@ -746,8 +747,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
      OkayAges <- c(OkayAges, SwqpChildAge)
 
-      cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
-      return(OkayAges)
+     # cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
+      # return(OkayAges)
     }
 
     # close fix for the households with children who are too old
@@ -781,16 +782,47 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     DuplicatedAge <- ProblemHouseholdKids %>%
       group_by(Age) %>%
       summarise(DuplicateAge = n()) %>%
-      filter(DuplicateAge > 1)
+      filter(DuplicateAge > 1) %>%
+      mutate(NumberToReplace = DuplicateAge - 1)
 
-    # need to extract DuplicatedAge - 1 children for swap, for each duplicated age (household may have triplets, or more than 1 twin)
-    # add add ages to a "UsedAges" vector so that no age in there is resampled during child replacement
+    # deduct 1 from each duplicate age as only need to match one of them
+    # but also need to grab out the okay ages so these aren't selected by random
+    # which would create twins, rather than removing them
+    # NOTE: the age of the shouldn-be-twins is fine, because one twin is NOT being replaced
+
+    OkayAges <- ProblemHouseholdKids %>%
+      select(Age) %>%
+      pull(Age)
+
+    # cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
+    #
+    # print(a)
+
+    # this needs to loop just in case there is more than one duplicated age
+    for (c in 1:nrow(DuplicatedAge)) {
+
+      # select child to replace, or children in the case of multiple births like triplets
+      ChildToSwap <- ProblemHouseholdKids %>%
+        filter(Age == DuplicatedAge[c]) %>%
+        slice(-1) # removes one child from being replaced
+
+      #loop through all the rows for these twins/triplets
 
 
+
+
+      # need to extract DuplicatedAge - 1 children for swap, for each duplicated age (household may have triplets, or more than 1 twin)
+      # add add ages to a "UsedAges" vector so that no age in there is resampled during child replacement
+
+      # closes loop for all should-not-be twins in the same household
+    }
+
+
+    # closes loop through all households that should not contain twins, but do
     }
 
  # return(OutputDataframe)
-  #return(DuplicatedAge)
+  return(ChildToSwap)
 
 
   # closes function
