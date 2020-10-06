@@ -766,7 +766,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #####################################
   #####################################
 
- for (c in 1:length(ShouldNotBeTwins)) {
+ # for (c in 1:length(ShouldNotBeTwins)) {
+  for (c in 1:1) {
 
     #   print(ParentTooYoung[a])
 
@@ -817,9 +818,16 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # this needs to loop just in case there is more than one duplicated age
     for (d in 1:nrow(DuplicatedAge)) {
 
+      # get the number of children that age to be replaced
+      as.numeric(NumToReplaceInLoop <- DuplicatedAge %>%
+        pull(NumberToReplace[d]))
+
+      cat("The number of children aged", DuplicatedAge$Age[d], "to be replaced is", NumToReplaceInLoop, "\n" )
+
       # select child to replace, or children in the case of multiple births like triplets
       ProblemAges <- ProblemHouseholdChildren %>%
         filter(Age == DuplicatedAge$Age[d]) %>%
+        select(Age) %>%
         slice(-1) # removes one child from being replaced
 
       #loop through all the rows for these twins/triplets
@@ -888,7 +896,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     }
 
  # return(OutputDataframe)
-  return(InterimDataframe)
+  return(NumToReplaceInLoop)
 
 
   # closes function
