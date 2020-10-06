@@ -827,8 +827,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       # select child to replace, or children in the case of multiple births like triplets
       ProblemAges <- ProblemHouseholdChildren %>%
         filter(Age == DuplicatedAge$Age[d]) %>%
-        select(Age) %>%
-        slice(-1) # removes one child from being replaced
+        slice_sample(n = NumToReplaceInLoop) # removes one child from being replaced
 
       #loop through all the rows for these twins/triplets
       for (e in 1:nrow(ProblemAges)) {
@@ -896,7 +895,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     }
 
  # return(OutputDataframe)
-  return(NumToReplaceInLoop)
+  return(ProblemAges)
 
 
   # closes function
