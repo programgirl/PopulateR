@@ -797,7 +797,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # there may no longer be any incorrect duplicates after fixing the incorrectly aged children
     # so put this bit in a wrapper to test whether the DuplicatedAge dataframe has any content
 
-    while(!(is.na(DuplicatedAge$Age[1])) == TRUE) {
+    if(!(is.na(DuplicatedAge$Age[1])) == TRUE) {
 
     # deduct 1 from each duplicate age as only need to match one of them
     # but also need to grab out the okay ages so these aren't selected by random
