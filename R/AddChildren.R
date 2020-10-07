@@ -847,27 +847,27 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
           cat("Minimum parent age is", ProblemChild$Age + 18, "and maximum parent age is", ProblemChild$Age + MaxParentAge,
           "for household", ProblemChild$HouseholdID, "\n")
 
-        #   PossibleSwapChildren <- ChildrenFinal %>%
-        #     filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
-        #
-        #   WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
-        #     filter(Age %in% OkayAges)
-        #
-        #   # delete these households from the possible children list
-        #   PossibleSwapChildren <- PossibleSwapChildren %>%
-        #     filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
-        #            between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
-        #
-        #   # randomly select a child to swap, what will actually swap is the household ID
-        #   ChildToSwap <- PossibleSwapChildren %>%
-        #     slice_sample(n = 1)
-        #
-        #   SwapChildHouseholdID <- ChildToSwap$HouseholdID
-        #   ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[e]
-        #
-        #   cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[e],
-        #       "in", ProblemHouseholdChildren$HouseholdID[e], "\n")
-        #
+          PossibleSwapChildren <- ChildrenFinal %>%
+            filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
+
+          WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+            filter(Age %in% OkayAges)
+
+          # delete these households from the possible children list
+          PossibleSwapChildren <- PossibleSwapChildren %>%
+            filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+                   between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+
+          # randomly select a child to swap, what will actually swap is the household ID
+          ChildToSwap <- PossibleSwapChildren %>%
+            slice_sample(n = 1)
+
+          SwapChildHouseholdID <- ChildToSwap$HouseholdID
+          ProblemChildHouseholdID <- ProblemChild$HouseholdID
+
+          cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemChild$PersonID,
+              "in", ProblemChild$HouseholdID, "\n")
+
         #   # perform the swapping, only household ID to be swapped
         #
         #   SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
@@ -961,7 +961,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     }
 
  # return(OutputDataframe)
-  return(ProblemChild)
+  return(ChildToSwap)
 
 
   # closes function
