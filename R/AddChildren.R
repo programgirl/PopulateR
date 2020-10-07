@@ -819,79 +819,135 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     for (d in 1:nrow(DuplicatedAge)) {
 
       # get the number of children that age to be replaced
-      as.numeric(NumToReplaceInLoop <- DuplicatedAge %>%
+      as.numeric(CountToReplace <- DuplicatedAge %>%
         pull(NumberToReplace[d]))
 
       as.numeric(AgeToReplace <- DuplicatedAge %>%
                    pull(Age[d]))
 
-      cat("The number of children aged", AgeToReplace, "to be replaced is", NumToReplaceInLoop, "\n" )
+      cat("The number of children aged", AgeToReplace, "to be replaced is", CountToReplace, "\n" )
 
-      # select child to replace, or children in the case of multiple births like triplets
-      ProblemAges <- ProblemHouseholdChildren %>%
-        filter(Age == DuplicatedAge$Age[d]) %>%
-        slice_sample(n = NumToReplaceInLoop) # removes one child from being replaced
+      # use the NumToReplace to loop through the children that age, who are duplicates
+      # selecting one child that age each time, so the replacement count is updated each time in the loop
+      # and therefore no requirement to affect d
 
+      for (e in 1:CountToReplace) {
 
-      #loop through all the rows for these twins/triplets
-      # this loop is through the rows, which are one age per row
-      for (e in 1:nrow(ProblemAges)) {
-
-        # now a subloop that replaces the age for each duplicated age
-        # will loop once for twins, twice for triplets,etc
-
-
-
-        PossibleSwapHouseholds <- ParentsFinal %>%
-          filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
-                 !(PersonID %in% ParentOfTwins$ParentID),
-                 between(Age, ProblemAges$Age[e] + 18, ProblemAges$Age[e] + MaxParentAge))
-
-        # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
-        # cat("Minimum parent age is", ProblemAges$Age[e] + 18, "and maximum parent age is", ProblemAges$Age[e] + MaxParentAge,
-        # "for household", ProblemAges$HouseholdID[e], "\n")
-
-        PossibleSwapChildren <- ChildrenFinal %>%
-          filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
-
-        WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
-          filter(Age %in% OkayAges)
-
-        # delete these households from the possible children list
-        PossibleSwapChildren <- PossibleSwapChildren %>%
-          filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
-                 between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
-
-        # randomly select a child to swap, what will actually swap is the household ID
-        ChildToSwap <- PossibleSwapChildren %>%
+        # select child to replace
+        ProblemChild <- ProblemHouseholdChildren %>%
+          filter(Age == AgeToReplace) %>%
           slice_sample(n = 1)
 
-        SwapChildHouseholdID <- ChildToSwap$HouseholdID
-        ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[e]
+          PossibleSwapHouseholds <- ParentsFinal %>%
+            filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+                   !(PersonID %in% ParentOfTwins$ParentID),
+                   between(Age, ProblemChild$Age + 18, ProblemChild$Age + MaxParentAge))
 
-        cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[e],
-            "in", ProblemHouseholdChildren$HouseholdID[e], "\n")
+          # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+          cat("Minimum parent age is", ProblemChild$Age + 18, "and maximum parent age is", ProblemChild$Age + MaxParentAge,
+          "for household", ProblemChild$HouseholdID, "\n")
 
-        # perform the swapping, only household ID to be swapped
-
-        SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
-        ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[e]))
-
-        cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
-
-        # # do the swapping
-        # # note: this is directly to the file used, so there is no interim file
-        # ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
-        # ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+        #   PossibleSwapChildren <- ChildrenFinal %>%
+        #     filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
         #
-        # SwqpChildAge <- ChildToSwap %>%
-        #   pull(Age)
+        #   WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+        #     filter(Age %in% OkayAges)
+        #
+        #   # delete these households from the possible children list
+        #   PossibleSwapChildren <- PossibleSwapChildren %>%
+        #     filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+        #            between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+        #
+        #   # randomly select a child to swap, what will actually swap is the household ID
+        #   ChildToSwap <- PossibleSwapChildren %>%
+        #     slice_sample(n = 1)
+        #
+        #   SwapChildHouseholdID <- ChildToSwap$HouseholdID
+        #   ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[e]
+        #
+        #   cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[e],
+        #       "in", ProblemHouseholdChildren$HouseholdID[e], "\n")
+        #
+        #   # perform the swapping, only household ID to be swapped
+        #
+        #   SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+        #   ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[e]))
+        #
+        #   cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+        #
+        #   # # do the swapping
+        #   # # note: this is directly to the file used, so there is no interim file
+        #   # ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+        #   # ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+        #   #
+        #   # SwqpChildAge <- ChildToSwap %>%
+        #   #   pull(Age)
+        #
+        #   OkayAges <- c(OkayAges, SwqpChildAge)
 
-        OkayAges <- c(OkayAges, SwqpChildAge)
+
+        # closes loop through each child that needs to be replaced (i.e. swap of household ID)
+      }
 
 
-        # closes loop through the problem ages that are all the same age
-        }
+
+
+
+
+
+
+
+
+      #   PossibleSwapHouseholds <- ParentsFinal %>%
+      #     filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+      #            !(PersonID %in% ParentOfTwins$ParentID),
+      #            between(Age, ProblemAges$Age[e] + 18, ProblemAges$Age[e] + MaxParentAge))
+      #
+      #   # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+      #   # cat("Minimum parent age is", ProblemAges$Age[e] + 18, "and maximum parent age is", ProblemAges$Age[e] + MaxParentAge,
+      #   # "for household", ProblemAges$HouseholdID[e], "\n")
+      #
+      #   PossibleSwapChildren <- ChildrenFinal %>%
+      #     filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
+      #
+      #   WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+      #     filter(Age %in% OkayAges)
+      #
+      #   # delete these households from the possible children list
+      #   PossibleSwapChildren <- PossibleSwapChildren %>%
+      #     filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+      #            between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+      #
+      #   # randomly select a child to swap, what will actually swap is the household ID
+      #   ChildToSwap <- PossibleSwapChildren %>%
+      #     slice_sample(n = 1)
+      #
+      #   SwapChildHouseholdID <- ChildToSwap$HouseholdID
+      #   ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[e]
+      #
+      #   cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[e],
+      #       "in", ProblemHouseholdChildren$HouseholdID[e], "\n")
+      #
+      #   # perform the swapping, only household ID to be swapped
+      #
+      #   SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+      #   ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[e]))
+      #
+      #   cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+      #
+      #   # # do the swapping
+      #   # # note: this is directly to the file used, so there is no interim file
+      #   # ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+      #   # ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+      #   #
+      #   # SwqpChildAge <- ChildToSwap %>%
+      #   #   pull(Age)
+      #
+      #   OkayAges <- c(OkayAges, SwqpChildAge)
+      #
+      #
+      #   # closes loop through the problem ages that are all the same age
+      #   }
 
 
       # closes loop for all should-not-be twins in the same household
@@ -905,7 +961,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     }
 
  # return(OutputDataframe)
-  return(ProblemAges)
+  return(ProblemChild)
 
 
   # closes function
