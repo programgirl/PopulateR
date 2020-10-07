@@ -140,7 +140,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   cat("Final size of child data frame is ", nrow(ChildrenRenamed), "\n")
 
-  # get counts for each single age from the parent data frame
+   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
   # ensure all parent ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
@@ -194,12 +194,14 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     TwinsDataFrame <- ChildrenRenamed %>%
       slice_sample(prop = TwinRate/2)
 
-    NoTwinsDataFrame <- ChildrenRenamed %>%
+     NoTwinsDataFrame <- ChildrenRenamed %>%
       filter(!(ChildID %in%  TwinsDataFrame$ChildID))
 
     TwinsMatched <- left_join(TwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
                               NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
                               by = c("ChildAge", "Counter"))
+
+    TwinsMatched <- as.data.frame(TwinsMatched)
 
     # add parent
 
@@ -425,6 +427,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   BaseDataFrame <- ChildrenRenamed %>%
     slice_sample(n = nrow(.)/NumChildren)
+
+  BaseDataFrame <- as.data.frame(BaseDataFrame)
 
   # match parent
 
@@ -812,20 +816,15 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       distinct(Age) %>%
       pull(Age)
 
-    # cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
-    #
-    # print(a)
-
-
     # this needs to loop just in case there is more than one duplicated age
     for (d in 1:nrow(DuplicatedAge)) {
 
       # get the number of children that age to be replaced
-      as.numeric(CountToReplace <- DuplicatedAge %>%
-        pull(NumberToReplace[d]))
+      CountToReplace <- as.numeric(DuplicatedAge[d,3])
 
-      as.numeric(AgeToReplace <- DuplicatedAge %>%
-                   pull(Age[d]))
+      AgeToReplace <- as.numeric(DuplicatedAge[d,1])
+
+      # cat("Age to replace is", AgeToReplace, "and number to replace is", CountToReplace, "in household", ProblemHouseholdChildren$HouseholdID[1] , "\n")
 
       # cat("The number of children aged", AgeToReplace, "to be replaced is", CountToReplace, "\n" )
 
@@ -845,6 +844,10 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
                    !(PersonID %in% ParentOfTwins$ParentID),
                    between(Age, ProblemChild$Age + 18, ProblemChild$Age + MaxParentAge))
 
+          # cat("The number of rows in the possible swap households is", nrow(PossibleSwapHouseholds), "\n")
+
+          if(nrow(PossibleSwapHouseholds) > 0) {
+
           # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
           # cat("Minimum parent age is", ProblemChild$Age + 18, "and maximum parent age is", ProblemChild$Age + MaxParentAge,
           # "for household", ProblemChild$HouseholdID, "\n")
@@ -860,13 +863,15 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
             filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
                    between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
 
-          if(is.na(PossibleSwapChildren$Age[1]) == TRUE) {
+          if (nrow(PossibleSwapChildren)==0) {
 
-            cat("There is no swap child for", ProblemChild$PersonID, "in", ProblemChild$HouseholdID, "\n")
-
-            break
+            cat("There are no children available to swap for", ProblemChild$PersonID, "in household ID", ProblemChild$HouseholdID, "\n")
 
           }
+
+
+          if(!(is.na(PossibleSwapChildren$Age[1]) == TRUE)) {
+
 
           # randomly select a child to swap, what will actually swap is the household ID
           ChildToSwap <- PossibleSwapChildren %>%
@@ -875,8 +880,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
           SwapChildHouseholdID <- ChildToSwap$HouseholdID
           ProblemChildHouseholdID <- ProblemChild$HouseholdID
 
-          cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemChild$PersonID,
-              "in", ProblemChild$HouseholdID, "\n")
+          # cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemChild$PersonID,
+          #     "in", ProblemChild$HouseholdID, "\n")
 
           # perform the swapping, only household ID to be swapped
 
@@ -894,6 +899,18 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
             pull(Age)
 
           OkayAges <- c(OkayAges, SwapChildAge)
+
+          #closes test to make sure that a swap occurs only if a child is available to be swapped
+          }
+
+          #closes test to make sure that a swap household is available
+          }
+
+          # print(as.numeric(ProblemChild$PersonID))
+          ProblemHouseholdChildren <- ProblemHouseholdChildren %>%
+            filter(PersonID != ProblemChild$PersonID)
+
+
 
         # closes loop through each child that needs to be replaced (i.e. swap of household ID)
       }
