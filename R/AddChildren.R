@@ -762,7 +762,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   #####################################
   #####################################
-  # fix the households who incorrectly contain twins
+  # fix the households which incorrectly contain twins
   #####################################
   #####################################
 
@@ -822,15 +822,25 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       as.numeric(NumToReplaceInLoop <- DuplicatedAge %>%
         pull(NumberToReplace[d]))
 
-      cat("The number of children aged", DuplicatedAge$Age[d], "to be replaced is", NumToReplaceInLoop, "\n" )
+      as.numeric(AgeToReplace <- DuplicatedAge %>%
+                   pull(Age[d]))
+
+      cat("The number of children aged", AgeToReplace, "to be replaced is", NumToReplaceInLoop, "\n" )
 
       # select child to replace, or children in the case of multiple births like triplets
       ProblemAges <- ProblemHouseholdChildren %>%
         filter(Age == DuplicatedAge$Age[d]) %>%
         slice_sample(n = NumToReplaceInLoop) # removes one child from being replaced
 
+
       #loop through all the rows for these twins/triplets
+      # this loop is through the rows, which are one age per row
       for (e in 1:nrow(ProblemAges)) {
+
+        # now a subloop that replaces the age for each duplicated age
+        # will loop once for twins, twice for triplets,etc
+
+
 
         PossibleSwapHouseholds <- ParentsFinal %>%
           filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
