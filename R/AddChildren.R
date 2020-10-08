@@ -23,7 +23,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
-                              MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDVariable= NULL, UserSeed=NULL)
+                        MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDVariable= NULL, UserSeed=NULL)
 
 {
 
@@ -113,8 +113,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   ParentsRenamed <- ParentsRenamed %>%
     filter(ParentAge >= MinParentAge + (NumChildren*2) ,
-         ParentAge <= MaxParentAge + maxChildAge - (NumChildren*2)
-           )
+           ParentAge <= MaxParentAge + maxChildAge - (NumChildren*2)
+    )
 
   ParentsSubset <- ParentsRenamed %>%
     select(ParentAge, ParentID, HouseholdID)
@@ -140,7 +140,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   cat("Final size of child data frame is ", nrow(ChildrenRenamed), "\n")
 
-  # get counts for each single age from the parent data frame
+   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
   # ensure all parent ages are represented in the data frame of counts
   # use the minimum and maximum values to create an age sequence from MinParentAge to MaxParentAge
@@ -167,6 +167,15 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #####################################
   #####################################
 
+
+  #####################################
+  # GENERAL APPROACH
+  # PICK ONE CHILD
+  # MATCH THEM TO A MOTHER
+  # MATCH OTHER CHILDREN TO GET A WIDE FILE
+  # TRANSFORM INTO LONG FILE
+  #####################################
+
   #####################################
   #####################################
   # Functions for twins and their siblings
@@ -185,12 +194,14 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     TwinsDataFrame <- ChildrenRenamed %>%
       slice_sample(prop = TwinRate/2)
 
-    NoTwinsDataFrame <- ChildrenRenamed %>%
+     NoTwinsDataFrame <- ChildrenRenamed %>%
       filter(!(ChildID %in%  TwinsDataFrame$ChildID))
 
     TwinsMatched <- left_join(TwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
                               NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
                               by = c("ChildAge", "Counter"))
+
+    TwinsMatched <- as.data.frame(TwinsMatched)
 
     # add parent
 
@@ -202,21 +213,21 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
       TwinsMatched$age_index[c] <- age_index
 
-        while (ParentAgeCountVector[age_index] == 0 || TwinsMatched$AgeDifference[c] < MinParentAge || TwinsMatched$AgeDifference[c] > MaxParentAge) {
+      while (ParentAgeCountVector[age_index] == 0 || TwinsMatched$AgeDifference[c] < MinParentAge || TwinsMatched$AgeDifference[c] > MaxParentAge) {
 
-          CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-          TwinsMatched$ParentAge[c] <- CurrentAge
-          TwinsMatched$AgeDifference[c] <- CurrentAge - TwinsMatched$ChildAge[c]
-          age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
-          TwinsMatched$age_index[c] <- age_index
+        CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
+        TwinsMatched$ParentAge[c] <- CurrentAge
+        TwinsMatched$AgeDifference[c] <- CurrentAge - TwinsMatched$ChildAge[c]
+        age_index <- TwinsMatched$ParentAge[c]-(minIndexAge -1)
+        TwinsMatched$age_index[c] <- age_index
 
-        # closes while loop
-        }
+         # closes while loop
+      }
 
       # cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
       #     "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
 
-            ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
       # closes parent match loop
     }
@@ -282,12 +293,11 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
           # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-           while (TwinsMatched[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
+          while (TwinsMatched[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
 
             # cat("Entered loop", "Current age is ",TwinsMatched[x,y], "Ages used are ", AgesUsed, "Parent age at childbirth is", AgeDifference, "\n")
 
             # cat("ChildrenAgeCountVector = ", ChildrenAgeCountVector, "Entered while loop", "age_index = ", age_index, "\n")
-            # AgeDifference %in% UsedAgesVector[x] &&
 
             NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
             TwinsMatched[x,y] <- NewChildAge
@@ -418,6 +428,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   BaseDataFrame <- ChildrenRenamed %>%
     slice_sample(n = nrow(.)/NumChildren)
 
+  BaseDataFrame <- as.data.frame(BaseDataFrame)
+
   # match parent
 
   for (c in 1:nrow(BaseDataFrame)) {
@@ -502,61 +514,87 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
   for (x in 1:nrow(BaseDataFrame)) {
 
-  # for (x in 1:152) {
+    # for (x in 1:152) {
 
-     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
+    AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
 
-     for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
+    for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
 
-       Counter <- 0
+      Counter <- 0
 
-       NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
-       BaseDataFrame[x,y] <- NewChildAge
-       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
-       age_index <- NewChildAge + 1
+      NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+      BaseDataFrame[x,y] <- NewChildAge
+      AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
+      age_index <- NewChildAge + 1
 
-       # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+      # cat("age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
+      while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
 
-         # cat("Entered loop", "age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
+        # cat("Entered loop", "age_index = ", age_index, "length of ChildrenAgeCountVector[age_index] = ", length(ChildrenAgeCountVector[age_index]), "\n")
 
-         NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
-         BaseDataFrame[x,y] <- NewChildAge
-         AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
-         age_index <- NewChildAge + 1
+        NewChildAge <- sample(minChildAge:maxChildAge, 1, replace = FALSE, prob = c(ChildrenAgeCountVector))
+        BaseDataFrame[x,y] <- NewChildAge
+        AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
+        age_index <- NewChildAge + 1
 
-         Counter <- Counter + 1
+        Counter <- Counter + 1
 
-         if (Counter == 1000 ) {
+        if (Counter == 1000 ) {
 
-           cat("The assignment of children to households without twins has encountered a problem", "\n")
-           cat("Assignment of extra child is in continuous loop so the loop was broken at 1000 iterations", "\n", "The problem household is", BaseDataFrame$HouseholdID[x], "\n")
-           cat("Please check the household for an out-of-range parent age at birth of child, and/or for the presence of a twin", "\n")
-           break
-         }
+          if (ChildrenAgeCountVector[age_index] == 0) {
+            cat("No children were available at the ages tested", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+          }
 
-         # closes while test
-         }
+          if (AgeDifference < MinParentAge || AgeDifference > MaxParentAge) {
 
-       # cat("Row is ", x, "Current age is ", BaseDataFrame[x,y], "Ages used are ", AgesUsed, "Parent age is ", BaseDataFrame$ParentAge[x], "\n")
+            # cat("No credible available parent ages were located", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
 
-       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
-       AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
+            if (exists("ParentTooYoung")) {
+              ParentTooYoung <- c(ParentTooYoung, BaseDataFrame$HouseholdID[x])
 
-       # closes for column loop
-       }
+            } else {
+              ParentTooYoung <- as.vector(BaseDataFrame$HouseholdID[x])
+            }
+          }
 
-     # closes for numchildren loop
-     }
+          if (BaseDataFrame[x,y] %in% (AgesUsed)) {
+            # cat("Twins were constructed even though the twin families were previously allocated", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+
+
+          if (exists("ShouldNotBeTwins")) {
+            ShouldNotBeTwins <- c(ShouldNotBeTwins, BaseDataFrame$HouseholdID[x])
+
+          } else {
+            ShouldNotBeTwins <- as.vector(BaseDataFrame$HouseholdID[x])
+          }
+
+          }
+
+          break
+        }
+
+        # closes while test
+      }
+
+      # cat("Row is ", x, "Current age is ", BaseDataFrame[x,y], "Ages used are ", AgesUsed, "Parent age is ", BaseDataFrame$ParentAge[x], "\n")
+
+      ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
+      AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
+
+      # closes for column loop
+    }
+
+    # closes for numchildren loop
+  }
 
 
   NotTwins <- BaseDataFrame %>%
     ungroup() %>%
     select(all_of(1:NumberColsChildren), NumberColsChildren+3)
 
-     NoTwinsDataFrame <- NoTwinsDataFrame %>%
-       filter(!(ChildID %in%  NotTwins$ChildID))
+  NoTwinsDataFrame <- NoTwinsDataFrame %>%
+    filter(!(ChildID %in%  NotTwins$ChildID))
 
   ParentOfNotTwins <- BaseDataFrame %>%
     ungroup() %>%
@@ -567,10 +605,10 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   # extract remaining children and rbind these to each other
   # will eventually be rbind'ed to the twins and parent data
 
- for (z in 2:NumChildren) {
+  for (z in 2:NumChildren) {
 
 
-  #   cat("z is ", z, " and child age column is", BaseDataFrame[(NumberColsChildren + z + 1),])
+    #   cat("z is ", z, " and child age column is", BaseDataFrame[(NumberColsChildren + z + 1),])
 
     OtherNotTwins <- BaseDataFrame %>%
       ungroup() %>%
@@ -578,11 +616,11 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
       rename(ChildAge = paste0("ChildAge", z))
 
     OtherNotTwins <- left_join(OtherNotTwins %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-                           NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-                           by = c("ChildAge", "Counter")) %>%
+                               NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
+                               by = c("ChildAge", "Counter")) %>%
       select(-Counter)
 
-   NotTwins <- bind_rows(NotTwins, OtherNotTwins)
+    NotTwins <- bind_rows(NotTwins, OtherNotTwins)
 
     NoTwinsDataFrame <- NoTwinsDataFrame %>%
       filter(!(ChildID %in%  OtherNotTwins$ChildID))
@@ -617,11 +655,283 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   ParentsFinal <- ParentsFinal %>%
     rename(PersonID = ParentID, Age = ParentAge)
 
-  OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+  InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
-  return(OutputDataframe)
+  # # test that the column number is still available to the function
+  # cat("Household column number is", HouseholdIDVariable, "\n")
+
+  #####################################
+  #####################################
+  # fix the out-of-bounds ages
+  #####################################
+  #####################################
+
+  if(exists("ParentTooYoung")) {
+
+    ParentTooYoung <- unique(ParentTooYoung)
+
+  for (a in 1:length(ParentTooYoung)) {
+
+ #   print(ParentTooYoung[a])
+
+    # extract problem household
+    ProblemHousehold <- InterimDataframe %>%
+      filter(HouseholdID == ParentTooYoung[a])
+
+    # identify the ages out of range
+    # extract parent
+    ProblemHouseholdParent <- ProblemHousehold %>%
+      slice_head(1)
+
+    PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
+    PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
+
+    # test parent permitted age conditions
+    # cat("Minimum child age is", PermittedChildAgeMin, "maximum child age is", PermittedChildAgeMax, "for parent age of", ProblemHouseholdParent$Age, "\n")
+
+    ProblemHouseholdChildren <- ProblemHousehold %>%
+      slice(- 1) %>%
+      filter(!(between(Age, PermittedChildAgeMin, PermittedChildAgeMax)))
+
+    OkayAges <- ProblemHousehold %>%
+      filter(!(PersonID %in% ProblemHouseholdParent$PersonID) &
+               !(PersonID %in% ProblemHouseholdChildren$PersonID)) %>%
+      select(Age) %>%
+      pull(Age)
+
+    for (b in 1:nrow(ProblemHouseholdChildren)) {
+
+      # print(ProblemHouseholdChildren$PersonID[b])
+
+      PossibleSwapHouseholds <- ParentsFinal %>%
+        filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+               !(PersonID %in% ParentOfTwins$ParentID),
+               between(Age, ProblemHouseholdChildren$Age[b] + 18, ProblemHouseholdChildren$Age[b] + MaxParentAge))
+
+      # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+      # cat("Minimum parent age is", ProblemHouseholdChildren$Age[b] + 18, "and maximum parent age is", ProblemHouseholdChildren$Age[b] + MaxParentAge,
+      # "for household", ProblemHousehold$HouseholdID[b], "\n")
+
+      PossibleSwapChildren <- ChildrenFinal %>%
+        filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
+
+      WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+        filter(Age %in% OkayAges)
+
+      # delete these households from the possible children list
+      PossibleSwapChildren <- PossibleSwapChildren %>%
+        filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+               between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+
+      # randomly select a child to swap, what will actually swap is the household ID
+      ChildToSwap <- PossibleSwapChildren %>%
+        slice_sample(n = 1)
+
+      SwapChildHouseholdID <- ChildToSwap$HouseholdID
+      ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[b]
+
+      # cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[b],
+      #     "in", ProblemHouseholdChildren$HouseholdID[b], "\n")
+
+      # perform the swapping, only household ID to be swapped
+
+      SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+      ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemHouseholdChildren$PersonID[b]))
+
+      # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+
+      # do the swapping
+      # note: this is directly to the file used, so there is no interim file
+      ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+      ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+
+      SwapChildAge <- ChildToSwap %>%
+        pull(Age)
+
+     OkayAges <- c(OkayAges, SwapChildAge)
+
+     # cat("Household ID is", ProblemHousehold$HouseholdID, "\n")
+      # return(OkayAges)
+    }
+
+    # close fix for the households with children who are too old
+  }
+
+    # reconstruct interim data frame so corrected with children
+    InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
+
+    # close test for whether households with children too old exist
+  }
+
+  #####################################
+  #####################################
+  # fix the households which incorrectly contain twins
+  #####################################
+  #####################################
+
+  if(exists("ShouldNotBeTwins")) {
+
+    ShouldNotBeTwins <- unique(ShouldNotBeTwins)
+
+ for (c in 1:length(ShouldNotBeTwins)) {
+
+    #   print(ParentTooYoung[a])
+
+    # extract problem household
+    ProblemHousehold <- InterimDataframe %>%
+      filter(HouseholdID == ShouldNotBeTwins[c])
+
+    ProblemHouseholdParent <- ProblemHousehold %>%
+      slice_head(1)
+
+    PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
+    PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
+
+    # identify the ages out of range
+    # extract parent
+    ProblemHouseholdChildren <- ProblemHousehold %>%
+      slice(-1)
+
+    # duplicates may have been fixed by the swaps in the earlier section
+    # see if age duplicates exist and, if, so the age of the duplicates
+
+    DuplicatedAge <- ProblemHouseholdChildren %>%
+      group_by(Age) %>%
+      summarise(DuplicateAge = n()) %>%
+      filter(DuplicateAge > 1) %>%
+      mutate(NumberToReplace = DuplicateAge - 1)
+
+    # there may no longer be any incorrect duplicates after fixing the incorrectly aged children
+    # so put this bit in a wrapper to test whether the DuplicatedAge dataframe has any content
+
+    if(!(is.na(DuplicatedAge$Age[1])) == TRUE) {
+
+    # deduct 1 from each duplicate age as only need to match one of them
+    # but also need to grab out the okay ages so these aren't selected by random
+    # which would create twins, rather than removing them
+    # NOTE: the age of the shouldn-be-twins is fine, because one twin is NOT being replaced
+
+    OkayAges <- ProblemHouseholdChildren %>%
+      select(Age) %>%
+      distinct(Age) %>%
+      pull(Age)
+
+    # this needs to loop just in case there is more than one duplicated age
+    for (d in 1:nrow(DuplicatedAge)) {
+
+      # get the number of children that age to be replaced
+      CountToReplace <- as.numeric(DuplicatedAge[d,3])
+
+      AgeToReplace <- as.numeric(DuplicatedAge[d,1])
+
+      # cat("Age to replace is", AgeToReplace, "and number to replace is", CountToReplace, "in household", ProblemHouseholdChildren$HouseholdID[1] , "\n")
+
+      # cat("The number of children aged", AgeToReplace, "to be replaced is", CountToReplace, "\n" )
+
+      # use the NumToReplace to loop through the children that age, who are duplicates
+      # selecting one child that age each time, so the replacement count is updated each time in the loop
+      # and therefore no requirement to affect d
+
+      for (e in 1:CountToReplace) {
+
+        # select child to replace
+        ProblemChild <- ProblemHouseholdChildren %>%
+          filter(Age == AgeToReplace) %>%
+          slice_sample(n = 1)
+
+          PossibleSwapHouseholds <- ParentsFinal %>%
+            filter(!(HouseholdID %in% ProblemHousehold$HouseholdID),
+                   !(PersonID %in% ParentOfTwins$ParentID),
+                   between(Age, ProblemChild$Age + 18, ProblemChild$Age + MaxParentAge))
+
+          # cat("The number of rows in the possible swap households is", nrow(PossibleSwapHouseholds), "\n")
+
+          if(nrow(PossibleSwapHouseholds) > 0) {
+
+          # test that the swap is correct, i.e. child ages are within bounds for both the children in the swap
+          # cat("Minimum parent age is", ProblemChild$Age + 18, "and maximum parent age is", ProblemChild$Age + MaxParentAge,
+          # "for household", ProblemChild$HouseholdID, "\n")
+
+          PossibleSwapChildren <- ChildrenFinal %>%
+            filter(HouseholdID %in% PossibleSwapHouseholds$HouseholdID)
+
+          WouldOtherwiseHaveTwins <- PossibleSwapChildren %>%
+            filter(Age %in% OkayAges)
+
+          # delete these households from the possible children list
+          PossibleSwapChildren <- PossibleSwapChildren %>%
+            filter(!(HouseholdID %in% WouldOtherwiseHaveTwins$HouseholdID),
+                   between(Age, max(ProblemHouseholdParent$Age - 54, 0), ProblemHouseholdParent$Age - 18))
+
+          if (nrow(PossibleSwapChildren)==0) {
+
+            cat("There are no children available to swap for", ProblemChild$PersonID, "in household ID", ProblemChild$HouseholdID, "\n")
+
+          }
 
 
+          if(!(is.na(PossibleSwapChildren$Age[1]) == TRUE)) {
+
+
+          # randomly select a child to swap, what will actually swap is the household ID
+          ChildToSwap <- PossibleSwapChildren %>%
+            slice_sample(n = 1)
+
+          SwapChildHouseholdID <- ChildToSwap$HouseholdID
+          ProblemChildHouseholdID <- ProblemChild$HouseholdID
+
+          # cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemChild$PersonID,
+          #     "in", ProblemChild$HouseholdID, "\n")
+
+          # perform the swapping, only household ID to be swapped
+
+          SwapChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ChildToSwap$PersonID))
+          ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$PersonID==ProblemChild$PersonID))
+
+          # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is", ProblemChildRowIndex, "\n")
+
+          # do the swapping
+          # note: this is directly to the file used, so there is no interim file
+          ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
+          ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+
+          SwapChildAge <- ChildToSwap %>%
+            pull(Age)
+
+          OkayAges <- c(OkayAges, SwapChildAge)
+
+          #closes test to make sure that a swap occurs only if a child is available to be swapped
+          }
+
+          #closes test to make sure that a swap household is available
+          }
+
+          # print(as.numeric(ProblemChild$PersonID))
+          ProblemHouseholdChildren <- ProblemHouseholdChildren %>%
+            filter(PersonID != ProblemChild$PersonID)
+
+
+
+        # closes loop through each child that needs to be replaced (i.e. swap of household ID)
+      }
+
+      # closes loop for all should-not-be twins in the same household
+    }
+
+    # closes loop while test for whether there is a DuplicatedAges dataframe
+    }
+
+    # closes loop through all households that should not contain twins, but do
+    }
+
+    # reconstruct interim data frame so corrected with children
+    InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
+    # closes test for whether households with incorrect duplicate child ages exist
+  }
+
+  OutputDataframe <- InterimDataframe
+
+  #return(OutputDataframe)
 
   # closes function
-   }
+}
