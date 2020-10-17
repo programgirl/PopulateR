@@ -2,13 +2,13 @@
 #' This function creates n dataframes of separate household groups, where n is the number of households to split from the input dataframe.
 #' A single variable is required, to identify the groups. This can take any type, for example factors are acceptable as grouping variables.
 #' Each output dataframe will have a name derived from the grouping variable.
+#' Do not assign the function to an object, simply call the function without assignment.
 #'
 #' @export
 #' @param AggregateDF A data frame containing all the household groups.
-#' @param GroupVariable The column number for the grouping variable.
+#' @param GroupVariable The column number for the grouping variable. The variable values must not start with a number, as R objects cannot start with numbers. The funnction tests for the existance of a number at the start of any of these values and will break the function if one exists.
 
-SplitHouseholds <- function(AggregateDF, GroupVariable = NULL)
-{
+SplitHouseholds <- function(AggregateDF, GroupVariable = NULL) {
 
   options(dplyr.summarise.inform=F)
 
@@ -31,30 +31,44 @@ SplitHouseholds <- function(AggregateDF, GroupVariable = NULL)
 
   WorkingDF <- AggregateDF %>%
     rename(GroupID = !! GroupVariable) %>%
-    mutate(GroupID = as.character(GroupID))
+    mutate(GroupID = gsub("[[:space:]]", "", as.character(GroupID)))
 
-  NumberGroups <- WorkingDF %>%
-    group_by(GroupID) %>%
-    filter(row_number() == 1) %>%
-    select(GroupID) #%>%
+#
+#   NumberGroups <- WorkingDF %>%
+#     group_by(GroupID) %>%
+#     filter(row_number() == 1) %>%
+#     select(GroupID)
+#
+  if (any(grepl("^[[:digit:]]+", WorkingDF$GroupID))) {
 
+    stop("The grouping variable values must not start with a number.")
 
-  for(a in 1:nrow(NumberGroups)) {
-
-    CurrentGroup <- NumberGroups$GroupID[a,1]
-
-    print(CurrentGroup)
-  #
-  #   CurrentHousehold <- WorkingDF %>%
-  #     filter(as.character(GroupID)==CurrentGroup$GroupID)
-  #
-  #   if (exists("HouseholdList")) {
-  #
-  #
-  #   }
   }
 
+  Groups <- split(WorkingDF, WorkingDF$GroupID)
+#
+#   # for(a in 1:nrow(NumberGroups)) {
+#   #
+#   #   CurrentGroup <- NumberGroups$GroupID[a]
+#   #
+#   #   print(CurrentGroup)
+#   #
+#   #   CurrentHousehold <- WorkingDF %>%
+#   #     filter(GroupID==CurrentGroup)
+#   #
+#   #   CurrentDataFrame <- paste0(gsub(" ", "", CurrentGroup, fixed = TRUE)) <- CurrentHousehold
+#   #
+#   #
+#   #
+#   # #   if (exists("HouseholdList")) {
+#   # #
+#   # #
+#   # #   }
+#   # }
+#
 
-  return(NumberGroups)
+  list2env(Groups, .GlobalEnv)
+
+ # return(WorkingDF)
 
 }
