@@ -37,11 +37,13 @@ SplitHouseholds <- function(AggregateDF, GroupVariable = NULL)
     group_by(GroupID) %>%
     filter(row_number() == 1) %>%
     select(GroupID) #%>%
- #   mutate(GroupID = as.character(GroupID))
 
-  # for(a in 1:nrow(NumberGroups)) {
-  #
-  #   CurrentGroup <- NumberGroups$GroupID[a]
+
+  for(a in 1:nrow(NumberGroups)) {
+
+    CurrentGroup <- NumberGroups$GroupID[a,1]
+
+    print(CurrentGroup)
   #
   #   CurrentHousehold <- WorkingDF %>%
   #     filter(as.character(GroupID)==CurrentGroup$GroupID)
@@ -50,7 +52,7 @@ SplitHouseholds <- function(AggregateDF, GroupVariable = NULL)
   #
   #
   #   }
-  # }
+  }
 
 
   return(NumberGroups)
