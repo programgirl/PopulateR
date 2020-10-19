@@ -33,12 +33,7 @@ SplitHouseholds <- function(AggregateDF, GroupVariable = NULL) {
     rename(GroupID = !! GroupVariable) %>%
     mutate(GroupID = gsub("[[:space:]]", "", as.character(GroupID)))
 
-#
-#   NumberGroups <- WorkingDF %>%
-#     group_by(GroupID) %>%
-#     filter(row_number() == 1) %>%
-#     select(GroupID)
-#
+
   if (any(grepl("^[[:digit:]]+", WorkingDF$GroupID))) {
 
     stop("The grouping variable values must not start with a number.")
@@ -46,29 +41,9 @@ SplitHouseholds <- function(AggregateDF, GroupVariable = NULL) {
   }
 
   Groups <- split(WorkingDF, WorkingDF$GroupID)
-#
-#   # for(a in 1:nrow(NumberGroups)) {
-#   #
-#   #   CurrentGroup <- NumberGroups$GroupID[a]
-#   #
-#   #   print(CurrentGroup)
-#   #
-#   #   CurrentHousehold <- WorkingDF %>%
-#   #     filter(GroupID==CurrentGroup)
-#   #
-#   #   CurrentDataFrame <- paste0(gsub(" ", "", CurrentGroup, fixed = TRUE)) <- CurrentHousehold
-#   #
-#   #
-#   #
-#   # #   if (exists("HouseholdList")) {
-#   # #
-#   # #
-#   # #   }
-#   # }
-#
 
-  list2env(Groups, .GlobalEnv)
 
- # return(WorkingDF)
+ list2env(Groups, .GlobalEnv)
+
 
 }
