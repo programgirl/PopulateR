@@ -12,12 +12,12 @@
 #' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param PyramidAgeVariable The column number containing the individual ages.
 #' @param Count The column number containing the counts for each sex/age combination in the data
-#' @param CountName The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
+#' @param NewAgeVariable The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
 AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVariable = NULL, MaximumAgeVariable = NULL, Pyramid, PyramidSxVariable = NULL,
-                         PyramidAgeVariable = NULL, Count = NULL, CountName = "SingleAge", UserSeed = NULL)
+                         PyramidAgeVariable = NULL, Count = NULL, NewAgeVariable = "SingleAge", UserSeed = NULL)
 
 {
 
@@ -62,7 +62,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
     mutate(Sex = as.character(Sex)))
 
   AgePyramid <- as.data.frame(Pyramid %>%
-    rename(Sex = !! PyramidSxVariable, PyramidAge = !! PyramidAgeVariable) %>%
+    rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! Count) %>%
     mutate(Sex = as.character(Sex)))
 
   #####################################
@@ -97,14 +97,26 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   #####################################
   #####################################
 
-  for (x in 1:nrow(BaseDataFrame)) {
+  # seed must come before first sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  # !!!!!!!!!!!!!!!!! note testing restriction
+ # for (x in 1:nrow(BaseDataFrame)) {
+  for (x in 1:10) {
 
     CurrentIndividual <- BaseDataFrame[x,]
 
     AgeRestricted <- AgePyramid %>%
-      filter(Sex == CurrentIndividual$Sex)
+      filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
+             Sex == CurrentIndividual$Sex) %>%
+      select(Age, Prob)
 
-    print(x)
+    NewAgeVariable <- AgeRestricted %>%
+      slice_sample(n=1, weight_by = Prob) %>%
+      select(Age)
+
 
 
   }
@@ -636,7 +648,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # # # #
   # # # # return(OutputDataframe)
   #
-  return(BaseDataFrame)
+  return(NewAgeVariable)
 
   #closes function
 }
