@@ -62,7 +62,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
     mutate(Sex = as.character(Sex)))
 
   AgePyramid <- as.data.frame(Pyramid %>%
-    rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! Count, ) %>%
+    rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! Count) %>%
     mutate(Sex = as.character(Sex)))
 
   #####################################
