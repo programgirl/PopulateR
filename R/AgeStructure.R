@@ -57,13 +57,13 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   #####################################
   #####################################
 
-  BaseDataFrame <- Individuals %>%
+  BaseDataFrame <- as.data.frame(Individuals %>%
     rename(Sex = !! IndividualSxVariable, MinAge = !! MinimumAgeVariable, MaxAge = !! MaximumAgeVariable) %>%
-    mutate(Sex = as.character(Sex))
+    mutate(Sex = as.character(Sex)))
 
-  AgePyramid <- Pyramid %>%
+  AgePyramid <- as.data.frame(Pyramid %>%
     rename(Sex = !! PyramidSxVariable, PyramidAge = !! PyramidAgeVariable) %>%
-    mutate(Sex = as.character(Sex))
+    mutate(Sex = as.character(Sex)))
 
   #####################################
   #####################################
@@ -75,11 +75,11 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # check alignment of the two sex variables codes
   #####################################
 
-  BaseSexCodes <- as.data.frame(BaseDataFrame) %>%
+  BaseSexCodes <- BaseDataFrame %>%
     select(Sex) %>%
     distinct(Sex)
 
-  PyramidSexCodes <- as.data.frame(AgePyramid) %>%
+  PyramidSexCodes <- AgePyramid %>%
     select(Sex) %>%
     distinct(Sex)
 
@@ -90,11 +90,26 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
 
   }
 
-  # #####################################
-  # #####################################
-  # # set up pre-data information for matching
-  # #####################################
-  # #####################################
+
+  #####################################
+  #####################################
+  # perform the age allocation
+  #####################################
+  #####################################
+
+  for (x in 1:nrow(BaseDataFrame)) {
+
+    CurrentIndividual <- BaseDataFrame[x,]
+
+    AgeRestricted <- AgePyramid %>%
+      filter(Sex == CurrentIndividual$Sex)
+
+    print(x)
+
+
+  }
+
+
   #
   # # restrict parent ages to those allowed by the user specifications
   #
@@ -621,7 +636,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # # # #
   # # # # return(OutputDataframe)
   #
-  return(PyramidSexCodes)
+  return(BaseDataFrame)
 
   #closes function
 }
