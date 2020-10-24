@@ -16,7 +16,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVariable = NULL, MaximumAgeVariable = NULL, Pyramid, PyramicSxVariable = NULL,
+AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVariable = NULL, MaximumAgeVariable = NULL, Pyramid, PyramidSxVariable = NULL,
                          PyramidAgeVariable = NULL, Count = NULL, CountName = "SingleAge", UserSeed = NULL)
 
 {
@@ -39,12 +39,12 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
     stop("The column number for the maximum age band value must be supplied.")
   }
 
-  if (is.null(PyramicSxVariable)) {
-    stop("he column number containing the sex information in the Pyramid data frame must be supplied")
+  if (is.null(PyramidSxVariable)) {
+    stop("The column number containing the sex information in the Pyramid data frame must be supplied")
   }
 
-  if (is.null(PyramicAgeVariable)) {
-    stop("he column number containing the age information in the Pyramid data frame must be supplied")
+  if (is.null(PyramidAgeVariable)) {
+    stop("The column number containing the age information in the Pyramid data frame must be supplied")
   }
 
   if (is.null(Count)) {
@@ -52,12 +52,36 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   }
 
   #####################################
-  # check alignment of the two sex variables
   #####################################
-  # complete non-matching of the codes means no single year age output
-  # which means use of the function is pointless
-  # stop if no matching codes
+  # rename variables so don't need to use quosures inside code
+  #####################################
+  #####################################
 
+  BaseDataFrame <- Individuals %>%
+    rename(Sex = !! IndividualSxVariable, MinAge = !! MinimumAgeVariable, MaxAge = !! MaximumAgeVariable) %>%
+    mutate(Sex = as.character(Sex))
+
+  AgePyramid <- Pyramid %>%
+    rename(Sex = !! PyramidSxVariable, PyramidAge = !! PyramidAgeVariable) %>%
+    mutate(Sex = as.character(Sex))
+
+  #####################################
+  #####################################
+  # end column names
+  #####################################
+  #####################################
+
+  #####################################
+  # check alignment of the two sex variables codes
+  #####################################
+
+  BaseSexCodes <- BaseDataFrame %>%
+    select(Sex) %>%
+    distinct(Sex)
+
+  PyramidSexCodes <- AgePyramid %>%
+    select(Sex) %>%
+    distinct(Sex)
 
   #####################################
   # check that there are no unders or overs for the age matches
@@ -84,37 +108,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # }
   #
   #
-  # #####################################
-  # #####################################
-  # # get column names as symbols to use inside data frame subfunctions
-  # #####################################
-  # #####################################
-  #
-  # ChildrenRenamed <- Children %>%
-  #   rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
-  #
-  # # Child ID variable
-  # ChildIDColName <- sym(names(Children[ChildIDVariable]))
-  #
-  # # Child age variable
-  # ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
-  #
-  # ParentsRenamed <- Parents %>%
-  #   rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
-  #          HouseholdID = !! HouseholdIDVariable)
-  #
-  # # Parent age variable
-  # ParentAgeColName <- sym(names(Parents[ParentAgeVariable]))
-  #
-  # minChildAge <- min(Children[ChildAgeVariable])
-  #
-  # maxChildAge <- max(Children[ChildAgeVariable])
-  #
-  # #####################################
-  # #####################################
-  # # end column names
-  # #####################################
-  # #####################################
+
   #
   #
   # #####################################
@@ -648,7 +642,7 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # # # #
   # # # # return(OutputDataframe)
   #
-  # return(TwinsMatched)
+  return(PyramidSexCodes)
 
   #closes function
 }
