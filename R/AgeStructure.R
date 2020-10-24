@@ -75,42 +75,21 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # check alignment of the two sex variables codes
   #####################################
 
-  BaseSexCodes <- BaseDataFrame %>%
+  BaseSexCodes <- as.data.frame(BaseDataFrame) %>%
     select(Sex) %>%
     distinct(Sex)
 
-  PyramidSexCodes <- AgePyramid %>%
+  PyramidSexCodes <- as.data.frame(AgePyramid) %>%
     select(Sex) %>%
     distinct(Sex)
 
-  #####################################
-  # check that there are no unders or overs for the age matches
-  #####################################
 
-
-  #####################################
-  # limit data in both dataframes to the same age range
-  #####################################
-
-
-
-
-  # if (is.null(MaxParentAge)) {
-  #   stop("The maximum parent age must be supplied.")
+  # if (isFALSE(identical(BaseSexCodes, PyramidSexCodes))) {
+  #
+  #   stop("The sex variable values are not the same for both data frames")
+  #
   # }
-  #
-  # if (!any(duplicated(Parents[HouseholdIDVariable])) == FALSE) {
-  #   stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
-  # }
-  #
-  # if(ncol(Children) != ncol(Parents)-1) {
-  #   stop("The number of columns requirement is not met.")
-  # }
-  #
-  #
 
-  #
-  #
   # #####################################
   # #####################################
   # # set up pre-data information for matching
