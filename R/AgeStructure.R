@@ -40,11 +40,11 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   }
 
   if (is.null(PyramidSxVariable)) {
-    stop("The column number containing the sex information in the Pyramid data frame must be supplied")
+    stop("The column number containing the sex information in the Pyramid data frame must be supplied.")
   }
 
   if (is.null(PyramidAgeVariable)) {
-    stop("The column number containing the age information in the Pyramid data frame must be supplied")
+    stop("The column number containing the age information in the Pyramid data frame must be supplied.")
   }
 
   if (is.null(Count)) {
@@ -84,11 +84,11 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
     distinct(Sex)
 
 
-  # if (isFALSE(identical(BaseSexCodes, PyramidSexCodes))) {
-  #
-  #   stop("The sex variable values are not the same for both data frames")
-  #
-  # }
+  if (isFALSE(identical(BaseSexCodes, PyramidSexCodes))) {
+
+    stop("The sex variable values are not the same for both data frames.")
+
+  }
 
   # #####################################
   # #####################################
