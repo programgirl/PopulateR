@@ -115,13 +115,13 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     distinct(Sex)
 
 
-#   if (isFALSE(identical(BaseSexCodes, PyramidSexCodes))) {
-#
-#     stop("The sex variable values are not the same for both data frames.")
-#
-#   }
-#
-#
+  if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
+
+    stop("The sex variable values are not the same for both data frames.")
+
+  }
+
+
 #   #####################################
 #   #####################################
 #   # perform the age allocation
