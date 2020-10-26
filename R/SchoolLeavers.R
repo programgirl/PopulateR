@@ -142,6 +142,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   DuplicateTesting <- Schooling %>%
     group_by(Sex, Age) %>%
+    summarise(Duplicates = n()) %>%
     filter(n()>1)
 
 
@@ -197,7 +198,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 #   }
 
   #
-  return(PyramidSexCodes)
+  return(DuplicateTesting)
 
   #closes function
 }
