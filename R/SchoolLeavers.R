@@ -13,7 +13,7 @@
 #' @param LeaversSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param LeaversAgeVariable The column number containing the ages for school leavers.
 #' @param LeaversCount The column number containing the counts for each sex/age combination in the data. This must be integer format.
-#' @param Year The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2020, then the 2020 leaver information for 17-year-olds is applied to the 17-year-olds in the Adolescent data frame.
+#' @param LeaversYear The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2020, then the 2020 leaver information for 17-year-olds is applied to the 17-year-olds in the Adolescent data frame.
 #' @param Pyramid A data frame containing the sex/age pyramid to be used.
 #' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param PyramidAgeVariable The column number containing the individual ages.
@@ -23,7 +23,7 @@
 
 
 SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, LeavingAge = NULL, Leavers, LeaversSxVariable = NULL,
-                          LeaversAgeVariable = NULL, LeaversCount = NULL, Year = NULL, Pyramid, PyramicSxVariable = NULL, PyramidAgeVariable = NULL,
+                          LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL, Pyramid, PyramidSxVariable = NULL, PyramidAgeVariable = NULL,
                           PyramidCount = NULL, SchoolStatus = "Status", UserSeed = NULL)
 
 {
@@ -54,11 +54,11 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     stop("The column number containing the age information in the Leavers data frame must be supplied.")
   }
 
-  if (is.null(Count)) {
+  if (is.null(LeaversCount)) {
     stop("The column number for the sex/age school leaver counts must be supplied.")
   }
 
-  if (is.null(Year)) {
+  if (is.null(LeaversYear)) {
     stop("The column number containing the year information in the LeaversData data frame must be supplied.")
   }
 
@@ -80,16 +80,19 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   #####################################
   #####################################
 
+  # dataset names
+ # cat("The children data frame is called", deparse(substitute(Adolescents)), "\n")
+
   Children <- as.data.frame(Adolescents %>%
                                    rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable) %>%
                                    mutate(Sex = as.character(Sex)))
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(Sex = !! LeaversSxVariable, Age = !! AdolescentAgeVariable) %>%
+                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable) %>%
                               mutate(Sex = as.character(Sex)))
 
   AgePyramid <- as.data.frame(Pyramid %>%
-                                rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! Count) %>%
+                                rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! LeaversCount) %>%
                                 mutate(Sex = as.character(Sex)))
 
   #####################################
@@ -117,16 +120,35 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
 
-    stop("The sex variable values are not the same for both data frames.")
+    stop("The sex variable values are not the same for the deparse(substitute(Adolescents)) and deparse(substitute(Pyramid)) data frames.")
 
   }
 
+  if (isFALSE(identical(ChildrenSexCodes, SchoolingSexCodes))) {
 
-#   #####################################
-#   #####################################
-#   # perform the age allocation
-#   #####################################
-#   #####################################
+    stop("The sex variable values for deparse(substitute(Leavers)) differ from the other two data frames.")
+
+  }
+
+  #####################################
+  #####################################
+  # summarise the leaver counts into one value per group
+  # only needs to be done if the leaver counts are already grouped
+  #####################################
+  #####################################
+
+
+
+
+  SummaryLeaverCounts <- Schooling
+
+
+
+
+
+
+
+
 #
 #   # seed must come before first sample is cut
 #   if (!is.null(UserSeed)) {
