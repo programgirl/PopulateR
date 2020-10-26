@@ -107,26 +107,29 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   ChildrenSexCodes <- Children %>%
     select(Sex) %>%
-    distinct(Sex)
+    distinct(Sex) %>%
+    arrange(Sex)
 
   SchoolingSexCodes <- Schooling %>%
     select(Sex) %>%
-    distinct(Sex)
+    distinct(Sex) %>%
+    arrange(Sex)
 
   PyramidSexCodes <- AgePyramid %>%
     select(Sex) %>%
-    distinct(Sex)
+    distinct(Sex) %>%
+    arrange(Sex)
 
 
   if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
 
-    stop("The sex variable values are not the same for the deparse(substitute(Adolescents)) and deparse(substitute(Pyramid)) data frames.")
+    stop("The sex variable values are not the same for the ", deparse(substitute(Adolescents)), " and ", deparse(substitute(Pyramid)), " data frames.", "\n")
 
   }
 
   if (isFALSE(identical(ChildrenSexCodes, SchoolingSexCodes))) {
 
-    stop("The sex variable values for deparse(substitute(Leavers)) differ from the other two data frames.")
+    stop("The sex variable values for ", deparse(substitute(Leavers)), " differ from the other two data frames.", "\n")
 
   }
 
@@ -137,10 +140,13 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   #####################################
   #####################################
 
+  DuplicateTesting <- Schooling %>%
+    group_by(Sex, Age) %>%
+    filter(n()>1)
 
 
 
-  SummaryLeaverCounts <- Schooling
+  # SummaryLeaverCounts <- Schooling
 
 
 
@@ -191,7 +197,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 #   }
 
   #
-  return(DataFrameWithAges)
+  return(PyramidSexCodes)
 
   #closes function
 }

@@ -77,11 +77,13 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
 
   BaseSexCodes <- BaseDataFrame %>%
     select(Sex) %>%
-    distinct(Sex)
+    distinct(Sex) %>%
+    arrange(Sex)
 
   PyramidSexCodes <- AgePyramid %>%
     select(Sex) %>%
-    distinct(Sex)
+    distinct(Sex) %>%
+    arrange(Sex)
 
 
   if (isFALSE(identical(BaseSexCodes, PyramidSexCodes))) {
