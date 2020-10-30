@@ -85,15 +85,23 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   Children <- as.data.frame(Adolescents %>%
                                    rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable) %>%
-                                   mutate(Sex = as.character(Sex)))
+                                   mutate(Sex = as.character(Sex),
+                                          Age = as.integer(Age)))
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable, Year = !! LeaversYear) %>%
-                              mutate(Sex = as.character(Sex)))
+                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable, Year = !! LeaversYear, NumLeftSchool = !! LeaversCount) %>%
+                              mutate(Sex = as.character(Sex),
+                                     Age = as.integer(Age),
+                                     Year = as.integer(Year),
+                                     Number = as.integer(NumLeftSchool)) %>%
+                               select(Sex, Age, Year, NumLeftSchool))
+
 
   AgePyramid <- as.data.frame(Pyramid %>%
-                                rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! LeaversCount) %>%
-                                mutate(Sex = as.character(Sex)))
+                                rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, PyramidCount = !! LeaversCount) %>%
+                                mutate(Sex = as.character(Sex),
+                                       Age = as.integer(Age)) %>%
+                                select(Sex, Age, PyramidCount))
 
   #####################################
   #####################################
@@ -150,11 +158,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     stop(deparse(substitute(Leavers)), " contains duplicates.", "\n")
   }
 
-  # SummaryLeaverCounts <- Schooling
-
-
-
-
+  CombinedData <- Schooling %>%
+    left_join(AgePyramid, by = c("Sex", "Age"))
 
 
 
@@ -201,7 +206,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 #   }
 
   #
-  return(DuplicateTesting)
+  return(CombinedData)
 
   #closes function
 }
