@@ -177,7 +177,6 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     group_by(Sex, CurrentAge) %>%
     summarise(TotalLeaverCount = sum(NumLeftSchool))
 
-
   ####################################
   ####################################
   # join after the leavers are summarised
@@ -185,60 +184,55 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   ####################################
   CombinedData <- Schooling %>%
     left_join(AgePyramid, by = c("Sex", "CurrentAge" =  "Age")) %>%
-    mutate(PropLeft = TotalLeaverCount / PyramidCount) %>%
+    mutate(PropLeft = TotalLeaverCount / PyramidCount,
+           PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
     filter(!(is.na(PropLeft))) %>%
     rename(Age = CurrentAge) %>%
     select(-(c(TotalLeaverCount, PyramidCount)))
 
-  #
-  # # remove any NAs as these will cause problems with the maths
-  # CombinedData <- CombinedData %>%
-  #   filter(!(is.na(NumLeftSchool)), !(is.na(PyramidCount)))
+
+  # remove any NAs as these will cause problems with the maths
+  CombinedData <- CombinedData %>%
+    filter(!(is.na(PyramidCount)))
 
 
-#
-#   # seed must come before first sample is cut
-#   if (!is.null(UserSeed)) {
-#     set.seed(UserSeed)
-#   }
-#
-#   # !!!!!!!!!!!!!!!!! note testing restriction
-#   for (x in 1:nrow(BaseDataFrame)) {
-#     # for (x in 1:10) {
-#
-#     CurrentIndividual <- BaseDataFrame[x,]
-#
-#     AgeRestricted <- AgePyramid %>%
-#       filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
-#              Sex == CurrentIndividual$Sex) %>%
-#       select(Age, Prob)
-#
-#     OutputAge <- AgeRestricted %>%
-#       slice_sample(n=1, weight_by = Prob) %>%
-#       select(Age) %>%
-#       pull(Age)
-#
-#     CurrentIndividual <- CurrentIndividual %>%
-#       mutate(!!NewAgeVariable := OutputAge)
-#
-#
-#     if (exists("DataFrameWithAges") == TRUE) {
-#
-#       DataFrameWithAges <- bind_rows(DataFrameWithAges, CurrentIndividual)
-#
-#     } else {
-#
-#       DataFrameWithAges <- CurrentIndividual
-#
-#       # close evaluation for creating the output data frame
-#     }
-#
-#     # closes age assignment loop
-#
-#   }
+  # join the probabilities to the children and calculate the probability of leaving school
+  Children <- Children %>%
+    left_join(CombinedData, by = c("Age", "Sex")) %>%
+    mutate(PropLeft = ifelse(is.na(PropLeft), 0, PropLeft),
+           Status = "None")
 
-  #
-  return(CombinedData)
+
+  # seed must come before first sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
+  # apply the probabilities to the children
+
+  for (x in 1:nrow(Children)) {
+
+    RandomRoll <- runif(1, 0, 1)
+
+ #   cat("Random roll is ", RandomRoll, " for the line ", Children$PropLeft[x], "\n")
+
+    if (isTRUE(RandomRoll <= Children$PropLeft[x])) {
+
+      print("Entered loop")
+
+      Children$Status[x] <- "Left"
+
+    } else {
+      Children$Status[x] <- "Stayed"
+
+      # closes random assignment to school statust
+    }
+
+    # closes loop through children data frame
+  }
+
+
+  return(Children)
 
   #closes function
 }
