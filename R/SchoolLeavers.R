@@ -108,6 +108,10 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
                                        Age = as.integer(Age)) %>%
                                 select(Sex, Age, PyramidCount))
 
+  # get the original variable names
+
+  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
+  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
 
   #####################################
   #####################################
@@ -218,7 +222,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
     if (isTRUE(RandomRoll <= Children$PropLeft[x])) {
 
-      print("Entered loop")
+   #   print("Entered loop")
 
       Children$Status[x] <- "Left"
 
@@ -230,6 +234,11 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
     # closes loop through children data frame
   }
+
+  Children <- Children %>%
+    mutate(!!ChildrenAgeColName := Age,
+           !!ChildrenSexColName := Sex) %>%
+    select(-c(PropLeft, Age, Sex))
 
 
   return(Children)
