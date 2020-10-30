@@ -88,7 +88,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
                                    mutate(Sex = as.character(Sex)))
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable) %>%
+                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable, Year = !! LeaversYear) %>%
                               mutate(Sex = as.character(Sex)))
 
   AgePyramid <- as.data.frame(Pyramid %>%
@@ -135,17 +135,20 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   #####################################
   #####################################
-  # summarise the leaver counts into one value per group
-  # only needs to be done if the leaver counts are already grouped
+  # check leaver counts are summarised
   #####################################
   #####################################
 
   DuplicateTesting <- Schooling %>%
-    group_by(Sex, Age) %>%
+    group_by(Year, Sex, Age) %>%
     summarise(Duplicates = n()) %>%
-    filter(n()>1)
+    filter(Duplicates > 1)
 
 
+  if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
+
+    stop(deparse(substitute(Leavers)), " contains duplicates.", "\n")
+  }
 
   # SummaryLeaverCounts <- Schooling
 
