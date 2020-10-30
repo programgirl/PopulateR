@@ -8,12 +8,13 @@
 #' @param Adolescents A data frame containing all adolescents who potentially have left school due to their age.
 #' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param AdolescentAgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
+#' @param AdolescentsYear The year that is most relevant to the timing of the adolescents survey date. For example, an adolescents survey date in early 2013, with a school year of Febrary to November, may mean that the ages of the school leavers in 2012 are the same as the adolescents' current ages. In this situation, most of the school exits in 2013 will occur after the date of the adolescent survey, and the adolescent may have had a birthday inbetween. The 2012 school leaver data is therefore latest and most accurate data to use for the school leaver estimates of the 2013 survey. Must be integer or numeric.
 #' @param LeavingAge The minimum age at which an adolescent can leave school.
 #' @param Leavers A data frame containing the counts of the school leavers for each year.
 #' @param LeaversSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param LeaversAgeVariable The column number containing the ages for school leavers.
-#' @param LeaversCount The column number containing the counts for each sex/age combination in the data. This must be integer format.
-#' @param LeaversYear The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2020, then the 2020 leaver information for 17-year-olds is applied to the 17-year-olds in the Adolescent data frame.
+#' @param LeaversCount The column number containing the counts for each sex/age combination in the data. This must be in numeric or integer format.
+#' @param LeaversYear The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2013, then the 2013 leaver information for 17-year-old females is applied to the 17-year-old females in the Adolescent data frame.
 #' @param Pyramid A data frame containing the sex/age pyramid to be used.
 #' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param PyramidAgeVariable The column number containing the individual ages.
@@ -22,7 +23,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, LeavingAge = NULL, Leavers, LeaversSxVariable = NULL,
+SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentsYear = NULL, LeavingAge = NULL, Leavers, LeaversSxVariable = NULL,
                           LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL, Pyramid, PyramidSxVariable = NULL, PyramidAgeVariable = NULL,
                           PyramidCount = NULL, SchoolStatus = "Status", UserSeed = NULL)
 
@@ -40,6 +41,10 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   if (is.null(AdolescentAgeVariable)) {
     stop("The column number containing the age information in the Adolescents data frame must be supplied.")
+  }
+
+  if (is.null(AdolescentsYear)) {
+    stop("The year in which the adolescents data was collected.")
   }
 
   if (is.null(LeavingAge)) {
@@ -93,7 +98,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
                               mutate(Sex = as.character(Sex),
                                      Age = as.integer(Age),
                                      Year = as.integer(Year),
-                                     Number = as.integer(NumLeftSchool)) %>%
+                                     NumLeftSchool = as.integer(NumLeftSchool)) %>%
                                select(Sex, Age, Year, NumLeftSchool))
 
 
@@ -102,6 +107,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
                                 mutate(Sex = as.character(Sex),
                                        Age = as.integer(Age)) %>%
                                 select(Sex, Age, PyramidCount))
+
 
   #####################################
   #####################################
@@ -158,10 +164,36 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     stop(deparse(substitute(Leavers)), " contains duplicates.", "\n")
   }
 
+  #####################################
+  #####################################
+  # sum the leaver counts by current age
+  #####################################
+  #####################################
+
+  Schooling <- Schooling %>%
+    filter(Year <= AdolescentsYear) %>%
+    mutate(Deduction = AdolescentsYear - Year,
+           CurrentAge = Age + Deduction) %>%
+    group_by(Sex, CurrentAge) %>%
+    summarise(TotalLeaverCount = sum(NumLeftSchool))
+
+
+  ####################################
+  ####################################
+  # join after the leavers are summarised
+  ####################################
+  ####################################
   CombinedData <- Schooling %>%
-    left_join(AgePyramid, by = c("Sex", "Age"))
+    left_join(AgePyramid, by = c("Sex", "CurrentAge" =  "Age")) %>%
+    mutate(PropLeft = TotalLeaverCount / PyramidCount) %>%
+    filter(!(is.na(PropLeft))) %>%
+    rename(Age = CurrentAge) %>%
+    select(-(c(TotalLeaverCount, PyramidCount)))
 
-
+  #
+  # # remove any NAs as these will cause problems with the maths
+  # CombinedData <- CombinedData %>%
+  #   filter(!(is.na(NumLeftSchool)), !(is.na(PyramidCount)))
 
 
 #
