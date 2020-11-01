@@ -48,25 +48,31 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
   #####################################
 
   Children <- as.data.frame(Adolescents %>%
-                              rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool, Hours = !! HoursWorked) %>%
-                              mutate(Sex = as.character(Sex),
-                                     Age = as.integer(Age),
-                                     Hours = as.ordered(Hours)))
+                              rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool, IntHours = !! HoursWorked) %>%
+                              mutate(IntSex = as.character(IntSex),
+                                     IntAge = as.integer(IntAge),
+                                     IntHours = as.ordered(IntHours)))
 
+  # get the original variable names
 
+  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
+  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
+  ChildrenSchoolColName <- sym(names(Adolescents[AdolescentInSchool]))
+  ChildrenHoursColName <- sym(names(Adolescents[HoursWorked]))
 
-  #
-  # # get the original variable names
-  #
-  # ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
-  # ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
-  #
-  # #####################################
-  # #####################################
-  # # end column names
-  # #####################################
-  # #####################################
-  #
+  #####################################
+  #####################################
+  # end column names
+  #####################################
+  #####################################
+
+  # check if HoursWorked is an ordered factor or numeric
+
+  if (!(is.ordered(Children$IntHours)) == TRUE & !(is.numeric(Children$IntHours)) == TRUE) {
+
+    stop("Hours worked must be an ordered factor or numeric.")
+  }
+
   # #####################################
   # # check alignment of the three sex variables codes
   # #####################################
