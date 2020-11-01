@@ -73,44 +73,13 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
     stop("Hours worked must be an ordered factor or numeric.")
   }
 
-  # #####################################
-  # # check alignment of the three sex variables codes
-  # #####################################
-  #
-  # ChildrenSexCodes <- Children %>%
-  #   select(Sex) %>%
-  #   distinct(Sex) %>%
-  #   arrange(Sex)
-  #
-  # SchoolingSexCodes <- Schooling %>%
-  #   select(Sex) %>%
-  #   distinct(Sex) %>%
-  #   arrange(Sex)
-  #
-  # PyramidSexCodes <- AgePyramid %>%
-  #   select(Sex) %>%
-  #   distinct(Sex) %>%
-  #   arrange(Sex)
-  #
-  #
-  # if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
-  #
-  #   stop("The sex variable values are not the same for the ", deparse(substitute(Adolescents)), " and ", deparse(substitute(Pyramid)), " data frames.", "\n")
-  #
-  # }
-  #
-  # if (isFALSE(identical(ChildrenSexCodes, SchoolingSexCodes))) {
-  #
-  #   stop("The sex variable values for ", deparse(substitute(Leavers)), " differ from the other two data frames.", "\n")
-  #
-  # }
-  #
-  # #####################################
-  # #####################################
-  # # check leaver counts are summarised
-  # #####################################
-  # #####################################
-  #
+
+  #####################################
+  #####################################
+  # split out the school stayers and lower hours data
+  #####################################
+  #####################################
+
   # DuplicateTesting <- Schooling %>%
   #   group_by(Year, Sex, Age) %>%
   #   summarise(Duplicates = n()) %>%
