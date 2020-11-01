@@ -80,12 +80,11 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
   #####################################
   #####################################
 
-  # DuplicateTesting <- Schooling %>%
-  #   group_by(Year, Sex, Age) %>%
-  #   summarise(Duplicates = n()) %>%
-  #   filter(Duplicates > 1)
-  #
-  #
+  ShorterHours <- Children %>%
+    filter(as.numeric(IntHours) <= HoursCutOff) %>%
+    summarise(HoursCounter = n())
+
+
   # if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
   #
   #   stop(deparse(substitute(Leavers)), " contains duplicates.", "\n")
@@ -167,7 +166,7 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(Children)
+  return(ShorterHours)
 
   #closes function
 }
