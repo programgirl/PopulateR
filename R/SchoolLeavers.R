@@ -89,24 +89,24 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
  # cat("The children data frame is called", deparse(substitute(Adolescents)), "\n")
 
   Children <- as.data.frame(Adolescents %>%
-                                   rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable) %>%
-                                   mutate(Sex = as.character(Sex),
-                                          Age = as.integer(Age)))
+                                   rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable) %>%
+                                   mutate(IntSex = as.character(IntSex),
+                                          IntAge = as.integer(IntAge)))
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable, Year = !! LeaversYear, NumLeftSchool = !! LeaversCount) %>%
-                              mutate(Sex = as.character(Sex),
-                                     Age = as.integer(Age),
+                              rename(IntSex = !! LeaversSxVariable, IntAge = !! LeaversAgeVariable, Year = !! LeaversYear, NumLeftSchool = !! LeaversCount) %>%
+                              mutate(IntSex = as.character(IntSex),
+                                     IntAge = as.integer(IntAge),
                                      Year = as.integer(Year),
                                      NumLeftSchool = as.integer(NumLeftSchool)) %>%
-                               select(Sex, Age, Year, NumLeftSchool))
+                               select(IntSex, IntAge, Year, NumLeftSchool))
 
 
   AgePyramid <- as.data.frame(Pyramid %>%
-                                rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, PyramidCount = !! LeaversCount) %>%
-                                mutate(Sex = as.character(Sex),
-                                       Age = as.integer(Age)) %>%
-                                select(Sex, Age, PyramidCount))
+                                rename(IntSex = !! PyramidSxVariable, IntAge = !! PyramidAgeVariable, PyramidCount = !! LeaversCount) %>%
+                                mutate(IntSex = as.character(IntSex),
+                                       IntAge = as.integer(IntAge)) %>%
+                                select(IntSex, IntAge, PyramidCount))
 
   # get the original variable names
 
@@ -124,19 +124,19 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   #####################################
 
   ChildrenSexCodes <- Children %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
+    select(IntSex) %>%
+    distinct(IntSex) %>%
+    arrange(IntSex)
 
   SchoolingSexCodes <- Schooling %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
+    select(IntSex) %>%
+    distinct(IntSex) %>%
+    arrange(IntSex)
 
   PyramidSexCodes <- AgePyramid %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
+    select(IntSex) %>%
+    distinct(IntSex) %>%
+    arrange(IntSex)
 
 
   if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
@@ -158,7 +158,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   #####################################
 
   DuplicateTesting <- Schooling %>%
-    group_by(Year, Sex, Age) %>%
+    group_by(Year, IntSex, IntAge) %>%
     summarise(Duplicates = n()) %>%
     filter(Duplicates > 1)
 
@@ -177,8 +177,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   Schooling <- Schooling %>%
     filter(Year <= AdolescentsYear) %>%
     mutate(Deduction = AdolescentsYear - Year,
-           CurrentAge = Age + Deduction) %>%
-    group_by(Sex, CurrentAge) %>%
+           CurrentAge = IntAge + Deduction) %>%
+    group_by(IntSex, CurrentAge) %>%
     summarise(TotalLeaverCount = sum(NumLeftSchool))
 
   ####################################
@@ -187,11 +187,11 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   ####################################
   ####################################
   CombinedData <- Schooling %>%
-    left_join(AgePyramid, by = c("Sex", "CurrentAge" =  "Age")) %>%
+    left_join(AgePyramid, by = c("IntSex", "CurrentAge" =  "IntAge")) %>%
     mutate(PropLeft = TotalLeaverCount / PyramidCount,
            PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
     filter(!(is.na(PropLeft))) %>%
-    rename(Age = CurrentAge) %>%
+    rename(IntAge = CurrentAge) %>%
     select(-(c(TotalLeaverCount, PyramidCount)))
 
 
@@ -206,7 +206,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   # join the probabilities to the children and calculate the probability of leaving school
   Children <- Children %>%
-    left_join(CombinedData, by = c("Age", "Sex")) %>%
+    left_join(CombinedData, by = c("IntAge", "IntSex")) %>%
     mutate(PropLeft = ifelse(is.na(PropLeft), 0, PropLeft),
            Status = "None")
 
@@ -239,9 +239,9 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   }
 
   Children <- Children %>%
-    mutate(!!ChildrenAgeColName := Age,
-           !!ChildrenSexColName := Sex) %>%
-    select(-c(PropLeft, Age, Sex))
+    mutate(!!ChildrenAgeColName := IntAge,
+           !!ChildrenSexColName := IntSex) %>%
+   select(-c(PropLeft, IntAge, IntSex))
 
 
   return(Children)
