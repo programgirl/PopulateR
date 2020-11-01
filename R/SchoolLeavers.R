@@ -199,13 +199,16 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   CombinedData <- CombinedData %>%
     filter(!(is.na(PyramidCount)))
 
+  cat("The proportion of adolescents who have left school are shown in the table below, by sex and age.", "\n")
+
+  print(CombinedData)
+
 
   # join the probabilities to the children and calculate the probability of leaving school
   Children <- Children %>%
     left_join(CombinedData, by = c("Age", "Sex")) %>%
     mutate(PropLeft = ifelse(is.na(PropLeft), 0, PropLeft),
            Status = "None")
-
 
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
