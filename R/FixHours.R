@@ -41,34 +41,20 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
     stop("The maximum value for the number of hours worked, for adolescents still in school, must be supplied.")
   }
 
-  # #####################################
-  # #####################################
-  # # rename variables so don't need to use quosures inside code
-  # #####################################
-  # #####################################
-  #
-  # # dataset names
-  # # cat("The children data frame is called", deparse(substitute(Adolescents)), "\n")
-  #
-  # Children <- as.data.frame(Adolescents %>%
-  #                             rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable) %>%
-  #                             mutate(Sex = as.character(Sex),
-  #                                    Age = as.integer(Age)))
-  #
-  # Schooling <- as.data.frame(Leavers %>%
-  #                              rename(Sex = !! LeaversSxVariable, Age = !! LeaversAgeVariable, Year = !! LeaversYear, NumLeftSchool = !! LeaversCount) %>%
-  #                              mutate(Sex = as.character(Sex),
-  #                                     Age = as.integer(Age),
-  #                                     Year = as.integer(Year),
-  #                                     NumLeftSchool = as.integer(NumLeftSchool)) %>%
-  #                              select(Sex, Age, Year, NumLeftSchool))
-  #
-  #
-  # AgePyramid <- as.data.frame(Pyramid %>%
-  #                               rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, PyramidCount = !! LeaversCount) %>%
-  #                               mutate(Sex = as.character(Sex),
-  #                                      Age = as.integer(Age)) %>%
-  #                               select(Sex, Age, PyramidCount))
+  #####################################
+  #####################################
+  # rename variables so don't need to use quosures inside code
+  #####################################
+  #####################################
+
+  Children <- as.data.frame(Adolescents %>%
+                              rename(Sex = !! AdolescentSxVariable, Age = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool, Hours = !! HoursWorked) %>%
+                              mutate(Sex = as.character(Sex),
+                                     Age = as.integer(Age),
+                                     Hours = as.ordered(Hours)))
+
+
+
   #
   # # get the original variable names
   #
