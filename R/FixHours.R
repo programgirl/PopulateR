@@ -1,11 +1,7 @@
 #' Reallocates the working hours of adolescents based on schooling.
-#' This function reallocates working hours so that adolescents in school work fewer hours than adolescents still in school. As hours worked may be conditional on sex, as well as age, the re-allocation is performed separately for each sex.
-#'
-#'
-#'
-#' The Leavers and Pyramid data frames should be summary data frames of counts. They must also have the same geopraphical base. For example, if the Leavers data is for the Canterbury region in New Zealand, then the Pyramid data must also be at the Canterbury region level of aggregation. In this example, the maximum aggregation level for the Adolescents data is Canterbury region, but could be for any sub-region, such as Christchurch city. However, the function should not be used if the Adolescents data is more aggregate, for example at the South Island or total New Zealand levels of aggregation
-#' For each year, counts of school leavers by age and sex are required. For example, if the school leaving age is 16, then the 2020 rows could be: 16-year-old females, 16-year-old males, 17-year-old females, 17-year-old males.
-#' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the same code is used in all three data frames. For example, if "F" and "M" are used in the Adolescents data frame to denote sex, then "F" and "M" are the codes required in the Leavers and Pyramid data frames. Any number of values can be used, so long as they are unique.
+#' This function reallocates working hours so that adolescents in school work fewer hours than adolescents still in school. As hours worked may be conditional on sex, the re-allocation is performed separately for each sex. If desired, the re-allocation can take age into account as well. This is the default. Under this approach, the shorter hours will be initially re-allocated to the youngest children in school, then the next-youngest and so forth.
+#'The re-allocation is performed initially for the adolescents still in school. This ensures that the shorter hours worked have a higher probability of being allocated to adolescents who are very unlikely to have longer hours worked. The approach is designed to prevent longer working hours, for example full-time hours, being allocated to adolescents who are still studying.
+#' The variables specifying sex can be numeric, character, or factor. Any number of values can be used, so long as they are unique.
 #' @export
 #' @param Adolescents A data frame containing all adolescents who have working hours.
 #' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
@@ -33,42 +29,18 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
     stop("The column number containing the age information in the Adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentsYear)) {
-    stop("The year in which the adolescents data was collected.")
+  if (is.null(AdolescentInSchool)) {
+    stop("The column number containing the information relating to whether an adolescent is still in school, or has left school, must be supplied.")
   }
 
-  # if (is.null(LeavingAge)) {
-  #   stop("The minimum school leaving age must be supplied.")
-  # }
-  #
-  # if (is.null(LeaversSxVariable)) {
-  #   stop("The column number containing the sex information in the Leavers data frame must be supplied.")
-  # }
-  #
-  # if (is.null(LeaversAgeVariable)) {
-  #   stop("The column number containing the age information in the Leavers data frame must be supplied.")
-  # }
-  #
-  # if (is.null(LeaversCount)) {
-  #   stop("The column number for the sex/age school leaver counts must be supplied.")
-  # }
-  #
-  # if (is.null(LeaversYear)) {
-  #   stop("The column number containing the year information in the LeaversData data frame must be supplied.")
-  # }
-  #
-  # if (is.null(PyramidSxVariable)) {
-  #   stop("The column number containing the sex information in the Pyramid data frame must be supplied.")
-  # }
-  #
-  # if (is.null(PyramidAgeVariable)) {
-  #   stop("The column number containing the age information in the Pyramid data frame must be supplied.")
-  # }
-  #
-  # if (is.null(PyramidCount)) {
-  #   stop("The column number for the sex/age information in the Pyramid data counts must be supplied.")
-  # }
-  #
+  if (is.null(HoursWorked)) {
+    stop("The column number containing the hours worked values must be supplied.")
+  }
+
+  if (is.null(HoursCutOff)) {
+    stop("The maximum value for the number of hours worked, for adolescents still in school, must be supplied.")
+  }
+
   # #####################################
   # #####################################
   # # rename variables so don't need to use quosures inside code
