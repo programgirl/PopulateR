@@ -4,6 +4,7 @@
 #' The variables specifying sex can be numeric, character, or factor. Any number of values can be used, so long as they are unique.
 #' @export
 #' @param Adolescents A data frame containing all adolescents who have working hours.
+#' @param AdolescentID The column number for the unique value that identifies unique adolescents.
 #' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param AdolescentAgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
 #' @param AdolescentInSchool The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value.
@@ -13,13 +14,17 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentInSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, AgeWeight = "Y", UserSeed = NULL) {
+FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentInSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, AgeWeight = "Y", UserSeed = NULL) {
 
   options(dplyr.summarise.inform=F)
 
   #####################################
   # quick reasonableness checks
   #####################################
+
+  if (is.null(AdolescentID)) {
+    stop("The column number containing the ID information in the Adolescents data frame must be supplied.")
+  }
 
   if (is.null(AdolescentSxVariable)) {
     stop("The column number containing the sex information in the Adolescents data frame must be supplied.")
@@ -48,17 +53,25 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
   #####################################
 
   Children <- as.data.frame(Adolescents %>%
-                              rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool, IntHours = !! HoursWorked) %>%
+                              rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool,
+                                     IntHours = !! HoursWorked, IntID = !! AdolescentID) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
                                      IntHours = as.ordered(IntHours)))
 
   # get the original variable names
 
+  ChildrenIDColName <- sym(names(Adolescents[AdolescentID]))
   ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
   ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
-  ChildrenSchoolColName <- sym(names(Adolescents[AdolescentInSchool]))
+  ChildrenStatusColName <- sym(names(Adolescents[AdolescentInSchool]))
   ChildrenHoursColName <- sym(names(Adolescents[HoursWorked]))
+
+  # extract the column names from Children in order to match-merge later
+  # ignore any variables without duplicate values
+  MergingCols <- ChildrenHours %>%
+    select(where(~any(duplicated(.)))) %>%
+    colnames()
 
   #####################################
   #####################################
@@ -76,13 +89,30 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
 
   #####################################
   #####################################
-  # split out the school stayers and lower hours data
+  # split out the correctly assigned hours for school status
   #####################################
   #####################################
 
-  ShorterHours <- Children %>%
-    filter(as.numeric(IntHours) <= HoursCutOff) %>%
-    summarise(HoursCounter = n())
+  CorrectShorterHours <- Children %>%
+    filter(as.integer(IntHours) <= HoursCutOff,
+           as.integer(InSchool) == 1)
+
+  CorrectLongerHours <- Children %>%
+    filter(as.integer(IntHours) > HoursCutOff,
+           as.integer(InSchool) == 2)
+
+# merge the two correct data frames
+  CorrectHours <- bind_rows(CorrectShorterHours, CorrectLongerHours)
+
+
+  #####################################
+  #####################################
+  # Work on the mismatches
+  #####################################
+  #####################################
+
+  MismatchedHours <- Children %>%
+    filter(!(IntID %in% CorrectHours$IntID))
 
 
   # if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
@@ -166,7 +196,7 @@ FixHours <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVari
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(ShorterHours)
+  return(MismatchedHours)
 
   #closes function
 }
