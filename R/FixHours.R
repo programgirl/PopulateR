@@ -69,8 +69,9 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   # extract the column names from Children in order to match-merge later
   # ignore any variables without duplicate values
-  MergingCols <- ChildrenHours %>%
-    select(where(~any(duplicated(.)))) %>%
+  MergingCols <- Children %>%
+    select(where(~any(duplicated(.))),
+           -c(InSchool,IntHours)) %>%
     colnames()
 
   #####################################
@@ -113,6 +114,44 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   MismatchedHours <- Children %>%
     filter(!(IntID %in% CorrectHours$IntID))
+
+  # split out the two school statuses
+
+  MismatchedInSchool <- MismatchedHours %>%
+    filter(as.integer(InSchool) == 1)
+
+  MismatchedWorking <- MismatchedHours %>%
+    filter(as.integer(InSchool) == 2)
+
+
+  # identify which one is smaller and use that one
+  # use an if
+
+  if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
+
+
+
+
+
+  } else {
+
+    cat("The mismatched working data frame is larger", "\n")
+
+    for (x in 1:nrow(MismatchedInSchool)) {
+
+      AdolescentToMatch <- MismatchedInSchool[2,]
+
+      MatchingOptions <- AdolescentToMatch %>%
+        left_join(MismatchedWorking, by = c(MergingCols))
+
+      #close the loop through the Mismatched school data frame
+    }
+
+
+    # closes swapping between the two mismatched data frames
+  }
+
+
 
 
   # if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
@@ -196,7 +235,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(MismatchedHours)
+  return(MatchingOptions)
 
   #closes function
 }
