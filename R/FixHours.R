@@ -128,142 +128,124 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
     set.seed(UserSeed)
   }
 
-
-  # identify which one is smaller and use that one
-  # use an if
-
   if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
 
-
-
-
+    Base <- MismatchedWorking
+    Donor <- MismatchedInSchool
 
   } else {
 
-    cat("The mismatched working data frame is larger", "\n")
+    Base <- MismatchedInSchool
+    Donor <- MismatchedWorking
 
-   for (x in 1:nrow(MismatchedInSchool)) {
-    # for (x in 1:3) {
-
-      AdolescentToMatch <- MismatchedInSchool[x,]
-
-      MatchingOptions <- AdolescentToMatch %>%
-        left_join(MismatchedWorking, by = c(MergingCols))
-
-      if (!(is.na(MatchingOptions$IntID.y[1]))) {
-
-        # cat("There was a match for", AdolescentToMatch$IntID)
-
-        MatchIDs <- MatchingOptions %>%
-          select(IntID.y)
-
-        MatchedIDChosen <- MatchIDs %>%
-          slice_sample(n = 1)
-
-        MatchedPerson <- MismatchedWorking %>%
-          filter(IntID == MatchedIDChosen$IntID)
-
-        # swap the hours
-
-        LargerHours <- AdolescentToMatch$IntHours
-        SmallerHours <- MatchedPerson$IntHours
-
-        AdolescentToMatch$IntHours <- SmallerHours
-        MatchedPerson$IntHours <- LargerHours
-
-        CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
-
-        MismatchedWorking <- MismatchedWorking %>%
-          filter(!(IntID == MatchedPerson$IntID))
-
-        # closes loop for dealing with a match
-      }
-
-      #close the loop through the Mismatched school data frame
-    }
-
-
-    CorrectHours <- bind_rows(CorrectHours, MismatchedWorking)
-    # closes swapping between the two mismatched data frames
   }
 
+     for (x in 1:nrow(Base)) {
+
+        AdolescentToMatch <- Base[x,]
+
+        MatchingOptions <- AdolescentToMatch %>%
+          left_join(Donor, by = c(MergingCols))
+
+        if (!(is.na(MatchingOptions$IntID.y[1]))) {
+
+          # cat("There was a match for", AdolescentToMatch$IntID)
+
+          MatchIDs <- MatchingOptions %>%
+            select(IntID.y)
+
+          MatchedIDChosen <- MatchIDs %>%
+            slice_sample(n = 1)
+
+          MatchedPerson <- Donor %>%
+            filter(IntID == MatchedIDChosen$IntID)
+
+          # swap the hours
+
+          LargerHours <- AdolescentToMatch$IntHours
+          SmallerHours <- MatchedPerson$IntHours
+
+          AdolescentToMatch$IntHours <- SmallerHours
+          MatchedPerson$IntHours <- LargerHours
+
+          CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
+
+          Donor <- Donor %>%
+            filter(!(IntID == MatchedPerson$IntID))
+
+          # closes loop for dealing with a match
+        }
+
+
+        #close the loop through the smaller data frame
+      }
+
+  CorrectHours <- bind_rows(CorrectHours, Donor)
 
 
 
-  # if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
-  #
-  #   stop(deparse(substitute(Leavers)), " contains duplicates.", "\n")
-  # }
-  #
-  # #####################################
-  # #####################################
-  # # sum the leaver counts by current age
-  # #####################################
-  # #####################################
-  #
-  # Schooling <- Schooling %>%
-  #   filter(Year <= AdolescentsYear) %>%
-  #   mutate(Deduction = AdolescentsYear - Year,
-  #          CurrentAge = Age + Deduction) %>%
-  #   group_by(Sex, CurrentAge) %>%
-  #   summarise(TotalLeaverCount = sum(NumLeftSchool))
-  #
-  # ####################################
-  # ####################################
-  # # join after the leavers are summarised
-  # ####################################
-  # ####################################
-  # CombinedData <- Schooling %>%
-  #   left_join(AgePyramid, by = c("Sex", "CurrentAge" =  "Age")) %>%
-  #   mutate(PropLeft = TotalLeaverCount / PyramidCount,
-  #          PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
-  #   filter(!(is.na(PropLeft))) %>%
-  #   rename(Age = CurrentAge) %>%
-  #   select(-(c(TotalLeaverCount, PyramidCount)))
-  #
-  #
-  # # remove any NAs as these will cause problems with the maths
-  # CombinedData <- CombinedData %>%
-  #   filter(!(is.na(PyramidCount)))
-  #
-  # cat("The proportion of adolescents who have left school are shown in the table below, by sex and age.", "\n")
-  #
-  # print(CombinedData)
-  #
-  #
-  # # join the probabilities to the children and calculate the probability of leaving school
-  # Children <- Children %>%
-  #   left_join(CombinedData, by = c("Age", "Sex")) %>%
-  #   mutate(PropLeft = ifelse(is.na(PropLeft), 0, PropLeft),
-  #          Status = "None")
-  #
-  # # seed must come before first sample is cut
-  # if (!is.null(UserSeed)) {
-  #   set.seed(UserSeed)
-  # }
-  #
-  # # apply the probabilities to the children
-  #
-  # for (x in 1:nrow(Children)) {
-  #
-  #   RandomRoll <- runif(1, 0, 1)
-  #
-  #   #   cat("Random roll is ", RandomRoll, " for the line ", Children$PropLeft[x], "\n")
-  #
-  #   if (isTRUE(RandomRoll <= Children$PropLeft[x])) {
-  #
-  #     #   print("Entered loop")
-  #
-  #     Children$Status[x] <- "Left"
-  #
-  #   } else {
-  #     Children$Status[x] <- "Stayed"
-  #
-  #     # closes random assignment to school statust
-  #   }
-  #
-  #   # closes loop through children data frame
-  # }
+
+
+
+
+  # identify which one is smaller and use that one
+  # use an if
+#
+#   if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
+#
+#
+#
+#
+#
+#   } else {
+#
+#     cat("The mismatched working data frame is larger", "\n")
+#
+#    for (x in 1:nrow(MismatchedInSchool)) {
+#     # for (x in 1:3) {
+#
+#       AdolescentToMatch <- MismatchedInSchool[x,]
+#
+#       MatchingOptions <- AdolescentToMatch %>%
+#         left_join(MismatchedWorking, by = c(MergingCols))
+#
+#       if (!(is.na(MatchingOptions$IntID.y[1]))) {
+#
+#         # cat("There was a match for", AdolescentToMatch$IntID)
+#
+#         MatchIDs <- MatchingOptions %>%
+#           select(IntID.y)
+#
+#         MatchedIDChosen <- MatchIDs %>%
+#           slice_sample(n = 1)
+#
+#         MatchedPerson <- MismatchedWorking %>%
+#           filter(IntID == MatchedIDChosen$IntID)
+#
+#         # swap the hours
+#
+#         LargerHours <- AdolescentToMatch$IntHours
+#         SmallerHours <- MatchedPerson$IntHours
+#
+#         AdolescentToMatch$IntHours <- SmallerHours
+#         MatchedPerson$IntHours <- LargerHours
+#
+#         CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
+#
+#         MismatchedWorking <- MismatchedWorking %>%
+#           filter(!(IntID == MatchedPerson$IntID))
+#
+#         # closes loop for dealing with a match
+#       }
+#
+#       #close the loop through the Mismatched school data frame
+#     }
+#
+#
+#     CorrectHours <- bind_rows(CorrectHours, MismatchedWorking)
+#     # closes swapping between the two mismatched data frames
+#   }
+
   #
   # Children <- Children %>%
   #   mutate(!!ChildrenAgeColName := Age,
