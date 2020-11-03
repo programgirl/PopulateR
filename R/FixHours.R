@@ -142,8 +142,8 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
     cat("The mismatched working data frame is larger", "\n")
 
-  #  for (x in 1:nrow(MismatchedInSchool)) {
-    for (x in 1:3) {
+   for (x in 1:nrow(MismatchedInSchool)) {
+    # for (x in 1:3) {
 
       AdolescentToMatch <- MismatchedInSchool[x,]
 
@@ -183,6 +183,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
     }
 
 
+    CorrectHours <- bind_rows(CorrectHours, MismatchedWorking)
     # closes swapping between the two mismatched data frames
   }
 
@@ -270,7 +271,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(MismatchedWorking)
+  return(CorrectHours)
 
   #closes function
 }
