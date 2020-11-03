@@ -123,6 +123,11 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   MismatchedWorking <- MismatchedHours %>%
     filter(as.integer(InSchool) == 2)
 
+  # seed must come before first sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
 
   # identify which one is smaller and use that one
   # use an if
@@ -137,12 +142,42 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
     cat("The mismatched working data frame is larger", "\n")
 
-    for (x in 1:nrow(MismatchedInSchool)) {
+  #  for (x in 1:nrow(MismatchedInSchool)) {
+    for (x in 1:3) {
 
-      AdolescentToMatch <- MismatchedInSchool[2,]
+      AdolescentToMatch <- MismatchedInSchool[x,]
 
       MatchingOptions <- AdolescentToMatch %>%
         left_join(MismatchedWorking, by = c(MergingCols))
+
+      if (!(is.na(MatchingOptions$IntID.y[1]))) {
+
+        # cat("There was a match for", AdolescentToMatch$IntID)
+
+        MatchIDs <- MatchingOptions %>%
+          select(IntID.y)
+
+        MatchedIDChosen <- MatchIDs %>%
+          slice_sample(n = 1)
+
+        MatchedPerson <- MismatchedWorking %>%
+          filter(IntID == MatchedIDChosen$IntID)
+
+        # swap the hours
+
+        LargerHours <- AdolescentToMatch$IntHours
+        SmallerHours <- MatchedPerson$IntHours
+
+        AdolescentToMatch$IntHours <- SmallerHours
+        MatchedPerson$IntHours <- LargerHours
+
+        CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
+
+        MismatchedWorking <- MismatchedWorking %>%
+          filter(!(IntID == MatchedPerson$IntID))
+
+        # closes loop for dealing with a match
+      }
 
       #close the loop through the Mismatched school data frame
     }
@@ -235,7 +270,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(MatchingOptions)
+  return(MismatchedWorking)
 
   #closes function
 }
