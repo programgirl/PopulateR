@@ -231,9 +231,19 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
     OutputDataFrame <- bind_rows(CorrectHours, MismatchedWorking, NonMatchedChildren, )
   }
 
+  if (is.factor(Adolescents[{{ChildrenStatusColName}}]) == TRUE) {
 
+    cat("school status is a factor")
 
+    #close factor test for school variable
+  }
 
+  OutputDataFrame <- OutputDataFrame %>%
+    rename(!!ChildrenAgeColName := IntAge,
+           !!ChildrenIDColName := IntID,
+           !!ChildrenSexColName := IntSex,
+           !!ChildrenStatusColName := InSchool,
+           !!ChildrenHoursColName := IntHours)
 
 
   #
@@ -243,7 +253,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(MismatchedWorking)
+  return(OutputDataFrame)
 
   #closes function
 }
