@@ -10,11 +10,10 @@
 #' @param AdolescentInSchool The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value.
 #' @param HoursWorked The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked.
 #' @param HoursCutOff The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
-#' @param AgeWeight If age should be taken into account, when allocating hours. The default is to incorporate age. If yes, the default, hours worked will be allocated starting with the youngest adolescents still in school. If no, the only condition for re-allocating hours will be whether the adolescent is in school.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentInSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, AgeWeight = "Y", UserSeed = NULL) {
+FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentInSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, UserSeed = NULL) {
 
   options(dplyr.summarise.inform=F)
 
@@ -57,7 +56,9 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
                                      IntHours = !! HoursWorked, IntID = !! AdolescentID) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
-                                     IntHours = as.ordered(IntHours)))
+                                     IntHours = as.integer(IntHours),
+                                     InSchool = as.integer(InSchool)))
+                                    # IntHours = as.ordered(IntHours)))
 
   # get the original variable names
 
@@ -66,13 +67,6 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
   ChildrenStatusColName <- sym(names(Adolescents[AdolescentInSchool]))
   ChildrenHoursColName <- sym(names(Adolescents[HoursWorked]))
-
-  # extract the column names from Children in order to match-merge later
-  # ignore any variables without duplicate values
-  MergingCols <- Children %>%
-    select(where(~any(duplicated(.))),
-           -c(InSchool,IntHours)) %>%
-    colnames()
 
   #####################################
   #####################################
@@ -96,15 +90,18 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   CorrectShorterHours <- Children %>%
     filter(as.integer(IntHours) <= HoursCutOff,
-           as.integer(InSchool) == 1)
+           InSchool == 1
+          # as.integer(InSchool) == 1)
+    )
 
   CorrectLongerHours <- Children %>%
     filter(as.integer(IntHours) > HoursCutOff,
-           as.integer(InSchool) == 2)
+           InSchool == 2
+          # as.integer(InSchool) == 2)
+    )
 
 # merge the two correct data frames
   CorrectHours <- bind_rows(CorrectShorterHours, CorrectLongerHours)
-
 
   #####################################
   #####################################
@@ -118,10 +115,10 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   # split out the two school statuses
 
   MismatchedInSchool <- MismatchedHours %>%
-    filter(as.integer(InSchool) == 1)
+    filter(InSchool == 1)
 
   MismatchedWorking <- MismatchedHours %>%
-    filter(as.integer(InSchool) == 2)
+    filter(InSchool == 2)
 
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
@@ -130,22 +127,14 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
 
-    Base <- MismatchedWorking
-    Donor <- MismatchedInSchool
+  for (x in 1:nrow(MismatchedWorking)) {
 
-  } else {
-
-    Base <- MismatchedInSchool
-    Donor <- MismatchedWorking
-
-  }
-
-     for (x in 1:nrow(Base)) {
-
-        AdolescentToMatch <- Base[x,]
+        AdolescentToMatch <- MismatchedWorking[x,]
 
         MatchingOptions <- AdolescentToMatch %>%
-          left_join(Donor, by = c(MergingCols))
+       #   left_join(Donor, by = c(MergingCols))
+          left_join(MismatchedInSchool, by = c("IntAge", "IntSex"))
+
 
         if (!(is.na(MatchingOptions$IntID.y[1]))) {
 
@@ -157,94 +146,95 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
           MatchedIDChosen <- MatchIDs %>%
             slice_sample(n = 1)
 
-          MatchedPerson <- Donor %>%
+          MatchedPerson <- MismatchedInSchool %>%
             filter(IntID == MatchedIDChosen$IntID)
 
-          # swap the hours
+          # swap the school status
 
-          LargerHours <- AdolescentToMatch$IntHours
-          SmallerHours <- MatchedPerson$IntHours
+          LargerHours <- AdolescentToMatch$InSchool
+          SmallerHours <- MatchedPerson$InSchool
 
-          AdolescentToMatch$IntHours <- SmallerHours
-          MatchedPerson$IntHours <- LargerHours
+          AdolescentToMatch$InSchool <- SmallerHours
+          MatchedPerson$InSchool <- LargerHours
+
+          cat("Base is", AdolescentToMatch$IntID, "match is", MatchedPerson$IntID, "larger hours are", AdolescentToMatch$IntHours, "shorter hours are", MatchedPerson$IntHours, "\n")
 
           CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
 
-          Donor <- Donor %>%
-            filter(!(IntID == MatchedPerson$IntID))
+          MismatchedInSchool <- MismatchedInSchool %>%
+            filter(!(IntID %in% CorrectHours$IntID))
 
           # closes loop for dealing with a match
         }
 
 
         #close the loop through the smaller data frame
+  }
+    NonMatchedChildren <- MismatchedWorking %>%
+      filter(!(IntID %in% CorrectHours$IntID))
+
+    OutputDataFrame <- bind_rows(CorrectHours, MismatchedInSchool, NonMatchedChildren)
+
+
+  } else {
+
+    for (x in 1:nrow(MismatchedInSchool)) {
+
+
+      AdolescentToMatch <- MismatchedInSchool[x,]
+
+      MatchingOptions <- AdolescentToMatch %>%
+        left_join(MismatchedWorking, by = c("IntAge", "IntSex"))
+
+
+      if (!(is.na(MatchingOptions$IntID.y[1]))) {
+
+        # cat("There was a match for", AdolescentToMatch$IntID)
+
+        MatchIDs <- MatchingOptions %>%
+          select(IntID.y)
+
+        MatchedIDChosen <- MatchIDs %>%
+          slice_sample(n = 1)
+
+        MatchedPerson <- MismatchedWorking %>%
+          filter(IntID == MatchedIDChosen$IntID)
+
+        # swap the school status
+
+        LargerHours <- AdolescentToMatch$InSchool
+        SmallerHours <- MatchedPerson$InSchool
+
+        AdolescentToMatch$InSchool <- SmallerHours
+        MatchedPerson$InSchool <- LargerHours
+
+
+   #     cat("Base is", AdolescentToMatch$IntID, "match is", MatchedPerson$IntID, "larger hours are", AdolescentToMatch$IntHours, "shorter hours are", MatchedPerson$IntHours, "\n")
+
+        CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
+
+        MismatchedWorking <- MismatchedWorking %>%
+          filter(!(IntID %in% CorrectHours$IntID))
+
+        # closes loop for dealing with a match
       }
 
-  CorrectHours <- bind_rows(CorrectHours, Donor)
+
+      #close the loop through the smaller data frame
+    }
+
+    NonMatchedChildren <- MismatchedInSchool %>%
+      filter(!(IntID %in% CorrectHours$IntID))
+
+    # closes loop for when the mismatched in work is larger
+
+    OutputDataFrame <- bind_rows(CorrectHours, MismatchedWorking, NonMatchedChildren, )
+  }
 
 
 
 
 
-
-
-  # identify which one is smaller and use that one
-  # use an if
-#
-#   if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
-#
-#
-#
-#
-#
-#   } else {
-#
-#     cat("The mismatched working data frame is larger", "\n")
-#
-#    for (x in 1:nrow(MismatchedInSchool)) {
-#     # for (x in 1:3) {
-#
-#       AdolescentToMatch <- MismatchedInSchool[x,]
-#
-#       MatchingOptions <- AdolescentToMatch %>%
-#         left_join(MismatchedWorking, by = c(MergingCols))
-#
-#       if (!(is.na(MatchingOptions$IntID.y[1]))) {
-#
-#         # cat("There was a match for", AdolescentToMatch$IntID)
-#
-#         MatchIDs <- MatchingOptions %>%
-#           select(IntID.y)
-#
-#         MatchedIDChosen <- MatchIDs %>%
-#           slice_sample(n = 1)
-#
-#         MatchedPerson <- MismatchedWorking %>%
-#           filter(IntID == MatchedIDChosen$IntID)
-#
-#         # swap the hours
-#
-#         LargerHours <- AdolescentToMatch$IntHours
-#         SmallerHours <- MatchedPerson$IntHours
-#
-#         AdolescentToMatch$IntHours <- SmallerHours
-#         MatchedPerson$IntHours <- LargerHours
-#
-#         CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
-#
-#         MismatchedWorking <- MismatchedWorking %>%
-#           filter(!(IntID == MatchedPerson$IntID))
-#
-#         # closes loop for dealing with a match
-#       }
-#
-#       #close the loop through the Mismatched school data frame
-#     }
-#
-#
-#     CorrectHours <- bind_rows(CorrectHours, MismatchedWorking)
-#     # closes swapping between the two mismatched data frames
-#   }
 
   #
   # Children <- Children %>%
@@ -253,7 +243,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #   select(-c(PropLeft, Age, Sex))
   #
 
-  return(CorrectHours)
+  return(MismatchedWorking)
 
   #closes function
 }
