@@ -241,7 +241,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   Children <- Children %>%
     mutate(!!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex) %>%
-  select(-c(PropLeft, IntAge, IntSex))
+  select(-c(PropLeft))
 
 
   return(Children)
