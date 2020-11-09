@@ -1,5 +1,5 @@
 #' Add a variable indicating whether an adolescents is  a child remaining at school or is a school leaver.
-#' This function adds a variable to a data frame of adolescents to indicate whether a child is still in school, or has left. The output is the same data as Adolescents, but with an added column that contains the school status variable. The function has been constructed so that the Adolescents data can be at the same level of aggregation, or less aggregate, than the Leavers data.
+#' This function adds a variable to a data frame of adolescents to indicate whether a child is still in school, or has left. The output is the same data as Adolescents, but with an added column that contains the school status variable. The function has been constructed so that the Adolescents data can be at the same level of aggregation, or less aggregate, than the Leavers data. The function works for all ages,so there is no need to use a subset data frame containing only the ages at which a child/adolescent can leave school.
 #' Three data frames are required: the data frame that contains the adolescents ("Adolescents"), a data frame containing school leaver counts ("Leavers"), and a data frame containing or constructing a sex/age pyramid ("Pyramid").
 #' The Leavers and Pyramid data frames should be summary data frames of counts. They must also have the same geopraphical base. For example, if the Leavers data is for the Canterbury region in New Zealand, then the Pyramid data must also be at the Canterbury region level of aggregation. In this example, the maximum aggregation level for the Adolescents data is Canterbury region, but could be for any sub-region, such as Christchurch city. However, the function should not be used if the Adolescents data is more aggregate, for example at the South Island or total New Zealand levels of aggregation
 #' For each year, counts of school leavers by age and sex are required. For example, if the school leaving age is 16, then the 2020 rows could be: 16-year-old females, 16-year-old males, 17-year-old females, 17-year-old males.
@@ -9,7 +9,8 @@
 #' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param AdolescentAgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
 #' @param AdolescentsYear The year that is most relevant to the timing of the adolescents survey date. For example, an adolescents survey date in early 2013, with a school year of Febrary to November, may mean that the ages of the school leavers in 2012 are the same as the adolescents' current ages. In this situation, most of the school exits in 2013 will occur after the date of the adolescent survey, and the adolescent may have had a birthday inbetween. The 2012 school leaver data is therefore latest and most accurate data to use for the school leaver estimates of the 2013 survey. Must be integer or numeric.
-#' @param LeavingAge The minimum age at which an adolescent can leave school.
+#' @param MinSchoolAge The minimum age of a person, normally a child, can enter school, excluding higher education.
+#' @param MaxSchoolAge The maximum age of a person, normally an adolescent, can leaver school, excluding higher education.
 #' @param Leavers A data frame containing the counts of the school leavers for each year.
 #' @param LeaversSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param LeaversAgeVariable The column number containing the ages for school leavers.
@@ -19,9 +20,8 @@
 #' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
 #' @param PyramidAgeVariable The column number containing the individual ages.
 #' @param PyramidCount The column number containing the counts for each sex/age combination in the data
-#' @param SchoolStatus The name of the variable that contains the school stayer/leaver indicator. If not specified, the column name is "Status".
+#' @param SchoolStatus The name of the variable to contain the status of the children/adolescents for schooling. The output is "Yes" for those still in school and "No" for those not in school.. If not specified, the column name is "Status".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-
 
 SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentsYear = NULL, MinSchoolAge = NULL, MaxSchoolAge = NULL,
                           Leavers, LeaversSxVariable = NULL, LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL,
@@ -46,12 +46,6 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   if (is.null(AdolescentsYear)) {
     stop("The year in which the adolescents data was collected.")
   }
-
-  ######################3
-  # if (is.null(LeavingAge)) {
-  #   stop("The minimum school leaving age must be supplied.")
-  # }
-  #######################
 
   if (is.null(LeaversSxVariable)) {
     stop("The column number containing the sex information in the Leavers data frame must be supplied.")
@@ -153,6 +147,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   }
 
+
   #####################################
   #####################################
   # check leaver counts are summarised
@@ -211,7 +206,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   WrongAged <- Children %>%
     filter(IntAge < MinSchoolAge | IntAge > MaxSchoolAge) %>%
-    mutate(Status = "Irrelevant",
+    mutate(Status = "No",
            !!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex)
 
@@ -243,10 +238,10 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
    #   print("Entered loop")
 
-      Children$Status[x] <- "Left"
+      Children$Status[x] <- "No"
 
     } else {
-      Children$Status[x] <- "Stayed"
+      Children$Status[x] <- "Yes"
 
       # closes random assignment to school statust
     }
@@ -259,7 +254,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
            !!ChildrenSexColName := IntSex) %>%
   select(-c(PropLeft))
 
-  CompleteDF <- bind_rows(Children, WrongAged)
+  CompleteDF <- bind_rows(Children, WrongAged) %>%
+    rename(!!SchoolStatus := Status)
 
 
   return(CompleteDF)
