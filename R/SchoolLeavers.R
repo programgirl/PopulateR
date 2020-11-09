@@ -23,9 +23,9 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentsYear = NULL, LeavingAge = NULL, Leavers, LeaversSxVariable = NULL,
-                          LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL, Pyramid, PyramidSxVariable = NULL, PyramidAgeVariable = NULL,
-                          PyramidCount = NULL, SchoolStatus = "Status", UserSeed = NULL)
+SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentsYear = NULL, MinSchoolAge = NULL, MaxSchoolAge = NULL,
+                          Leavers, LeaversSxVariable = NULL, LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL,
+                          Pyramid, PyramidSxVariable = NULL, PyramidAgeVariable = NULL, PyramidCount = NULL, SchoolStatus = "Status", UserSeed = NULL)
 
 {
 
@@ -47,9 +47,11 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     stop("The year in which the adolescents data was collected.")
   }
 
-  if (is.null(LeavingAge)) {
-    stop("The minimum school leaving age must be supplied.")
-  }
+  ######################3
+  # if (is.null(LeavingAge)) {
+  #   stop("The minimum school leaving age must be supplied.")
+  # }
+  #######################
 
   if (is.null(LeaversSxVariable)) {
     stop("The column number containing the sex information in the Leavers data frame must be supplied.")
@@ -203,6 +205,20 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   print(CombinedData)
 
+  ####################################
+  ####################################
+  # assume that out-of-age people may be in the data frame and remove
+
+  WrongAged <- Children %>%
+    filter(IntAge < MinSchoolAge | IntAge > MaxSchoolAge) %>%
+    mutate(Status = "Irrelevant",
+           !!ChildrenAgeColName := IntAge,
+           !!ChildrenSexColName := IntSex)
+
+  Children <- Children %>%
+    filter(between(IntAge, MinSchoolAge, MaxSchoolAge))
+  ####################################
+  ####################################
 
   # join the probabilities to the children and calculate the probability of leaving school
   Children <- Children %>%
@@ -243,8 +259,10 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
            !!ChildrenSexColName := IntSex) %>%
   select(-c(PropLeft))
 
+  CompleteDF <- bind_rows(Children, WrongAged)
 
-  return(Children)
+
+  return(CompleteDF)
 
   #closes function
 }
