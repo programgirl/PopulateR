@@ -234,7 +234,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   if (is.factor(Adolescents[,AdolescentInSchool]) == TRUE) {
 
-    cat("School identifier is a factor")
+ #   cat("School identifier is a factor")
 
     InSchoolLabels <- levels(Adolescents[,AdolescentInSchool])
 
@@ -246,7 +246,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
 
   if (is.factor(Adolescents[,HoursWorked]) == TRUE) {
 
-    cat("Hours worked is a factor")
+  #  cat("Hours worked is a factor")
 
     HoursLabels <- levels(Adolescents[,HoursWorked])
 
