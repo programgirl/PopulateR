@@ -176,7 +176,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     mutate(Deduction = AdolescentsYear - Year,
            CurrentAge = IntAge + Deduction) %>%
     group_by(IntSex, CurrentAge) %>%
-    summarise(TotalLeaverCount = sum(NumLeftSchool))
+    summarise(TotalLeaverCount = sum(NumLeftSchool)) %>%
+    filter(CurrentAge <= MaxSchoolAge)
 
   ####################################
   ####################################
@@ -258,7 +259,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     rename(!!SchoolStatus := Status)
 
 
-  return(CompleteDF)
+  return(Schooling)
 
   #closes function
 }
