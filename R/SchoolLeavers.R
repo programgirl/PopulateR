@@ -259,7 +259,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     rename(!!SchoolStatus := Status)
 
 
-  return(Schooling)
+  return(CompleteDF)
 
   #closes function
 }
