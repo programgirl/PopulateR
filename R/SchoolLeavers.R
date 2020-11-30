@@ -206,8 +206,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
   WrongAged <- Children %>%
     filter(IntAge < MinSchoolAge | IntAge > MaxSchoolAge) %>%
-    mutate(Status = "No",
-           !!ChildrenAgeColName := IntAge,
+    mutate(Status = "No") %>%
+    rename(!!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex)
 
   Children <- Children %>%
@@ -250,7 +250,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   }
 
   Children <- Children %>%
-    mutate(!!ChildrenAgeColName := IntAge,
+    rename(!!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex) %>%
   select(-c(PropLeft))
 
