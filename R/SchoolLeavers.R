@@ -1,5 +1,5 @@
 #' Add a variable indicating whether an adolescents is  a child remaining at school or is a school leaver.
-#' This function adds a variable to a data frame of adolescents to indicate whether a child is still in school, or has left. The output is the same data as Adolescents, but with an added column that contains the school status variable. The function has been constructed so that the Adolescents data can be at the same level of aggregation, or less aggregate, than the Leavers data. The function works for all ages,so there is no need to use a subset data frame containing only the ages at which a child/adolescent can leave school.
+#' This function adds a variable to a data frame of adolescents to indicate whether a child is still in school, or has left. The output is the same data as Adolescents, but with an added column that contains the school status variable. The school status is an ordered factor, that is suitable for use in the FixHours function. The current function has been constructed so that the Adolescents data can be at the same level of aggregation, or less aggregate, than the Leavers data. The function works for all ages,so there is no need to use a subset data frame containing only the ages at which a child/adolescent can leave school.
 #' Three data frames are required: the data frame that contains the adolescents ("Adolescents"), a data frame containing school leaver counts ("Leavers"), and a data frame containing or constructing a sex/age pyramid ("Pyramid").
 #' The Leavers and Pyramid data frames should be summary data frames of counts. They must also have the same geopraphical base. For example, if the Leavers data is for the Canterbury region in New Zealand, then the Pyramid data must also be at the Canterbury region level of aggregation. In this example, the maximum aggregation level for the Adolescents data is Canterbury region, but could be for any sub-region, such as Christchurch city. However, the function should not be used if the Adolescents data is more aggregate, for example at the South Island or total New Zealand levels of aggregation
 #' For each year, counts of school leavers by age and sex are required. For example, if the school leaving age is 16, then the 2020 rows could be: 16-year-old females, 16-year-old males, 17-year-old females, 17-year-old males.
@@ -256,6 +256,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   select(-c(PropLeft))
 
   CompleteDF <- bind_rows(Children, WrongAged) %>%
+    mutate(Status = factor(Status, levels = c("Yes", "No"))) %>%
     rename(!!SchoolStatus := Status)
 
 
