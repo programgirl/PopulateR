@@ -37,8 +37,16 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
     stop("The column number containing the information relating to whether an adolescent is still in school, or has left school, must be supplied.")
   }
 
+  if (!(is.factor(InSchool)) & !(is.numeric(InSchool))) {
+    stop("The school indicator variable must be a factor or be numeric.")
+  }
+
   if (is.null(HoursWorked)) {
     stop("The column number containing the hours worked values must be supplied.")
+  }
+
+  if (!(is.factor(HoursWorked)) & !(is.numeric(HoursWorked))) {
+    stop("Hours worked must be a factor or be numeric.")
   }
 
   if (is.null(HoursCutOff)) {
