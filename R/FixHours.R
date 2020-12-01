@@ -5,15 +5,15 @@
 #' @export
 #' @param Adolescents A data frame containing all adolescents who have working hours.
 #' @param AdolescentID The column number for the unique value that identifies unique adolescents.
-#' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param AdolescentAgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
-#' @param AdolescentInSchool The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value.
+#' @param SxVariable The column number for the variable that contain the codes specifying females and males.
+#' @param AgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
+#' @param InSchool The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value.
 #' @param HoursWorked The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked.
 #' @param HoursCutOff The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentInSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, UserSeed = NULL) {
+FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVariable = NULL, InSchool = NULL, HoursWorked = NULL, HoursCutOff = NULL, UserSeed = NULL) {
 
   options(dplyr.summarise.inform=F)
 
@@ -25,15 +25,15 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
     stop("The column number containing the ID information in the Adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentSxVariable)) {
+  if (is.null(SxVariable)) {
     stop("The column number containing the sex information in the Adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentAgeVariable)) {
+  if (is.null(AgeVariable)) {
     stop("The column number containing the age information in the Adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentInSchool)) {
+  if (is.null(InSchool)) {
     stop("The column number containing the information relating to whether an adolescent is still in school, or has left school, must be supplied.")
   }
 
@@ -52,7 +52,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   #####################################
 
   Children <- as.data.frame(Adolescents %>%
-                              rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable, InSchool = !! AdolescentInSchool,
+                              rename(IntSex = !! SxVariable, IntAge = !! AgeVariable, InSchool = !! InSchool,
                                      IntHours = !! HoursWorked, IntID = !! AdolescentID) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
@@ -63,9 +63,9 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   # get the original variable names
 
   ChildrenIDColName <- sym(names(Adolescents[AdolescentID]))
-  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
-  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
-  ChildrenStatusColName <- sym(names(Adolescents[AdolescentInSchool]))
+  ChildrenAgeColName <- sym(names(Adolescents[AgeVariable]))
+  ChildrenSexColName <- sym(names(Adolescents[SxVariable]))
+  ChildrenStatusColName <- sym(names(Adolescents[InSchool]))
   ChildrenHoursColName <- sym(names(Adolescents[HoursWorked]))
 
   #####################################
@@ -232,11 +232,11 @@ FixHours <- function(Adolescents, AdolescentID = NULL, AdolescentSxVariable = NU
   }
 
 
-  if (is.factor(Adolescents[,AdolescentInSchool]) == TRUE) {
+  if (is.factor(Adolescents[,InSchool]) == TRUE) {
 
  #   cat("School identifier is a factor")
 
-    InSchoolLabels <- levels(Adolescents[,AdolescentInSchool])
+    InSchoolLabels <- levels(Adolescents[,InSchool])
 
     OutputDataFrame <- OutputDataFrame %>%
       mutate(InSchool = factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
