@@ -123,157 +123,105 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
   # split out the two school statuses
 
   MismatchedInSchool <- MismatchedHours %>%
-    filter(InSchool == 1)
+    filter(InSchool == 1) %>%
+    select(-IntHours)
+
+  LongerHoursUnused <- MismatchedHours %>%
+    filter(IntID %in% MismatchedInSchool$IntID) %>%
+    select(IntHours)
+
+
 
   MismatchedWorking <- MismatchedHours %>%
     filter(InSchool == 2)
+
+  ShorterHoursUnused <- MismatchedHours %>%
+    filter(IntID %in% MismatchedWorking$IntID) %>%
+    select(IntHours)
+
+
+
+  # just use the damn counts
+  RemainingShorterHours <- MismatchedHours %>%
+    filter(as.integer(IntHours) <= HoursCutOff) %>%
+    select(IntHours)
+
+
+  if((nrow(RemainingShorterHours) < nrow(MismatchedInSchool)) == TRUE) {
+
+    stop("There are not enough shorter hours to assign to adolescents in school.")
+  }
 
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
   }
 
-  if (nrow(MismatchedInSchool) > nrow(MismatchedWorking)) {
+  # assign the shorter hours to the children in school
+  NewShortHours <- RemainingShorterHours %>%
+    slice_sample(n = nrow(MismatchedInSchool), replace = FALSE)
 
-  for (x in 1:nrow(MismatchedWorking)) {
+  FixedInSchool <- bind_cols(MismatchedInSchool, NewShortHours)
 
-        AdolescentToMatch <- MismatchedWorking[x,]
+  # get the unmatched lower hours
+  UsedShorterHours <- FixedInSchool %>%
+    group_by(IntHours) %>%
+    summarise(Used = n())
 
-        MatchingOptions <- AdolescentToMatch %>%
-       #   left_join(Donor, by = c(MergingCols))
-          left_join(MismatchedInSchool, by = c("IntAge", "IntSex"))
-
-
-        if (!(is.na(MatchingOptions$IntID.y[1]))) {
-
-          # cat("There was a match for", AdolescentToMatch$IntID)
-
-          MatchIDs <- MatchingOptions %>%
-            select(IntID.y)
-
-          MatchedIDChosen <- MatchIDs %>%
-            slice_sample(n = 1)
-
-          MatchedPerson <- MismatchedInSchool %>%
-            filter(IntID == MatchedIDChosen$IntID)
-
-          # swap the school status
-
-          LargerHours <- AdolescentToMatch$InSchool
-          SmallerHours <- MatchedPerson$InSchool
-
-          AdolescentToMatch$InSchool <- SmallerHours
-          MatchedPerson$InSchool <- LargerHours
-
-          cat("Base is", AdolescentToMatch$IntID, "match is", MatchedPerson$IntID, "larger hours are", AdolescentToMatch$IntHours, "shorter hours are", MatchedPerson$IntHours, "\n")
-
-          CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
-
-          MismatchedInSchool <- MismatchedInSchool %>%
-            filter(!(IntID %in% CorrectHours$IntID))
-
-          # closes loop for dealing with a match
-        }
+  ShorterHoursToUse <- ShorterHoursUnused %>%
+    group_by(IntHours) %>%
+    summarise(Original = n())  %>%
+    left_join(UsedShorterHours, by = "IntHours")
 
 
-        #close the loop through the smaller data frame
-  }
-    NonMatchedChildren <- MismatchedWorking %>%
-      filter(!(IntID %in% CorrectHours$IntID))
-
-    OutputDataFrame <- bind_rows(CorrectHours, MismatchedInSchool, NonMatchedChildren)
 
 
-  } else {
 
-    for (x in 1:nrow(MismatchedInSchool)) {
-
-
-      AdolescentToMatch <- MismatchedInSchool[x,]
-
-      MatchingOptions <- AdolescentToMatch %>%
-        left_join(MismatchedWorking, by = c("IntAge", "IntSex"))
+  # MismatchedInSchool <- MismatchedInSchool %>%
+  #   select(-IntHours)
+  #
+  #
+  # SampledShorterHours <- sample.int(RemainingShorterHours$IntHours, size = nrow(MismatchedInSchool),
+  #                               prob = RemainingShorterHours$HoursCount, replace = FALSE)
 
 
-      if (!(is.na(MatchingOptions$IntID.y[1]))) {
 
-        # cat("There was a match for", AdolescentToMatch$IntID)
-
-        MatchIDs <- MatchingOptions %>%
-          select(IntID.y)
-
-        MatchedIDChosen <- MatchIDs %>%
-          slice_sample(n = 1)
-
-        MatchedPerson <- MismatchedWorking %>%
-          filter(IntID == MatchedIDChosen$IntID)
-
-        # swap the school status
-
-        LargerHours <- AdolescentToMatch$InSchool
-        SmallerHours <- MatchedPerson$InSchool
-
-        AdolescentToMatch$InSchool <- SmallerHours
-        MatchedPerson$InSchool <- LargerHours
-
-
-   #     cat("Base is", AdolescentToMatch$IntID, "match is", MatchedPerson$IntID, "larger hours are", AdolescentToMatch$IntHours, "shorter hours are", MatchedPerson$IntHours, "\n")
-
-        CorrectHours <- bind_rows(CorrectHours, AdolescentToMatch, MatchedPerson)
-
-        MismatchedWorking <- MismatchedWorking %>%
-          filter(!(IntID %in% CorrectHours$IntID))
-
-        # closes loop for dealing with a match
-      }
-
-
-      #close the loop through the smaller data frame
-    }
-
-    NonMatchedChildren <- MismatchedInSchool %>%
-      filter(!(IntID %in% CorrectHours$IntID))
-
-    # closes loop for when the mismatched in work is larger
-
-    OutputDataFrame <- bind_rows(CorrectHours, MismatchedWorking, NonMatchedChildren, )
-  }
+#
+#
+#   if (is.factor(Adolescents[,InSchool]) == TRUE) {
+#
+#  #   cat("School identifier is a factor")
+#
+#     InSchoolLabels <- levels(Adolescents[,InSchool])
+#
+#     OutputDataFrame <- OutputDataFrame %>%
+#       mutate(InSchool = factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
+#
+#     #close factor test for school variable
+#   }
+#
+#   if (is.factor(Adolescents[,HoursWorked]) == TRUE) {
+#
+#   #  cat("Hours worked is a factor")
+#
+#     HoursLabels <- levels(Adolescents[,HoursWorked])
+#
+#     OutputDataFrame <- OutputDataFrame %>%
+#       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
+#
+#     #close factor test for hours worked variable
+#   }
+#
+#
+#   OutputDataFrame <- OutputDataFrame %>%
+#     rename(!!ChildrenAgeColName := IntAge,
+#            !!ChildrenIDColName := IntID,
+#            !!ChildrenSexColName := IntSex,
+#            !!ChildrenStatusColName := InSchool,
+#            !!ChildrenHoursColName := IntHours)
 
 
-  if (is.factor(Adolescents[,InSchool]) == TRUE) {
-
- #   cat("School identifier is a factor")
-
-    InSchoolLabels <- levels(Adolescents[,InSchool])
-
-    OutputDataFrame <- OutputDataFrame %>%
-      mutate(InSchool = factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
-
-    #close factor test for school variable
-  }
-
-  if (is.factor(Adolescents[,HoursWorked]) == TRUE) {
-
-  #  cat("Hours worked is a factor")
-
-    HoursLabels <- levels(Adolescents[,HoursWorked])
-
-    OutputDataFrame <- OutputDataFrame %>%
-      mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
-
-    #close factor test for hours worked variable
-  }
-
-
-  OutputDataFrame <- OutputDataFrame %>%
-    rename(!!ChildrenAgeColName := IntAge,
-           !!ChildrenIDColName := IntID,
-           !!ChildrenSexColName := IntSex,
-           !!ChildrenStatusColName := InSchool,
-           !!ChildrenHoursColName := IntHours)
-
-
-  return(OutputDataFrame)
+  return(ShorterHoursToUse)
 
   #closes function
 }
