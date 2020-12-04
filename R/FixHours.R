@@ -134,6 +134,8 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
   MismatchedWorking <- MismatchedHours %>%
     filter(InSchool == 2)
 
+  # cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
+
   ShorterHoursUnused <- MismatchedHours %>%
     filter(IntID %in% MismatchedWorking$IntID) %>%
     select(IntHours)
@@ -178,7 +180,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
       HoursLevel <- as.numeric(UsedShorterHours[x,1])
       NumberToChange <- as.numeric(UsedShorterHours[x,2])
 
-      cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
+      # cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
 
       # sample NumberToChange with that hours level from the incorrect InWork data frame
       SampleOfNotInSchool <- MismatchedWorking %>%
@@ -186,13 +188,36 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
         slice_sample(n = NumberToChange, replace = FALSE) %>%
         select(-IntHours)
 
+      # cat("The number of sampled rows is", nrow(SampleOfNotInSchool), "\n")
+
     # take the head of the unused shorter hours
       SampledLongerHours <- LongerHoursUnused %>%
       slice_head(n = nrow(SampleOfNotInSchool))
 
     FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
+      if(exists("WorkFixed") == TRUE) {
+
+        # cat("Enters this loop with", nrow(FixedInWork), "rows in the created data frame", "\n")
+
+        WorkFixed <- bind_rows(WorkFixed, FixedInWork)
+
+      } else {
+
+        WorkFixed <- FixedInWork
+    #
+    #     # closes if loop for constructing adolescents with shorter hours
+      }
+
+      MismatchedWorking <- MismatchedWorking %>%
+        filter(!(IntID %in% SampleOfNotInSchool$IntID))
+
+      # cat("MismatchedWorking contains", nrow(MismatchedWorking), "at this point", "\n")
+
+      # closes loop through the hours
   }
+
+  OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
 
 
 
@@ -306,7 +331,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 #            !!ChildrenHoursColName := IntHours)
 
 
-  return(FixedInWork)
+  return(OutputDataFrame)
 
   #closes function
 }
