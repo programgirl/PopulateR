@@ -131,14 +131,12 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
     select(IntHours)
 
 
-
   MismatchedWorking <- MismatchedHours %>%
     filter(InSchool == 2)
 
   ShorterHoursUnused <- MismatchedHours %>%
     filter(IntID %in% MismatchedWorking$IntID) %>%
     select(IntHours)
-
 
 
   # just use the damn counts
@@ -168,10 +166,97 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
     group_by(IntHours) %>%
     summarise(Used = n())
 
-  ShorterHoursToUse <- ShorterHoursUnused %>%
-    group_by(IntHours) %>%
-    summarise(Original = n())  %>%
-    left_join(UsedShorterHours, by = "IntHours")
+
+  # random sort the UnusedShorterHours ahead of using head functions
+  # using the -index is creating an empty data frame
+  LongerHoursUnused <- LongerHoursUnused %>%
+    slice_sample(n = nrow(LongerHoursUnused), replace = FALSE)
+
+
+  for (x in 1:nrow(UsedShorterHours)) {
+
+      HoursLevel <- as.numeric(UsedShorterHours[x,1])
+      NumberToChange <- as.numeric(UsedShorterHours[x,2])
+
+      cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
+
+      # sample NumberToChange with that hours level from the incorrect InWork data frame
+      SampleOfNotInSchool <- MismatchedWorking %>%
+        filter(IntHours == HoursLevel) %>%
+        slice_sample(n = NumberToChange, replace = FALSE) %>%
+        select(-IntHours)
+
+    # take the head of the unused shorter hours
+      SampledLongerHours <- LongerHoursUnused %>%
+      slice_head(n = nrow(SampleOfNotInSchool))
+
+    FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
+
+  }
+
+
+
+
+
+
+
+
+  # ShorterHoursToUse <- ShorterHoursUnused %>%
+  #   group_by(IntHours) %>%
+  #   summarise(Original = n())  %>%
+  #   left_join(UsedShorterHours, by = "IntHours") %>%
+  #   mutate(Remaining = Original - Used) %>%
+  #   select(IntHours, Remaining) %>%
+  #   rename(HoursCount = Remaining)
+
+
+  #for (x in 1:nrow(UsedShorterHours)) {
+  # for (x in 1:2) {
+  #
+  #   HoursLevel <- as.numeric(UsedShorterHours[x,1])
+  #   NumberToChange <- as.numeric(UsedShorterHours[x,2])
+  #
+  #   cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
+  #
+  #   SampleOfNotInSchool <- MismatchedWorking %>%
+  #     filter(IntHours == HoursLevel) %>%
+  #     slice_sample(n = NumberToChange) %>%
+  #     select(-IntHours)
+  #
+  #   cat("Before LongerHoursIndex the nrow is", nrow(LongerHoursUnused), "\n")
+  #
+  #   LongerHoursIndex <- sample(nrow(LongerHoursUnused), nrow(SampleOfNotInSchool), replace = FALSE)
+  #
+  #   cat("Before SampledLongerHours", "\n")
+  #
+  #   SampledLongerHours <- LongerHoursUnused[LongerHoursIndex, ]
+  #
+  #   # removes sampled hours from the data frame
+  #   UnsampledLongerHours <- LongerHoursUnused[-LongerHoursIndex, ]
+  #
+  #   LongerHoursUnused <- UnsampledLongerHours
+  #
+  #   cat("After LongerHoursUnused", nrow(LongerHoursUnused), "\n")
+  #
+  # #   FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
+  # #
+  # #
+  # #   if(exists("WorkFixed") == TRUE) {
+  # #
+  # #     WorkFixed <- bind_rows(WorkFixed, FixedInWork)
+  # #
+  # #   } else {
+  # #
+  # #     WorkFixed <- FixedInWork
+  # #
+  # #     # closes if loop for constructing adolescents with shorter hours
+  #   }
+  # #
+  # #   MismatchedWorking <- MismatchedWorking %>%
+  # #     filter(IntID %in% SampleOfNotInSchool$IntID)
+  # #
+  # # }
+
 
 
 
@@ -221,7 +306,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 #            !!ChildrenHoursColName := IntHours)
 
 
-  return(ShorterHoursToUse)
+  return(FixedInWork)
 
   #closes function
 }
