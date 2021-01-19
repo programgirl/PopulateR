@@ -45,7 +45,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
     stop("The column number containing the hours worked values must be supplied.")
   }
 
-  if (!(is.factor(HoursWorked)) & !(is.numeric(HoursWorked))) {
+  if (!(is.ordered(HoursWorked)) & !(is.numeric(HoursWorked))) {
     stop("Hours worked must be a factor or be numeric.")
   }
 
@@ -111,6 +111,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 # merge the two correct data frames
   CorrectHours <- bind_rows(CorrectShorterHours, CorrectLongerHours)
 
+
   #####################################
   #####################################
   # Work on the mismatches
@@ -135,6 +136,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 
 #  cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
 
+
   # just use the damn counts
   RemainingShorterHours <- MismatchedHours %>%
     filter(as.integer(IntHours) <= HoursCutOff) %>%
@@ -157,24 +159,25 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 
   FixedInSchool <- bind_cols(MismatchedInSchool, NewShortHours)
 
-  # get the unmatched lower hours
+  # get the matched lower hours
   UsedShorterHours <- FixedInSchool %>%
     group_by(IntHours) %>%
     summarise(Used = n())
 
-
-  # random sort the UnusedShorterHours ahead of using head functions
+  # take the longer hours from the  participants, these
+  # need to swap with the left-over shorter hours from adjusting the in-school adolescent hours
   # using the -index is creating an empty data frame
   LongerHoursUnused <- LongerHoursUnused %>%
     slice_sample(n = nrow(LongerHoursUnused), replace = FALSE)
-#
+
+  cat("There are ", nrow(LongerHoursUnused), "available to swap in", "\n")
 #
   for (x in 1:nrow(UsedShorterHours)) {
 
       HoursLevel <- as.numeric(UsedShorterHours[x,1])
       NumberToChange <- as.numeric(UsedShorterHours[x,2])
 
-      # cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
+       cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
 
       # sample NumberToChange with that hours level from the incorrect InWork data frame
       SampleOfNotInSchool <- MismatchedWorking %>%
@@ -182,7 +185,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
         slice_sample(n = NumberToChange, replace = FALSE) %>%
         select(-IntHours)
 
-      # cat("The number of sampled rows is", nrow(SampleOfNotInSchool), "\n")
+       cat("The number of sampled rows is", nrow(SampleOfNotInSchool), "\n")
 
     # take the head of the unused longer hours
       SampledLongerHours <- LongerHoursUnused %>%
@@ -191,6 +194,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
       LongerHoursUnused <- LongerHoursUnused %>%
         slice_tail(n = (nrow(LongerHoursUnused) - nrow(SampledLongerHours)))
 
+      cat("There are ", nrow(LongerHoursUnused), "available to swap in after matching", "\n")
 
     FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
@@ -219,17 +223,17 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 
   if (is.factor(Adolescents[,InSchool]) == TRUE) {
 
- #   cat("School identifier is a factor")
+#   cat("School identifier is a factor")
 
-    InSchoolLabels <- levels(Adolescents[,InSchool])
+   InSchoolLabels <- levels(Adolescents[,InSchool])
 
-    OutputDataFrame <- OutputDataFrame %>%
-      mutate(InSchool = factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
+   OutputDataFrame <- OutputDataFrame %>%
+     mutate(InSchool = factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
 
-    #close factor test for school variable
-  }
+   #close factor test for school variable
+ }
 
-  if (is.factor(Adolescents[,HoursWorked]) == TRUE) {
+  if (is.ordered(Adolescents[,HoursWorked]) == TRUE) {
 
   #  cat("Hours worked is a factor")
 
@@ -251,6 +255,7 @@ FixHours <- function(Adolescents, AdolescentID = NULL, SxVariable = NULL, AgeVar
 
 
   return(OutputDataFrame)
+
 
   #closes function
 }
