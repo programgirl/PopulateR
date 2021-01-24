@@ -11,20 +11,22 @@
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
 #' @param ChildIDVariable The column number for the ID variable in the Children data frame.
 #' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
-#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
-#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
 #' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must contain at least the same number of observations as the Children data frame.
 #' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
 #' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
+#' @param meanlogUsed The mean of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
+#'  @param sdlogUsed The standard deviation of the natural log for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param HouseholdIDVariable The column number for the household variable in the Parents data frame. This must be provided.
+#' @param DyadIDValue The starting number for generating a variable that identifies the observations in a parent-child dyad. Must be numeric.
+#' @param HouseholdNumVariable The column number for the household variable in the Parents data frame. This must be provided.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
 AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable, ParentAgeVariable, meanlogUsed, sdlogUsed,
-                           MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, HouseholdIDVariable= NULL, UserSeed=NULL)
+                     MinParentAge = NULL, MaxParentAge = NULL, MinPropRemain = 0, DyadIDValue = NULL, HouseholdNumVariable= NULL,
+                     UserSeed=NULL)
 
 {
 
@@ -52,13 +54,26 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     stop("The maximum parent age must be supplied.")
   }
 
-  if (!any(duplicated(Parents[HouseholdIDVariable])) == FALSE) {
-    stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
+  if(ncol(Children) != ncol(Parents)) {
+    stop("The number of columns does not match between the children and parents' data frames.")
   }
 
-  if(ncol(Children) != ncol(Parents)-1) {
-    stop("The number of columns requirement is not met.")
-  }
+  #####################################
+  #####################################
+  # get column names as symbols to use inside data frame subfunctions
+  #####################################
+  #####################################
+
+  # Child variable names
+  ChildIDColName <- sym(names(Children[ChildIDVariable]))
+
+  ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
+
+  # Parent variable names
+  ParentsIDColName <- sym(names(Parents[ParentIDVariable]))
+
+  ParentsIDColName <- sym(names(Parents[ParentAgeVariable]))
+
 
   #####################################
   #####################################
@@ -71,8 +86,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
 
 
   ParentsRenamed <- Parents %>%
-    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
-           HouseholdID = !! HouseholdIDVariable)
+    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
 
 
   minChildAge <- min(ChildrenRenamed$ChildAge)
@@ -115,9 +129,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     group_by(ParentAge) %>%
     summarise(AgeCount=n()) %>%
     tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
-         fill = list(AgeCount = 0))
-
-
+                    fill = list(AgeCount = 0))
 
 
   minIndexAge <- as.integer(ParentCounts[1,1])
@@ -199,7 +211,8 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     age_index <- ChildrenRenamed$ParentAge[j]-(minIndexAge -1)
 
 
-    if (ChildrenRenamed$AgeDifference[j] >= MinParentAge && ChildrenRenamed$AgeDifference[j] <= MaxParentAge && ParentAgeCountVector[age_index] > 0 &&
+    if (ChildrenRenamed$AgeDifference[j] >= MinParentAge && ChildrenRenamed$AgeDifference[j] <= MaxParentAge
+        && ParentAgeCountVector[age_index] > 0 &&
         ChildrenRenamed$ParentAge[j] >= minIndexAge && ChildrenRenamed$ParentAge[j] <= maxIndexAge) {
 
       ChildrenRenamed$AgeDifference[j] <- AgeDifference
@@ -218,6 +231,8 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     filter(!(is.na(ParentAge)))
 
   MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
+
+  # cat("First rbind here", "\n")
 
   ChildrenRenamed <- ChildrenRenamed %>%
     filter(is.na(ParentAge))
@@ -252,7 +267,8 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
 
       #   while (ParentAgeCountVector[age_index] == 0 || Children$AgeDifference[j] < MinParentAge || Children$AgeDifference[j] > MaxParentAge) {
 
-      while (!(ParentAgeCountVector[age_index] > 0 && ChildrenRenamed$AgeDifference[j] >= MinParentAge && ChildrenRenamed$AgeDifference[j] <= MaxParentAge)) {
+      while (!(ParentAgeCountVector[age_index] > 0 && ChildrenRenamed$AgeDifference[j] >= MinParentAge &&
+               ChildrenRenamed$AgeDifference[j] <= MaxParentAge)) {
 
         age_index <- age_index + round(runif(1,-2,2),0)
 
@@ -280,6 +296,8 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   #   Combine the three Children Dataframes
 
   ChildrenRenamed <- rbind(MatchedChildren, ChildrenRenamed)
+
+  # cat("Second rbind here", "\n")
 
   # #####################################
   #####################################
@@ -321,27 +339,41 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   # children data frame is the one to which observations must be joined
   # also add the household numbers at this point
 
-   FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount"))
+  FullMatchedDataFrame <- left_join(ChildrenMatchPrep, ParentsMatched, by=c("ParentAge", "ParentAgeCount"))
+
 
   # separate child and parent in data frames
-   ChildrenFinal <- FullMatchedDataFrame %>%
-     ungroup() %>%
-     select(all_of(1:NumberColsChildren), ncol(.)) %>%
-     rename_all(list(~gsub("\\.x$", "", .)))
+  MaxDyadIDValue <- (nrow(FullMatchedDataFrame)-1) + DyadIDValue
 
-   ParentsFinal <- FullMatchedDataFrame %>%
-     ungroup() %>%
-     select(all_of((NumberColsChildren+1): ncol(.))) %>%
-     rename_all(list(~gsub("\\.y$", "", .)))
+  ChildrenFinal <- FullMatchedDataFrame %>%
+    ungroup() %>%
+    select(all_of(1:NumberColsChildren)) %>%
+    rename_all(list(~gsub("\\.x$", "", .))) %>%
+    mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
-   ChildrenFinal <- ChildrenFinal %>%
-     rename(PersonID = ChildID, Age = ChildAge)
+  ParentsFinal <- FullMatchedDataFrame %>%
+    ungroup() %>%
+    select(all_of((NumberColsChildren+1): ncol(.))) %>%
+    rename_all(list(~gsub("\\.y$", "", .))) %>%
+    mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
-   ParentsFinal <- ParentsFinal %>%
-     rename(PersonID = ParentID, Age = ParentAge) %>%
-     select(-c(AgeDifference, ParentAgeCount))
+  ChildrenFinal <- ChildrenFinal %>%
+    rename(PersonID = ChildID, Age = ChildAge)
+   # mutate(!!DonorAgeColName := DonorAge)
 
-   OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+  # rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
+
+
+  # ParentsRenamed <- Parents %>%
+  #   rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
+
+  ParentsFinal <- ParentsFinal %>%
+    rename(PersonID = ParentID, Age = ParentAge) %>%
+    select(-c(AgeDifference, ParentAgeCount))
+
+ OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+
+  #cat("Third rbind here")
 
   #####################################
   #####################################
