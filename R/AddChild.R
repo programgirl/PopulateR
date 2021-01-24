@@ -72,7 +72,7 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
   # Parent variable names
   ParentsIDColName <- sym(names(Parents[ParentIDVariable]))
 
-  ParentsIDColName <- sym(names(Parents[ParentAgeVariable]))
+  ParentsAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
 
   #####################################
@@ -358,20 +358,13 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
   ChildrenFinal <- ChildrenFinal %>%
-    rename(PersonID = ChildID, Age = ChildAge)
-   # mutate(!!DonorAgeColName := DonorAge)
-
-  # rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
-
-
-  # ParentsRenamed <- Parents %>%
-  #   rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
+    rename(!!ChildIDColName := ChildID, !!ChildAgeColName := ChildAge)
 
   ParentsFinal <- ParentsFinal %>%
-    rename(PersonID = ParentID, Age = ParentAge) %>%
+    rename(!!ParentsIDColName := ParentID, !!ParentsAgeColName := ParentAge) %>%
     select(-c(AgeDifference, ParentAgeCount))
 
- OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
   #cat("Third rbind here")
 
