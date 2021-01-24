@@ -232,16 +232,21 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
 
   MatchedChildren <- rbind(MatchedChildren, MatchedSecondGo)
 
-  # cat("First rbind here", "\n")
+ #  cat("First rbind here", "\n")
 
   ChildrenRenamed <- ChildrenRenamed %>%
     filter(is.na(ParentAge))
 
+ # cat("The number of children that need to be matched in future is", nrow(ChildrenRenamed), "\n")
 
   # force last lot of children to be matched on the basis of first parent age after minimum
   # need to work from minimum child age
   # find first current parent age that is still available
   # will stuff up distribution entered, but if the function has hit this point, the distribution did not fit
+
+  # there may be no children that remain to be matched, test
+
+  if(nrow(ChildrenRenamed) > 0) {
 
   for (j in 1:nrow(ChildrenRenamed)) {
 
@@ -251,14 +256,14 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     ChildrenRenamed$ParentAge[j] <- ChildrenRenamed$ChildAge[j] + AgeDifference
     age_index <- ChildrenRenamed$ParentAge[j]-(minIndexAge -1)
 
-    if (ParentAgeCountVector[age_index] > 0)  {
+     if (ParentAgeCountVector[age_index] > 0)  {
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
       ChildrenRenamed$AgeDifference[j] <- AgeDifference
 
     } else {
 
-      ChildrenRenamed$AgeDifference[j] <- NA
+       ChildrenRenamed$AgeDifference[j] <- NA
       ChildrenRenamed$ParentAge[j] <- NA
 
       age_index <- which.max(ParentAgeCountVector)
@@ -285,19 +290,28 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
 
         ChildrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
         ChildrenRenamed$AgeDifference[j] <- ChildrenRenamed$ParentAge[j] - ChildrenRenamed$ChildAge[j]
+
+        #closes while index or age numbers are wrong
       }
 
       ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
 
+      #closes if the age vector is greater than 0
     }
 
+    #closes the loop through children renamed
   }
 
   #   Combine the three Children Dataframes
 
   ChildrenRenamed <- rbind(MatchedChildren, ChildrenRenamed)
 
-  # cat("Second rbind here", "\n")
+  } else {
+
+    ChildrenRenamed <- MatchedChildren
+  }
+
+ #  cat("Second rbind here", "\n")
 
   # #####################################
   #####################################
@@ -364,9 +378,9 @@ AddChild <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Paren
     rename(!!ParentsIDColName := ParentID, !!ParentsAgeColName := ParentAge) %>%
     select(-c(AgeDifference, ParentAgeCount))
 
-OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
+  OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
-  #cat("Third rbind here")
+#  cat("Third rbind here")
 
   #####################################
   #####################################
