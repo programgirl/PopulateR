@@ -175,7 +175,7 @@ AddChildSN <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
 
   for (j in 1:nrow(ChildrenRenamed)) {
 
-    AgeDifference <- round(rsn(1, xi = XiUsed, omega = OmegaUsed, alpha = Alpha, tau = 0),0)
+    AgeDifference <- round(sn::rsn(1, xi = XiUsed, omega = OmegaUsed, alpha = Alpha, tau = 0),0)
     ChildrenRenamed$AgeDifference[j] <- AgeDifference
     ChildrenRenamed$ParentAge[j] <- ChildrenRenamed$ChildAge[j] + AgeDifference
     age_index <- ChildrenRenamed$ParentAge[j]-(minIndexAge -1)
@@ -211,7 +211,7 @@ AddChildSN <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
 
   for (j in 1:nrow(ChildrenRenamed)) {
 
-    AgeDifference <- round(rsn(1, xi = XiUsed, omega = OmegaUsed, alpha = Alpha, tau = 0), 0)
+    AgeDifference <- round(sn::rsn(1, xi = XiUsed, omega = OmegaUsed, alpha = Alpha, tau = 0), 0)
     ChildrenRenamed$AgeDifference[j] <- AgeDifference
     ChildrenRenamed$ParentAge[j] <- ChildrenRenamed$ChildAge[j] + AgeDifference
     age_index <- ChildrenRenamed$ParentAge[j]-(minIndexAge -1)
@@ -365,34 +365,40 @@ AddChildSN <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, Par
   # separate child and parent in data frames
   MaxDyadIDValue <- (nrow(FullMatchedDataFrame)-1) + DyadIDValue
 
+#  cat("Dyad value constructed", "\n")
+
   ChildrenFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
-    select(all_of(1:NumberColsChildren)) %>%
+    dplyr::select(all_of(1:NumberColsChildren)) %>%
     rename_all(list(~gsub("\\.x$", "", .))) %>%
     mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
 
+#   cat("ChildrenFinal data frame constructed", "\n")
+
   ParentsFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
-    select(all_of((NumberColsChildren+1): ncol(.))) %>%
+    dplyr::select(all_of((NumberColsChildren+1): ncol(.))) %>%
     rename_all(list(~gsub("\\.y$", "", .))) %>%
     mutate({{HouseholdNumVariable}} := seq(DyadIDValue, MaxDyadIDValue))
+
+#   cat("ParentsFinal data frame constructed", "\n")
 
   ChildrenFinal <- ChildrenFinal %>%
     rename(!!ChildIDColName := ChildID, !!ChildAgeColName := ChildAge)
 
   ParentsFinal <- ParentsFinal %>%
     rename(!!ParentsIDColName := ParentID, !!ParentsAgeColName := ParentAge) %>%
-    select(-c(AgeDifference, ParentAgeCount))
+    dplyr::select(-c(AgeDifference, ParentAgeCount))
 
   OutputDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
 #  cat("Third rbind here")
-
-  #####################################
-  #####################################
-  # pairing the parents to children ends here
-  #####################################
-  #####################################
+#
+#   #####################################
+#   #####################################
+#   # pairing the parents to children ends here
+#   #####################################
+#   #####################################
 
 
   return(OutputDataframe)
