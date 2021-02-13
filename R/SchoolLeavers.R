@@ -6,26 +6,29 @@
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the same code is used in all three data frames. For example, if "F" and "M" are used in the Adolescents data frame to denote sex, then "F" and "M" are the codes required in the Leavers and Pyramid data frames. Any number of values can be used, so long as they are unique.
 #' @export
 #' @param Adolescents A data frame containing all adolescents who potentially have left school due to their age.
-#' @param AdolescentSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param AdolescentAgeVariable The column number for the variable that contains the ages of the adolescents. This must be integer format.
+#' @param AdolescentSxCol The column number for the variable that contain the codes specifying females and males.
+#' @param AdolescentAgeCol The column number for the variable that contains the ages of the adolescents. This must be integer format.
 #' @param AdolescentsYear The year that is most relevant to the timing of the adolescents survey date. For example, an adolescents survey date in early 2013, with a school year of Febrary to November, may mean that the ages of the school leavers in 2012 are the same as the adolescents' current ages. In this situation, most of the school exits in 2013 will occur after the date of the adolescent survey, and the adolescent may have had a birthday inbetween. The 2012 school leaver data is therefore latest and most accurate data to use for the school leaver estimates of the 2013 survey. Must be integer or numeric.
 #' @param MinSchoolAge The minimum age of a person, normally a child, can enter school, excluding higher education.
 #' @param MaxSchoolAge The maximum age of a person, normally an adolescent, can leaver school, excluding higher education.
 #' @param Leavers A data frame containing the counts of the school leavers for each year.
-#' @param LeaversSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param LeaversAgeVariable The column number containing the ages for school leavers.
-#' @param LeaversCount The column number containing the counts for each sex/age combination in the data. This must be in numeric or integer format.
-#' @param LeaversYear The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2013, then the 2013 leaver information for 17-year-old females is applied to the 17-year-old females in the Adolescent data frame.
+#' @param LeaversSxCol The column number for the variable that contain the codes specifying females and males.
+#' @param LeaversAgeCol The column number containing the ages for school leavers.
+#' @param LeaversCountCol The column number containing the counts for each sex/age combination in the data. This must be in numeric or integer format.
+#' @param LeaversYearCol The column number containing the year data for each count. This must be integer format. The most recent year of leaver data is assumed to align with the ages of the adolescents. For example, if the most recent year is 2013, then the 2013 leaver information for 17-year-old females is applied to the 17-year-old females in the Adolescent data frame.
 #' @param Pyramid A data frame containing the sex/age pyramid to be used.
-#' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param PyramidAgeVariable The column number containing the individual ages.
-#' @param PyramidCount The column number containing the counts for each sex/age combination in the data
+#' @param PyramidSxCol The column number for the variable that contain the codes specifying females and males.
+#' @param PyramidAgeCol The column number containing the individual ages.
+#' @param PyramidCountCol The column number containing the counts for each sex/age combination in the data
 #' @param SchoolStatus The name of the variable to contain the status of the children/adolescents for schooling. The output is "Yes" for those still in school and "No" for those not in school.. If not specified, the column name is "Status".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
-SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAgeVariable = NULL, AdolescentsYear = NULL, MinSchoolAge = NULL, MaxSchoolAge = NULL,
-                          Leavers, LeaversSxVariable = NULL, LeaversAgeVariable = NULL, LeaversCount = NULL, LeaversYear = NULL,
-                          Pyramid, PyramidSxVariable = NULL, PyramidAgeVariable = NULL, PyramidCount = NULL, SchoolStatus = "Status", UserSeed = NULL)
+SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol = NULL,
+                          AdolescentsYear = NULL, MinSchoolAge = NULL, MaxSchoolAge = NULL,
+                          Leavers, LeaversSxCol = NULL, LeaversAgeCol = NULL,
+                          LeaversCountCol = NULL, LeaversYearCol = NULL, Pyramid, PyramidSxCol = NULL,
+                          PyramidAgeCol = NULL, PyramidCountCol = NULL, SchoolStatus = "Status",
+                          UserSeed = NULL)
 
 {
 
@@ -35,11 +38,11 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   # quick reasonableness checks
   #####################################
 
-  if (is.null(AdolescentSxVariable)) {
+  if (is.null(AdolescentSxCol)) {
     stop("The column number containing the sex information in the Adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentAgeVariable)) {
+  if (is.null(AdolescentAgeCol)) {
     stop("The column number containing the age information in the Adolescents data frame must be supplied.")
   }
 
@@ -47,31 +50,31 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
     stop("The year in which the adolescents data was collected.")
   }
 
-  if (is.null(LeaversSxVariable)) {
+  if (is.null(LeaversSxCol)) {
     stop("The column number containing the sex information in the Leavers data frame must be supplied.")
   }
 
-  if (is.null(LeaversAgeVariable)) {
+  if (is.null(LeaversAgeCol)) {
     stop("The column number containing the age information in the Leavers data frame must be supplied.")
   }
 
-  if (is.null(LeaversCount)) {
+  if (is.null(LeaversCountCol)) {
     stop("The column number for the sex/age school leaver counts must be supplied.")
   }
 
-  if (is.null(LeaversYear)) {
+  if (is.null(LeaversYearCol)) {
     stop("The column number containing the year information in the LeaversData data frame must be supplied.")
   }
 
-  if (is.null(PyramidSxVariable)) {
+  if (is.null(PyramidSxCol)) {
     stop("The column number containing the sex information in the Pyramid data frame must be supplied.")
   }
 
-  if (is.null(PyramidAgeVariable)) {
+  if (is.null(PyramidAgeCol)) {
     stop("The column number containing the age information in the Pyramid data frame must be supplied.")
   }
 
-  if (is.null(PyramidCount)) {
+  if (is.null(PyramidCountCol)) {
     stop("The column number for the sex/age information in the Pyramid data counts must be supplied.")
   }
 
@@ -85,12 +88,12 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
  # cat("The children data frame is called", deparse(substitute(Adolescents)), "\n")
 
   Children <- as.data.frame(Adolescents %>%
-                                   rename(IntSex = !! AdolescentSxVariable, IntAge = !! AdolescentAgeVariable) %>%
+                                   rename(IntSex = !! AdolescentSxCol, IntAge = !! AdolescentAgeCol) %>%
                                    mutate(IntSex = as.character(IntSex),
                                           IntAge = as.integer(IntAge)))
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(IntSex = !! LeaversSxVariable, IntAge = !! LeaversAgeVariable, Year = !! LeaversYear, NumLeftSchool = !! LeaversCount) %>%
+                              rename(IntSex = !! LeaversSxCol, IntAge = !! LeaversAgeCol, Year = !! LeaversYearCol, NumLeftSchool = !! LeaversCountCol) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
                                      Year = as.integer(Year),
@@ -99,15 +102,15 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
 
 
   AgePyramid <- as.data.frame(Pyramid %>%
-                                rename(IntSex = !! PyramidSxVariable, IntAge = !! PyramidAgeVariable, PyramidCount = !! LeaversCount) %>%
+                                rename(IntSex = !! PyramidSxCol, IntAge = !! PyramidAgeCol, PyramidCountCol = !! LeaversCountCol) %>%
                                 mutate(IntSex = as.character(IntSex),
                                        IntAge = as.integer(IntAge)) %>%
-                                select(IntSex, IntAge, PyramidCount))
+                                select(IntSex, IntAge, PyramidCountCol))
 
   # get the original variable names
 
-  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeVariable]))
-  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxVariable]))
+  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeCol]))
+  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxCol]))
 
   #####################################
   #####################################
@@ -186,16 +189,16 @@ SchoolLeavers <- function(Adolescents, AdolescentSxVariable = NULL, AdolescentAg
   ####################################
   CombinedData <- Schooling %>%
     left_join(AgePyramid, by = c("IntSex", "CurrentAge" =  "IntAge")) %>%
-    mutate(PropLeft = TotalLeaverCount / PyramidCount,
+    mutate(PropLeft = TotalLeaverCount / PyramidCountCol,
            PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
     filter(!(is.na(PropLeft))) %>%
     rename(IntAge = CurrentAge) %>%
-    select(-(c(TotalLeaverCount, PyramidCount)))
+    select(-(c(TotalLeaverCount, PyramidCountCol)))
 
 
   # remove any NAs as these will cause problems with the maths
   CombinedData <- CombinedData %>%
-    filter(!(is.na(PyramidCount)))
+    filter(!(is.na(PyramidCountCol)))
 
   cat("The proportion of adolescents who have left school are shown in the table below, by sex and age.", "\n")
 

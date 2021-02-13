@@ -5,19 +5,19 @@
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the same code is used in both the Individuals and the Pyramid data frames. For example, if "F" and "M" are used in the Individuals data frame to denote sex, then "F" and "M" are the codes required in the Pyramid data frame. Any number of values can be used, so long as they are unique.
 #' @export
 #' @param Individuals A data frame containing observations with grouped ages. These are the observations to which the sex/age pyramid is applied.
-#' @param IndividualSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param MinimumAgeVariable The column number for the variable that contains the minimum age for the age band.
-#' @param MaximumAgeVariable The column number for the variable that contains the maximum age for the age band.
+#' @param IndividualSxCol The column number for the variable that contain the codes specifying females and males.
+#' @param MinimumAgeCol The column number for the variable that contains the minimum age for the age band.
+#' @param MaximumAgeCol The column number for the variable that contains the maximum age for the age band.
 #' @param Pyramid A data frame containing the sex/age pyramid to be used.
-#' @param PyramicSxVariable The column number for the variable that contain the codes specifying females and males.
-#' @param PyramidAgeVariable The column number containing the individual ages.
-#' @param Count The column number containing the counts for each sex/age combination in the data
+#' @param PyramidSxCol The column number for the variable that contain the codes specifying females and males.
+#' @param PyramidAgeCol The column number containing the individual ages.
+#' @param PyramidCountCol The column number containing the counts for each sex/age combination in the data
 #' @param NewAgeVariable The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVariable = NULL, MaximumAgeVariable = NULL, Pyramid, PyramidSxVariable = NULL,
-                         PyramidAgeVariable = NULL, Count = NULL, NewAgeVariable = "SingleAge", UserSeed = NULL)
+AgeStructure <- function(Individuals, IndividualSxCol = NULL, MinimumAgeCol = NULL, MaximumAgeCol = NULL, Pyramid, PyramidSxCol = NULL,
+                         PyramidAgeCol = NULL, PyramidCountCol = NULL, NewAgeVariable = "SingleAge", UserSeed = NULL)
 
 {
 
@@ -27,27 +27,27 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   # quick reasonableness checks
   #####################################
 
-  if (is.null(IndividualSxVariable)) {
+  if (is.null(IndividualSxCol)) {
     stop("The column number containing the sex information in the Individuals data frame must be supplied.")
   }
 
-  if (is.null(MinimumAgeVariable)) {
+  if (is.null(MinimumAgeCol)) {
     stop("The column number for the minimum age band value must be supplied.")
   }
 
-  if (is.null(MaximumAgeVariable)) {
+  if (is.null(MaximumAgeCol)) {
     stop("The column number for the maximum age band value must be supplied.")
   }
 
-  if (is.null(PyramidSxVariable)) {
+  if (is.null(PyramidSxCol)) {
     stop("The column number containing the sex information in the Pyramid data frame must be supplied.")
   }
 
-  if (is.null(PyramidAgeVariable)) {
+  if (is.null(PyramidAgeCol)) {
     stop("The column number containing the age information in the Pyramid data frame must be supplied.")
   }
 
-  if (is.null(Count)) {
+  if (is.null(PyramidCountCol)) {
     stop("The column number for the sex/age counts must be supplied.")
   }
 
@@ -58,11 +58,11 @@ AgeStructure <- function(Individuals, IndividualSxVariable = NULL, MinimumAgeVar
   #####################################
 
   BaseDataFrame <- as.data.frame(Individuals %>%
-    rename(Sex = !! IndividualSxVariable, MinAge = !! MinimumAgeVariable, MaxAge = !! MaximumAgeVariable) %>%
+    rename(Sex = !! IndividualSxCol, MinAge = !! MinimumAgeCol, MaxAge = !! MaximumAgeCol) %>%
     mutate(Sex = as.character(Sex)))
 
   AgePyramid <- as.data.frame(Pyramid %>%
-    rename(Sex = !! PyramidSxVariable, Age = !! PyramidAgeVariable, Prob = !! Count) %>%
+    rename(Sex = !! PyramidSxCol, Age = !! PyramidAgeCol, Prob = !! PyramidCountCol) %>%
     mutate(Sex = as.character(Sex)))
 
   #####################################
