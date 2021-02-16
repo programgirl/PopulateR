@@ -14,6 +14,7 @@
 #' @param AgeVariableIndex The column number of the data frame that contains the ages.
 #' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples. If CoupleIDValue is specified, household allocation will be performed.
 #'
@@ -47,8 +48,8 @@
 #' mutate(PercentCounts = CountsCreated/nrow(DownWeightedWithNumbering))
 #'
 #'
-SameSex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL, AgeVariableIndex = NULL,
-                                  CoupleIDValue = NULL, HouseholdNumVariable = NULL) {
+SameSex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeightLowerAge = NULL, UpWeightUpperAge = NULL,
+                    AgeVariableIndex = NULL, CoupleIDValue = NULL, HouseholdNumVariable = NULL, UserSeed = NULL) {
 
   # ProbExpected only used if UpWeight is not NULL, is the probability associated with the upweighted age range
   # UpWeightLowerAge/UpweightUpperAge only used if UpWeight is not NULL
@@ -94,10 +95,14 @@ SameSex <- function(dataframe, ProbSameSex = NULL, UpWeightProp = NULL, UpWeight
     mutate(PropResult = Value/nrow(dataframe)) %>%
     pull(PropResult)
 
-  
 
   UpWeightObs <- dataframe %>%
     filter(dataframe[,AgeVariableIndex] >= UpWeightLowerAge & dataframe[,AgeVariableIndex] <= UpWeightUpperAge)
+
+  # seed must come before  sample is cut
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
 
   # check against actual proportion
   # only adjust proportion if this differs to expected
