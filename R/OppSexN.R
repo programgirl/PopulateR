@@ -14,14 +14,14 @@
 #'
 #' @export
 #' @param Recipient A data frame containing observations limited to one sex. An age column is required. Only include the ages that are eligible for partner allocation.
-#' @param RecipientIDVariable The column number for the ID variable in the Recipient data frame.
-#' @param RecipientAgeVariable The column number for the age variable in the Recipient data frame.
+#' @param RecipientIDCol The column number for the ID variable in the Recipient data frame.
+#' @param RecipientAgeCol The column number for the age variable in the Recipient data frame.
 #' @param Donor A data frame containing observations limited to one sex. An age column is required. Only include the ages that will be allocated to partners.
-#' @param DonorIDVariable The column number for the donor ID. Must be numeric.
-#' @param DonorAgeVariable The column number for the age variable in the Donor data frame.
+#' @param DonorIDCol The column number for the donor ID. Must be numeric.
+#' @param DonorAgeCol The column number for the age variable in the Donor data frame.
 #' @param meanUsed The mean value for the  normal distribution.
 #' @param sdUsed The standard deviation value for the normal distribution.
-#' @param CoupleIDValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
+#' @param IDStartValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
 #' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
 #' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
@@ -38,23 +38,23 @@
 #' Donors <- data.frame(cbind(PersonID = c(2001:4000),
 #'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
 #'
-#' ExampleOutput <- OppositeSex(Recipients, RecipientIDVariable=1, RecipientAgeVariable=2, Donors, DonorIDVariable=1, DonorAgeVariable=2, meanUsed=2, sdUsed=4, CoupleIDValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
+#' ExampleOutput <- OppositeSex(Recipients, RecipientIDCol=1, RecipientAgeCol=2, Donors, DonorIDCol=1, DonorAgeCol=2, meanUsed=2, sdUsed=4, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
 
 
-OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NULL, Donor, DonorIDVariable=NULL,
-                        DonorAgeVariable=NULL, meanUsed= NULL, sdUsed = NULL, CoupleIDValue = NULL, HouseholdNumVariable=NULL,
+OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor, DonorIDCol=NULL,
+                        DonorAgeCol=NULL, meanUsed= NULL, sdUsed = NULL, IDStartValue = NULL, HouseholdNumVariable=NULL,
                         UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
 
   # content check
-  if (!any(duplicated(Recipient[RecipientIDVariable])) == FALSE) {
+  if (!any(duplicated(Recipient[RecipientIDCol])) == FALSE) {
     stop("The column number for the ID variable in the recipient data frame must be supplied.")
   }
 
-  if (!is.numeric(RecipientAgeVariable)) {
+  if (!is.numeric(RecipientAgeCol)) {
     stop("Both the Recipient ID and the Recipient age column numbers must be supplied.")
   }
 
-  if (!any(duplicated(Donor[DonorIDVariable])) == FALSE) {
+  if (!any(duplicated(Donor[DonorIDCol])) == FALSE) {
     stop("The column number for the ID variable in the donor data frame must be supplied.")
   }
 
@@ -113,13 +113,13 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   #####################################
 
   # Recipient ID variable
-  RecipientIDColName <- sym(names(Recipient[RecipientIDVariable]))
+  RecipientIDColName <- sym(names(Recipient[RecipientIDCol]))
 
   # Recipient age variable
-  RecipientAgeColName <- sym(names(Recipient[RecipientAgeVariable]))
+  RecipientAgeColName <- sym(names(Recipient[RecipientAgeCol]))
 
   # Donor age variable
-  DonorAgeColName <- sym(names(Donor[DonorAgeVariable]))
+  DonorAgeColName <- sym(names(Donor[DonorAgeCol]))
 
   #####################################
   #####################################
@@ -136,7 +136,7 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
 
   # get counts for each single age from the donor data frame
   DonorCounts <- Donor %>%
-    group_by_at(DonorAgeVariable) %>%
+    group_by_at(DonorAgeCol) %>%
     summarise(AgeCount=n())
 
   # DonorAges <- as.vector(DonorCounts[1])
@@ -147,8 +147,8 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(Recipient[RecipientAgeVariable]) -
-                          min(Donor[DonorAgeVariable]))-5
+  MaxAgeDifference <-  (max(Recipient[RecipientAgeCol]) -
+                          min(Donor[DonorAgeCol]))-5
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -192,8 +192,8 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
   }
 
 
-  CurrentAgeMatch <- data.frame(Recipient[RecipientIDVariable],
-                                Recipient[RecipientAgeVariable],
+  CurrentAgeMatch <- data.frame(Recipient[RecipientIDCol],
+                                Recipient[RecipientAgeCol],
                                 DonorAge = sample(rep(DonorAges, DonorAgeCounts),
                                                   size=nrow(Recipient),
                                                   replace = FALSE))
@@ -300,7 +300,7 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
 
   # reduce pool of potentially partnered donors to only those matched to recipients
   DonorsMatched <- left_join(MatchedDonorAges,
-                             rename_at(DonorsToMatch, DonorAgeVariable, ~ names(MatchedDonorAges)[1]),
+                             rename_at(DonorsToMatch, DonorAgeCol, ~ names(MatchedDonorAges)[1]),
                              by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
     mutate(!!DonorAgeColName := DonorAge)
 
@@ -314,18 +314,18 @@ OppSexN <- function(Recipient, RecipientIDVariable=NULL, RecipientAgeVariable=NU
     dplyr::select(-c(2))
 
   #
-  RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = names(Recipient[RecipientIDVariable]))
+  RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = names(Recipient[RecipientIDCol]))
 
   # now merge the full data of the subset donors to the recipients
   # by donor age and donor age count
   # recipient data frame is the one to which observations must be joined
   # also add the household numbers at this point
-  MaxCoupleIDValue <- (nrow(RecipientsReadyToMatch)-1) + CoupleIDValue
+  MaxIDStartValue <- (nrow(RecipientsReadyToMatch)-1) + IDStartValue
 
   FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
     dplyr::select(-DonorAge, -DonorAgeCount) %>%
     ungroup() %>%
-    mutate({{HouseholdNumVariable}} := seq(CoupleIDValue, MaxCoupleIDValue))
+    mutate({{HouseholdNumVariable}} := seq(IDStartValue, MaxIDStartValue))
 
   # convert from wide to long, use .x and .y to do the split
 
