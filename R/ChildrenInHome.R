@@ -54,9 +54,9 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 
      cat("The age is", AgeToSample, "the count needed is", CountNeeded, "\n")
 
-     # SampledForThatAge <- PossiblesRenamed %>%
-     #    filter(as.numeric(PossiblesAge) == AgeToSample)
-     #    slice_sample(n = CountNeeded)
+     SampledForThatAge <- PossiblesRenamed %>%
+        filter(PossiblesAge == AgeToSample) %>%
+        slice_sample(n = CountNeeded)
 
 
    }
