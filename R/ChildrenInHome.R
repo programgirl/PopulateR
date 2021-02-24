@@ -3,13 +3,13 @@
 #' Children in a family household can be any age. This function constructs a data frame of children to be placed with a parent, sampled from all possible child ages.
 #'
 #' @export
+#'
 #' @param Possibles A data frame containing the people from which children-in-a-family-home will be selected.
 #' @param PossiblesAgeCol The column number of the Possibles data frame that contains the ages.
 #' @param PossiblesWeightCol The column number for the probability of selection for any observation, within age. If no column is supplied, the weight is assumed to be 1 for all observations.
 #' @param SummaryCounts A data frame containing information on the counts required for each age of child.
-#' @param SummaryAgeCol The column number of the Missings data frame that contains the ages that must be obtained
-#' @param SummaryCountCol The column number of the Missings data frame that contains the counts that are required for each age.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#' @param SummaryAgeCol The column number of the SummaryCounts data frame that contains the ages that must be obtained
+#' @param SummaryProbCol The column number of the SummaryCounts data frame that contains the probabilty of selection of children that age. A probability of 1 means that all children that age will be sampled.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return A data frame of an even number of observations for allocation into same-sex couples. If IDStartValue is specified, household allocation will be performed.
@@ -17,7 +17,7 @@
 #' @examples
 #'
 ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol = NULL, SummaryCounts,
-                           SummaryAgeCol = NULL, SummaryCountCol = NULL, UserSeed = NULL) {
+                           SummaryAgeCol = NULL, SummaryProbCol = NULL, UserSeed = NULL) {
 
 
 
@@ -26,10 +26,12 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
       stop("The column for the ages to sample must be specified.")
    }
 
-   if(is.null(SummaryCountCol)) {
+   if(is.null(SummaryProbCol)) {
 
       stop("The column for the counts required for sampling must be specified.")
    }
+
+   PossiblesAgeColName <- sym(names(Possibles[PossiblesAgeCol]))
 
    if(is.null(PossiblesWeightCol)) {
 
@@ -39,10 +41,18 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 
    } else {
 
-   PossiblesRenamed <- Possibles %>%
-      rename(PossiblesAge = !! PossiblesAgeCol, TempWeightAtEndID = PossiblesWeightCol)
+      TempWeightAtEndID <- sym(names(Possibles[PossiblesWeightCol]))
 
-}
+      PossiblesRenamed <- Possibles %>%
+         rename(PossiblesAge = !! PossiblesAgeCol, TempWeightAtEndID = !! PossiblesWeightCol)
+
+
+
+   }
+
+   if (!is.null(UserSeed)) {
+      set.seed(UserSeed)
+   }
 
 
   # do the sampling
@@ -50,18 +60,45 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 
      AgeToSample = as.numeric(SummaryCounts[i, SummaryAgeCol])
 
-     CountNeeded = as.numeric(SummaryCounts[i, SummaryCountCol])
+     CountNeeded = as.numeric(SummaryCounts[i, SummaryProbCol])
 
-     cat("The age is", AgeToSample, "the count needed is", CountNeeded, "\n")
+     SubsetForThatAge <- PossiblesRenamed %>%
+        filter(PossiblesAge == AgeToSample)
 
-     SampledForThatAge <- PossiblesRenamed %>%
-        filter(PossiblesAge == AgeToSample) %>%
-        slice_sample(n = CountNeeded)
+     SampledForThatAge <- SubsetForThatAge %>%
+       slice_sample(weight_by = TempWeightAtEndID, n = nrow(SubsetForThatAge)*CountNeeded)
+
+   #  cat("The age is", AgeToSample, "the count needed is", nrow(SampledForThatAge), "\n")
+
+
+     if(exists("SampleResults")) {
+
+        SampleResults <- bind_rows(SampleResults, SampledForThatAge)
+
+     } else {
+
+
+     SampleResults <- SampledForThatAge
+
+     }
 
 
    }
 
 
+   SampleResults <- SampleResults %>%
+      rename(!!PossiblesAgeColName := PossiblesAge)
+
+   if(!(is.null(PossiblesWeightCol))) {
+
+      SampleResults <- SampleResults %>%
+         rename(!!TempWeightAtEndID := PossiblesWeightCol)
+
+   }  else {
+
+      SampleResults <- SampleResults %>%
+         select(-TempWeightAtEndID)
+   }
 
 
 
@@ -136,5 +173,5 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 #
 #
 #
- return(PossiblesRenamed)
+ return(SampleResults)
 }
