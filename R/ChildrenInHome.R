@@ -32,6 +32,7 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
    }
 
    PossiblesAgeColName <- sym(names(Possibles[PossiblesAgeCol]))
+   # cat("Error place 1  for missing all_of", "\n")
 
    if(is.null(PossiblesWeightCol)) {
 
@@ -45,6 +46,8 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 
       PossiblesRenamed <- Possibles %>%
          rename(PossiblesAge = !! PossiblesAgeCol, TempWeightAtEndID = !! PossiblesWeightCol)
+
+      # cat("Error place 2 for missing all_of", "\n")
 
 
 
@@ -88,6 +91,8 @@ ChildrenInHome <- function(Possibles, PossiblesAgeCol = NULL, PossiblesWeightCol
 
    SampleResults <- SampleResults %>%
       rename(!!PossiblesAgeColName := PossiblesAge)
+
+   # cat("Error place 3  for missing all_of", "\n")
 
    if(!(is.null(PossiblesWeightCol))) {
 
