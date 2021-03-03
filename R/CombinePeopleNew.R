@@ -160,6 +160,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
       cat("At least one sex has a count indivisible by", HouseholdSize, "and will contain different sexes",
           "\n")
+
     }
 
     for(i in 1:nrow(NumberSexes)) {
@@ -172,11 +173,36 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
         filter(RenamedSex == SexInUse)
 
 
-      while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
+      # while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
+      #
+      #   WorkingPerson <- WorkingSexDataFrame %>%
+      #     slice_sample(n = 1)
+      #
+      #   cat("Sex in use is", SexInUse, "and ID is", WorkingPerson$RenamedID, "\n")
+      #
+      #   WorkingSexDataFrame <- WorkingSexDataFrame %>%
+      #     filter(!(RenamedID %in% WorkingPerson$RenamedID))
+      #
+      #
+      #   MatchPerson <-
+      #
+      #
+      #
+      #   # closes while look through the data frame matching the sex
+      # }
 
+      if(!(nrow(WorkingSexDataFrame) %% HouseholdSize == 0)) {
 
-        # closes while look through the data frame matching the sex
+        ExtraPeople <- WorkingSexDataFrame %>%
+          slice_sample(n = nrow(WorkingSexDataFrame) %% HouseholdSize)
+
+        WorkingSexDataFrame <- WorkingSexDataFrame %>%
+          filter(RenamedID %in% ExtraPeople$RenamedID)
+
+        # closes loop for extracting people who cannot be matched to the same sex
       }
+
+
 
 
       # closes the for loop through the summary data frame that has 1 row per sex
@@ -494,7 +520,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
  #
  # # return(OutputDataFrame)
 
- return(WorkingSexDataFrame)
+ return(WorkingPerson)
 
 
 }
