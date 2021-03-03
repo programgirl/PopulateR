@@ -171,29 +171,23 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
       WorkingSexDataFrame <- OccupantsRenamed %>%
         filter(RenamedSex == SexInUse)
 
+
+      while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
+
+
+        # closes while look through the data frame matching the sex
+      }
+
+
+      # closes the for loop through the summary data frame that has 1 row per sex
     }
 
 
+    # closes the loop for matching people if sex is correlated
   }
 
 
   # ensure that the total number of people to match is divisible by household size
-
-  # TestNumber <- nrow(Occupants)
-  #
-  # if (!is.null(UserSeed)) {
-  #   set.seed(UserSeed)
-  # }
-  #
-  # if (nrow(Occupants) %% TestNumber != 0) {
-  #
-  #   NumExcess <- TestNumber %% Occupants
-  #   Occupants <- Occupants %>%
-  #     slice_sample(n = nrow()-NumExcess, replace = FALSE)
-  #
-  # }
-
-
  #
  #  #####################################
  #  # split the dataframe into the required number of subsets
