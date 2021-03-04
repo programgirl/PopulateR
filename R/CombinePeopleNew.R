@@ -142,11 +142,11 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
 
 
-   #####################################
-   # split the dataframe into the required number of subsets
-  # matching is within-subset first
-   #####################################
-   #####################################
+  #####################################
+  #####################################
+  # work on sex is correlated first
+  #####################################
+  #####################################
 
   if(CorrelateSx == "yes") {
 
@@ -158,10 +158,16 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     # test if each Sex is divisible by household size
     if(!(sum(NumberSexes$CountModulo)) == 0) {
 
-      cat("At least one sex has a count indivisible by", HouseholdSize, "and will contain different sexes",
-          "\n")
+      cat("At least one sex has a count indivisible by", HouseholdSize,
+          "and one household will contain different sexes", "\n")
 
+      # closes modulo check for console print
     }
+
+    #####################################
+    # if sex is correlated
+    # matching is within-subset first
+    #####################################
 
     for(i in 1:nrow(NumberSexes)) {
 
@@ -193,6 +199,18 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
       if(!(nrow(WorkingSexDataFrame) %% HouseholdSize == 0)) {
 
+        if(exists("ExtraPeople")) {
+
+          NewAddition <-  WorkingSexDataFrame %>%
+            slice_sample(n = nrow(WorkingSexDataFrame) %% HouseholdSize)
+
+          ExtraPeople <- bind_rows(ExtraPeople, NewAddition)
+
+          WorkingSexDataFrame <- WorkingSexDataFrame %>%
+            filter(RenamedID %in% NewAddition$RenamedID)
+
+        } else {
+
         ExtraPeople <- WorkingSexDataFrame %>%
           slice_sample(n = nrow(WorkingSexDataFrame) %% HouseholdSize)
 
@@ -200,6 +218,10 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
           filter(RenamedID %in% ExtraPeople$RenamedID)
 
         # closes loop for extracting people who cannot be matched to the same sex
+        }
+
+        # closes loop for extracting extra people into a separate data frame to be
+        # dealt with later
       }
 
 
@@ -209,12 +231,15 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     }
 
 
+    # TODO work through the extra people data frame
+    # there will be exactly the number of people required in the household in there
+    # so simply put them into the same household
+
     # closes the loop for matching people if sex is correlated
   }
 
 
-  # ensure that the total number of people to match is divisible by household size
- #
+  #
  #  #####################################
  #  # split the dataframe into the required number of subsets
  #  #####################################
