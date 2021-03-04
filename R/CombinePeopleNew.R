@@ -45,10 +45,9 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     stop("A name for the household count variable must be supplied.")
     }
 
-  cat("number rows is", nrow(Occupants), "and household size is", HouseholdSize, "\n")
   if((nrow(Occupants) %% HouseholdSize) > 0) {
     stop("The number of people to be assigned to households is not divisible by household size.")
-      }
+  }
 
 
   #####################################
@@ -66,6 +65,32 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     return(swap)
   }
 
+   # set up bins and variables for matching
+   # set up bins for iterations
+   # enable at least some extreme age differences to be assigned to the Inf categories
+   # otherwise the bins will be wrong
+
+   MaxAgeDifference <-  (max(Occupants[OccupantAgeCol]) -
+                           min(Occupants[OccupantAgeCol]))-5
+
+   # estimate expected minimum and maximum ages from the distribution, and bin these
+
+   min_bin <- round(qnorm(0.000001, mean = MeanUsed, sd = SDUsed))-0.5
+   max_bin <- round(qnorm(0.999999, mean = MeanUsed, sd = SDUsed))+0.5
+   bins <- c(-Inf, min_bin:max_bin, Inf)
+
+   # construct the probabilities for each bin, gives n(bins)-1
+   Probabilities <- pnorm(bins[-1], mean = MeanUsed, sd = SDUsed) -
+     pnorm(bins[-length(bins)], mean = MeanUsed, sd = SDUsed)
+
+   # assign realistic expected probabilities in the bins outside the bins constructed earlier
+   # use minAge and maxAge for this, only need range for included ages
+   # Uses midpoint rule.
+   logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = MeanUsed, sd = SDUsed, log=TRUE)
+   logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = MeanUsed, sd = SDUsed, log=TRUE)
+
+   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
+   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
 
   #####################################
   # chi-squared check subfunction
@@ -139,7 +164,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
   #####################################
   #####################################
 
-
+  MaxIDStartValue <- ((nrow(Occupants)/HouseholdSize)-1) + IDStartValue
 
   #####################################
   #####################################
@@ -569,6 +594,8 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
  #  print(log_chisq)
  #
  # # return(OutputDataFrame)
+
+  # TODO add in household numbers last, see children function on how to do this
 
  return(ExtractBaseSample)
 
