@@ -51,7 +51,6 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
       }
 
 
-
   #####################################
   #####################################
   # sub functions are here
@@ -198,6 +197,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
         WorkingSexDataFrame <- WorkingSexDataFrame %>%
           filter(!(RenamedID %in% ExtraPeople$RenamedID))
 
+
         # closes loop for extracting people who cannot be matched to the same sex
         }
 
@@ -207,21 +207,20 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
       cat("Working data frame is", nrow(WorkingSexDataFrame), "rows", "\n")
 
+      SampleSizeToUse <- nrow(WorkingSexDataFrame)/HouseholdSize
+      cat("Sample size is", SampleSizeToUse, "\n")
+
+      ExtractBaseSample <- WorkingSexDataFrame %>%
+        slice_sample(n = SampleSizeToUse)
+
+      WorkingSexDataFrame <- WorkingSexDataFrame %>%
+        filter(!(RenamedID %in% ExtractBaseSample$RenamedID))
+
           while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
-
-            SampleSizeToUse <- nrow(WorkingSexDataFrame)/HouseholdSize
-
-    #        cat("Sample size is", SampleSizeToUse, "\n")
 
             if(SampleSizeToUse < 1) {
               stop("Sample size is less than 1", "\n")
             }
-
-            ExtractBaseSample <- WorkingSexDataFrame %>%
-              slice_sample(n = SampleSizeToUse)
-
-            WorkingSexDataFrame <- WorkingSexDataFrame %>%
-              filter(!(RenamedID %in% ExtractBaseSample$RenamedID))
 
            ExtractMatchingSample <- WorkingSexDataFrame %>%
              slice_sample(n = SampleSizeToUse)
@@ -571,7 +570,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
  #
  # # return(OutputDataFrame)
 
- return(ExtractMatchingSample)
+ return(ExtractBaseSample)
 
 
 }
