@@ -60,8 +60,8 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
   swap_people <- function(pair1, pair2) {
     swap <- pair1
-    swap$DonorID <- pair2$DonorID
-    swap$DonorAge <- pair2$DonorAge
+   # swap$DonorID <- pair2$DonorID
+    swap$MatchedAge <- pair2$MatchedAge
     return(swap)
   }
 
@@ -271,16 +271,18 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
            CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
+           cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
+               nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+
            ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
            logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
-           ObservedAgeDifferences <- hist(CurrentAgeMatch$RenamedAge - CurrentAgeMatch$MatchedAge,
+           ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
                                           breaks = bins, plot=FALSE)$counts
 
 
-
            # set up for chi-squared
-           log0ObservedAges <- hist(CurrentAgeMatch$RenamedAge - CurrentAgeMatch$MatchedAge,
+           log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
                                     breaks = logBins, plot=FALSE)$counts
            logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                                      log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
@@ -310,27 +312,26 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
              Current1 <- CurrentAgeMatch[Pick1,]
              Current2 <- CurrentAgeMatch[Pick2,]
 
-             cat("Current ID is", Current1$RenamedID, "proposed ID is", Current1$RenamedID, "\n")
-             cat("Current age is", Current1$MatchedAge, "proposed age is", Current2$MatchedAge, "\n")
-
              # # proposed pairing after a swap
              PropPair1 <- swap_people(Current1, Current2)
              PropPair2 <- swap_people(Current2, Current1)
 
              # compute change in Chi-squared value from current pairing to proposed pairing
              PropAgeMatch <- CurrentAgeMatch %>%
-               filter(!(RenamedID %in% c(PropPair1$RenamedID, PropPair2$RenamedID))) %>%
+               filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
                bind_rows(., PropPair1,PropPair2)
 
+            # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
+
              # do chi-squared
-             Proplog0 <- hist(PropAgeMatch$RenamedAge - PropAgeMatch$MatchedAge, breaks = logBins,
-                              plot=FALSE)$counts
-             ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
-                               log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+             Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+             ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
              prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
-             if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
+             if (compare_logK(ProplogK, logKObservedAges) < 0) {
+
+              cat("Loop entered", prop_log_chisq, "\n")
 
                CurrentAgeMatch[Pick1,] <- PropPair1
                CurrentAgeMatch[Pick2,] <- PropPair2
@@ -342,13 +343,14 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
              }
 
+              # cat("log chi-square is", log_chisq, "\n")
+
              if (log_chisq <= Critical_log_chisq) {
                break
 
              }
 
-            cat(i, "current chi-sq", log_chisq, "critical chi-sq", Critical_log_chisq, "\n")
-
+             # closes iterations through the age matching
            }
 
 
@@ -595,11 +597,25 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
         # closes while look through the data frame matching the sex
       }
 
-
-
-
-      # closes the for loop through the summary data frame that has 1 row per sex
-    }
+    #   if(exists("OutputDataFrame")) {
+    #
+    #     OutputDataFrame <- bind_rows(OutputDataFrame, NewAddition)
+    #
+    #     WorkingSexDataFrame <- WorkingSexDataFrame %>%
+    #       filter(!(RenamedID %in% NewAddition$RenamedID))
+    #
+    #   } else {
+    #
+    #     ExtraPeople <- WorkingSexDataFrame %>%
+    #       slice_sample(n = nrow(WorkingSexDataFrame) %% HouseholdSize)
+    #
+    #     WorkingSexDataFrame <- WorkingSexDataFrame %>%
+    #       filter(!(RenamedID %in% ExtraPeople$RenamedID))
+    #
+    #
+    #
+    #   # closes the for loop through the summary data frame that has 1 row per sex
+    # }
 
 
     # TODO work through the extra people data frame
@@ -614,7 +630,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
   # TODO add in household numbers last, see children function on how to do this
 
- return(log_chisq)
+ return(CurrentAgeMatch)
 
 
 }
