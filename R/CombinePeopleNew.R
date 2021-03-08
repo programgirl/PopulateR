@@ -60,7 +60,6 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
   swap_people <- function(pair1, pair2) {
     swap <- pair1
-   # swap$DonorID <- pair2$DonorID
     swap$MatchedAge <- pair2$MatchedAge
     return(swap)
   }
@@ -354,47 +353,36 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
            }
 
 
-           # TODO need to make sure that the Combined data frame works for all iterations
-           # so need to construct a method where there are no duplicate columns
-           # maybe do separate binds
+           # loops through the number of samples required, e.g. if there are three people in a
+           # household then the loop needs to complete twice.
+          }
 
-           # #AgeDifferences <-
-           #
-           # # matching the two data frames is here
-           #
-           # # match parent
-           #
-           # for (c in 1:nrow(BaseDataFrame)) {
-           #
-           #   CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-           #   BaseDataFrame$ParentAge[c] <- CurrentAge
-           #   BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-           #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-           #   BaseDataFrame$age_index[c] <- age_index
-           #
-           #   while (ParentAgeCountVector[age_index] == 0 || BaseDataFrame$AgeDifference[c] < MinParentAge || BaseDataFrame$AgeDifference[c] > MaxParentAge) {
-           #
-           #     CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-           #     BaseDataFrame$ParentAge[c] <- CurrentAge
-           #     BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-           #     age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-           #     BaseDataFrame$age_index[c] <- age_index
-           #
-           #     # closes while loop
-           #   }
-           #
-           #   # cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
-           #   #     "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
-           #
-           #   ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-           #
-           #   # closes parent match loop
-           # }
-           #
-           #
-           # BaseDataFrame <- left_join(BaseDataFrame %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-           #                            ParentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-           #                            by = c("ParentAge", "Counter"))
+
+           # closes while loop through the data frame for each sex
+          }
+
+      BaseDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
+                                   mutate(Counter = row_number()),
+                                 MatchingSample %>% group_by(RenamedAge) %>%
+                                   mutate(Counter = row_number()),
+                                 by = c("RenamedAge", "Counter"))
+
+      # TODO work through the extra people data frame
+      # there will be exactly the number of people required in the household in there
+      # so simply put them into the same household
+
+      # closes the if loop for matching people if sex is correlated
+    }
+
+
+
+
+    # TODO add in household numbers last, see children function on how to do this
+
+    return(BaseDataFrame)
+
+  }
+
            #
            # # construct the child ages remaining into a vector
            #
@@ -594,8 +582,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
 
 
-        # closes while look through the data frame matching the sex
-      }
+
 
     #   if(exists("OutputDataFrame")) {
     #
@@ -618,19 +605,4 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     # }
 
 
-    # TODO work through the extra people data frame
-    # there will be exactly the number of people required in the household in there
-    # so simply put them into the same household
 
-    # closes the loop for matching people if sex is correlated
-  }
-
-
-
-
-  # TODO add in household numbers last, see children function on how to do this
-
- return(CurrentAgeMatch)
-
-
-}
