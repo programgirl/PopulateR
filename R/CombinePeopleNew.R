@@ -157,13 +157,6 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
   #####################################
   #####################################
 
-  #####################################
-  #####################################
-  # set up pre-data information for matching
-  #####################################
-  #####################################
-
-  MaxIDStartValue <- ((nrow(Occupants)/HouseholdSize)-1) + IDStartValue
 
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
@@ -330,7 +323,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
              if (compare_logK(ProplogK, logKObservedAges) < 0) {
 
-              cat("Loop entered", prop_log_chisq, "\n")
+              # cat("Loop entered", prop_log_chisq, "\n")
 
                CurrentAgeMatch[Pick1,] <- PropPair1
                CurrentAgeMatch[Pick2,] <- PropPair2
@@ -352,6 +345,43 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
              # closes iterations through the age matching
            }
 
+           if(exists("BaseDataFrame") == TRUE) {
+
+             cat("Entering second pass ID start value is", IDStartValue, "\n")
+
+             InterimDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
+                                             mutate(Counter = row_number()),
+                                           MatchingSample %>% group_by(RenamedAge) %>%
+                                             mutate(Counter = row_number()),
+                                           by = c("RenamedAge", "Counter")) %>%
+               dplyr::select(-Counter) %>%
+               ungroup() %>%
+               mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+
+             IDStartValue = IDStartValue+(nrow(InterimDataFrame)-1)
+
+             cat("Second pass ID end value is", IDStartValue, "\n")
+
+             BaseDataFrame <- bind_rows(BaseDataFrame, InterimDataFrame)
+
+           } else {
+
+             cat("Entering first pass ID start value is", IDStartValue, "\n")
+
+           BaseDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
+                                        mutate(Counter = row_number()),
+                                      MatchingSample %>% group_by(RenamedAge) %>%
+                                        mutate(Counter = row_number()),
+                                      by = c("RenamedAge", "Counter")) %>%
+             dplyr::select(-Counter) %>%
+             ungroup() %>%
+             mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+
+           IDStartValue = IDStartValue+nrow(BaseSample)
+
+           cat("Ending first pass ID start value is", IDStartValue, "\n")
+
+           }
 
            # loops through the number of samples required, e.g. if there are three people in a
            # household then the loop needs to complete twice.
@@ -359,13 +389,17 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
 
            # closes while loop through the data frame for each sex
-          }
+    }
 
-      BaseDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
-                                   mutate(Counter = row_number()),
-                                 MatchingSample %>% group_by(RenamedAge) %>%
-                                   mutate(Counter = row_number()),
-                                 by = c("RenamedAge", "Counter"))
+       # convert from wide to long, use .x and .y to do the split
+      #
+      # FirstDataframeSplit <- FullMatchedDataFrame %>%
+      #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+      #   rename_all(list(~gsub("\\.x$", "", .)))
+      #
+      # SecondDataframeSplit <- FullMatchedDataFrame %>%
+      #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+      #   rename_all(list(~gsub("\\.y$", "", .)))
 
       # TODO work through the extra people data frame
       # there will be exactly the number of people required in the household in there
@@ -374,12 +408,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
       # closes the if loop for matching people if sex is correlated
     }
 
-
-
-
-    # TODO add in household numbers last, see children function on how to do this
-
-    return(BaseDataFrame)
+   return(BaseDataFrame)
 
   }
 
