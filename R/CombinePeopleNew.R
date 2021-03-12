@@ -58,8 +58,9 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
   # pairing swap subfunction
 
-  swap_people <- function(pair1, pair2) {
+  swap_household_matches <- function(pair1, pair2) {
     swap <- pair1
+    swap$MatchedID <- pair2$MatchedID
     swap$MatchedAge <- pair2$MatchedAge
     return(swap)
   }
@@ -189,7 +190,8 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
     # matching is within-subset first
     #####################################
 
-    for(i in 1:nrow(NumberSexes)) {
+   for(i in 1:nrow(NumberSexes)) {
+    # for(i in 1:1) {
 
       SexInUse <- as.character(NumberSexes[i,1])
 
@@ -232,25 +234,31 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
       cat("Sample size is", SampleSizeToUse, "\n")
 
       BaseSample <- WorkingSexDataFrame %>%
-        slice_sample(n = SampleSizeToUse)  #%>%
-        # select_all(list(~ paste0("baseDF.", .)))
+        slice_sample(n = SampleSizeToUse)
+      cat("Base sample size is", nrow(BaseSample), "\n")
+
+      # TODO add the household numbers here
 
       WorkingSexDataFrame <- WorkingSexDataFrame %>%
         filter(!(RenamedID %in% BaseSample$RenamedID))
 
+      cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
+
           while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
 
-            if(SampleSizeToUse < 1) {
+              if(SampleSizeToUse < 1) {
               stop("Sample size is less than 1", "\n")
             }
 
            MatchingSample <- WorkingSexDataFrame %>%
              slice_sample(n = SampleSizeToUse)
 
+           cat("MatchingSample size is", nrow(MatchingSample), "\n")
+
            WorkingSexDataFrame <- WorkingSexDataFrame %>%
              filter(!(RenamedID %in% MatchingSample$RenamedID))
 
-          # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
+          cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
 
            # get age differences
 
@@ -258,13 +266,14 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
              select(RenamedAge,RenamedID)
 
            MatchedAgeExtract <- MatchingSample %>%
-             select(RenamedAge) %>%
-             rename(MatchedAge = RenamedAge)
+             select(RenamedAge, RenamedID) %>%
+             rename(MatchedAge = RenamedAge,
+                    MatchedID = RenamedID)
 
            CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
-           cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-               nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+           # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
+           #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
 
            ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
            logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
@@ -288,6 +297,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
              Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
+             # closes p-value stopping rule
            }
 
            #####################################
@@ -305,8 +315,8 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
              Current2 <- CurrentAgeMatch[Pick2,]
 
              # # proposed pairing after a swap
-             PropPair1 <- swap_people(Current1, Current2)
-             PropPair2 <- swap_people(Current2, Current1)
+             PropPair1 <- swap_household_matches(Current1, Current2)
+             PropPair2 <- swap_household_matches(Current2, Current1)
 
              # compute change in Chi-squared value from current pairing to proposed pairing
              PropAgeMatch <- CurrentAgeMatch %>%
@@ -317,13 +327,14 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
              # do chi-squared
              Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-             ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+             ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
+                               log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
              prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
              if (compare_logK(ProplogK, logKObservedAges) < 0) {
 
-              # cat("Loop entered", prop_log_chisq, "\n")
+               cat("Loop entered", prop_log_chisq, "\n")
 
                CurrentAgeMatch[Pick1,] <- PropPair1
                CurrentAgeMatch[Pick2,] <- PropPair2
@@ -333,9 +344,11 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
                logKObservedAges <- ProplogK
                log_chisq <- prop_log_chisq
 
+               # closes pair swqp
+
              }
 
-              # cat("log chi-square is", log_chisq, "\n")
+              cat("log chi-square is", log_chisq, "\n")
 
              if (log_chisq <= Critical_log_chisq) {
                break
@@ -349,14 +362,18 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
              cat("Entering second pass ID start value is", IDStartValue, "\n")
 
-             InterimDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
-                                             mutate(Counter = row_number()),
-                                           MatchingSample %>% group_by(RenamedAge) %>%
-                                             mutate(Counter = row_number()),
-                                           by = c("RenamedAge", "Counter")) %>%
-               dplyr::select(-Counter) %>%
-               ungroup() %>%
-               mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+             # InterimDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
+             #                                 mutate(Counter = row_number()),
+             #                               MatchingSample %>% group_by(RenamedAge) %>%
+             #                                 mutate(Counter = row_number()),
+             #                               by = c("RenamedAge", "Counter")) %>%
+             #   dplyr::select(-Counter) %>%
+             #   ungroup() %>%
+             #   mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+
+             InterimDataFrame <- BaseSample %>%
+               left_join(CurrentAgeMatch, by="RenamedID") %>%
+               left_join(MatchingSample, by= c("MatchedID" = "RenamedID"))
 
              IDStartValue = IDStartValue+(nrow(InterimDataFrame)-1)
 
@@ -366,44 +383,54 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
 
            } else {
 
-             cat("Entering first pass ID start value is", IDStartValue, "\n")
+           #   cat("Entering first pass ID start value is", IDStartValue, "\n")
 
-           BaseDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
-                                        mutate(Counter = row_number()),
-                                      MatchingSample %>% group_by(RenamedAge) %>%
-                                        mutate(Counter = row_number()),
-                                      by = c("RenamedAge", "Counter")) %>%
-             dplyr::select(-Counter) %>%
-             ungroup() %>%
-             mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+           # BaseDataFrame <- left_join(BaseSample %>% group_by(RenamedAge) %>%
+           #                              mutate(Counter = row_number()),
+           #                            MatchingSample %>% group_by(RenamedAge) %>%
+           #                              mutate(Counter = row_number()),
+           #                            by = c("RenamedAge", "Counter")) %>%
+           #   dplyr::select(-Counter) %>%
+           #   ungroup() %>%
+           #   mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue+nrow(BaseSample)-1)))
+
+             BaseDataFrame <- BaseSample %>%
+               left_join(CurrentAgeMatch, by="RenamedID") %>%
+               left_join(MatchingSample, by= c("MatchedID" = "RenamedID"))
 
            IDStartValue = IDStartValue+nrow(BaseSample)
 
            cat("Ending first pass ID start value is", IDStartValue, "\n")
 
+           # closes the construction and appending to the base data frame
            }
 
-           # loops through the number of samples required, e.g. if there are three people in a
-           # household then the loop needs to complete twice.
-          }
+           # split out the matched people data frames
+           #
+           # MatchedWithHouseholdID <- BaseDataFrame %>%
+           #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+           #   rename_all(list(~gsub("\\.y$", "", .)))
 
 
-           # closes while loop through the data frame for each sex
-    }
+           # closes the loop through the number of sets of people to match,
+           # e.g. 1 set for two-person households, 2 sets for three-person households
+           }
 
-       # convert from wide to long, use .x and .y to do the split
-      #
-      # FirstDataframeSplit <- FullMatchedDataFrame %>%
-      #   dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
-      #   rename_all(list(~gsub("\\.x$", "", .)))
-      #
-      # SecondDataframeSplit <- FullMatchedDataFrame %>%
-      #   dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
-      #   rename_all(list(~gsub("\\.y$", "", .)))
+           # TODO make the number of loops correct so that each person is appended
+           # AHEAD OF ADDING THE HOUSEHOLD NUMBERS
+           # WILL LIKELY MEAN THIS PROGRAM WILL NEED RESTRUCTURING DATA
+           # all I have to do is to put the matched people into their own data frame
+           # and keep on appending the next matched people to it
+           # and delete the matched people from the base data frame
+           # so only the base data frame is repeated in the loop
+         # }
 
-      # TODO work through the extra people data frame
-      # there will be exactly the number of people required in the household in there
-      # so simply put them into the same household
+
+     # closes for loop through the data frame for each sex
+      }
+
+       # convert from wide to long, will need to use the columns to do the split
+
 
       # closes the if loop for matching people if sex is correlated
     }
