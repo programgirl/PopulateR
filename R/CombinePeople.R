@@ -139,7 +139,7 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
   SexColName <- sym(names(Occupants[OccupantSxCol]))
 
   # need column count for turning wide dataframe into long
-  NumberColsOccupants <- as.numeric(ncol(Occupants))
+  NumberColsOccupantsPlusOne <- as.numeric(ncol(Occupants))+1
 
   #####################################
   #####################################
@@ -409,16 +409,16 @@ CombinePeople <- function(Occupants, OccupantIDCol, OccupantAgeCol, OccupantSxCo
           InterimDataFrame <- BaseSample %>%
             left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
             left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-            select(all_of((NumberColsOccupants+1:ncol(BaseSample))))
+            select(all_of(NumberColsOccupantsPlusOne:ncol(.)))
 
           TheMatched <- bind_rows(TheMatched, InterimDataFrame)
 
         } else {
 
           TheMatched <- BaseSample %>%
-          left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-          left_join(MatchingSample, by= c("MatchedID" = "RenamedID"))  %>%
-          select(all_of((NumberColsOccupants+1):ncol(.)))
+            left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
+            left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
+            select(all_of(NumberColsOccupantsPlusOne:ncol(.)))
 
 
         }
