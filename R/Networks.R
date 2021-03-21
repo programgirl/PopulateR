@@ -107,6 +107,8 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, MeanUsed=NULL, SDUsed=NULL
           OperativeDataFrame <- WorkingDataFrame %>%
             filter(between(Age, AgeRangeMin,AgeRangeMax, !ID==WorkingID))
 
+          # finding match for the person, widens the age options for each iteration.
+          # will exhausting find a match
         }
 
         RandomlySelectedMatch <- OperativeDataFrame %>%
@@ -115,10 +117,17 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, MeanUsed=NULL, SDUsed=NULL
         MatchedPair <- bind_cols()
 
 
+        # closes loop through matching people to this person
     }
 
+      # closes loop people with this network size
+    }
+
+    # closes loop through network sizes
   }
 
+  #
   return(ContactsCountsByID)
 
+    # closes function
 }
