@@ -117,6 +117,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     # for each person in their network size, redo the age difference so that we don't get
     # everyone aged the same as their network contacts
 
+
     for(i in 1:NetworkSizeForSelected) {
 
       AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
@@ -144,11 +145,31 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
             # closes while loop for getting a match
       }
 
+      # TODO: decrement the contact number count from the selected people.
+      # if contact == 0, remove from the working data frame
+
+      # TODO: Get the people added so that we end up with one column per person, all on the one row. The randomly selected person with whom to match must be the first person in the row.
+
+
       # need to add people to the original person
 
+      # TODO: need to add the people into the columns, can do this per person.
 
       # closes for loop for selecting all the people into their network size
     }
+
+    # TODO: check if there is a probability > 0 that a person can be a friend of a friend
+    # do this for each person, but not for checks already made
+    # e.g. if network has A matched to B, C, D, and E, then need to:
+    # 1. get remaining contacts for B (e.g. F, G)
+    # 2. decrement the contact size for F and G by 1 for each. If either now has network size == 0, remove
+    # 3. remove B from list of people who can be matched.
+    # 4. test if either of F or G are friends of C, D, or E (assuming F and G have > 1 friend)
+    # 5. if so, add these to the relevant contact list for C, D, or E
+    # 6. if so, decrement the network size of C, D, and E
+    # 7. and in all of these, C, D, E, F, and G need to be held out as selected people
+    # this will get complicated as need to loop through each match
+    # non-matches can be ignored
 
 
     #closes while loop for selecting people from the working data frame
