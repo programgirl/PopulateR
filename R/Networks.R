@@ -133,7 +133,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
       OperativeDataFrame <- WorkingDataFrame %>%
         filter(Age==AgeNeeded)
 
-      cat("It got to here", "\n")
+      # cat("It got to here", "\n")
 
       # loop for extracting people if OperativeDataFrame is empty
       # which will occur if there are no people of the required age
