@@ -90,20 +90,25 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   # construct empty data frame to hold the matches
   # one network per row
   # initialise so that the number of columns is the maximum size of people in a network +1
-  OutputDataFrame <- setNames(data.frame(matrix(ncol = MaximumSize, nrow = 0)),
-                              paste0("Person", c(1:MaximumSize)))
+  ColCountNeeded <- MaximumSize + 1
+
+  OutputDataFrame <- setNames(data.frame(matrix(ncol = ColCountNeeded, nrow = 0)),
+                              paste0("Person", c(1:ColCountNeeded)))
 
 
   # work through the data frame, as people are extracted they will be given contacts
   # and once the contacts are added, they are removed from the data frame
   # will randomly draw
 
-  while(!(is.na(WorkingDataFrame$ID[1])) == TRUE) {
+  for(i in 1:1) {
+ # while(!(is.na(WorkingDataFrame$ID[1])) == TRUE) {
 
     SelectedPerson <- WorkingDataFrame %>%
       slice_sample(n=1)
 
     NetworkSizeForSelected <- SelectedPerson$Network
+
+    cat("Network size is", NetworkSizeForSelected, "\n")
 
     # remove this person from the working data frame
     # this also prevents them from being selected to match against themselves
@@ -123,27 +128,71 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
       AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
       AgeNeeded <- round(SelectedPerson$Age + AgeDiffNeeded)
 
+      cat("Age needed is", AgeNeeded, "\n")
 
       OperativeDataFrame <- WorkingDataFrame %>%
         filter(Age==AgeNeeded)
+
+      cat("It got to here", "\n")
 
       # loop for extracting people if OperativeDataFrame is empty
       # which will occur if there are no people of the required age
       # principle here is to widen the age range that is capable of being selected
 
+      if(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
+
+        RandomlySelectedMatch <- OperativeDataFrame %>%
+          slice_sample(n = 1)
+
+      } else {
+
+      n = 0
+
       while(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
-        AgeRangeMin <- AgeNeeded - 1
-        AgeRangeMax <- AgeNeeded + 1
+
+        n = n + 1
+
+        AgeRangeMin <- AgeNeeded - n
+        AgeRangeMax <- AgeNeeded + n
+        # stop the age ranges going beyond the data values
+        if(AgeRangeMin > min(WorkingDataFrame$Age)) {
+          AgeRangeMin <- min(WorkingDataFrame$Age)
+        }
+        if(AgeRangeMax < max(WorkingDataFrame$Age)) {
+        AgeRangeMax <- max(WorkingDataFrame$Age)
+        }
+
+        cat("No age match made, new age range is", AgeRangeMin, "to", AgeRangeMax, "\n")
 
         # filter also removes people already selected as a match
         OperativeDataFrame <- WorkingDataFrame %>%
           filter(between(Age, AgeRangeMin,AgeRangeMax), !(ID %in% OperativeDataFrame$ID))
 
-            RandomlySelectedMatch <- OperativeDataFrame %>%
-              slice_sample(n = 1)
-
-            # closes while loop for getting a match
       }
+
+      RandomlySelectedMatch <- OperativeDataFrame %>%
+        slice_sample(n = 1)
+        # closes while loop for getting a match
+      }
+
+      # put selected person into a data frame that will contain all matches
+
+      if(exists("DataframeOfMatches")) {
+
+        DataframeOfMatches <- bind_rows(DataframeOfMatches, RandomlySelectedMatch)
+        WorkingDataFrame <- WorkingDataFrame %>%
+          filter(!ID == RandomlySelectedMatch)
+
+      } else {
+
+        DataframeOfMatches <- RandomlySelectedMatch
+
+        WorkingDataFrame <- WorkingDataFrame %>%
+          filter(!ID == RandomlySelectedMatch)
+
+        # constructs the data frame of matches for the current person
+      }
+
 
       # TODO: decrement the contact number count from the selected people.
       # if contact == 0, remove from the working data frame
@@ -187,7 +236,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   #       # closes loop through matching people to this person
 
   #
-  return(OutputDataFrame)
+  return(DataframeOfMatches)
 
     # closes function
 }
