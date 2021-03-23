@@ -74,6 +74,10 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     rename(ID = !! IDCol, Age = !! AgeCol, Network = !! NetworkCol) %>%
     filter(Network > 0)
 
+  if(!(sum(WorkingDataFrame$Network) %% 2 == 0) == TRUE) {
+    stop("The network sizes must sum to a factor of 2.")
+  }
+
   NetworkSizeCounts <- WorkingDataFrame %>%
     group_by(Network) %>%
     summarise(CountofSize = n())
@@ -82,6 +86,12 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   MaximumSize <- max(NetworkSizeCounts$Network)
 
   cat("Minimum network size is", MinimumSize, "and maximum network size is", MaximumSize, "\n")
+
+  # construct empty data frame to hold the matches
+  # one network per row
+  # initialise so that the number of columns is the maximum size of people in a network +1
+  OutputDataFrame <- setNames(data.frame(matrix(ncol = MaximumSize, nrow = 0)),
+                              paste0("Person", c(1:MaximumSize)))
 
 
   # work through the data frame, as people are extracted they will be given contacts
@@ -93,6 +103,8 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     SelectedPerson <- WorkingDataFrame %>%
       slice_sample(n=1)
 
+    NetworkSizeForSelected <- SelectedPerson$Network
+
     # remove this person from the working data frame
     # this also prevents them from being selected to match against themselves
     # that would be bad
@@ -100,45 +112,48 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     WorkingDataFrame <- WorkingDataFrame %>%
       filter(!ID==SelectedPerson$ID)
 
-    cat("The working data frame is now", nrow(WorkingDataFrame), "long.", "\n")
+  #  cat("The working data frame is now", nrow(WorkingDataFrame), "rows long.", "\n")
+
+    # for each person in their network size, redo the age difference so that we don't get
+    # everyone aged the same as their network contacts
+
+    for(i in 1:NetworkSizeForSelected) {
+
+      AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
+      AgeNeeded <- round(SelectedPerson$Age + AgeDiffNeeded)
+
+
+      OperativeDataFrame <- WorkingDataFrame %>%
+        filter(Age==AgeNeeded)
+
+      # loop for extracting people if OperativeDataFrame is empty
+      # which will occur if there are no people of the required age
+      # principle here is to widen the age range that is capable of being selected
+
+      while(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
+        AgeRangeMin <- AgeNeeded - 1
+        AgeRangeMax <- AgeNeeded + 1
+
+        # filter also removes people already selected as a match
+        OperativeDataFrame <- WorkingDataFrame %>%
+          filter(between(Age, AgeRangeMin,AgeRangeMax), !(ID %in% OperativeDataFrame$ID))
+
+            RandomlySelectedMatch <- OperativeDataFrame %>%
+              slice_sample(n = 1)
+
+            # closes while loop for getting a match
+      }
+
+      # need to add people to the original person
+
+
+      # closes for loop for selecting all the people into their network size
+    }
 
 
     #closes while loop for selecting people from the working data frame
   }
 
-  # while(!(is.na(NetworkSizeCounts$Size[1])) == TRUE) {
-  #
-  #   CurrentNetworkSize <- NetworkSizeCounts$Size[1]
-  #
-  #   PeopleWithThisNetworkSize <- ContactsCountsByID %>%
-  #     filter(Size == CurrentNetworkSize)
-  #
-  #   for(i in 1:nrow(PeopleWithThisNetworkSize)) {
-  #
-  #     WorkingID <- PeopleWithThisNetworkSize$ID[i]
-  #
-  #     for(j in 1:CurrentNetworkSize) {
-  #
-  #       AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
-  #       AgeNeeded <- round(PeopleWithThisNetworkSize$ID[i] + AgeDiffNeeded)
-  #
-  #       OperativeDataFrame <- WorkingDataFrame %>%
-  #         filter(Age==AgeNeeded, !ID==WorkingID)
-  #
-  #       while(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
-  #         AgeRangeMin <- AgeNeeded - 1
-  #         AgeRangeMax <- AgeNeeded + 1
-  #
-  #         OperativeDataFrame <- WorkingDataFrame %>%
-  #           filter(between(Age, AgeRangeMin,AgeRangeMax, !ID==WorkingID))
-  #
-  #         # finding match for the person, widens the age options for each iteration.
-  #         # will exhausting find a match
-  #
-  #       RandomlySelectedMatch <- OperativeDataFrame %>%
-  #         slice_sample(n = 1)
-  #
-  #       }
   #
   #       if(exists("MatchedPair")==TRUE) {
   #
@@ -149,16 +164,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   #
   #
   #       # closes loop through matching people to this person
-  #   }
-  #
-  #     # closes loop people with this network size
-  #   }
-  #
-  #   # closes loop through network sizes
-  # }
 
   #
-  return(NetworkSizeCounts)
+  return(OutputDataFrame)
 
     # closes function
 }
