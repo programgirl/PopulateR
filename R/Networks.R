@@ -85,7 +85,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   MinimumSize <- min(NetworkSizeCounts$Network)
   MaximumSize <- max(NetworkSizeCounts$Network)
 
-  cat("Minimum network size is", MinimumSize, "and maximum network size is", MaximumSize, "\n")
+  # cat("Minimum network size is", MinimumSize, "and maximum network size is", MaximumSize, "\n")
 
   # construct empty data frame to hold the matches
   # one network per row
@@ -100,11 +100,18 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   # and once the contacts are added, they are removed from the data frame
   # will randomly draw
 
+  # put seed in before start of first loop
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
   for(i in 1:1) {
  # while(!(is.na(WorkingDataFrame$ID[1])) == TRUE) {
 
     SelectedPerson <- WorkingDataFrame %>%
       slice_sample(n=1)
+
+    DataframeOfMatches <- SelectedPerson
 
     NetworkSizeForSelected <- SelectedPerson$Network
 
@@ -128,7 +135,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
       AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
       AgeNeeded <- round(SelectedPerson$Age + AgeDiffNeeded)
 
-      cat("Age needed is", AgeNeeded, "\n")
+      # test that random number is working correctly and a different one is drawn each time
+      # cat("Age difference is", AgeDiffNeeded, "so Age needed is", AgeNeeded, "\n")
+      # cat("Age needed is", AgeNeeded, "\n")
 
       OperativeDataFrame <- WorkingDataFrame %>%
         filter(Age==AgeNeeded)
@@ -176,22 +185,22 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
       }
 
       # put selected person into a data frame that will contain all matches
-
-      if(exists("DataframeOfMatches")) {
+#
+#       if(exists("DataframeOfMatches")) {
 
         DataframeOfMatches <- bind_rows(DataframeOfMatches, RandomlySelectedMatch)
         WorkingDataFrame <- WorkingDataFrame %>%
-          filter(!ID == RandomlySelectedMatch)
+          filter(!ID == RandomlySelectedMatch$ID)
 
-      } else {
-
-        DataframeOfMatches <- RandomlySelectedMatch
-
-        WorkingDataFrame <- WorkingDataFrame %>%
-          filter(!ID == RandomlySelectedMatch)
+      # } else {
+      #
+      #   DataframeOfMatches <- RandomlySelectedMatch
+      #
+      #   WorkingDataFrame <- WorkingDataFrame %>%
+      #     filter(!ID == RandomlySelectedMatch)
 
         # constructs the data frame of matches for the current person
-      }
+      # }
 
 
       # TODO: decrement the contact number count from the selected people.
