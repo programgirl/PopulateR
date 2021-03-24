@@ -96,7 +96,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
                               paste0("Person", c(1:ColCountNeeded)))
 
   # construct column to use for column binding to each person's output data frame
-  BindingColumn <- data.frame(PersonNumbers = paste0("Person", c(1:ColCountNeeded)))
+ BindingColumn <- data.frame(PersonNumbers = paste0("Person", c(1:ColCountNeeded)))
 
   # work through the data frame, as people are extracted they will be given contacts
   # and once the contacts are added, they are removed from the data frame
@@ -233,15 +233,21 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     # make the dataframe the same number of rows for merging
     NumberRowsToCreate <- ColCountNeeded - nrow(DataframeOfMatches)
 
-    # cat("The number of NA rows to construct is", NumberRowsToCreate, "\n")
+    # # cat("The number of NA rows to construct is", NumberRowsToCreate, "\n")
 
     MissingRowsToAdd <- data.frame(ID = rep(NA, NumberRowsToCreate))
 
     DataframeOfMatches <- DataframeOfMatches %>%
       dplyr::select("ID")  %>%
-      bind_rows(MissingRowsToAdd) %>%
-      bind_cols(BindingColumn)
-    #
+      bind_rows(MissingRowsToAdd)
+
+   rownames(DataframeOfMatches) <- BindingColumn[,1]
+
+   WideDataFrame <- as.data.frame(t(DataframeOfMatches))
+
+   OutputDataframe <- OutputDataFrame %>%
+     bind_rows(WideDataFrame)
+
 
     # TODO: check if there is a probability > 0 that a person can be a friend of a friend
     # do this for each person, but not for checks already made
@@ -267,7 +273,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   # 4. paste into the empty data frame
 
   #
-  return(DataframeOfMatches)
+  return(OutputDataframe)
 
     # closes function
 }
