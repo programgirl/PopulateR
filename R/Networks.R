@@ -95,6 +95,8 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   OutputDataFrame <- setNames(data.frame(matrix(ncol = ColCountNeeded, nrow = 0)),
                               paste0("Person", c(1:ColCountNeeded)))
 
+  # construct column to use for column binding to each person's output data frame
+  BindingColumn <- data.frame(PersonNumbers = paste0("Person", c(1:ColCountNeeded)))
 
   # work through the data frame, as people are extracted they will be given contacts
   # and once the contacts are added, they are removed from the data frame
@@ -129,6 +131,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     # for each person in their network size, redo the age difference so that we don't get
     # everyone aged the same as their network contacts
 
+    # cat(str(WorkingDataFrame))
 
     for(i in 1:NetworkSizeForSelected) {
 
@@ -137,12 +140,11 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
 
       # test that random number is working correctly and a different one is drawn each time
       # cat("Age difference is", AgeDiffNeeded, "so Age needed is", AgeNeeded, "\n")
-      # cat("Age needed is", AgeNeeded, "\n")
 
       OperativeDataFrame <- WorkingDataFrame %>%
         filter(Age==AgeNeeded)
 
-      # cat("It got to here", "\n")
+    # cat("It got to here", "\n")
 
       # loop for extracting people if OperativeDataFrame is empty
       # which will occur if there are no people of the required age
@@ -163,7 +165,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
 
         AgeRangeMin <- AgeNeeded - n
         AgeRangeMax <- AgeNeeded + n
+
         # stop the age ranges going beyond the data values
+
         if(AgeRangeMin > min(WorkingDataFrame$Age)) {
           AgeRangeMin <- min(WorkingDataFrame$Age)
         }
@@ -177,44 +181,67 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
         OperativeDataFrame <- WorkingDataFrame %>%
           filter(between(Age, AgeRangeMin,AgeRangeMax), !(ID %in% OperativeDataFrame$ID))
 
+        # closes loop for widening the age range if no match after widening age search
       }
 
       RandomlySelectedMatch <- OperativeDataFrame %>%
         slice_sample(n = 1)
+
         # closes while loop for getting a match
       }
 
       # put selected person into a data frame that will contain all matches
-#
-#       if(exists("DataframeOfMatches")) {
+
+      if(exists("DataframeOfMatches")) {
 
         DataframeOfMatches <- bind_rows(DataframeOfMatches, RandomlySelectedMatch)
         WorkingDataFrame <- WorkingDataFrame %>%
           filter(!ID == RandomlySelectedMatch$ID)
 
-      # } else {
-      #
-      #   DataframeOfMatches <- RandomlySelectedMatch
-      #
-      #   WorkingDataFrame <- WorkingDataFrame %>%
-      #     filter(!ID == RandomlySelectedMatch)
-
-        # constructs the data frame of matches for the current person
-      # }
+        # process below needs to be done separately for each data frame
+        # 1. add a column variable that aligns with the existing data frame colnames
+        # 2. remove everything but the IDs
+        # 3. convert from long to wide
+        # 4. paste into the empty data frame
 
 
-      # TODO: decrement the contact number count from the selected people.
-      # if contact == 0, remove from the working data frame
+      } else {
 
-      # TODO: Get the people added so that we end up with one column per person, all on the one row. The randomly selected person with whom to match must be the first person in the row.
+        DataframeOfMatches <- RandomlySelectedMatch
+
+        WorkingDataFrame <- WorkingDataFrame %>%
+          filter(!ID == RandomlySelectedMatch$ID)
+
+      # constructs the data frame of matches for the current person
+      }
 
 
-      # need to add people to the original person
-
-      # TODO: need to add the people into the columns, can do this per person.
-
-      # closes for loop for selecting all the people into their network size
+    #
+    #   # TODO: decrement the contact number count from the selected people.
+    #   # if contact == 0, remove from the working data frame
+    #
+    #   # TODO: Get the people added so that we end up with one column per person, all on the one row. The randomly selected person with whom to match must be the first person in the row.
+    #
+    #
+    #   # need to add people to the original person
+    #
+    #   # TODO: need to add the people into the columns, can do this per person.
+    #
+    #   # closes for loop for selecting all the people into their network size
     }
+
+    # make the dataframe the same number of rows for merging
+    NumberRowsToCreate <- ColCountNeeded - nrow(DataframeOfMatches)
+
+    # cat("The number of NA rows to construct is", NumberRowsToCreate, "\n")
+
+    MissingRowsToAdd <- data.frame(ID = rep(NA, NumberRowsToCreate))
+
+    DataframeOfMatches <- DataframeOfMatches %>%
+      dplyr::select("ID")  %>%
+      bind_rows(MissingRowsToAdd) %>%
+      bind_cols(BindingColumn)
+    #
 
     # TODO: check if there is a probability > 0 that a person can be a friend of a friend
     # do this for each person, but not for checks already made
@@ -233,16 +260,11 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     #closes while loop for selecting people from the working data frame
   }
 
-  #
-  #       if(exists("MatchedPair")==TRUE) {
-  #
-  #         MatchedPairDF <- Mat
-  #       }
-  #
-  #       MatchedPair <- bind_cols(RandomlySelectedMatch, )
-  #
-  #
-  #       # closes loop through matching people to this person
+ # shape the main dataframe into wide
+  # process is: 1. add a column variable that aligns with the existing data frame colnames
+  # 2. remove everything but the IDs
+  # 3. convert from long to wide
+  # 4. paste into the empty data frame
 
   #
   return(DataframeOfMatches)
