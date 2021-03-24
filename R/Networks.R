@@ -216,19 +216,15 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
       }
 
 
-    #
-    #   # TODO: decrement the contact number count from the selected people.
-    #   # if contact == 0, remove from the working data frame
-    #
-    #   # TODO: Get the people added so that we end up with one column per person, all on the one row. The randomly selected person with whom to match must be the first person in the row.
-    #
-    #
-    #   # need to add people to the original person
-    #
-    #   # TODO: need to add the people into the columns, can do this per person.
-    #
     #   # closes for loop for selecting all the people into their network size
     }
+
+    # shape the main dataframe into wide
+    # process is: 1. construct NAs for each person that doesn't exist in this person's network
+    # 2. remove everything but the IDs
+    #  construct the rownames so that they align with the existing data frame colnames
+    # 3. convert from long to wide (uses base R transpose)
+    # 4. paste the wide single-row data into the output data frame
 
     # make the dataframe the same number of rows for merging
     NumberRowsToCreate <- ColCountNeeded - nrow(DataframeOfMatches)
@@ -236,6 +232,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     # # cat("The number of NA rows to construct is", NumberRowsToCreate, "\n")
 
     MissingRowsToAdd <- data.frame(ID = rep(NA, NumberRowsToCreate))
+
+    FriendsList <- DataframeOfMatches %>%
+      slice_tail(n=nrow(DataframeOfMatches)-1)
 
     DataframeOfMatches <- DataframeOfMatches %>%
       dplyr::select("ID")  %>%
@@ -247,6 +246,156 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
 
    OutputDataframe <- OutputDataFrame %>%
      bind_rows(WideDataFrame)
+
+   # delete DataframeOfMatches
+
+   rm(DataframeOfMatches)
+
+   # now work on the friends
+
+   # decrease network count by 1
+   # remove anyone with a contact count of 0
+   # only need ID, age, and number of contacts
+
+   FriendsList <- FriendsList %>%
+     mutate(Network = Network-1) %>%
+     filter(Network > 0) %>%
+     select(ID, Age, Network)
+
+   # these friends are all in a contact network
+   # so we have to find their friends
+   # this requires looping through that FriendsList data frame
+
+   for(j in 1:nrow(FriendsList)) {
+
+     CurrentPerson <- FriendsList[j,]
+
+     NetworkSizeForSelected <- CurrentPerson$Network
+
+   #  cat("Current person is", CurrentPerson$ID, "and starting number of contacts is", CurrentPerson$Network , "\n")
+
+     # get random matches for this friend
+
+     for(i in 1:NetworkSizeForSelected) {
+
+       AgeDiffNeeded <- rnorm(1, MeanUsed, SDUsed)
+       AgeNeeded <- round(SelectedPerson$Age + AgeDiffNeeded)
+
+       # test that random number is working correctly and a different one is drawn each time
+       # cat("Age difference is", AgeDiffNeeded, "so Age needed is", AgeNeeded, "\n")
+
+       OperativeDataFrame <- WorkingDataFrame %>%
+         filter(Age==AgeNeeded)
+
+       # cat("It got to here", "\n")
+
+       # loop for extracting people if OperativeDataFrame is empty
+       # which will occur if there are no people of the required age
+       # principle here is to widen the age range that is capable of being selected
+
+       if(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
+
+         RandomlySelectedMatch <- OperativeDataFrame %>%
+           slice_sample(n = 1)
+
+       } else {
+
+         n = 0
+
+         while(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
+
+           n = n + 1
+
+           AgeRangeMin <- AgeNeeded - n
+           AgeRangeMax <- AgeNeeded + n
+
+           # stop the age ranges going beyond the data values
+
+           if(AgeRangeMin > min(WorkingDataFrame$Age)) {
+             AgeRangeMin <- min(WorkingDataFrame$Age)
+           }
+           if(AgeRangeMax < max(WorkingDataFrame$Age)) {
+             AgeRangeMax <- max(WorkingDataFrame$Age)
+           }
+
+           cat("No age match made, new age range is", AgeRangeMin, "to", AgeRangeMax, "\n")
+
+           # filter also removes people already selected as a match
+           OperativeDataFrame <- WorkingDataFrame %>%
+             filter(between(Age, AgeRangeMin,AgeRangeMax), !(ID %in% OperativeDataFrame$ID))
+
+           # closes loop for widening the age range if no match after widening age search
+         }
+
+         RandomlySelectedMatch <- OperativeDataFrame %>%
+           slice_sample(n = 1)
+
+         # closes while loop for getting a match
+       }
+
+       # put selected person into a data frame that will contain all matches
+
+       if(exists("DataframeOfMatches")) {
+
+         DataframeOfMatches <- bind_rows(DataframeOfMatches, RandomlySelectedMatch)
+         WorkingDataFrame <- WorkingDataFrame %>%
+           filter(!ID == RandomlySelectedMatch$ID)
+
+         # process below needs to be done separately for each data frame
+         # 1. add a column variable that aligns with the existing data frame colnames
+         # 2. remove everything but the IDs
+         # 3. convert from long to wide
+         # 4. paste into the empty data frame
+
+
+       } else {
+
+         DataframeOfMatches <- RandomlySelectedMatch
+
+         WorkingDataFrame <- WorkingDataFrame %>%
+           filter(!ID == RandomlySelectedMatch$ID)
+
+         # constructs the data frame of matches for the current person
+       }
+
+
+       #   # closes for loop for selecting all the people into their network size
+     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     #closes loop for going through friends' list
+   }
+
+
+
+
+
+   #
+   # TODO: decrement the contact number count from the selected people.
+   # if contact == 0, remove from the working data frame
+
+   #
 
 
     # TODO: check if there is a probability > 0 that a person can be a friend of a friend
@@ -266,14 +415,8 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
     #closes while loop for selecting people from the working data frame
   }
 
- # shape the main dataframe into wide
-  # process is: 1. add a column variable that aligns with the existing data frame colnames
-  # 2. remove everything but the IDs
-  # 3. convert from long to wide
-  # 4. paste into the empty data frame
-
   #
-  return(OutputDataframe)
+  return(DataframeOfMatches)
 
     # closes function
 }
