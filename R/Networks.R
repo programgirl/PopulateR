@@ -296,7 +296,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
        if(!(is.na(OperativeDataFrame$Age[1])) == TRUE) {
 
          RandomlySelectedMatch <- OperativeDataFrame %>%
-           slice_sample(n = 1)
+           slice_sample(n = 1) %>%
+           select(ID, Age, Network) %>%
+           mutate(Friend = CurrentPerson$ID)
 
        } else {
 
@@ -328,7 +330,9 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
          }
 
          RandomlySelectedMatch <- OperativeDataFrame %>%
-           slice_sample(n = 1)
+           slice_sample(n = 1) %>%
+           select(ID, Age, Network) %>%
+           mutate(Friend = CurrentPerson$ID)
 
          # closes while loop for getting a match
        }
@@ -355,15 +359,26 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
          WorkingDataFrame <- WorkingDataFrame %>%
            filter(!ID == RandomlySelectedMatch$ID)
 
-         # constructs the data frame of matches for the current person
+         # constructs the data frame of matches for the current friend
        }
 
 
        #   # closes for loop for selecting all the people into their network size
      }
 
+     # TODO decrease the number of contacts of friends by 1
 
+     DataframeOfMatches <- DataframeOfMatches %>%
+       mutate(Network = Network - 1) %>%
+       filter(Network > 0)
 
+     MatchesExhausted <- DataframeOfMatches <- DataframeOfMatches %>%
+       mutate(Network = Network - 1) %>%
+       filter(Network == 0)
+
+     # TODO delete the dataframe of matches once each friend is matched
+
+     # TODO check if the friend is a friend of a friend, so long as contact number is > 0
 
 
 
@@ -416,7 +431,7 @@ Networks <- function(People, IDCol=NULL, AgeCol=NULL, NetworkCol=NULL, MeanUsed=
   }
 
   #
-  return(DataframeOfMatches)
+  return(MatchesExhausted)
 
     # closes function
 }
