@@ -92,6 +92,8 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
                                    mutate(IntSex = as.character(IntSex),
                                           IntAge = as.integer(IntAge)))
 
+  cat("Children dataframe generated", "\n")
+
   Schooling <- as.data.frame(Leavers %>%
                               rename(IntSex = !! LeaversSxCol, IntAge = !! LeaversAgeCol, Year = !! LeaversYearCol, NumLeftSchool = !! LeaversCountCol) %>%
                               mutate(IntSex = as.character(IntSex),
@@ -100,12 +102,19 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
                                      NumLeftSchool = as.integer(NumLeftSchool)) %>%
                                select(IntSex, IntAge, Year, NumLeftSchool))
 
+  cat("Schooling dataframe generated", "\n")
+
 
   AgePyramid <- as.data.frame(Pyramid %>%
-                                rename(IntSex = !! PyramidSxCol, IntAge = !! PyramidAgeCol, PyramidCountCol = !! LeaversCountCol) %>%
+                                # rename(IntSex = !! PyramidSxCol, IntAge = !! PyramidAgeCol,
+                                #        PyramidCountCol = !! LeaversCountCol) %>%
+                                rename(IntSex = !! PyramidSxCol, IntAge = !! PyramidAgeCol,
+                                       AllPeople = !! PyramidCountCol) %>%
                                 mutate(IntSex = as.character(IntSex),
                                        IntAge = as.integer(IntAge)) %>%
-                                select(IntSex, IntAge, PyramidCountCol))
+                                select(IntSex, IntAge, AllPeople))
+
+  cat("AgePyramid dataframe generated", "\n")
 
   # get the original variable names
 
@@ -189,7 +198,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
   ####################################
   CombinedData <- Schooling %>%
     left_join(AgePyramid, by = c("IntSex", "CurrentAge" =  "IntAge")) %>%
-    mutate(PropLeft = TotalLeaverCount / PyramidCountCol,
+    mutate(PropLeft = TotalLeaverCount / AllPeople,
            PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
     filter(!(is.na(PropLeft))) %>%
     rename(IntAge = CurrentAge) %>%
@@ -261,7 +270,6 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
   CompleteDF <- bind_rows(Children, WrongAged) %>%
     mutate(Status = factor(Status, levels = c("Yes", "No"))) %>%
     rename(!!SchoolStatus := Status)
-
 
   return(CompleteDF)
 
