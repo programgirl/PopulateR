@@ -128,11 +128,11 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
 
   MismatchedInSchool <- MismatchedHours %>%
     filter(InSchool == 1) %>%
-    select(-IntHours)
+    dplyr::select(-IntHours)
 
   LongerHoursUnused <- MismatchedHours %>%
     filter(IntID %in% MismatchedInSchool$IntID) %>%
-    select(IntHours)
+    dplyr::select(IntHours)
 
   MismatchedWorking <- MismatchedHours %>%
     filter(InSchool == 2)
@@ -143,7 +143,7 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   # just use the damn counts
   RemainingShorterHours <- MismatchedHours %>%
     filter(as.integer(IntHours) <= HoursCutOff) %>%
-    select(IntHours)
+    dplyr::select(IntHours)
 
 
   if((nrow(RemainingShorterHours) < nrow(MismatchedInSchool)) == TRUE) {
@@ -173,22 +173,22 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   LongerHoursUnused <- LongerHoursUnused %>%
     slice_sample(n = nrow(LongerHoursUnused), replace = FALSE)
 
-  cat("There are ", nrow(LongerHoursUnused), "available to swap in", "\n")
+  # cat("There are ", nrow(LongerHoursUnused), "available to swap in", "\n")
 #
   for (x in 1:nrow(UsedShorterHours)) {
 
       HoursLevel <- as.numeric(UsedShorterHours[x,1])
       NumberToChange <- as.numeric(UsedShorterHours[x,2])
 
-       cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
+       # cat("The hours category is", HoursLevel, "and the count is", NumberToChange, "\n")
 
       # sample NumberToChange with that hours level from the incorrect InWork data frame
       SampleOfNotInSchool <- MismatchedWorking %>%
         filter(IntHours == HoursLevel) %>%
         slice_sample(n = NumberToChange, replace = FALSE) %>%
-        select(-IntHours)
+        dplyr::select(-IntHours)
 
-       cat("The number of sampled rows is", nrow(SampleOfNotInSchool), "\n")
+       # cat("The number of sampled rows is", nrow(SampleOfNotInSchool), "\n")
 
     # take the head of the unused longer hours
       SampledLongerHours <- LongerHoursUnused %>%
@@ -197,7 +197,7 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
       LongerHoursUnused <- LongerHoursUnused %>%
         slice_tail(n = (nrow(LongerHoursUnused) - nrow(SampledLongerHours)))
 
-      cat("There are ", nrow(LongerHoursUnused), "available to swap in after matching", "\n")
+      # cat("There are ", nrow(LongerHoursUnused), "available to swap in after matching", "\n")
 
     FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
