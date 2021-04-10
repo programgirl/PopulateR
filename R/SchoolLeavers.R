@@ -92,17 +92,18 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
                                    mutate(IntSex = as.character(IntSex),
                                           IntAge = as.integer(IntAge)))
 
-  cat("Children dataframe generated", "\n")
+  # cat("Children dataframe generated", "\n")
 
   Schooling <- as.data.frame(Leavers %>%
-                              rename(IntSex = !! LeaversSxCol, IntAge = !! LeaversAgeCol, Year = !! LeaversYearCol, NumLeftSchool = !! LeaversCountCol) %>%
+                              rename(IntSex = !! LeaversSxCol, IntAge = !! LeaversAgeCol,
+                                     Year = !! LeaversYearCol, NumLeftSchool = !! LeaversCountCol) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
                                      Year = as.integer(Year),
                                      NumLeftSchool = as.integer(NumLeftSchool)) %>%
                                select(IntSex, IntAge, Year, NumLeftSchool))
 
-  cat("Schooling dataframe generated", "\n")
+  # cat("Schooling dataframe generated", "\n")
 
 
   AgePyramid <- as.data.frame(Pyramid %>%
@@ -114,7 +115,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
                                        IntAge = as.integer(IntAge)) %>%
                                 select(IntSex, IntAge, AllPeople))
 
-  cat("AgePyramid dataframe generated", "\n")
+ # print(str(AgePyramid))
 
   # get the original variable names
 
@@ -202,8 +203,7 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
            PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
     filter(!(is.na(PropLeft))) %>%
     rename(IntAge = CurrentAge) %>%
-    select(-(c(TotalLeaverCount, PyramidCountCol)))
-
+   select(-(c(TotalLeaverCount, AllPeople)))
 
   # remove any NAs as these will cause problems with the maths
   CombinedData <- CombinedData %>%
@@ -266,6 +266,9 @@ SchoolLeavers <- function(Adolescents, AdolescentSxCol = NULL, AdolescentAgeCol 
     rename(!!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex) %>%
   select(-c(PropLeft))
+
+
+  # print(str(Children))
 
   CompleteDF <- bind_rows(Children, WrongAged) %>%
     mutate(Status = factor(Status, levels = c("Yes", "No"))) %>%
