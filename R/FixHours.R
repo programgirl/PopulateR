@@ -114,7 +114,6 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
 # merge the two correct data frames
   CorrectHours <- bind_rows(CorrectShorterHours, CorrectLongerHours)
 
-
   #####################################
   #####################################
   # Work on the mismatches
@@ -123,6 +122,8 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
 
   MismatchedHours <- Children %>%
     filter(!(IntID %in% CorrectHours$IntID))
+
+  # print(table(MismatchedHours$IntHours))
 
   # split out the two school statuses
 
@@ -137,7 +138,7 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   MismatchedWorking <- MismatchedHours %>%
     filter(InSchool == 2)
 
-#  cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
+ # cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
 
 
   # just use the damn counts
