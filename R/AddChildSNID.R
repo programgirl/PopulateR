@@ -1,7 +1,7 @@
 #' Create a subset of observations containing only children matched to parents/guardians
 #' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the skew normal. However, the matching is affected by the age structure of the children and parent data frames. The distribution provides a framework upon which to base the matching. The final distribution of age differences, however, may not follow a skew normal distribution. The function requires the direct parameters for xi, omega, and alpha. These can be obtained using the extractSECdistr() function in the sn package. The function logs the xi and omega values.
-#' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
-#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required..
+#' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied. If the Parent data set contains household identifiers, these will be retained in the matching.
+#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
 #' The minimum proportion prevents the outcome where most/all people of a particular age, eg. the entire set of 25-year-olds, are parents. The default value is NULL, which assumes that all people of any age can be parents. The defalt value is 0, enabling a pre-cleaned data frame of parents to be used.
 #' An even number of observations is output, which is one child-parent pair.
 #'
@@ -9,26 +9,24 @@
 #'
 #' @export
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
-#' @param ChildIDCol The column number for the ID variable in the Children data frame.
-#' @param ChildAgeCol The column number for the Age variable in the Children data frame.
+#' @param ChildIDVariable The column number for the ID variable in the Children data frame.
+#' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
 #' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame must contain at least the same number of observations as the Children data frame.
-#' @param ParentIDCol The column number for the ID variable in the Parent data frame.
-#' @param ParentAgeCol The column number for the Age variable in the Parent data frame.
+#' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
+#' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
 #' @param DirectXi The location parameter of the parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
 #' @param DirectOmega The scale parameter of the parent ages at the time the child is born.
-#' @param AlphaUsed The skew parameter for the shape of the distribution. A value of 0 returns the normal distribution.
+#' @param Alpha The skew parameter for the shape of the distribution. A value of 0 returns the normal distribution.
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param IDStartValue The starting number for generating a variable that identifies the observations in a parent-child dyad. Must be numeric.
-#' @param HouseholdNumVariable The column number for the household variable to be created in the Parents data frame. This must be provided.
+#' @param HouseholdIDCol The column number for the household identifier in the Parent dataframe.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
-                       ParentAgeCol, DirectXi, DirectOmega, AlphaUsed, MinParentAge = NULL,
-                       MaxParentAge = NULL, MinPropRemain = 0, IDStartValue = NULL, HouseholdNumVariable= NULL,
-                       UserSeed=NULL)
+AddChildSNID <- function(Children, ChildIDVariable, ChildAgeVariable, Parents, ParentIDVariable,
+                       ParentAgeVariable, DirectXi, DirectOmega, AlphaUsed, MinParentAge = NULL,
+                       MaxParentAge = NULL, MinPropRemain = 0, HouseholdIDCol= NULL, UserSeed=NULL)
 
 {
 
@@ -36,16 +34,20 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
 
   # content check
   # content check
-  if (!any(duplicated(Children[ChildIDCol])) == FALSE) {
+  if (!any(duplicated(Children[ChildIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the child data frame must be supplied, and the ID must be unique to each child.")
   }
 
-  if (!is.numeric(ChildAgeCol)) {
+  if (!is.numeric(ChildAgeVariable)) {
     stop("Both the child ID and the child age column numbers must be supplied.")
   }
 
-  if (!any(duplicated(Parents[ParentIDCol])) == FALSE) {
+  if (!any(duplicated(Parents[ParentIDVariable])) == FALSE) {
     stop("The column number for the ID variable in the parent data frame must be supplied, and the ID must be unique to each parent.")
+  }
+
+  if(is.null(HouseholdIDCol)) {
+    stop("The column number for the ID variable in the parent data frame must be supplied")
   }
 
   if (is.null(MinParentAge)) {
@@ -56,10 +58,6 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
     stop("The maximum parent age must be supplied.")
   }
 
-  if(ncol(Children) != ncol(Parents)) {
-    stop("The number of columns does not match between the children and parents' data frames.")
-  }
-
   #####################################
   #####################################
   # get column names as symbols to use inside data frame subfunctions
@@ -67,15 +65,16 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
   #####################################
 
   # Child variable names
-  ChildIDColName <- sym(names(Children[ChildIDCol]))
+  ChildIDColName <- sym(names(Children[ChildIDVariable]))
 
-  ChildAgeColName <- sym(names(Children[ChildAgeCol]))
+  ChildAgeColName <- sym(names(Children[ChildAgeVariable]))
 
   # Parent variable names
-  ParentsIDColName <- sym(names(Parents[ParentIDCol]))
+  ParentsIDColName <- sym(names(Parents[ParentIDVariable]))
 
-  ParentsAgeColName <- sym(names(Parents[ParentAgeCol]))
+  ParentsAgeColName <- sym(names(Parents[ParentAgeVariable]))
 
+  HouseholdIDColName <- sym(names(Parents[HouseholdIDCol]))
 
   #####################################
   #####################################
@@ -84,11 +83,11 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
   #####################################
 
   ChildrenRenamed <- Children %>%
-    rename(ChildID = !! ChildIDCol, ChildAge = !! ChildAgeCol)
+    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
 
 
   ParentsRenamed <- Parents %>%
-    rename(ParentID = !! ParentIDCol, ParentAge = !! ParentAgeCol)
+    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable)
 
 
   minChildAge <- min(ChildrenRenamed$ChildAge)
@@ -292,7 +291,7 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
         }
 
         # Children$AgeDifference[j] <- age_index + (minIndexAge -1)
-        # Children$ParentAge[j] <- Children[[ChildAgeCol]][j] + Children$AgeDifference[j]
+        # Children$ParentAge[j] <- Children[[ChildAgeVariable]][j] + Children$AgeDifference[j]
 
         ChildrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
         ChildrenRenamed$AgeDifference[j] <- ChildrenRenamed$ParentAge[j] - ChildrenRenamed$ChildAge[j]
@@ -363,23 +362,18 @@ AddChildSN <- function(Children, ChildIDCol, ChildAgeCol, Parents, ParentIDCol,
 
 
   # separate child and parent in data frames
-  MaxIDStartValue <- (nrow(FullMatchedDataFrame)-1) + IDStartValue
-
-#  cat("Dyad value constructed", "\n")
 
   ChildrenFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
-    dplyr::select(all_of(1:NumberColsChildren)) %>%
-    rename_all(list(~gsub("\\.x$", "", .))) %>%
-    mutate({{HouseholdNumVariable}} := seq(IDStartValue, MaxIDStartValue))
+    dplyr::select(all_of(1:NumberColsChildren), all_of(HouseholdIDColName)) %>%
+    rename_all(list(~gsub("\\.x$", "", .)))
 
 #   cat("ChildrenFinal data frame constructed", "\n")
 
   ParentsFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
     dplyr::select(all_of((NumberColsChildren+1): ncol(.))) %>%
-    rename_all(list(~gsub("\\.y$", "", .))) %>%
-    mutate({{HouseholdNumVariable}} := seq(IDStartValue, MaxIDStartValue))
+    rename_all(list(~gsub("\\.y$", "", .)))
 
 #   cat("ParentsFinal data frame constructed", "\n")
 
