@@ -374,7 +374,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
     for (z in 3:NumChildren) {
 
-      cat("Number of children is", NumChildren, "and z is", z, "\n")
+      # cat("Number of children is", NumChildren, "and z is", z, "\n")
 
       OtherKids <- TwinsMatched %>%
         ungroup() %>%
@@ -791,7 +791,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       filter(HouseholdID == ShouldNotBeTwins[c])
 
     ProblemHouseholdParent <- ProblemHousehold %>%
-      slice_head(1)
+      slice_head(n = 1)
 
     PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
     PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
