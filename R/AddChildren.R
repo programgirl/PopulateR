@@ -9,36 +9,36 @@
 #'
 #' @export
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
-#' @param ChildIDVariable The column number for the ID variable in the Children data frame.
-#' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
+#' @param ChildIDCol The column number for the ID variable in the Children data frame.
+#' @param ChildAgeCol The column number for the Age variable in the Children data frame.
 #' @param NumChildren The number of children that are required in each household.
 #' @param TwinRate The proportion of the child population who are twins.
 #' @param Parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame should contain more observations than the Children data frame. The relative sizes of the data frames are compared. If the Parens data frame is not sufficiently larger than the Children data frame, the latter is randomly sampled to construct a smaller data frame.
-#' @param ParentIDVariable The column number for the ID variable in the Parent data frame.
-#' @param ParentAgeVariable The column number for the Age variable in the Parent data frame.
+#' @param ParentIDCol The column number for the ID variable in the Parent data frame.
+#' @param ParentAgeCol The column number for the Age variable in the Parent data frame.
 #' @param MinParentAge The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MaxParentAge The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param MinPropRemain The minimum proportion of people, at each age, who are not parents. The default is zero, which may result in all people at a specific age being allocated as parents. This will leave age gaps for any future work, and may not be desirable. If nrow(Children) == nrow(Parents), assigning any value other than 0 will result in an error.
-#' @param HouseholdIDVariable The column number for the household variable in the Parents data frame. This must be provided.
+#' @param HouseholdIDCol The column number for the household variable in the Parents data frame. This must be provided.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
-AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren = 2, TwinRate = 0, Parents, ParentIDVariable, ParentAgeVariable,
-                        MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDVariable= NULL, UserSeed=NULL)
+AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, TwinRate = 0, Parents, ParentIDCol, ParentAgeCol,
+                        MinParentAge = NULL, MaxParentAge = NULL, HouseholdIDCol= NULL, UserSeed=NULL)
 
 {
 
   options(dplyr.summarise.inform=F)
 
   # content check
-  if (!any(duplicated(Children[ChildIDVariable])) == FALSE) {
+  if (!any(duplicated(Children[ChildIDCol])) == FALSE) {
     stop("The column number for the ID variable in the child data frame must be supplied, and the ID must be unique to each child.")
   }
 
-  if (!is.numeric(ChildAgeVariable)) {
+  if (!is.numeric(ChildAgeCol)) {
     stop("Both the child ID and the child age column numbers must be supplied.")
   }
 
-  if (!any(duplicated(Parents[ParentIDVariable])) == FALSE) {
+  if (!any(duplicated(Parents[ParentIDCol])) == FALSE) {
     stop("The column number for the ID variable in the parent data frame must be supplied, and the ID must be unique to each parent.")
   }
 
@@ -50,7 +50,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     stop("The maximum parent age must be supplied.")
   }
 
-  if (!any(duplicated(Parents[HouseholdIDVariable])) == FALSE) {
+  if (!any(duplicated(Parents[HouseholdIDCol])) == FALSE) {
     stop("The column number for the household ID variable in the parent data frame must be supplied, and the household number must be unique to each parent.")
   }
 
@@ -66,11 +66,11 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   #####################################
 
   ChildrenRenamed <- Children %>%
-    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable)
+    rename(ChildID = !! ChildIDCol, ChildAge = !! ChildAgeCol)
 
   ParentsRenamed <- Parents %>%
-    rename(ParentID = !! ParentIDVariable, ParentAge = !! ParentAgeVariable,
-           HouseholdID = !! HouseholdIDVariable)
+    rename(ParentID = !! ParentIDCol, ParentAge = !! ParentAgeCol,
+           HouseholdID = !! HouseholdIDCol)
 
   # Parent age variable
 
@@ -368,7 +368,13 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # extract remaining children and rbind these to each other
     # will eventually be rbind'ed to the twins and parent data
 
+    # only use loop if number of children exceeds 2
+
+    if(NumChildren > 2) {
+
     for (z in 3:NumChildren) {
+
+      cat("Number of children is", NumChildren, "and z is", z, "\n")
 
       OtherKids <- TwinsMatched %>%
         ungroup() %>%
@@ -386,6 +392,9 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
         filter(!(ChildID %in%  OtherKids$ChildID))
 
       #closes extra child addition loop
+    }
+
+      # closes test to see if the number of children is > 2 and additional children should be added
     }
 
     # no twins data frame is updated with no allocated children
@@ -658,7 +667,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
   InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
   # # test that the column number is still available to the function
-  # cat("Household column number is", HouseholdIDVariable, "\n")
+  # cat("Household column number is", HouseholdIDCol, "\n")
 
   #####################################
   #####################################
@@ -681,7 +690,7 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
     # identify the ages out of range
     # extract parent
     ProblemHouseholdParent <- ProblemHousehold %>%
-      slice_head(1)
+      slice_head(n = 1)
 
     PermittedChildAgeMin <- max(minChildAge, (ProblemHouseholdParent$Age - MaxParentAge))
     PermittedChildAgeMax <- ProblemHouseholdParent$Age - MinParentAge
@@ -742,8 +751,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
       # do the swapping
       # note: this is directly to the file used, so there is no interim file
-      ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
-      ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+      ChildrenFinal[SwapChildRowIndex, HouseholdIDCol] <- ProblemChildHouseholdID
+      ChildrenFinal[ProblemChildRowIndex, HouseholdIDCol] <- SwapChildHouseholdID
 
       SwapChildAge <- ChildToSwap %>%
         pull(Age)
@@ -892,8 +901,8 @@ AddChildren <- function(Children, ChildIDVariable, ChildAgeVariable, NumChildren
 
           # do the swapping
           # note: this is directly to the file used, so there is no interim file
-          ChildrenFinal[SwapChildRowIndex, HouseholdIDVariable] <- ProblemChildHouseholdID
-          ChildrenFinal[ProblemChildRowIndex, HouseholdIDVariable] <- SwapChildHouseholdID
+          ChildrenFinal[SwapChildRowIndex, HouseholdIDCol] <- ProblemChildHouseholdID
+          ChildrenFinal[ProblemChildRowIndex, HouseholdIDCol] <- SwapChildHouseholdID
 
           SwapChildAge <- ChildToSwap %>%
             pull(Age)
