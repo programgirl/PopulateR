@@ -683,9 +683,13 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
     ParentTooYoung <- unique(ParentTooYoung)
 
+    cat("The number of parents too young are", length(ParentTooYoung), "\n")
+
+    if(length(ParentTooYoung) > 1) {
+
   for (a in 1:length(ParentTooYoung)) {
 
- #   print(ParentTooYoung[a])
+   print(ParentTooYoung[a])
 
     # extract problem household
     ProblemHousehold <- InterimDataframe %>%
@@ -741,6 +745,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       print(nrow(PossibleSwapChildren))
 
       # only do the code below if the number of rows in PossibleSwapChildren is 2 or more
+
+
       # randomly select a child to swap, what will actually swap is the household ID
       ChildToSwap <- PossibleSwapChildren %>%
         slice_sample(n = 1)
@@ -748,8 +754,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       SwapChildHouseholdID <- ChildToSwap$HouseholdID
       ProblemChildHouseholdID <- ProblemHouseholdChildren$HouseholdID[b]
 
-      cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[b],
-          "in", ProblemHouseholdChildren$HouseholdID[b], "\n")
+      cat("Child", ChildToSwap$PersonID, "in household ID", ChildToSwap$HouseholdID, "will donate household ID to", ProblemHouseholdChildren$PersonID[b], "in", ProblemHouseholdChildren$HouseholdID[b], "\n")
 
       # perform the swapping, only household ID to be swapped
 
@@ -775,11 +780,17 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
     # close fix for the households with children who are too old
   }
 
+    # close if loop for ensuring there is an even number of households to swap
+
+  }
+
     # reconstruct interim data frame so corrected with children
     InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
     # close test for whether households with children too old exist
   }
+
+  InterimDataframe <- InterimDataframe
 
   #####################################
   #####################################
