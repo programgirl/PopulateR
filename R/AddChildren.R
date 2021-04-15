@@ -824,6 +824,13 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
                    between(ParentAge, MinNewParentAge, MaxNewParentAge)) %>%
             slice_sample(n = 1)
 
+          if(nrow(NewSampleParent == 0)) {
+
+            # the problem is not fixable, so stop the function
+
+            stop("There are an insufficient number of suitably aged parents in the Parent data frame")
+          }
+
           # swap in the new parent for the old
           # remove the old parent from the Parents data frame
           AmendedParentsFinal <- AmendedParentsFinal %>%
