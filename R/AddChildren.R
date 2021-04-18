@@ -484,7 +484,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
   # remove the matched children ids from the available children in ChildrenRenamed
 
   ChildrenRenamed <- ChildrenRenamed %>%
-    filter(!(ChildID %in%  BaseDataFrame$ChildID))
+    filter(!(ChildID %in%  c(BaseDataFrame$ChildID)))
 
   #  add in the extra children to the twins, where there are more than 2 children in the household
 
@@ -500,10 +500,10 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
   minChildIndexAge <- as.integer(ChildrenCounts[1,1])
   maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
 
-  # ChildrenAgeCountVector <- ChildrenCounts$AgeCount
-  # cat("ChildrenAgeCountVector=\n")
-  # print(ChildrenAgeCountVector)
-  # cat("\n")
+  ChildrenAgeCountVector <- ChildrenCounts$AgeCount
+  cat("ChildrenAgeCountVector=\n")
+  print(ChildrenAgeCountVector)
+  cat("\n")
 
   # match the remaining children
 
@@ -540,7 +540,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
       age_index <- (NewChildAge + 1) - minChildAge
 
-      # cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+    #   cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < MinParentAge || AgeDifference > MaxParentAge || ChildrenAgeCountVector[age_index] == 0) {
 
@@ -596,6 +596,10 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       ChildrenAgeCountVector[age_index] = ChildrenAgeCountVector[age_index] - 1
       AgesUsed <- cbind(AgesUsed, BaseDataFrame[x,y])
 
+      # cat("4 New child age is", NewChildAge, "age_index =", age_index,"\n")
+      # print(ChildrenAgeCountVector)
+      # cat("\n")
+
       # closes for column loop
     }
 
@@ -645,7 +649,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
     }
 
   }
-  return(ChildrenToAdd)
+
+  return(ChildrenRenamed)
 
   # remove the first children from the matching to the remainder
 
