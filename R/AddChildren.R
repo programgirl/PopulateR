@@ -819,8 +819,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
               # do the swapping
               # note: this is directly to the file used, so there is no interim file
-              ChildrenFinal[SwapChildRowIndex, HouseholdID] <- ChildProblemAges$HouseholdID[b]
-              ChildrenFinal[ProblemChildRowIndex, HouseholdID] <- PossibleMatch$HouseholdID
+              ChildrenFinal[SwapChildRowIndex, "HouseholdID"] <- ChildProblemAges$HouseholdID[b]
+              ChildrenFinal[ProblemChildRowIndex, "HouseholdID"] <- PossibleMatch$HouseholdID
 
        # closes if loop for check if the swap parameters are in range
 
@@ -1008,9 +1008,9 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
             select(OtherAges) %>%
             pull(OtherAges)
 
-          cat("Problem child age is", AgeToSwap, "Matched child age is", MatchedAge, "Test 1 is", Test1,
-              "Test 2 is", Test2, "Test 3 data are", Test3, "Test 4 data are", Test4,
-              "matched parent household is", PossibleMatch$HouseholdID, "\n")
+          # cat("Problem child age is", AgeToSwap, "Matched child age is", MatchedAge, "Test 1 is", Test1,
+          #     "Test 2 is", Test2, "Test 3 data are", Test3, "Test 4 data are", Test4,
+          #     "matched parent household is", PossibleMatch$HouseholdID, "\n")
 
 
           if(between(Test1, PermittedChildAgeMin, PermittedChildAgeMax) == TRUE &
@@ -1031,8 +1031,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
             # do the swapping
             # note: this is directly to the file used, so there is no interim file
-            ChildrenFinal[SwapChildRowIndex, HouseholdID] <- SampledIncorrectTwin$HouseholdID
-            ChildrenFinal[ProblemChildRowIndex, HouseholdID] <- PossibleMatch$HouseholdID
+            ChildrenFinal[SwapChildRowIndex, "HouseholdID"] <- SampledIncorrectTwin$HouseholdID
+            ChildrenFinal[ProblemChildRowIndex, "HouseholdID"] <- PossibleMatch$HouseholdID
 
             # closes if loop for check if the swap parameters are in range
 
