@@ -407,7 +407,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
     ChildrenRenamed <- NoTwinsDataFrame
 
-    cat("2 The number of rows of no twins is", nrow(ChildrenRenamed), "\n")
+    # cat("2 The number of rows of no twins is", nrow(ChildrenRenamed), "\n")
 
     # update parent counts
     # remove parents already joined
@@ -835,7 +835,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
         if(SwapLoopCount == 500) {
 
-          cat("No match", "\n")
+          # cat("No match", "\n")
 
           # get parents of correct age, who are not in the final parents data frame into a new data frame
           # ensure that they can take all the child ages for the children in the household
@@ -849,12 +849,12 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
           MinProblemChildAge <- min(AllAgesInProblemHousehold)
           MaxProblemChildAge <- max(AllAgesInProblemHousehold)
 
-          cat("Minimum child age is", MinProblemChildAge, "Maximum child age is", MaxProblemChildAge, "\n")
+          # cat("Minimum child age is", MinProblemChildAge, "Maximum child age is", MaxProblemChildAge, "\n")
 
           MinNewParentAge <- MinParentAge + MaxProblemChildAge
           MaxNewParentAge <- MaxParentAge + MinProblemChildAge
 
-          cat("Minimum parent age is", MinNewParentAge, "Maximum parent age is", MaxNewParentAge, "\n")
+          # cat("Minimum parent age is", MinNewParentAge, "Maximum parent age is", MaxNewParentAge, "\n")
 
           NewSampleParent <- ParentsRenamed %>%
             filter(!(HouseholdID %in% c(ParentsFinal$HouseholdID)),
@@ -902,26 +902,24 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
       # closes loop to check if there is a problem ages data frame
   }
 
+
   #  InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
 
-  # if (exists("ShouldNotBeTwins")) {
-  #   ShouldNotBeTwins <- unique(ShouldNotBeTwins)
-  #
-  #   if(exists(ProblemIndex)) {
-  #     ProblemIndex <- bind_rows(ProblemIndex, ShouldNotBeTwins)
-  #   } else {
-  #     ProblemIndex <- ShouldNotBeTwins
-  #   }
-  #   }
-  #
-  #
-  # if(exists("ProblemIndex")) {
-  #
-  #   ProblemHouseholds <- InterimDataframe %>%
-  #       filter(HouseholdID %in% c(ProblemIndex))
-  #
-  # }
+  if (exists("ShouldNotBeTwins")) {
+
+    ShouldNotBeTwins <- unique(ShouldNotBeTwins)
+
+    cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "affected", "\n")
+
+    WrongTwinHouseholds <- ParentsFinal %>%
+      filter(HouseholdID %in% c(ShouldNotBeTwins))
+
+    return(WrongTwinHouseholds)
+
+    # closes the if loop for if there are too many households with twins
+    }
+
 
   #   ParentTooYoung <- unique(ParentTooYoung)
   #
@@ -1210,7 +1208,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
   # OutputDataframe <- InterimDataframe
 
- return(ChildrenFinal)
+ # return(ChildrenFinal)
 
   # closes function
 }
