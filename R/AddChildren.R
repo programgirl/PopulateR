@@ -755,7 +755,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
         AgeToSwap <- ChildProblemAges$ChildAge[b]
 
-        while (Swap == 0 & SwapLoopCount < 500) {
+        while (Swap == 0 & SwapLoopCount < 200) {
 
         # extract random child age
         PossibleMatch <- ChildrenFinal %>%
@@ -829,7 +829,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
           # closes while swap loop for no swap
         }
 
-        if(SwapLoopCount == 500) {
+        if(SwapLoopCount == 200) {
 
           # cat("No match", "\n")
 
@@ -928,10 +928,39 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
         PermittedChildAgeMin <- IncorrectParentAge - MaxParentAge
       }
 
+      # cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin,
+      #     "and household ID is", CurrentHouseholdID, "\n")
 
-      cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin, "\n")
+      # randomly select a duplicate child
+      # the function assumes only one child in the household needs to be swapped
+      # in a incorrect triplet household, this would mean one triplet swapped out so twins remained
+      # ignoring that at the moment
 
-      return(WrongTwinHouseholds)
+      # identify the duplicate age/s
+
+      DuplicateAges <- ChildrenFinal %>%
+        filter(HouseholdID == CurrentHouseholdID) %>%
+        group_by(ChildAge) %>%
+        filter(n()>1) %>%
+        summarise(AgesToFix = n()) %>%
+        pull(ChildAge)
+
+      for(b in 1:length(DuplicateAges)) {
+
+        AgeToSwap <- DuplicateAges[b]
+
+    #    print(AgeToSwap)
+
+        # sample that age from the household
+        SampledIncorrectTwin <- ChildrenFinal %>%
+          filter(HouseholdID == CurrentHouseholdID,
+                 ChildAge == AgeToSwap) %>%
+          slice_sample(n = 1)
+
+        return(SampledIncorrectTwin)
+
+        # close for loop moving through the duplicate ages vector
+      }
 
       # closes loop through fixing the households that incorrectly contain twins
     }
