@@ -650,9 +650,31 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
   }
 
-  return(ChildrenRenamed)
+  # merge the long ChildrenToAdd file with the remaining children
+  # who generated the ChildrenAgeCountVector
+  # this is ChildrenRenamed data
+  # match on age, but use a count for each age
+  # e.g. 1st row with 10 gets count of 1, 2nd row with 10 gets count of 2
+  # this creates a unique combination using two columns
 
-  # remove the first children from the matching to the remainder
+  ChildrenRenamed <- ChildrenRenamed %>%
+    group_by(ChildAge) %>%
+    mutate(AgeCounter = row_number()) %>%
+    ungroup()
+
+  ChildrenToAdd <- ChildrenToAdd %>%
+    group_by(ChildAge) %>%
+    mutate(AgeCounter = row_number()) %>%
+    ungroup()
+
+  ChildrenRenamed <- left_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
+    select(-AgeCounter)
+
+  # bind the children in the base dataframe
+
+  NoTwinsDataFrame <- bind_rows(BaseNonTwin, ChildrenRenamed)
+
+  return(NoTwinsDataFrame)
 
 
 
