@@ -764,7 +764,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
           filter(HouseholdID %in% c(AmendedParentsFinal$HouseholdID)) %>%
           slice_sample(n= 1)
 
-        cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$HouseholdID, "\n")
+        # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$HouseholdID, "\n")
 
         # need to check:
         # 1. will the swap to the problem household recreate the problem with the
@@ -780,18 +780,12 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
         MatchedHousehold <- PossibleMatch$HouseholdID
 
         Test2 <- AmendedParentsFinal %>%
-          filter(HouseholdID == MatchedHousehold)
-
-        cat("Household ID is", Test2$HouseholdID, "and parent ID is", Test2$ParentID, "and parent age is",
-            Test2$ParentAge, "\n")
-
-        Test2 <- AmendedParentsFinal %>%
           filter(HouseholdID == MatchedHousehold) %>%
           select(ParentAge) %>%
          mutate(DonorAgeDiff = ParentAge - AgeToSwap) %>%
          pull(DonorAgeDiff)
 
-        print(Test2)
+        # print(Test2)
 
         Test3 <- ChildrenFinal %>%
           filter(HouseholdID == WrongParentAgeHouseholds$HouseholdID[a] &
@@ -807,9 +801,9 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
           select(OtherAges) %>%
           pull(OtherAges)
 
-        cat("Problem child age is", AgeToSwap, "Matched child age is", MatchedAge, "Test 1 is", Test1,
-            "Test 2 is", Test2, "Test 3 data are", Test3, "Test 4 data are", Test4,
-            "matched parent household is", PossibleMatch$HouseholdID, "\n")
+        # cat("Problem child age is", AgeToSwap, "Matched child age is", MatchedAge, "Test 1 is", Test1,
+        #     "Test 2 is", Test2, "Test 3 data are", Test3, "Test 4 data are", Test4,
+        #     "matched parent household is", PossibleMatch$HouseholdID, "\n")
 
 
         if(between(Test1, PermittedChildAgeMin, PermittedChildAgeMax) == TRUE &
