@@ -734,8 +734,6 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
         rename(IncorrectParentAge = ParentAge) %>%
         pull(IncorrectParentAge)
 
-      # str(IncorrectParentAge)
-
         if(IncorrectParentAge < MaxParentAge + 1) {
           PermittedChildAgeMin <- 0
         } else {
@@ -784,8 +782,6 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
           select(ParentAge) %>%
          mutate(DonorAgeDiff = ParentAge - AgeToSwap) %>%
          pull(DonorAgeDiff)
-
-        # print(Test2)
 
         Test3 <- ChildrenFinal %>%
           filter(HouseholdID == WrongParentAgeHouseholds$HouseholdID[a] &
@@ -910,12 +906,35 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
     ShouldNotBeTwins <- unique(ShouldNotBeTwins)
 
-    cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "affected", "\n")
+    cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "households affected", "\n")
 
     WrongTwinHouseholds <- ParentsFinal %>%
       filter(HouseholdID %in% c(ShouldNotBeTwins))
 
-    return(WrongTwinHouseholds)
+     AmendedParentsFinal <- ParentsFinal %>%
+      filter(!HouseholdID %in% c(WrongTwinHouseholds$HouseholdID))
+
+    for(a in 1:length(WrongTwinHouseholds)) {
+      CurrentHouseholdID <- WrongTwinHouseholds$HouseholdID[a]
+
+      IncorrectParentAge <- WrongTwinHouseholds %>%
+        filter(HouseholdID == WrongTwinHouseholds$HouseholdID[a]) %>%
+        rename(IncorrectParentAge = ParentAge) %>%
+        pull(IncorrectParentAge)
+
+      if(IncorrectParentAge < MaxParentAge + 1) {
+        PermittedChildAgeMin <- 0
+      } else {
+        PermittedChildAgeMin <- IncorrectParentAge - MaxParentAge
+      }
+
+
+      cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin, "\n")
+
+      return(WrongTwinHouseholds)
+
+      # closes loop through fixing the households that incorrectly contain twins
+    }
 
     # closes the if loop for if there are too many households with twins
     }
