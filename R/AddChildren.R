@@ -391,6 +391,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
       TwinsFinal <- bind_rows(TwinsFinal, OtherKids)
 
+      cat("1 The number of rows of no twins is", nrow(NoTwinsDataFrame), "\n")
+
       NoTwinsDataFrame <- NoTwinsDataFrame %>%
         filter(!(ChildID %in% c(OtherKids$ChildID)))
 
@@ -404,6 +406,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
     # continues to be the same name
 
     ChildrenRenamed <- NoTwinsDataFrame
+
+    cat("2 The number of rows of no twins is", nrow(ChildrenRenamed), "\n")
 
     # update parent counts
     # remove parents already joined
@@ -674,37 +678,6 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
   NoTwinsDataFrame <- bind_rows(BaseNonTwin, ChildrenRenamed)
 
-  return(NoTwinsDataFrame)
-
-
-
-  # for (z in 2:NumChildren) {
-  #
-  #   #   cat("z is ", z, " and child age column is", BaseDataFrame[(NumberColsChildren + z + 1),])
-  #
-  #   OtherNotTwins <- BaseDataFrame %>%
-  #     ungroup() %>%
-  #     select(all_of(c((NumberColsChildren+3), (NumberColsChildren + z + 2)))) %>%
-  #     rename(ChildAge = paste0("ChildAge", z))
-  #
-  #   cat("length of othernottwins is", nrow(OtherNotTwins), "and length of notwins is", nrow(NoTwinsDataFrame), "\n")
-  #
-  #   OtherNotTwins <- left_join(OtherNotTwins %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                              NoTwinsDataFrame %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
-  #                              by = c("ChildAge", "Counter")) %>%
-  #     select(-Counter)
-  #
-  #
-  #   NotTwins <- bind_rows(NotTwins, OtherNotTwins)
-  #
-  #   NoTwinsDataFrame <- NoTwinsDataFrame %>%
-  #     filter(!(ChildID %in%  OtherNotTwins$ChildID))
-  #
-  #   cat("length of othernottwins is", nrow(OtherNotTwins), "and length of notwins is", nrow(NoTwinsDataFrame), "\n")
-  #
-  #   #closes extra child addition loop
-  # }
-
   #####################################
   #####################################
   # join all the data frames together
@@ -713,7 +686,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
 
   if (exists("TwinsFinal")) {
-    ChildrenFinal <- rbind(TwinsFinal, NotTwins)
+    ChildrenFinal <- rbind(TwinsFinal, NoTwinsDataFrame)
 
   } else {
     ChildrenFinal <- NotTwins
@@ -731,6 +704,8 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
   ParentsFinal <- ParentsFinal #%>%
     #rename(PersonID = ParentID, Age = ParentAge)
+
+  return(ChildrenFinal)
 
    #  InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
 
