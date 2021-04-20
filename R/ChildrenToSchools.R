@@ -13,7 +13,7 @@
 #' @param ChildSexVariable The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
 #' @param HouseholdIDVariable The column number for the household variable in the Children data frame. This must be provided.
 #' @param Schools A data frame containing the school observations.
-#' @param SchoolNameVariable The column number for the variable in the Schools data frame that contains the name of each school.
+#' @param SchoolIDVariable The column number for the variable in the Schools data frame that contains the name of each school.
 #' @param SchoolAgeVariable The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
 #' @param SchoolRollCount The number of places available for children at that school age, within the school.
 #' @param SchoolCoEdStatus An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
