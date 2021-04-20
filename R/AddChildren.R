@@ -72,17 +72,31 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
     rename(ParentID = !! ParentIDCol, ParentAge = !! ParentAgeCol,
            HouseholdID = !! HouseholdIDCol)
 
-  # Parent age variable
+  # Child variable names
+  ChildIDColName <- sym(names(Children[ChildIDCol]))
 
-  minChildAge <- min(ChildrenRenamed$ChildAge)
+  ChildAgeColName <- sym(names(Children[ChildAgeCol]))
 
-  maxChildAge <- max(ChildrenRenamed$ChildAge)
+  # Parent variable names
+  ParentsIDColName <- sym(names(Parents[ParentIDCol]))
+
+  ParentsAgeColName <- sym(names(Parents[ParentAgeCol]))
+
+  ParentsHouseholdColName <- sym(names(Parents[HouseholdIDCol]))
 
   #####################################
   #####################################
   # end column names
   #####################################
   #####################################
+
+  # Parent age variable
+
+  minChildAge <- min(ChildrenRenamed$ChildAge)
+
+  maxChildAge <- max(ChildrenRenamed$ChildAge)
+
+
 
 
   #####################################
@@ -833,7 +847,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
         if(SwapLoopCount == 200) {
 
-          cat("No match", "\n")
+          # cat("No match", "\n")
 
           # get parents of correct age, who are not in the final parents data frame into a new data frame
           # ensure that they can take all the child ages for the children in the household
@@ -908,7 +922,7 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
 
     ShouldNotBeTwins <- unique(ShouldNotBeTwins)
 
-    cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "households affected", "\n")
+    # cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "households affected", "\n")
 
     WrongTwinHouseholds <- ParentsFinal %>%
       filter(HouseholdID %in% c(ShouldNotBeTwins))
@@ -916,8 +930,10 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
      AmendedParentsFinal <- ParentsFinal %>%
       filter(!HouseholdID %in% c(WrongTwinHouseholds$HouseholdID))
 
-    for(a in 1:length(WrongTwinHouseholds)) {
+    for(a in 1:nrow(WrongTwinHouseholds)) {
       CurrentHouseholdID <- WrongTwinHouseholds$HouseholdID[a]
+
+      # cat("Current wrong twin household is", CurrentHouseholdID, "\n")
 
       IncorrectParentAge <- WrongTwinHouseholds %>%
         filter(HouseholdID == WrongTwinHouseholds$HouseholdID[a]) %>%
@@ -1018,16 +1034,16 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
              !(MatchedAge %in% c(Test4)) == FALSE  &
              !(AgeToSwap %in% c(Test3)) == FALSE) {
 
-            cat("Swap is okay", "\n")
+            # cat("Swap is okay", "\n")
 
             SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
             ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==SampledIncorrectTwin$ChildID))
 
-            cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
-                ProblemChildRowIndex, "\n")
-
-            cat("The original household IDs are", SampledIncorrectTwin$HouseholdID, "for the problem child, and",
-                PossibleMatch$HouseholdID, "for the child that will be swapped in", "\n")
+            # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
+            #     ProblemChildRowIndex, "\n")
+            #
+            # cat("The original household IDs are", SampledIncorrectTwin$HouseholdID, "for the problem child, and",
+            #     PossibleMatch$HouseholdID, "for the child that will be swapped in", "\n")
 
             # do the swapping
             # note: this is directly to the file used, so there is no interim file
@@ -1051,8 +1067,6 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
         # close for loop moving through the duplicate ages vector
         }
 
-        return(SampledIncorrectTwin)
-
         # closes the loop through the household that contains twins
       }
 
@@ -1060,22 +1074,20 @@ AddChildren <- function(Children, ChildIDCol, ChildAgeCol, NumChildren = 2, Twin
     }
 
     # closes the if loop for if there are too many households with twins
-    }
+  }
 
- #    # reconstruct interim data frame so corrected with children
-  ChildrenFinal <- ChildrenFinal %>%
-  rename(PersonID = ChildID, Age = ChildAge)
+    # reconstruct interim data frame so corrected with children
+ ChildrenFinal <- ChildrenFinal %>%
+ rename(!!ChildIDColName := ChildID, !!ChildAgeColName := ChildAge,
+        !!ParentsHouseholdColName := HouseholdID)
 
-  ParentsFinal <- ParentsFinal %>%
-  rename(PersonID = ParentID, Age = ParentAge)
+ ParentsFinal <- ParentsFinal %>%
+ rename(!!ParentsIDColName := ParentID, !!ParentsAgeColName := ParentAge,
+        !!ParentsHouseholdColName := HouseholdID)
 
-    InterimDataframe <- rbind(ParentsFinal, ChildrenFinal)
- #    # closes test for whether households with incorrect duplicate child ages exist
- #  }
+ OutputDataframe <- bind_rows(ChildrenFinal, ParentsFinal)
 
-  # OutputDataframe <- InterimDataframe
-
- # return(ChildrenFinal)
+ return(OutputDataframe)
 
   # closes function
 }
