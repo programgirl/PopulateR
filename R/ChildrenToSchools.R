@@ -162,6 +162,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     WorkingChildren <- ChildrenRenamed %>%
       filter(HouseholdID %in% HouseholdIDList[x,1])
 
+    print(WorkingChildren$HouseholdID)
+
     #####################################################################
     #####################################################################
     # match single child households
@@ -285,6 +287,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           filter(ChildAge == CurrentChild$ChildAge,
                  SchoolType %in% c(CurrentChild$ChildType, "C"),
                  ChildCounts > 0)
+
+        print(nrow(AvailableSchools))
 
         if (RandomRollResult <= ChildProb) {
 
