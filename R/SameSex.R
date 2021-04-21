@@ -139,15 +139,25 @@ SameSex <- function(dataframe, AgeCol = NULL, ProbSameSex = NULL, UpWeightProp =
   # create households if a start household number is provided
   if (is.numeric(IDStartValue)) {
 
-    if(is.null(AgeCol)) {
-      stop("The column number for the age variable must be supplied.")
-    }
+    # if(is.null(AgeCol)) {
+    #   stop("The column number for the age variable must be supplied.")
+    # }
 
     if(is.null(HouseholdNumVariable)) {
       stop("A name for the household count variable must be supplied.")
     }
 
     MaxIDStartValue <- (nrow(SameSexCouples)/2)-1
+    SameSexCouples <- SameSexCouples %>%
+      arrange(SameSexCouples[,AgeCol]) %>%
+      mutate({{HouseholdNumVariable}} := rep((IDStartValue):(IDStartValue+MaxIDStartValue),
+                                             each=2))
+
+  } else {
+
+    IDStartValue <- 1
+    MaxIDStartValue <- (nrow(SameSexCouples)/2)-1
+
     SameSexCouples <- SameSexCouples %>%
       arrange(SameSexCouples[,AgeCol]) %>%
       mutate({{HouseholdNumVariable}} := rep((IDStartValue):(IDStartValue+MaxIDStartValue),

@@ -8,20 +8,20 @@
 #'
 #' @export
 #' @param Children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
-#' @param ChildIDVariable The column number for the ID variable in the Children data frame.
-#' @param ChildAgeVariable The column number for the Age variable in the Children data frame.
-#' @param ChildSexVariable The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
-#' @param HouseholdIDVariable The column number for the household variable in the Children data frame. This must be provided.
+#' @param ChildIDCol The column number for the ID variable in the Children data frame.
+#' @param ChildAgeCol The column number for the Age variable in the Children data frame.
+#' @param ChildSxCol The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
+#' @param HouseholdIDCol The column number for the household variable in the Children data frame. This must be provided.
 #' @param Schools A data frame containing the school observations.
-#' @param SchoolIDVariable The column number for the variable in the Schools data frame that contains the name of each school.
-#' @param SchoolAgeVariable The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
-#' @param SchoolRollCount The number of places available for children at that school age, within the school.
-#' @param SchoolCoEdStatus An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
+#' @param SchoolIDCol The column number for the variable in the Schools data frame that contains the name of each school.
+#' @param SchoolAgeCol The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
+#' @param SchoolRollCol The number of places available for children at that school age, within the school.
+#' @param SchoolTypeCol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
 #' @param ChildProb If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an eqivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all children in the same household will be assigned to same-sex schools, or to co-educational schools. A probability of 0 means that, if one child is assigned to a same-sex school, all other children will be assigned to co-educational schools. The assignment is affected by the number of boy-only and girl-only schools, and the age distribution covered by these schools..
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
-ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, ChildSexVariable, HouseholdIDVariable = NULL,
-                        Schools, SchoolIDVariable, SchoolAgeVariable, SchoolRollCount, SchoolCoEdStatus, ChildProb = 1, UserSeed=NULL)
+ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdIDCol = NULL,
+                        Schools, SchoolIDCol, SchoolAgeCol, SchoolRollCol, SchoolTypeCol, ChildProb = 1, UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
@@ -34,12 +34,12 @@ ChildrenToSchools <- function(Children, ChildIDVariable, ChildAgeVariable, Child
   #####################################################################
 
   ChildrenRenamed <- Children %>%
-    rename(ChildID = !! ChildIDVariable, ChildAge = !! ChildAgeVariable, ChildType = !! ChildSexVariable,
-           HouseholdID = !! HouseholdIDVariable)
+    rename(ChildID = !! ChildIDCol, ChildAge = !! ChildAgeCol, ChildType = !! ChildSxCol,
+           HouseholdID = !! HouseholdIDCol)
 
   SchoolsRenamed <- Schools %>%
-    rename(SchoolID = !! SchoolIDVariable, SchoolAge = !! SchoolAgeVariable,
-           ChildCounts = !! SchoolRollCount, SchoolType = !! SchoolCoEdStatus) %>%
+    rename(SchoolID = !! SchoolIDCol, SchoolAge = !! SchoolAgeCol,
+           ChildCounts = !! SchoolRollCol, SchoolType = !! SchoolTypeCol) %>%
     mutate_if(is.factor, as.character) %>%
     select(SchoolID, SchoolAge, ChildCounts, SchoolType)
 
