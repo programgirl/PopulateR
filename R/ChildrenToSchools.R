@@ -194,6 +194,46 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # closes loop through selecting schools
         }
 
+        # add in check to see if there are different same-sex schools for the same ages
+        # will need to do a full join of the M and F schools if so
+        # then will sum the counts for those ages into an X sex
+        # need an indicator to show which combo is which, so get a look-up table
+
+        SameSexSchoolsCheckM <- PossibleSchools %>%
+          filter(SchoolType == "M")
+
+        SameSexSchoolsCheckF <- PossibleSchools %>%
+          filter(SchoolType == "F")
+
+        # filter so that only the ages that match in both data frames are included in each
+        # yes, could have done this on the female one already
+        # but that would have preceded this explanation
+        # sometimes the longer way is the clearer way
+
+        SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
+          filter(ChildAge %in% c(SameSexSchoolsCheckF$ChildAge))
+
+        SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
+          filter(ChildAge %in% c(SameSexSchoolsCheckM$ChildAge))
+
+        # now the loop below is only entered if there can be a full join by age
+        # where single-sex schools exist for the same ages of boys and girls
+
+        if(nrow(SameSexSchoolsCheckM) > 0 & nrow(SameSexSchoolsCheckF) > 0) {
+
+          # cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
+
+          # perform full join between the two data frames
+
+          FullJoinOfSchools <- full_join(SameSexSchoolsCheckF, SameSexSchoolsCheckM, by ="ChildAge") %>%
+            mutate(MergedCount = ChildCounts.x + ChildCounts.y,
+                   MergedSchoolName = paste0("CombinedSchool", 1:nrow(.)))
+
+          # closes merger of same sex schools if they exist at the same age
+        }
+
+        return(SameSexSchoolsCheckF)
+
           # locate school that appears the same number of times as required
           # NOTE:there may be no school available
           # test for multiple schools available
@@ -213,7 +253,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # somehow
 
 
-          return(SchoolsSummary)
+
 
           # # thus, need to test if there are any schools there
           # # so we do a backwards count from the maximum number of children-in-same-school needed
