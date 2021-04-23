@@ -13,7 +13,7 @@
 #' @param ChildSxCol The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
 #' @param HouseholdIDCol The column number for the household variable in the Children data frame. This must be provided.
 #' @param Schools A data frame containing the school observations.
-#' @param SchoolIDCol The column number for the variable in the Schools data frame that contains the name of each school.
+#' @param SchoolIDCol The column number for the variable in the Schools data frame that contains the name of each school. While these IDs can be numeric, the data must be either character (preferred) or factor (will be converted to character).
 #' @param SchoolAgeCol The column number for the Age variable in the Schools data frame. Each student age within the school must be a separate row.
 #' @param SchoolRollCol The number of places available for children at that school age, within the school.
 #' @param SchoolTypeCol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
@@ -40,7 +40,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
   SchoolsRenamed <- Schools %>%
     rename(SchoolID = !! SchoolIDCol, SchoolAge = !! SchoolAgeCol,
            ChildCounts = !! SchoolRollCol, SchoolType = !! SchoolTypeCol) %>%
-    mutate_if(is.factor, as.character) %>%
+    mutate(across(is.factor, as.character)) %>%
     select(SchoolID, SchoolAge, ChildCounts, SchoolType)
 
   ChildrenCountTest <- ChildrenRenamed %>%
@@ -223,16 +223,29 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
 
-          # perform full join between the two data frames
+          # but need to sure that the counts are correct when merging
+          # this to to fix if there are any triplets or quads in the data
+          SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
+            group_by(SchoolType, SchoolID) %>%
+            summarise(InterimNumberKids = n())
+
+          SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
+            group_by(SchoolType, SchoolID) %>%
+            summarise(InterimNumberKids = n())
+
+          # perform full join between the two appropriately summarised data frames
 
           FullJoinOfSchools <- full_join(SameSexSchoolsCheckF, SameSexSchoolsCheckM, by ="ChildAge") %>%
-            mutate(MergedCount = ChildCounts.x + ChildCounts.y,
-                   MergedSchoolName = paste0("CombinedSchool", 1:nrow(.)))
+            mutate(NumberKidsCanTake = InterimNumberKids.x + InterimNumberKids.y,
+                   SchoolID = paste0("CombinedSchool", 1:nrow(.)),
+                   SchoolType = "Merged")
+
+          JoinToMerge <- FullJoinOfSchools %>%
+            select(SchoolType, SchoolID, NumberKidsCanTake)
+
 
           # closes merger of same sex schools if they exist at the same age
         }
-
-        return(SameSexSchoolsCheckF)
 
           # locate school that appears the same number of times as required
           # NOTE:there may be no school available
@@ -240,6 +253,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           SchoolsSummary <- PossibleSchools %>%
             group_by(SchoolType, SchoolID) %>%
             summarise(NumberKidsCanTake = n())
+
+          # join in the merged single-sex schools
+          SchoolsSummary <- bind_rows(SchoolsSummary, JoinToMerge)
 
           # get the number required for schools matching
           # minimum means that if no school can take the required number of children,
