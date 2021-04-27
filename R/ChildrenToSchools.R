@@ -145,9 +145,19 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
   for(i in 1: nrow(MultipleChildrenHouseholds)) {
 
+
+    # must delete PossibleSchools dataframe
+    if(exists("PossibleSchools")) {
+      rm(PossibleSchools)
+    }
+
+    if(exists("JoinToMerge")) {
+      rm(JoinToMerge)
+    }
+
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    print(CurrentHousehold)
+    # print(CurrentHousehold)
 
       # get the children in the household
 
@@ -177,8 +187,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # locate schools that can take the maximum number of children from NumberSameSchool down
         for(j in 1:nrow(ChildAges)) {
 
-          cat("Current child age is", ChildAges$ChildAge[j], "and child sex is", ChildAges$ChildType[j],
-              "and number children that age and sex is", ChildAges$CountsByAge[j], "\n")
+          # cat("Current child age is", ChildAges$ChildAge[j], "and child sex is", ChildAges$ChildType[j],
+          #     "and number children that age and sex is", ChildAges$CountsByAge[j], "\n")
 
           SchoolSubset <- SchoolsRenamed %>%
                           filter(ChildAge == ChildAges$ChildAge[j],
@@ -193,6 +203,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # closes loop through selecting schools
         }
+
 
         # add in check to see if there are different same-sex schools for the same ages
         # will need to do a full join of the M and F schools if so
@@ -221,47 +232,63 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(SameSexSchoolsCheckM) > 0 & nrow(SameSexSchoolsCheckF) > 0) {
 
+          print(CurrentHousehold)
+
            cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
 
           # but need to sure that the counts are correct when merging
           # this to to fix if there are any triplets or quads in the data
+
+           # cat("Check 1", "\n")
           SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
-            group_by(SchoolType, SchoolID) %>%
+            group_by(SchoolID, ChildAge, ChildCounts) %>%
             summarise(InterimNumberKids = n())
 
+          # cat("Check 2", "\n")
           SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
-            group_by(SchoolType, SchoolID) %>%
+            group_by(SchoolID, ChildAge, ChildCounts) %>%
             summarise(InterimNumberKids = n())
 
           # perform full join between the two appropriately summarised data frames
 
+          # cat("Check 3", "\n")
           FullJoinOfSchools <- full_join(SameSexSchoolsCheckF, SameSexSchoolsCheckM, by ="ChildAge") %>%
             mutate(NumberKidsCanTake = InterimNumberKids.x + InterimNumberKids.y,
+                   ChildCounts = ChildCounts.x + ChildCounts.y,
                    SchoolID = paste0("CombinedSchool", 1:nrow(.)),
                    SchoolType = "Merged")
 
-          return(FullJoinOfSchools)
 
-          JoinToMerge <- FullJoinOfSchools %>%
-            select(SchoolType, SchoolID, NumberKidsCanTake)
+          # cat("Check 4", "\n")
+         JoinToMerge <- FullJoinOfSchools %>%
+            select(SchoolType, SchoolID, NumberKidsCanTake, ChildAge, ChildCounts)
 
-
-          # closes merger of same sex schools if they exist at the same age
+                   # closes merger of same sex schools if they exist at the same age
         }
 
           # locate school that appears the same number of times as required
           # NOTE:there may be no school available
           # test for multiple schools available
+        # cat("Check 5", "\n")
           SchoolsSummary <- PossibleSchools %>%
-            group_by(SchoolType, SchoolID) %>%
+            group_by(SchoolType, SchoolID, ChildCounts, ChildAge) %>%
             summarise(NumberKidsCanTake = n())
+
+          # cat("Check 6", "\n")
 
           # join in the merged single-sex schools
           if(exists("JoinToMerge")) {
 
           SchoolsSummary <- bind_rows(SchoolsSummary, JoinToMerge)
 
+          # closes school merging if there is a merge to perform
           }
+
+          if(CurrentHousehold == 584) {
+            return(SchoolsSummary)
+          }
+
+
 
           # get the number required for schools matching
           # minimum means that if no school can take the required number of children,
