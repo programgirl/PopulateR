@@ -221,7 +221,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(SameSexSchoolsCheckM) > 0 & nrow(SameSexSchoolsCheckF) > 0) {
 
-          # cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
+           cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
 
           # but need to sure that the counts are correct when merging
           # this to to fix if there are any triplets or quads in the data
@@ -240,6 +240,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                    SchoolID = paste0("CombinedSchool", 1:nrow(.)),
                    SchoolType = "Merged")
 
+          return(FullJoinOfSchools)
+
           JoinToMerge <- FullJoinOfSchools %>%
             select(SchoolType, SchoolID, NumberKidsCanTake)
 
@@ -255,7 +257,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             summarise(NumberKidsCanTake = n())
 
           # join in the merged single-sex schools
+          if(exists("JoinToMerge")) {
+
           SchoolsSummary <- bind_rows(SchoolsSummary, JoinToMerge)
+
+          }
 
           # get the number required for schools matching
           # minimum means that if no school can take the required number of children,
