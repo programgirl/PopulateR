@@ -167,11 +167,15 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold))
 
+      # cat(RandomRollVector, "\n")
+
       # test number of children who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
         filter(RandomRollVector > (1-ChildProb)) %>%
         summarise(SameSchool = n()) %>%
         pull(SameSchool)
+
+      # cat(NumberSameSchool, "\n")
 
       # add children to same school
 
@@ -210,61 +214,84 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # then will sum the counts for those ages into an X sex
         # need an indicator to show which combo is which, so get a look-up table
 
-        SameSexSchoolsCheckM <- PossibleSchools %>%
+        SchoolsM <- PossibleSchools %>%
           filter(SchoolType == "M")
 
-        SameSexSchoolsCheckF <- PossibleSchools %>%
+        SchoolsF <- PossibleSchools %>%
           filter(SchoolType == "F")
 
-        # filter so that only the ages that match in both data frames are included in each
-        # yes, could have done this on the female one already
-        # but that would have preceded this explanation
-        # sometimes the longer way is the clearer way
+        SchoolsC <- PossibleSchools %>%
+          filter(SchoolType == "C") %>%
+          group_by(SchoolID) %>%
+          summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
+          rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes)
 
-        SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
-          filter(ChildAge %in% c(SameSexSchoolsCheckF$ChildAge))
+        # limit the same-sex schools to those that take the age range for both sexes
+        MaleSchoolsWithAllAges <- SchoolsRenamed %>%
+          filter(SchoolType == "M",
+                 ChildAge %in% c(SchoolsF$ChildAge))
 
-        SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
-          filter(ChildAge %in% c(SameSexSchoolsCheckM$ChildAge))
-
-        # now the loop below is only entered if there can be a full join by age
-        # where single-sex schools exist for the same ages of boys and girls
-
-        if(nrow(SameSexSchoolsCheckM) > 0 & nrow(SameSexSchoolsCheckF) > 0) {
-
-          print(CurrentHousehold)
-
-           cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
-
-          # but need to sure that the counts are correct when merging
-          # this to to fix if there are any triplets or quads in the data
-
-           # cat("Check 1", "\n")
-          SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
-            group_by(SchoolID, ChildAge, ChildCounts) %>%
-            summarise(InterimNumberKids = n())
-
-          # cat("Check 2", "\n")
-          SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
-            group_by(SchoolID, ChildAge, ChildCounts) %>%
-            summarise(InterimNumberKids = n())
-
-          # perform full join between the two appropriately summarised data frames
-
-          # cat("Check 3", "\n")
-          FullJoinOfSchools <- full_join(SameSexSchoolsCheckF, SameSexSchoolsCheckM, by ="ChildAge") %>%
-            mutate(NumberKidsCanTake = InterimNumberKids.x + InterimNumberKids.y,
-                   ChildCounts = ChildCounts.x + ChildCounts.y,
-                   SchoolID = paste0("CombinedSchool", 1:nrow(.)),
-                   SchoolType = "Merged")
+        FemaleSchoolsWithAllAges <- SchoolsRenamed %>%
+          filter(SchoolType == "F",
+                 ChildAge %in% c(SchoolsM$ChildAge))
 
 
-          # cat("Check 4", "\n")
-         JoinToMerge <- FullJoinOfSchools %>%
-            select(SchoolType, SchoolID, NumberKidsCanTake, ChildAge, ChildCounts)
 
-                   # closes merger of same sex schools if they exist at the same age
+
+        if(CurrentHousehold == 859) {
+          return(FemaleSchoolsWithAllAges)
         }
+
+        # # filter so that only the ages that match in both data frames are included in each
+        # # yes, could have done this on the female one already
+        # # but that would have preceded this explanation
+        # # sometimes the longer way is the clearer way
+        #
+        # SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
+        #   filter(ChildAge %in% c(SameSexSchoolsCheckF$ChildAge))
+        #
+        # SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
+        #   filter(ChildAge %in% c(SameSexSchoolsCheckM$ChildAge))
+        #
+        # # now the loop below is only entered if there can be a full join by age
+        # # where single-sex schools exist for the same ages of boys and girls
+        #
+        # if(nrow(SameSexSchoolsCheckM) > 0 & nrow(SameSexSchoolsCheckF) > 0) {
+        #
+        #   print(CurrentHousehold)
+        #
+        #    cat("Children of both sexes are in single-sex-schools for household", CurrentHousehold, "\n")
+        #
+        #   # but need to sure that the counts are correct when merging
+        #   # this to to fix if there are any triplets or quads in the data
+        #
+        #    # cat("Check 1", "\n")
+        #   SameSexSchoolsCheckM <- SameSexSchoolsCheckM %>%
+        #     group_by(SchoolID, ChildAge, ChildCounts) %>%
+        #     summarise(InterimNumberKids = n())
+        #
+        #   # cat("Check 2", "\n")
+        #   SameSexSchoolsCheckF <- SameSexSchoolsCheckF %>%
+        #     group_by(SchoolID, ChildAge, ChildCounts) %>%
+        #     summarise(InterimNumberKids = n())
+        #
+        #   # cat("Check 3", "\n")
+        #
+        #   # perform full join between the two appropriately summarised data frames
+        #   # match will always occur because of the child age limits before entering this loop
+        #
+        #   FullJoinOfSchools <- full_join(SameSexSchoolsCheckF, SameSexSchoolsCheckM, by ="ChildAge") %>%
+        #     mutate(NumberKidsCanTake = InterimNumberKids.x + InterimNumberKids.y,
+        #            ChildCounts = ChildCounts.x + ChildCounts.y,
+        #            SchoolID = paste0("CombinedSchool", 1:nrow(.)),
+        #            SchoolType = "Merged")
+        #
+        #   # cat("Check 4", "\n")
+        #  JoinToMerge <- FullJoinOfSchools %>%
+        #     select(SchoolType, SchoolID, NumberKidsCanTake, ChildAge, ChildCounts)
+        #
+        #            # closes merger of same sex schools if they exist at the same age
+        # }
 
           # locate school that appears the same number of times as required
           # NOTE:there may be no school available
@@ -282,12 +309,27 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           SchoolsSummary <- bind_rows(SchoolsSummary, JoinToMerge)
 
           # closes school merging if there is a merge to perform
+          # not that each same-sex school is in there individually
+          # as well as the merger
+
           }
 
-          if(CurrentHousehold == 584) {
-            return(SchoolsSummary)
+          # now we use the number that need to into the same school
+          # the number to same school being larger than the number that can go into the same school
+          # is the problem here
+          if(NumberSameSchool > max(SchoolsSummary$NumberKidsCanTake)) {
+            NumberSameSchool <- max(SchoolsSummary$NumberKidsCanTake)
+
+            # cat("Modified number same school is", NumberSameSchool, "\n")
           }
 
+          LargestCountSample <- SchoolsSummary %>%
+            filter(NumberKidsCanTake == NumberSameSchool) %>%
+            slice_sample(n=1, weight_by = NumberKidsCanTake)
+
+
+          # need to draw a sample from this
+          # random draw based on child roll count
 
 
           # get the number required for schools matching
