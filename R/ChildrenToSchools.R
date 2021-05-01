@@ -245,10 +245,18 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(MaleSchoolAvailable) > 0 & nrow(FemaleSchoolAvailable) > 0) {
 
+          PulledSingleSexSchools <- bind_rows(MaleSchoolAvailable, FemaleSchoolAvailable) %>%
+            mutate(SchoolType = ifelse(SchoolType == "M", "F", "M"))
+
+
+          # merge the two sets of single-sex schools
+          # on age
+
+
 
 
         if(CurrentHousehold == 1093) {
-          return(FemaleSchoolAvailable)
+          return(PulledSingleSexSchools)
         }
 
           # closes test to see if there are matching same-sex schools
