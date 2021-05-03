@@ -132,7 +132,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     filter(ChildCount == 1)
 
   MultipleChildrenHouseholds <- ChildrenRenamed %>%
-    filter(!(HouseholdID %in% (SingletonHouseholds$HouseholdID)))
+    select(HouseholdID) %>%
+    filter(!(HouseholdID %in% (SingletonHouseholds$HouseholdID)),
+           duplicated(HouseholdID) == FALSE)
 
   # this is the first part of the code that requires randomness
   # so seed is applied here
@@ -146,6 +148,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
   if(nrow(MultipleChildrenHouseholds > 0)) {
 
   for(i in 1: nrow(MultipleChildrenHouseholds)) {
+
+    cat("New household is", i, "\n")
 
 
     # must delete PossibleSchools dataframe
@@ -164,7 +168,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    # print(CurrentHousehold)
+    print(CurrentHousehold)
 
       # get the children in the household
 
@@ -186,7 +190,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
       # add children to same school
 
-      if(NumberSameSchool > 1) {
+      # don't think I need this if
+      # if(NumberSameSchool > 1) {
 
         # need to identify the number of children that can go to the same school
 
@@ -196,15 +201,19 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           summarise(CountsByAge = n())
 
         # locate schools that can take the maximum number of children from NumberSameSchool down
-        for(j in 1:nrow(ChildAges)) {
+        # not sure I need this either
+        # for(j in 1:nrow(ChildAges)) {
 
           # cat("Current child age is", ChildAges$ChildAge[j], "and child sex is", ChildAges$ChildType[j],
           #     "and number children that age and sex is", ChildAges$CountsByAge[j], "\n")
 
           SchoolSubset <- SchoolsRenamed %>%
-                          filter(ChildAge == ChildAges$ChildAge[j],
-                                 SchoolType %in% c(ChildAges$ChildType[j], "C"),
-                                 ChildCounts >= ChildAges$CountsByAge[j])
+            filter(ChildAge %in% c(ChildAges$ChildAge),
+                   SchoolType %in% c(ChildAges$ChildType, "C"),
+                   ChildCounts >= ChildAges$CountsByAge)
+                          # filter(ChildAge == ChildAges$ChildAge[j],
+                          #        SchoolType %in% c(ChildAges$ChildType[j], "C"),
+                          #        ChildCounts >= ChildAges$CountsByAge[j])
 
           if(exists("PossibleSchools")) {
             PossibleSchools <- bind_rows(PossibleSchools, SchoolSubset)
@@ -213,7 +222,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           }
 
           # closes for j loop through selecting schools
-        }
+        # }
 
         # get the co-ed schools
 
@@ -317,7 +326,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # closes if(!(is.na(UnmatchedSingleSexToMerge$NumberTimes[1])))
         }
 
-        #closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
+        # closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
         } else {
 
           # need to do the same if no matching single sex schools for the age ranges
@@ -330,6 +339,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           AllSchoolsFromWhichToChoose <- bind_rows(CoedSchoolsSelected, SingleSexSchools)
 
+          # closes else after closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
         }
 
         # select schools by probability
@@ -356,13 +366,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # print(MultiplesSchools$RollCountSum)
 
-
-
         # will always be at least one child that a school can take
         SchoolChosen <- MultiplesSchools %>%
           slice_sample(weight_by = RollCountSum, n=1)
 
         # now need to loop through all the children in the family
+
+        print(CurrentHousehold)
 
         SchoolChosenDetail <- PossibleSchools %>%
           filter(SchoolID == SchoolChosen$SchoolID)
@@ -373,7 +383,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
 
           # closes  if(NumberSameSchool > 1)
-      }
+      # }
 
 
       # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
