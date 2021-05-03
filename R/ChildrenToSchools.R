@@ -242,9 +242,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # may have no matched males
 
-        if(!(is.na(MaleSchoolsToMatch$SchoolID[1]))) {
-
         MatchedMales <- left_join(FemaleAgesToMatch, MaleSchoolsToMatch, by = "ChildAge")
+
+        if(!(is.na(MatchedMales$SchoolID.y[1]))) {
 
 
         # sum the female counts by school
@@ -263,6 +263,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # only do this if there are matched single-sex schools
        # if(nrow(SingleSexMaleSchoolCounts) >0) {
+
+        print(CurrentHousehold)
 
           SingleSexMatchedSchools <- left_join(SingleSexMaleSchoolCounts, SingleSexFemaleSchoolCounts,
                                                by = c("SchoolID.x" = "SchoolID")) %>%
@@ -360,13 +362,18 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         SchoolChosen <- MultiplesSchools %>%
           slice_sample(weight_by = RollCountSum, n=1)
 
+        # now need to loop through all the children in the family
+
+        SchoolChosenDetail <- PossibleSchools %>%
+          filter(SchoolID == SchoolChosen$SchoolID)
+
+        if(CurrentHousehold == 1092) {
+          return(SchoolChosenDetail)
+        }
+
 
           # closes  if(NumberSameSchool > 1)
       }
-
-         if(CurrentHousehold == 1093) {
-          return(SchoolChosen)
-        }
 
 
       # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
