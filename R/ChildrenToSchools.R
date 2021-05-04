@@ -172,6 +172,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       ChildrenInHousehold <- ChildrenRenamed %>%
         filter(HouseholdID == CurrentHousehold)
 
+      NumKidsRemaining <- nrow(ChildrenInHousehold)
+
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold))
 
@@ -365,13 +367,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         cat("The number of children to the same school", NumberSameSchool, "\n")
 
-        if(CurrentHousehold == 544) {
-          return(AllSchoolsFromWhichToChoose)
+        # need to loop through the kids in the household
 
-        }
+        while(NumKidsRemaining > 0) {
 
         MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
-          filter(NumberTimes == MaxChildrenCanTake)
+          filter(NumberTimes >= MaxChildrenCanTake)
 
         str(MultiplesSchools)
 
@@ -383,6 +384,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # print(MultiplesSchools$RollCountSum)
 
         # will always be at least one child that a school can take
+        # need to loop through the number of children in the household so that
+        # the school assignment is done for each one
+
         SchoolChosen <- MultiplesSchools %>%
           slice_sample(weight_by = RollCountSum, n=1)
 
@@ -394,6 +398,77 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         SchoolChosenDetail <- PossibleSchools %>%
           filter(SchoolID == SchoolChosen$SchoolID)
+
+        ChildSchoolMerge <- left_join(SchoolChosenDetail, ChildrenInHousehold, by = "ChildAge") %>%
+          mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
+          filter(IsMatch == "Y")
+
+        # pick the kids that will go to this school, using the max number that can be assigned
+
+        if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
+
+          # need to account for twins, triplets etc here
+          # check for duplicated and subset these if present
+          CheckForMultiples <- ChildSchoolMerge %>%
+            group_by(ChildAge) %>%
+            summarise(NumberKidsThatAge = n()) %>%
+            filter(NumberKidsThatAge)
+
+            summ
+
+          ChildSchoolMerge <- SchoolChosenDetail %>%
+            slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
+
+
+          if(CurrentHousehold == 544) {
+            return(ChildSchoolMerge)
+
+          }
+
+          # closes if(nrow(ChildSchoolMerge) > MaxChildrenCanTake)
+        }
+
+        # merge the school into the household data
+
+        # do the allocation
+        if(exists("ChildrenFinalised")) {
+
+          ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
+
+        } else {
+
+          ChildrenFinalised <- ChildSchoolMerge
+
+          # closes  if(exists(ChildrenFinalised))
+        }
+
+         # reduce the relevant roll count for the school
+        # do straight injection of updated count
+
+
+          # may have multiple kids that can go to the same school but only one/few can,
+          # cut down the number of rows to the maximum number that can be accepted
+
+        # removed matched school from the choices available
+        AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
+          filter(!(SchoolID == SchoolChosen$SchoolID))
+
+        # update for whether loop continues
+        NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
+
+        # update the maximum number that can be allocated to the same school
+        NumberSameSchool <- max(NumberSameSchool - nrow(ChildSchoolMerge), 1)
+
+        # something here about the random roll - number of kids already allocated versus max number kids can take
+        # need to update random roll, taking into account of the number of kids already assigned
+
+
+        MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes)))
+
+
+
+        # closes  while(NumKidsRemaining > 0)
+        }
 #
 #         if(CurrentHousehold == 1092) {
 #           return(SchoolChosenDetail)
