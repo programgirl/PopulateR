@@ -346,7 +346,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         }
 
-        # select schools by probability
+
+       # select schools by probability
         # uses simple weight by roll count
         # cat("The random roll is", NumberSameSchool, "for household", CurrentHousehold, "\n")
 
@@ -358,9 +359,16 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # first set of schools to choose
         MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes)))
 
+       cat("The maximum number of children that can be taken is, ", MaxChildrenCanTake, "\n")
+
         # cat("The max children is", MaxChildrenCanTake, "\n")
 
-        cat("All schools sample is", str(AllSchoolsFromWhichToChoose, "\n"))
+        cat("The number of children to the same school", NumberSameSchool, "\n")
+
+        if(CurrentHousehold == 544) {
+          return(AllSchoolsFromWhichToChoose)
+
+        }
 
         MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
           filter(NumberTimes == MaxChildrenCanTake)
@@ -386,10 +394,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         SchoolChosenDetail <- PossibleSchools %>%
           filter(SchoolID == SchoolChosen$SchoolID)
-
-        if(CurrentHousehold == 1092) {
-          return(SchoolChosenDetail)
-        }
+#
+#         if(CurrentHousehold == 1092) {
+#           return(SchoolChosenDetail)
+#         }
 
 
           # closes  if(NumberSameSchool > 1)
