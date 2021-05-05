@@ -412,18 +412,19 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           CheckForMultiples <- ChildSchoolMerge %>%
             group_by(ChildAge) %>%
             summarise(NumberKidsThatAge = n()) %>%
-            filter(NumberKidsThatAge)
+            filter(NumberKidsThatAge > 1)
 
-            summ
+
+          if(CurrentHousehold == 544) {
+            return(CheckForMultiples)
+
+          }
 
           ChildSchoolMerge <- SchoolChosenDetail %>%
             slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
 
 
-          if(CurrentHousehold == 544) {
-            return(ChildSchoolMerge)
 
-          }
 
           # closes if(nrow(ChildSchoolMerge) > MaxChildrenCanTake)
         }
