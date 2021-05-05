@@ -208,6 +208,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge")
 
+        # cat("PossibleSchools IsMatch is below", "\n")
+
           PossibleSchools <- SchoolsRenamed %>%
             filter(ChildAge %in% c(ChildAges$ChildAge)) %>%
             right_join(ChildAges, by = c("ChildAge")) %>%
@@ -216,6 +218,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
               filter(CountsDecreased > 0,
                      IsMatch == "Y") %>%
             select(-c(ChildType, CountsByAge, CountsDecreased, IsMatch))
+
+          # cat("PossibleSchools IsMatch is successful", "\n")
+
 
 
         # closes for j loop through selecting schools
@@ -299,7 +304,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(!(is.na(UnmatchedSingleSexToMerge$NumberTimes[1]))) {
 
-          cat("UnmatchedSingleSexToMerge loop entered for for household", CurrentHousehold, "\n")
+          # cat("UnmatchedSingleSexToMerge loop entered for for household", CurrentHousehold, "\n")
 
           # print(str(PossibleSchools))
           # cat("The rows in UnmatchedSingleSexToMerge are", nrow(UnmatchedSingleSexToMerge), "\n")
@@ -342,12 +347,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # closes else after closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
         } else {
 
-          cat("Entered no-same-sex-schools loop", "\n")
+          # cat("Entered no-same-sex-schools loop", "\n")
 
           AllSchoolsFromWhichToChoose <- CoedSchoolsSelected
 
         }
-
 
        # select schools by probability
         # uses simple weight by roll count
@@ -361,20 +365,24 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # first set of schools to choose
         MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes)))
 
-       cat("The maximum number of children that can be taken is, ", MaxChildrenCanTake, "\n")
+       cat("On line 368, the maximum number of children that can be taken is, ", MaxChildrenCanTake, "\n")
 
         # cat("The max children is", MaxChildrenCanTake, "\n")
 
-        cat("The number of children to the same school", NumberSameSchool, "\n")
+        # cat("The number of children to the same school", NumberSameSchool, "\n")
 
         # need to loop through the kids in the household
 
         while(NumKidsRemaining > 0) {
 
+          cat("The number of kids remaining is", print(NumKidsRemaining), "\n")
+
         MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
           filter(NumberTimes >= MaxChildrenCanTake)
 
-        str(MultiplesSchools)
+
+        # cat("With", NumKidsRemaining, "kids remaining the multiples schools are:", "\n")
+        # str(MultiplesSchools)
 
      #   cat(str(MultipleSchools), "\n")
 
@@ -390,18 +398,73 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         SchoolChosen <- MultiplesSchools %>%
           slice_sample(weight_by = RollCountSum, n=1)
 
+
+
         # now need to loop through all the children in the family
 
         print(CurrentHousehold)
-        str(SchoolChosen)
-        str(PossibleSchools)
 
-        SchoolChosenDetail <- PossibleSchools %>%
-          filter(SchoolID == SchoolChosen$SchoolID)
+        cat("And the school chosen is", "\n")
+        str(SchoolChosen)
+
+        # cat("With possible schools")
+        # str(AllSchoolsFromWhichToChoose)
+
+        # create a SchoolChosenDetail data frame when a same-sex combination is selected
+        if(exists("SingleSexMatchedSchools") == TRUE) {
+
+           if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
+
+             cat("Uses the combo single sex school", "\n")
+
+          School1 <- SingleSexMatchedSchools %>%
+            filter(SchoolID == SchoolChosenDetail$SchoolID) %>%
+            select(SchoolID.x, ChildAge.x)
+
+          SchoolDetail1 <- PossibleSchools %>%
+            filter(ChildAge == School1$ChildAge.x,
+                   SchoolID == School1$SchoolID.x)
+
+          School2 <- SingleSexMatchedSchools %>%
+            filter(SchoolID == SchoolChosenDetail$SchoolID) %>%
+            select(SchoolID.y, ChildAge.y)
+
+          SchoolDetail2 <- PossibleSchools %>%
+            filter(ChildAge == School1$ChildAge.y,
+                   SchoolID == School1$SchoolID.y)
+
+          SchoolChosenDetail <- bind_rows(SchoolDetail1, SchoolDetail2)
+
+          # close if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID)))
+           }
+
+        } else {
+
+          SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
+            filter(SchoolID == SchoolChosen$SchoolID) %>%
+            left_join(PossibleSchools, by = c("SchoolID", "SchoolType")) %>%
+            filter(ChildAge %in% c(ChildAges$ChildAge))
+
+          cat("The school chosen detail is", "\n")
+
+          print(str(SchoolChosenDetail))
+
+          # close if(exists("SingleSexMatchedSchools") == TRUE)
+        }
+
+        # cat("The children in the household are", "\n")
+        # str(ChildrenInHousehold)
+
+        # cat("The file SchoolChosenDetail is", "\n")
+        # str(SchoolChosenDetail)
+
+        # cat("ChildSchoolMerge IsMatch below", "\n")
 
         ChildSchoolMerge <- left_join(ChildrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
-          filter(IsMatch == "Y")
+          filter(IsMatch == "Y") %>%
+          select(-IsMatch)
+
 
         # pick the kids that will go to this school, using the max number that can be assigned
         # loop is only entered if there are more school spots than children
@@ -409,6 +472,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # and permitted same-sex combinations
 
         if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
+
+          cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
           # need to account for twins, triplets etc here
           # check for duplicated and subset these if present
@@ -419,9 +484,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             summarise(NumberKidsThatAge = n()) %>%
             filter(NumberKidsThatAge > 1)
 
+          cat("The multiples are", nrow(CheckForMultiples), "\n")
+
           # need to handle multiples and not multiples separately
           # code below assigns the not-multiples
-          if(is.na(CheckForMultiples$ChildAge[1])) {
+          if(!(is.na(CheckForMultiples$ChildAge[1]))) {
+
+            cat("There are", nrow(CheckForMultiples), "multiples", "\n")
 
             # while school may have too many rows, there may not be enough kids
             # the same age
@@ -452,24 +521,32 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 slice_sample(n = 1)
 
               # restrict the matches to that age
-              TheChildSchoolMerge <- TheChildSchoolMerge %>%
+              ChildSchoolMerge <- ChildSchoolMerge %>%
                 filter(ChildAge == AgeToUse$ChildAge)
 
               # random delete one if the number of kids that age is more than the
               # number for the roll that age in that school
 
-              if(nrow(TheChildSchoolMerge) > ChildrenToFix) {
+              if(nrow(ChildSchoolMerge) > ChildrenToFix) {
 
-                TheChildSchoolMerge <- TheChildSchoolMerge %>%
+                ChildSchoolMerge <- ChildSchoolMerge %>%
                   slice_sample(n = ChildrenToFix)
               }
 
-              # MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
+              # if(CurrentHousehold == 544) {
+              #   return(ChildSchoolMerge)
+              #
+              # }
+
+              MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
 
               # TODO: not sure what I am doing in the row below.
 
               CombinationMade <- ChildSchoolMerge %>%
                 filter(ChildAge == MaxMultiplesAge)
+
+
+
               # if the count of kids at the same age was always smaller than the count in the school roll
               # could do a simple sample, but this may not be the case
 
@@ -489,6 +566,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             #closes if(is.na(CheckForMultiples$ChildAge[1]))
           }
 
+          # if(CurrentHousehold == 544) {
+          #   return(ChildrenToFix)
+          #
+          # }
+
 
           # there may also be assignment of children who are not multiples
           # e.g. twins and one other child go to the same school
@@ -498,10 +580,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
 
 
-          if(CurrentHousehold == 544) {
-            return(CheckForMultiples)
-
-          }
+          # if(CurrentHousehold == 544) {
+          #   return(CheckForMultiples)
+          #
+          # }
 
 #
           # irrelevant as all matches are used
@@ -545,14 +627,20 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # update for whether loop continues
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
+        cat("The number of kids remaining is", NumKidsRemaining, "\n")
+
         # update the maximum number that can be allocated to the same school
         NumberSameSchool <- max(NumberSameSchool - nrow(ChildSchoolMerge), 1)
+
+        cat("The number same school is", NumberSameSchool, "\n")
 
         # something here about the random roll - number of kids already allocated versus max number kids can take
         # need to update random roll, taking into account of the number of kids already assigned
 
 
         MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes)))
+
+        cat("The maximum children can take is", MaxChildrenCanTake, "\n")
 
 
 
