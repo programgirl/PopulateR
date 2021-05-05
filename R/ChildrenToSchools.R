@@ -399,20 +399,65 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         SchoolChosenDetail <- PossibleSchools %>%
           filter(SchoolID == SchoolChosen$SchoolID)
 
-        ChildSchoolMerge <- left_join(SchoolChosenDetail, ChildrenInHousehold, by = "ChildAge") %>%
+        ChildSchoolMerge <- left_join(ChildrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
           filter(IsMatch == "Y")
 
         # pick the kids that will go to this school, using the max number that can be assigned
+        # loop is only entered if there are more school spots than children
+        # due to the join, this can only happen if there are multiple children who are the same age
+        # and permitted same-sex combinations
 
         if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
 
           # need to account for twins, triplets etc here
           # check for duplicated and subset these if present
+
           CheckForMultiples <- ChildSchoolMerge %>%
             group_by(ChildAge) %>%
             summarise(NumberKidsThatAge = n()) %>%
             filter(NumberKidsThatAge > 1)
+
+          # need to handle multiples and not multiples separately
+          if(is.na(CheckForMultiples$ChildAge[1])) {
+
+            # while school may have too many rows, there may not be enough kids
+            # the same age
+            # does this matter?
+            ChildSchoolMerge <- ChildSchoolMerge %>%
+              slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
+
+            # handle case when multiple children same age
+          } else {
+
+            ChildrenToFix <- MaxChildrenCanTake
+
+            while(ChildrenToFix > 0) {
+
+              MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
+
+              CombinationMade <- ChildSchoolMerge %>%
+                filter(ChildAge == MaxMultiplesAge)
+
+              if(nrow(CombinationMade) > )
+
+                ChildrenToFix <- ChildrenToFix - nrow(CombinationMade)
+
+                  # something here that redoes the check for multiples content
+
+                # something here about testing whether all the kids are selected
+            }
+
+            #closes if(is.na(CheckForMultiples$ChildAge[1]))
+          }
+
+
+          # there may also be assignment of children who are not multiples
+          # e.g. twins and one other child go to the same school
+          # the extra child/children must also be retained as a match
+
+          # get the ChildSchoolMerge with the largest number of matches by age
+
 
 
           if(CurrentHousehold == 544) {
@@ -420,11 +465,16 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           }
 
-          ChildSchoolMerge <- SchoolChosenDetail %>%
-            slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
-
-
-
+#
+          # irrelevant as all matches are used
+#         } else {
+#
+#           # just a simple random sample if the condition above doesn't occur
+#           ChildSchoolMerge <- SchoolChosenDetail %>%
+#             slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
+#
+#
+#
 
           # closes if(nrow(ChildSchoolMerge) > MaxChildrenCanTake)
         }
