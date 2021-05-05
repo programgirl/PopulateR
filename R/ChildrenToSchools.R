@@ -165,7 +165,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    print(CurrentHousehold)
+    cat("The current household is", CurrentHousehold, "\n")
 
       # get the children in the household
 
@@ -192,6 +192,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # don't think I need this if
       # if(NumberSameSchool > 1) {
 
+      # need to loop through the kids in the household
+
+      while(NumKidsRemaining > 0) {
+
         # need to identify the number of children that can go to the same school
 
         # get child ages vector
@@ -217,10 +221,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                      IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
               filter(CountsDecreased > 0,
                      IsMatch == "Y") %>%
-            select(-c(ChildType, CountsByAge, CountsDecreased, IsMatch))
-
-          # cat("PossibleSchools IsMatch is successful", "\n")
-
+            select(-c(ChildType, CountsByAge, CountsDecreased, IsMatch)) %>%
+            distinct()
 
 
         # closes for j loop through selecting schools
@@ -333,7 +335,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # need to do the same if no matching single sex schools for the age ranges
 
-          cat("Entered some same sex schools loop", "\n")
+          # cat("Entered some same sex schools loop", "\n")
 
           SingleSexSchools <- PossibleSchools %>%
             filter(!(SchoolType == "C")) %>%
@@ -346,11 +348,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # closes else after closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
         } else {
 
-          cat("Entered no-same-sex-schools loop", "\n")
+          # cat("Entered no-same-sex-schools loop", "\n")
 
           AllSchoolsFromWhichToChoose <- CoedSchoolsSelected
 
         }
+
+        cat("The schools from which to choose are", "\n")
+        str(AllSchoolsFromWhichToChoose)
 
        # select schools by probability
         # uses simple weight by roll count
@@ -372,9 +377,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # need to loop through the kids in the household
 
-        while(NumKidsRemaining > 0) {
+        # while(NumKidsRemaining > 0) {
 
-          cat("The number of kids remaining is", print(NumKidsRemaining), "\n")
+          # cat("The number of kids remaining is", print(NumKidsRemaining), "\n")
 
         MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
           filter(NumberTimes >= MaxChildrenCanTake)
@@ -403,8 +408,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         print(CurrentHousehold)
 
-        cat("And the school chosen is", "\n")
-        str(SchoolChosen)
+        # cat("And the school chosen is", "\n")
+        # str(SchoolChosen)
 
         # cat("With possible schools")
         # str(AllSchoolsFromWhichToChoose)
@@ -439,13 +444,18 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         } else {
 
+          cat("All schools from which to chose is", "\n")
+
+          str(AllSchoolsFromWhichToChoose)
+
+          cat("The possible schools that will be merged are", "\n")
+
+          str(PossibleSchools)
+
           SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
             left_join(PossibleSchools, by = c("SchoolID", "SchoolType")) %>%
             filter(ChildAge %in% c(ChildAges$ChildAge))
-
-          cat("The child ages are shown in", "\n")
-          str(ChildAges)
 
           cat("The file SchoolChosenDetail inside loop is", "\n")
           str(SchoolChosenDetail)
@@ -539,6 +549,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                   slice_sample(n = ChildrenToFix)
               }
 
+
               MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
 
               # TODO: not sure what I am doing in the row below.
@@ -616,6 +627,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # closes  if(exists(ChildrenFinalised))
         }
 
+        if(CurrentHousehold == 538) {
+          return(ChildrenFinalised)
+        }
+
 
          # reduce the relevant roll count for the school
         # do straight injection of updated count
@@ -627,6 +642,15 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # removed matched school from the choices available
         AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
           filter(!(SchoolID == SchoolChosen$SchoolID))
+
+        cat("The remaining schools are", "\n")
+
+        str(AllSchoolsFromWhichToChoose)
+
+        # remove children who are matched
+        ChildrenInHousehold <- ChildrenInHousehold %>%
+          filter(ChildID %in% c(ChildSchoolMerge$ChildID))
+
 
         # update for whether loop continues
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
@@ -641,8 +665,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # something here about the random roll - number of kids already allocated versus max number kids can take
         # need to update random roll, taking into account of the number of kids already assigned
 
+        cat("The remaining schools from which to choose are", nrow(AllSchoolsFromWhichToChoose), "\n")
 
-        MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes)))
+        MaxChildrenCanTake <- max((min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes))), 1)
 
         cat("The maximum children can take is", MaxChildrenCanTake, "\n")
 
@@ -650,7 +675,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # closes  while(NumKidsRemaining > 0)
         }
-#
+
+
 #         if(CurrentHousehold == 1092) {
 #           return(SchoolChosenDetail)
 #         }
@@ -669,3 +695,4 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
   # closes function
 }
+
