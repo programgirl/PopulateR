@@ -333,8 +333,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # need to do the same if no matching single sex schools for the age ranges
 
-          # cat("Entered some same sex schools loop", "\n")
-
+          cat("Entered some same sex schools loop", "\n")
 
           SingleSexSchools <- PossibleSchools %>%
             filter(!(SchoolType == "C")) %>%
@@ -347,7 +346,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # closes else after closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
         } else {
 
-          # cat("Entered no-same-sex-schools loop", "\n")
+          cat("Entered no-same-sex-schools loop", "\n")
 
           AllSchoolsFromWhichToChoose <- CoedSchoolsSelected
 
@@ -413,12 +412,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # create a SchoolChosenDetail data frame when a same-sex combination is selected
         if(exists("SingleSexMatchedSchools") == TRUE) {
 
-           if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
+           if(isTRUE(SchoolChosen$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
 
-             cat("Uses the combo single sex school", "\n")
+             # cat("Uses the combo single sex school", "\n")
 
           School1 <- SingleSexMatchedSchools %>%
-            filter(SchoolID == SchoolChosenDetail$SchoolID) %>%
+            filter(SchoolID == SchoolChosen$SchoolID) %>%
             select(SchoolID.x, ChildAge.x)
 
           SchoolDetail1 <- PossibleSchools %>%
@@ -426,7 +425,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                    SchoolID == School1$SchoolID.x)
 
           School2 <- SingleSexMatchedSchools %>%
-            filter(SchoolID == SchoolChosenDetail$SchoolID) %>%
+            filter(SchoolID == SchoolChosen$SchoolID) %>%
             select(SchoolID.y, ChildAge.y)
 
           SchoolDetail2 <- PossibleSchools %>%
@@ -445,9 +444,17 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             left_join(PossibleSchools, by = c("SchoolID", "SchoolType")) %>%
             filter(ChildAge %in% c(ChildAges$ChildAge))
 
-          cat("The school chosen detail is", "\n")
+          cat("The child ages are shown in", "\n")
+          str(ChildAges)
 
-          print(str(SchoolChosenDetail))
+          cat("The file SchoolChosenDetail inside loop is", "\n")
+          str(SchoolChosenDetail)
+
+          # cat("Also entered this final loop", "\n")
+
+          # cat("The school chosen detail is", "\n")
+          #
+          # print(str(SchoolChosenDetail))
 
           # close if(exists("SingleSexMatchedSchools") == TRUE)
         }
@@ -455,8 +462,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # cat("The children in the household are", "\n")
         # str(ChildrenInHousehold)
 
-        # cat("The file SchoolChosenDetail is", "\n")
-        # str(SchoolChosenDetail)
+        cat("The file SchoolChosenDetail is", "\n")
+        str(SchoolChosenDetail)
 
         # cat("ChildSchoolMerge IsMatch below", "\n")
 
@@ -464,7 +471,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
           filter(IsMatch == "Y") %>%
           select(-IsMatch)
-
 
         # pick the kids that will go to this school, using the max number that can be assigned
         # loop is only entered if there are more school spots than children
@@ -533,11 +539,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                   slice_sample(n = ChildrenToFix)
               }
 
-              # if(CurrentHousehold == 544) {
-              #   return(ChildSchoolMerge)
-              #
-              # }
-
               MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
 
               # TODO: not sure what I am doing in the row below.
@@ -604,6 +605,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # do the allocation
         if(exists("ChildrenFinalised")) {
 
+          cat("Children Finalised exists", "\n")
+
           ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
 
         } else {
@@ -612,6 +615,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # closes  if(exists(ChildrenFinalised))
         }
+
 
          # reduce the relevant roll count for the school
         # do straight injection of updated count
