@@ -413,12 +413,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # need to account for twins, triplets etc here
           # check for duplicated and subset these if present
 
+          # prioritise the kids who are the same age
           CheckForMultiples <- ChildSchoolMerge %>%
             group_by(ChildAge) %>%
             summarise(NumberKidsThatAge = n()) %>%
             filter(NumberKidsThatAge > 1)
 
           # need to handle multiples and not multiples separately
+          # code below assigns the not-multiples
           if(is.na(CheckForMultiples$ChildAge[1])) {
 
             # while school may have too many rows, there may not be enough kids
@@ -428,24 +430,60 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
               slice_sample(weight_by = ChildCounts, n=MaxChildrenCanTake)
 
             # handle case when multiple children same age
+            # Still trying to work through the logic of sampling from a school where there are double-ups on age,
+            # but there may be
+            # 1. More kids needed than simply those at the same age (need to resample from school at different age/s) and
+            # 2. Fewer kids needed at the same age, so need to sample from the available spots
           } else {
 
             ChildrenToFix <- MaxChildrenCanTake
 
             while(ChildrenToFix > 0) {
 
-              MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
+              # get the largest age counts
+              LargestAgeCount <- max(CheckForMultiples$NumberKidsThatAge)
+
+              # filter those largest age counts
+              SameAgeSample <- CheckForMultiples %>%
+                filter(NumberKidsThatAge == LargestAgeCount)
+
+              # random select from the largest age counts
+              AgeToUse <- SameAgeSample %>%
+                slice_sample(n = 1)
+
+              # restrict the matches to that age
+              TheChildSchoolMerge <- TheChildSchoolMerge %>%
+                filter(ChildAge == AgeToUse$ChildAge)
+
+              # random delete one if the number of kids that age is more than the
+              # number for the roll that age in that school
+
+              if(nrow(TheChildSchoolMerge) > ChildrenToFix) {
+
+                TheChildSchoolMerge <- TheChildSchoolMerge %>%
+                  slice_sample(n = ChildrenToFix)
+              }
+
+              # MaxMultiplesAge <- max(CheckForMultiples$NumberKidsThatAge)
+
+              # TODO: not sure what I am doing in the row below.
 
               CombinationMade <- ChildSchoolMerge %>%
                 filter(ChildAge == MaxMultiplesAge)
+              # if the count of kids at the same age was always smaller than the count in the school roll
+              # could do a simple sample, but this may not be the case
 
-              if(nrow(CombinationMade) > )
+
+              # work through the remaining kids
+              # if(nrow(CombinationMade) > )
 
                 ChildrenToFix <- ChildrenToFix - nrow(CombinationMade)
 
                   # something here that redoes the check for multiples content
 
                 # something here about testing whether all the kids are selected
+
+                # closes while(ChildrenToFix > 0)
             }
 
             #closes if(is.na(CheckForMultiples$ChildAge[1]))
