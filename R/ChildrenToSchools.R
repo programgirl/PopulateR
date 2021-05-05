@@ -177,7 +177,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold))
 
-      # cat(RandomRollVector, "\n")
+      cat(RandomRollVector, "\n")
 
       # test number of children who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
