@@ -478,7 +478,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             filter(SchoolID == SchoolChosen$SchoolID) %>%
             select(SchoolID.x, ChildAge.x)
 
-          SchoolDetail1 <- PossibleSchools %>%
+          SchoolDetail1 <- SchoolSubset %>%
             filter(ChildAge == School1$ChildAge.x,
                    SchoolID == School1$SchoolID.x)
 
@@ -486,7 +486,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             filter(SchoolID == SchoolChosen$SchoolID) %>%
             select(SchoolID.y, ChildAge.y)
 
-          SchoolDetail2 <- PossibleSchools %>%
+          SchoolDetail2 <- SchoolSubset %>%
             filter(ChildAge == School1$ChildAge.y,
                    SchoolID == School1$SchoolID.y)
 
@@ -534,11 +534,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
           filter(IsMatch == "Y") %>%
           select(-IsMatch)
-
-
-        if(CurrentHousehold == 574) {
-          return(ChildSchoolMerge)
-        }
 
 
       # pick the kids that will go to this school, using the max number that can be assigned
@@ -704,8 +699,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # remove children who are matched
         ChildrenInHousehold <- ChildrenInHousehold %>%
-          filter(ChildID %in% c(ChildSchoolMerge$ChildID))
-
+          filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
         # update for whether loop continues
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
@@ -722,14 +716,18 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         cat("The remaining schools from which to choose are", nrow(AllSchoolsFromWhichToChoose), "\n")
 
-        MaxChildrenCanTake <- max((min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberTimes))), 1)
+        MaxChildrenCanTake <- max((min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberKids))), 1)
 
         cat("The maximum children can take is", MaxChildrenCanTake, "\n")
 
 
 
         # closes  while(NumKidsRemaining > 0)
-        }
+      }
+
+      if(CurrentHousehold == 1092) {
+        return(ChildrenFinalised)
+      }
 
 
 #         if(CurrentHousehold == 1092) {
