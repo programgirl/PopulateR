@@ -457,10 +457,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         SchoolChosen <- MultiplesSchools %>%
           slice_sample(weight_by = ChildCounts, n=1)
 
-        if(CurrentHousehold == 574) {
-          return(SchoolChosen)
-        }
-
         # now need to loop through all the children in the family
 
         print(CurrentHousehold)
@@ -476,7 +472,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
            if(isTRUE(SchoolChosen$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
 
-             # cat("Uses the combo single sex school", "\n")
+             # cat("Uses the combo single sex school SchoolID", "\n")
 
           School1 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
@@ -507,12 +503,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           cat("The possible schools that will be merged are", "\n")
 
-          str(PossibleSchools)
+          str(SchoolSubset)
 
           SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
-            filter(SchoolID == SchoolChosen$SchoolID) %>%
-            left_join(PossibleSchools, by = c("SchoolID", "SchoolType")) %>%
-            filter(ChildAge %in% c(ChildAges$ChildAge))
+            filter(SchoolID == SchoolChosen$SchoolID) #%>%
+       #     left_join(SchoolSubset, by = c("SchoolID", "SchoolType")) %>%
+            # filter(ChildAge %in% c(ChildAges$ChildAge))
 
           cat("The file SchoolChosenDetail inside loop is", "\n")
           str(SchoolChosenDetail)
@@ -539,7 +535,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           filter(IsMatch == "Y") %>%
           select(-IsMatch)
 
-        # pick the kids that will go to this school, using the max number that can be assigned
+
+        if(CurrentHousehold == 574) {
+          return(ChildSchoolMerge)
+        }
+
+
+      # pick the kids that will go to this school, using the max number that can be assigned
         # loop is only entered if there are more school spots than children
         # due to the join, this can only happen if there are multiple children who are the same age
         # and permitted same-sex combinations
