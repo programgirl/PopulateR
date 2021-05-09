@@ -232,6 +232,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
            mutate(RemainingChildren = ChildCounts - NumberKids) %>%
            filter(RemainingChildren >= 0)
 
+         NumberKidsPerSchool <- SchoolSubset %>%
+           group_by(SchoolID) %>%
+           summarise(TotalKids = sum(NumberKids))
+
         # cat("PossibleSchools IsMatch is below", "\n")
 
          # NOTE: PossibleSchools did not provide the output needed for further in the function
@@ -432,7 +436,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # to be assigned to the same school
 
         # first set of schools to choose
-        MaxChildrenCanTake <- (min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberKids)))
+        MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$TotalKids)))
 
        cat("The maximum number of children that can be taken is", MaxChildrenCanTake, "\n")
 
@@ -482,7 +486,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
            if(isTRUE(SchoolChosen$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
 
-             # cat("Uses the combo single sex school SchoolID", "\n")
+              cat("Uses the combo single sex school SchoolID", "\n")
 
           School1 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
@@ -735,14 +739,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # closes  while(NumKidsRemaining > 0)
       }
 
-      if(CurrentHousehold == 538) {
-        return(ChildrenFinalised)
-      }
-
 
           # closes  if(NumberSameSchool > 1)
       # }
 
+
+      if(CurrentHousehold == 538) {
+        return(ChildrenFinalised)
+      }
 
       # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
