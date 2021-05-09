@@ -185,6 +185,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         summarise(SameSchool = n()) %>%
         pull(SameSchool)
 
+
       # print(NumberSameSchool)
 
       # add children to same school
@@ -203,6 +204,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           group_by(ChildType, ChildAge) %>%
           summarise(CountsByAge = n()))
 
+
         # locate schools that can take the maximum number of children from NumberSameSchool down
         # not sure I need this either
         # for(j in 1:nrow(ChildAges)) {
@@ -210,19 +212,30 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # cat("Current child age is", ChildAges$ChildAge[j], "and child sex is", ChildAges$ChildType[j],
           #     "and number children that age and sex is", ChildAges$CountsByAge[j], "\n")
 
-        # SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge")
+         SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+           filter(ChildCounts > 0,
+                  IsMatch == "Y") %>%
+           group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+           summarise(NumberKids = n()) %>%
+           ungroup() %>%
+           mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+           filter(RemainingChildren >= 0)
 
         # cat("PossibleSchools IsMatch is below", "\n")
 
-          PossibleSchools <- SchoolsRenamed %>%
-            filter(ChildAge %in% c(ChildAges$ChildAge)) %>%
-            right_join(ChildAges, by = c("ChildAge")) %>%
-              mutate(CountsDecreased = ChildCounts - CountsByAge,
-                     IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
-              filter(CountsDecreased > 0,
-                     IsMatch == "Y") %>%
-            select(-c(ChildType, CountsByAge, CountsDecreased, IsMatch)) %>%
-            distinct()
+         # NOTE: PossibleSchools did not provide the output needed for further in the function
+         # NOTE: now trying to do the function with SchoolSubset instead
+
+          # PossibleSchools <- SchoolsRenamed %>%
+          #   filter(ChildAge %in% c(ChildAges$ChildAge)) %>%
+          #   right_join(ChildAges, by = c("ChildAge")) %>%
+          #     mutate(CountsDecreased = ChildCounts - CountsByAge,
+          #            IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+          #     filter(CountsDecreased > 0,
+          #            IsMatch == "Y") %>%
+          #   select(-c(ChildType, CountsByAge, CountsDecreased, IsMatch)) %>%
+          #   distinct()
 
 
         # closes for j loop through selecting schools
@@ -230,12 +243,20 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # get the co-ed schools
 
-        CoedSchoolsSelected <- PossibleSchools %>%
-          filter(SchoolType == "C") %>%
-          group_by(SchoolID) %>%
-          summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
-          rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes) %>%
-          mutate(SchoolType = "C")
+         CoedSchoolsSelected <- SchoolSubset %>%
+           filter(SchoolType == "C")
+
+         if(CurrentHousehold == 574) {
+           return(CoedSchoolsSelected)
+         }
+
+
+        # CoedSchoolsSelected <- PossibleSchools %>%
+        #   filter(SchoolType == "C") %>%
+        #   group_by(SchoolID) %>%
+        #   summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
+        #   rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes) %>%
+        #   mutate(SchoolType = "C")
 
         # work with the single-sex schools
 
@@ -625,10 +646,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           ChildrenFinalised <- ChildSchoolMerge
 
           # closes  if(exists(ChildrenFinalised))
-        }
-
-        if(CurrentHousehold == 538) {
-          return(ChildrenFinalised)
         }
 
 
