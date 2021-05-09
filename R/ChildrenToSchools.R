@@ -212,12 +212,22 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # cat("Current child age is", ChildAges$ChildAge[j], "and child sex is", ChildAges$ChildType[j],
           #     "and number children that age and sex is", ChildAges$CountsByAge[j], "\n")
 
+         # SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+         #   mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+         #   filter(ChildCounts > 0,
+         #          IsMatch == "Y") %>%
+         #   group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+         #   summarise(NumberKids = n()) %>%
+         #   ungroup() %>%
+         #   mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+         #   filter(RemainingChildren >= 0)
+
          SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
            mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
            filter(ChildCounts > 0,
                   IsMatch == "Y") %>%
            group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
-           summarise(NumberKids = n()) %>%
+           summarise(NumberKids = sum(CountsByAge)) %>%
            ungroup() %>%
            mutate(RemainingChildren = ChildCounts - NumberKids) %>%
            filter(RemainingChildren >= 0)
@@ -408,9 +418,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           AllSchoolsFromWhichToChoose <- CoedSchoolsSelected
 
         }
-
-        cat("The schools from which to choose are", "\n")
-        str(AllSchoolsFromWhichToChoose)
+#
+#         cat("The schools from which to choose are", "\n")
+#         str(AllSchoolsFromWhichToChoose)
 
        # select schools by probability
         # uses simple weight by roll count
@@ -497,13 +507,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         } else {
 
-          cat("All schools from which to chose is", "\n")
-
-          str(AllSchoolsFromWhichToChoose)
-
-          cat("The possible schools that will be merged are", "\n")
-
-          str(SchoolSubset)
+          # cat("All schools from which to chose is", "\n")
+          #
+          # str(AllSchoolsFromWhichToChoose)
+          #
+          # cat("The possible schools that will be merged are", "\n")
+          #
+          # str(SchoolSubset)
 
           SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
             filter(SchoolID == SchoolChosen$SchoolID) #%>%
@@ -525,8 +535,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # cat("The children in the household are", "\n")
         # str(ChildrenInHousehold)
 
-        cat("The file SchoolChosenDetail is", "\n")
-        str(SchoolChosenDetail)
+        # cat("The file SchoolChosenDetail is", "\n")
+        # str(SchoolChosenDetail)
 
         # cat("ChildSchoolMerge IsMatch below", "\n")
 
@@ -725,14 +735,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # closes  while(NumKidsRemaining > 0)
       }
 
-      if(CurrentHousehold == 1092) {
+      if(CurrentHousehold == 538) {
         return(ChildrenFinalised)
       }
-
-
-#         if(CurrentHousehold == 1092) {
-#           return(SchoolChosenDetail)
-#         }
 
 
           # closes  if(NumberSameSchool > 1)
