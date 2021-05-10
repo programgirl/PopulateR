@@ -234,7 +234,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
          NumberKidsPerSchool <- SchoolSubset %>%
            group_by(SchoolID) %>%
-           summarise(TotalKids = sum(NumberKids))
+           summarise(across(c(ChildCounts, NumberKids), sum))
+           # summarise(TotalKids = sum(NumberKids))
 
         # cat("PossibleSchools IsMatch is below", "\n")
 
@@ -436,11 +437,16 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # to be assigned to the same school
 
         # first set of schools to choose
-        MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$TotalKids)))
+        MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
 
        cat("The maximum number of children that can be taken is", MaxChildrenCanTake, "\n")
 
-        # cat("The max children is", MaxChildrenCanTake, "\n")
+       # extract these schools
+       MultiplesSchools <- NumberKidsPerSchool %>%
+         filter(NumberKids >= MaxChildrenCanTake)
+
+
+      # cat("The max children is", MaxChildrenCanTake, "\n")
 
         # cat("The number of children to the same school", NumberSameSchool, "\n")
 
@@ -450,9 +456,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # cat("The number of kids remaining is", print(NumKidsRemaining), "\n")
 
-        MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
-          filter(NumberKids >= MaxChildrenCanTake)
-
+        # MultiplesSchools <- AllSchoolsFromWhichToChoose %>%
+        #   filter(NumberKids >= MaxChildrenCanTake)
 
         # cat("With", NumKidsRemaining, "kids remaining the multiples schools are:", "\n")
         # str(MultiplesSchools)
@@ -469,11 +474,16 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # the school assignment is done for each one
 
         SchoolChosen <- MultiplesSchools %>%
-          slice_sample(weight_by = ChildCounts, n=1)
+          slice_sample(weight_by = NumberKids, n=1)
 
         # now need to loop through all the children in the family
 
         print(CurrentHousehold)
+
+
+        if(CurrentHousehold == 538) {
+          return(SchoolChosen)
+        }
 
         # cat("And the school chosen is", "\n")
         # str(SchoolChosen)
@@ -744,11 +754,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # }
 
 
-      if(CurrentHousehold == 538) {
-        return(ChildrenFinalised)
-      }
-
-      # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
+    # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
 
 
