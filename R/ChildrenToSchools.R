@@ -481,15 +481,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         print(CurrentHousehold)
 
 
-        if(CurrentHousehold == 538) {
-          return(SchoolChosen)
-        }
-
         # cat("And the school chosen is", "\n")
         # str(SchoolChosen)
 
         # cat("With possible schools")
         # str(AllSchoolsFromWhichToChoose)
+
+        # TODO fix the code below because of the existence of children of multiple ages at the same school
 
         # create a SchoolChosenDetail data frame when a same-sex combination is selected
         if(exists("SingleSexMatchedSchools") == TRUE) {
@@ -756,6 +754,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
+
+    if(CurrentHousehold == 538) {
+      return(ChildrenFinalised)
+    }
 
 
     # closes if(nrow(MultipleChildrenHouseholds > 0)
