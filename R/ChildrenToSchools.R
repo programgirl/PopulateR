@@ -195,7 +195,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
       # need to loop through the kids in the household
 
-      while(NumKidsRemaining > 0) {
+      # while(NumKidsRemaining > 0) {
 
         # need to identify the number of children that can go to the same school
 
@@ -436,10 +436,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # but limit to those schools that accept the number of children that do not exceed the number
         # to be assigned to the same school
 
+        cat("The schools from which to choose are", "\n")
+        str(NumberKidsPerSchool)
+
+
+        while(NumKidsRemaining > 0) {
         # first set of schools to choose
         MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
-
-       cat("The maximum number of children that can be taken is", MaxChildrenCanTake, "\n")
 
        # extract these schools
        MultiplesSchools <- NumberKidsPerSchool %>%
@@ -532,8 +535,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
        #     left_join(SchoolSubset, by = c("SchoolID", "SchoolType")) %>%
             # filter(ChildAge %in% c(ChildAges$ChildAge))
 
-          cat("The file SchoolChosenDetail inside loop is", "\n")
-          str(SchoolChosenDetail)
+          # cat("The file SchoolChosenDetail inside loop is", "\n")
+          # str(SchoolChosenDetail)
 
           # cat("Also entered this final loop", "\n")
 
@@ -565,7 +568,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
 
-          cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
+          # cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
           # need to account for twins, triplets etc here
           # check for duplicated and subset these if present
@@ -632,8 +635,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
               CombinationMade <- ChildSchoolMerge %>%
                 filter(ChildAge == MaxMultiplesAge)
-
-
 
               # if the count of kids at the same age was always smaller than the count in the school roll
               # could do a simple sample, but this may not be the case
@@ -711,17 +712,23 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # may have multiple kids that can go to the same school but only one/few can,
           # cut down the number of rows to the maximum number that can be accepted
 
+        # remove children who are matched
+        ChildrenInHousehold <- ChildrenInHousehold %>%
+          filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
+
         # removed matched school from the choices available
+        # and restrict those who contain the remaining ages
         AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
-          filter(!(SchoolID == SchoolChosen$SchoolID))
+          filter(!(SchoolID == SchoolChosen$SchoolID),
+                 ChildAge %in% c(ChildrenInHousehold$ChildAge))
 
         cat("The remaining schools are", "\n")
 
         str(AllSchoolsFromWhichToChoose)
 
-        # remove children who are matched
-        ChildrenInHousehold <- ChildrenInHousehold %>%
-          filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
+        if(CurrentHousehold == 538) {
+          return(ChildrenInHousehold)
+        }
 
         # update for whether loop continues
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
@@ -747,6 +754,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # closes  while(NumKidsRemaining > 0)
       }
 
+      # if(CurrentHousehold == 538) {
+      #   return(ChildrenFinalised)
+      # }
+
 
           # closes  if(NumberSameSchool > 1)
       # }
@@ -754,10 +765,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
-
-    if(CurrentHousehold == 538) {
-      return(ChildrenFinalised)
-    }
 
 
     # closes if(nrow(MultipleChildrenHouseholds > 0)
