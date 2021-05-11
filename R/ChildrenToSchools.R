@@ -175,7 +175,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       NumKidsRemaining <- nrow(ChildrenInHousehold)
 
       # random roll to see if any children in same school, will prioritise the twins
-      RandomRollVector <- runif(nrow(ChildrenInHousehold))
+      RandomRollVector <- runif(nrow(ChildrenInHousehold)-1)
 
       cat(RandomRollVector, "\n")
 
@@ -186,7 +186,30 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         pull(SameSchool)
 
 
-      # print(NumberSameSchool)
+      # fix the number of children that can go to the same school
+      if(NumberSameSchool == 1) {
+
+        NumberSameSchool <- 2
+
+      } else if (NumberSameSchool == 0) {
+
+        NumberSameSchool <- 2
+
+      } else {
+
+        FinalRandomRoll <- runif(1)
+
+        if(FinalRandomRoll > (1-ChildProb)) {
+
+          NumberSameSchool <- NumberSameSchool +1
+
+        }
+
+
+      }
+
+
+      print(NumberSameSchool)
 
       # add children to same school
 
@@ -436,8 +459,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # but limit to those schools that accept the number of children that do not exceed the number
         # to be assigned to the same school
 
-        cat("The schools from which to choose are", "\n")
-        str(NumberKidsPerSchool)
+        # cat("The schools from which to choose are", "\n")
+        # str(NumberKidsPerSchool)
 
 
         while(NumKidsRemaining > 0) {
@@ -484,8 +507,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         print(CurrentHousehold)
 
 
-        # cat("And the school chosen is", "\n")
-        # str(SchoolChosen)
+        cat("And the school chosen is", "\n")
+        str(SchoolChosen)
 
         # cat("With possible schools")
         # str(AllSchoolsFromWhichToChoose)
@@ -579,7 +602,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             summarise(NumberKidsThatAge = n()) %>%
             filter(NumberKidsThatAge > 1)
 
-          cat("The multiples are", nrow(CheckForMultiples), "\n")
+          # cat("The multiples are", nrow(CheckForMultiples), "\n")
 
           # need to handle multiples and not multiples separately
           # code below assigns the not-multiples
@@ -716,21 +739,29 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         ChildrenInHousehold <- ChildrenInHousehold %>%
           filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
+        cat("The children in household data are", "\n")
+        str(ChildrenInHousehold)
+
         # removed matched school from the choices available
         # and restrict those who contain the remaining ages
+        cat("Before restricting the schools there are", "\n")
+        str(AllSchoolsFromWhichToChoose)
+
         AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
           filter(!(SchoolID == SchoolChosen$SchoolID),
                  ChildAge %in% c(ChildrenInHousehold$ChildAge))
 
+
+        NumberKidsPerSchool <- NumberKidsPerSchool %>%
+          filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
+
         cat("The remaining schools are", "\n")
-
         str(AllSchoolsFromWhichToChoose)
-
-        if(CurrentHousehold == 538) {
-          return(ChildrenInHousehold)
-        }
+        str(NumberKidsPerSchool)
 
         # update for whether loop continues
+        cat("The number of kids remaining is", NumKidsRemaining, "and the number of children allocated was", nrow(ChildSchoolMerge), "\n")
+
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
         cat("The number of kids remaining is", NumKidsRemaining, "\n")
@@ -738,16 +769,16 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # update the maximum number that can be allocated to the same school
         NumberSameSchool <- max(NumberSameSchool - nrow(ChildSchoolMerge), 1)
 
-        cat("The number same school is", NumberSameSchool, "\n")
+        # cat("The number same school is", NumberSameSchool, "\n")
 
         # something here about the random roll - number of kids already allocated versus max number kids can take
         # need to update random roll, taking into account of the number of kids already assigned
 
-        cat("The remaining schools from which to choose are", nrow(AllSchoolsFromWhichToChoose), "\n")
+        # cat("The remaining schools from which to choose are", nrow(AllSchoolsFromWhichToChoose), "\n")
 
         MaxChildrenCanTake <- max((min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberKids))), 1)
 
-        cat("The maximum children can take is", MaxChildrenCanTake, "\n")
+        # cat("The maximum children can take is", MaxChildrenCanTake, "\n")
 
 
 
@@ -765,6 +796,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
+
+    if(CurrentHousehold == 538) {
+      return(ChildrenFinalised)
+    }
 
 
     # closes if(nrow(MultipleChildrenHouseholds > 0)
