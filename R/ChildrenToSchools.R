@@ -309,9 +309,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
          # this will only return a non-empty data frame if there is a male school
          # that exists in the SchoolsSubset, ignoring age
-         MaleSchoolsToMatch <- SchoolsRenamed %>%
-           filter(SchoolType == "M",
-                  SchoolID %in% c(SingleSexSchoolsSelected$SchoolID))
+         MaleSchoolsToMatch <- SchoolSubset %>%
+           filter(SchoolType == "M")
+
+         # MaleSchoolsToMatch <- SchoolsRenamed %>%
+         #   filter(SchoolType == "M",
+         #          SchoolID %in% c(SingleSexSchoolsSelected$SchoolID))
 
 
         # FemaleAgesToMatch <- PossibleSchools %>%
@@ -339,6 +342,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           group_by(SchoolID) %>%
           summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
           rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes)
+
+        if(CurrentHousehold == 672) {
+          return(MatchedMales)
+        }
 
         # sum the male counts by school
         SingleSexMaleSchoolCounts <- MatchedMales %>%
@@ -803,10 +810,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
-
-    if(CurrentHousehold == 538) {
-      return(ChildrenFinalised)
-    }
+#
+#     if(CurrentHousehold == 538) {
+#       return(ChildrenFinalised)
+#     }
 
 
     # closes if(nrow(MultipleChildrenHouseholds > 0)
