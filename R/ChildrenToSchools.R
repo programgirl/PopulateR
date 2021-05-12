@@ -177,7 +177,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold)-1)
 
-      cat(RandomRollVector, "\n")
+      # cat(RandomRollVector, "\n")
 
       # test number of children who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
@@ -209,7 +209,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      print(NumberSameSchool)
+      # print(NumberSameSchool)
 
       # add children to same school
 
@@ -716,7 +716,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # do the allocation
         if(exists("ChildrenFinalised")) {
 
-          cat("Children Finalised exists", "\n")
+          # cat("Children Finalised exists", "\n")
 
           ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
 
@@ -739,13 +739,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         ChildrenInHousehold <- ChildrenInHousehold %>%
           filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
-        cat("The children in household data are", "\n")
-        str(ChildrenInHousehold)
+        # cat("The children in household data are", "\n")
+        # str(ChildrenInHousehold)
 
         # removed matched school from the choices available
         # and restrict those who contain the remaining ages
-        cat("Before restricting the schools there are", "\n")
-        str(AllSchoolsFromWhichToChoose)
+        # cat("Before restricting the schools there are", "\n")
+        # str(AllSchoolsFromWhichToChoose)
 
         AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
           filter(!(SchoolID == SchoolChosen$SchoolID),
@@ -755,18 +755,21 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         NumberKidsPerSchool <- NumberKidsPerSchool %>%
           filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
 
-        cat("The remaining schools are", "\n")
-        str(AllSchoolsFromWhichToChoose)
-        str(NumberKidsPerSchool)
+        # cat("The remaining schools are", "\n")
+        # str(AllSchoolsFromWhichToChoose)
+        # str(NumberKidsPerSchool)
 
         # update for whether loop continues
-        cat("The number of kids remaining is", NumKidsRemaining, "and the number of children allocated was", nrow(ChildSchoolMerge), "\n")
+        cat("The number of children allocated was", nrow(ChildSchoolMerge), "\n")
 
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
         cat("The number of kids remaining is", NumKidsRemaining, "\n")
 
         # update the maximum number that can be allocated to the same school
+
+        # stops the recalculation of this information if there are no more children to assign to schools
+        if (NumKidsRemaining > 0) {
         NumberSameSchool <- max(NumberSameSchool - nrow(ChildSchoolMerge), 1)
 
         # cat("The number same school is", NumberSameSchool, "\n")
@@ -778,7 +781,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         MaxChildrenCanTake <- max((min(NumberSameSchool, max(AllSchoolsFromWhichToChoose$NumberKids))), 1)
 
-        # cat("The maximum children can take is", MaxChildrenCanTake, "\n")
+        # cat("The maximum children can take on line 779 is", MaxChildrenCanTake, "\n")
+        # cat("The min number same school is", min(NumberSameSchool), "The other is", max(AllSchoolsFromWhichToChoose$NumberKids), "\n")
+
+        # closes if (NumKidsRemaining > 0)
+        }
 
 
 
