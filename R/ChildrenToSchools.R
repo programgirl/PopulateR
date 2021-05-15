@@ -337,44 +337,66 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           cat("There is an overlap in the single-sex school ages", "\n")
 
-        # sum the female counts by school
-        SingleSexFemaleSchoolCounts <- FemaleAgesToMatch %>%
-          group_by(SchoolID) %>%
-          summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
-          rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes)
+          SingleSexMatchedSchools <- MatchedMales %>%
+            select(SchoolID.x, SchoolID.y) %>%
+            distinct() %>%
+            left_join(NumberKidsPerSchool, by = c("SchoolID.x" = "SchoolID")) %>%
+            rename(ChildCounts.x = ChildCounts, NumberKids.x = NumberKids) %>%
+            left_join(NumberKidsPerSchool, by = c("SchoolID.y" = "SchoolID"))  %>%
+            rename(ChildCounts.y = ChildCounts, NumberKids.y = NumberKids) %>%
+            mutate(ChildCounts = ChildCounts.x + ChildCounts.y,
+                   NumberKids = NumberKids.x + NumberKids.y,
+                   SchoolID = paste0("CombinedSchool", 1:nrow(.)))
 
-        if(CurrentHousehold == 672) {
-          return(MatchedMales)
-        }
-
-        # sum the male counts by school
-        SingleSexMaleSchoolCounts <- MatchedMales %>%
-          select(SchoolID.x, SchoolID.y, ChildCounts.y) %>%
-          group_by(SchoolID.x, SchoolID.y) %>%
-          summarise(across(ChildCounts.y, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
-         rename(RollCountSum = ChildCounts.y_RollCountSum, NumberTimes = ChildCounts.y_NumberTimes) %>%
-          ungroup()
-
-        # only do this if there are matched single-sex schools
-       # if(nrow(SingleSexMaleSchoolCounts) >0) {
-
-        print(CurrentHousehold)
-
-          SingleSexMatchedSchools <- left_join(SingleSexMaleSchoolCounts, SingleSexFemaleSchoolCounts,
-                                               by = c("SchoolID.x" = "SchoolID")) %>%
-            mutate(SchoolID = paste0("CombinedSchool", 1:nrow(.)),
-                   RollCountSum = RollCountSum.x + RollCountSum.y,
-                   NumberTimes = NumberTimes.x + NumberTimes.y)
+#         # sum the female counts by school
+#         SingleSexFemaleSchoolCounts <- FemaleAgesToMatch %>%
+#           group_by(SchoolID) %>%
+#           summarise(across(ChildCounts, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
+#           rename(RollCountSum = ChildCounts_RollCountSum, NumberTimes = ChildCounts_NumberTimes)
+#
+#
+#         # sum the male counts by school
+#         SingleSexMaleSchoolCounts <- MatchedMales %>%
+#           select(SchoolID.x, SchoolID.y, ChildCounts.y) %>%
+#           group_by(SchoolID.x, SchoolID.y) %>%
+#           summarise(across(ChildCounts.y, list(RollCountSum = sum, NumberTimes = ~n()))) %>%
+#          rename(RollCountSum = ChildCounts.y_RollCountSum, NumberTimes = ChildCounts.y_NumberTimes) %>%
+#           ungroup()
+#
+#         # only do this if there are matched single-sex schools
+#        # if(nrow(SingleSexMaleSchoolCounts) >0) {
+#
+#         print(CurrentHousehold)
+#
+#           SingleSexMatchedSchools <- left_join(SingleSexMaleSchoolCounts, SingleSexFemaleSchoolCounts,
+#                                                by = c("SchoolID.x" = "SchoolID")) %>%
+#             mutate(SchoolID = paste0("CombinedSchool", 1:nrow(.)),
+#                    RollCountSum = RollCountSum.x + RollCountSum.y,
+#                    NumberTimes = NumberTimes.x + NumberTimes.y)
 
           # cat("SingleSexMatchedSchools okay for household", CurrentHousehold, "\n")
 
           MergedSingleSexToAdd <- SingleSexMatchedSchools %>%
-            select(SchoolID, RollCountSum, NumberTimes) %>%
+            select(SchoolID, ChildCounts, NumberKids) %>%
             mutate(SchoolType = "S")
 
           # cat("MergedSingleSexToAdd okay for household", CurrentHousehold, "\n")
 
+          # note the NA value for the children remaining as this information is absent from the merger
+          # of the single-sex schools
         AllSchoolsFromWhichToChoose <- bind_rows(CoedSchoolsSelected, MergedSingleSexToAdd)
+
+        # need to also amend NumberKidsPerSchool as that is the sampling data frame
+        # and has not been amended from the code above
+        # have to remove the matched single sex schools and add the replacement combo school in
+        # remove the school type from the MergedSingleSex
+        ComboToAdd <- MergedSingleSexToAdd %>%
+          select(-SchoolType)
+
+        NumberKidsPerSchool <- NumberKidsPerSchool %>%
+          filter(!(SchoolID %in% c(MatchedMales$SchoolID.x)),
+                 !(SchoolID %in% c(MatchedMales$SchoolID.y))) %>%
+          bind_rows(ComboToAdd)
 
         # cat("AllSchoolsFromWhichToChoose okay for household", CurrentHousehold, "\n")
 
@@ -385,7 +407,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           filter(!(SchoolID %in% c(SingleSexMatchedSchools$SchoolID.x)),
                  !(SchoolID %in% c(SingleSexMatchedSchools$SchoolID.y)))
 
-        if(!(is.na(UnmatchedSingleSexToMerge$NumberTimes[1]))) {
+        if(!(is.na(UnmatchedSingleSexToMerge$NumberKids[1]))) {
 
           # cat("UnmatchedSingleSexToMerge loop entered for for household", CurrentHousehold, "\n")
 
@@ -419,7 +441,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         AllSchoolsFromWhichToChoose <- bind_rows(AllSchoolsFromWhichToChoose, AbsentSingleSex)
 
-        # closes if(!(is.na(UnmatchedSingleSexToMerge$NumberTimes[1])))
+        # closes  if(!(is.na(UnmatchedSingleSexToMerge$NumberKids[1])))
         }
 
         # closes if(!(is.na(UnmatchedSingleSexToMerge$SchoolID[1])))
@@ -470,9 +492,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # str(NumberKidsPerSchool)
 
 
+
         while(NumKidsRemaining > 0) {
         # first set of schools to choose
-        MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
+
+          MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
+        # MaxChildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
 
        # extract these schools
        MultiplesSchools <- NumberKidsPerSchool %>%
@@ -685,11 +710,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             #closes if(is.na(CheckForMultiples$ChildAge[1]))
           }
 
-          # if(CurrentHousehold == 544) {
-          #   return(ChildrenToFix)
-          #
-          # }
-
 
           # there may also be assignment of children who are not multiples
           # e.g. twins and one other child go to the same school
@@ -699,12 +719,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
 
 
-          # if(CurrentHousehold == 544) {
-          #   return(CheckForMultiples)
-          #
-          # }
-
-#
           # irrelevant as all matches are used
 #         } else {
 #
@@ -799,9 +813,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # closes  while(NumKidsRemaining > 0)
       }
 
-      # if(CurrentHousehold == 538) {
-      #   return(ChildrenFinalised)
-      # }
+
+
+        if(CurrentHousehold == 672) {
+          return(ChildrenFinalised)
+
+        }
 
 
           # closes  if(NumberSameSchool > 1)
