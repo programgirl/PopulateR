@@ -149,18 +149,21 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
   for(i in 1:nrow(MultipleChildrenHouseholds)) {
 
-    # must delete PossibleSchools dataframe
-    if(exists("PossibleSchools")) {
-      rm(PossibleSchools)
-    }
-
-    if(exists("JoinToMerge")) {
-      rm(JoinToMerge)
-    }
+    # must delete the data frames constructed for each household
+    # if(exists("PossibleSchools")) {
+    #   rm(PossibleSchools)
+    # }
+#
+#     if(exists("JoinToMerge")) {
+#       rm(JoinToMerge)
+#     }
 
     if(exists("UnmatchedSingleSexToMerge")) {
-
       rm(UnmatchedSingleSexToMerge)
+    }
+
+    if(exists("MergedSingleSexToAdd")) {
+      rm(MergedSingleSexToAdd)
     }
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
@@ -545,8 +548,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # cat("With possible schools")
         # str(AllSchoolsFromWhichToChoose)
 
-        # TODO fix the code below because of the existence of children of multiple ages at the same school
-
         # create a SchoolChosenDetail data frame when a same-sex combination is selected
         if(exists("SingleSexMatchedSchools") == TRUE) {
 
@@ -568,19 +569,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           SchoolDetail2 <- SchoolSubset %>%
             filter(SchoolID == School2$SchoolID.y)
 
-
           SchoolChosenDetail <- bind_rows(SchoolDetail1, SchoolDetail2)
-
-
-          if(CurrentHousehold == 672) {
-            return(SchoolChosenDetail)
-
-          }
 
           # close if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID)))
            }
 
         } else {
+
+          # the school is chosen normally as the single-sex combo was not selected
 
           # cat("All schools from which to chose is", "\n")
           #
@@ -681,11 +677,20 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
               # random delete one if the number of kids that age is more than the
               # number for the roll that age in that school
+              # first performed for simple match where all children are at the same school
 
-              if(nrow(ChildSchoolMerge) > ChildrenToFix) {
+              if(nrow(ChildSchoolMerge) > ChildrenToFix & exists("SingleSexMatchedSchools") == TRUE) {
 
                 ChildSchoolMerge <- ChildSchoolMerge %>%
                   slice_sample(n = ChildrenToFix)
+
+              } else {
+                # now fix the single-sex school combo problem
+                # get the counts by school
+                # some counts may have to be all in one school and some in the other
+
+
+                # closes if(nrow(ChildSchoolMerge) > ChildrenToFix & exists("SingleSexMatchedSchools") == TRUE)
               }
 
 
@@ -812,7 +817,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # closes if (NumKidsRemaining > 0)
         }
-
 
 
         # closes  while(NumKidsRemaining > 0)
