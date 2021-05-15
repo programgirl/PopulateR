@@ -556,21 +556,26 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           School1 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
-            select(SchoolID.x, ChildAge.x)
+            select(SchoolID.x)
 
           SchoolDetail1 <- SchoolSubset %>%
-            filter(ChildAge == School1$ChildAge.x,
-                   SchoolID == School1$SchoolID.x)
+            filter(SchoolID == School1$SchoolID.x)
 
           School2 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
-            select(SchoolID.y, ChildAge.y)
+            select(SchoolID.y)
 
           SchoolDetail2 <- SchoolSubset %>%
-            filter(ChildAge == School1$ChildAge.y,
-                   SchoolID == School1$SchoolID.y)
+            filter(SchoolID == School2$SchoolID.y)
+
 
           SchoolChosenDetail <- bind_rows(SchoolDetail1, SchoolDetail2)
+
+
+          if(CurrentHousehold == 672) {
+            return(SchoolChosenDetail)
+
+          }
 
           # close if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID)))
            }
@@ -812,13 +817,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # closes  while(NumKidsRemaining > 0)
       }
-
-
-
-        if(CurrentHousehold == 672) {
-          return(ChildrenFinalised)
-
-        }
 
 
           # closes  if(NumberSameSchool > 1)
