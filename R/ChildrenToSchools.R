@@ -626,6 +626,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
+          # only do this for the coed schools
+          # presence of same-sex schools needs to be handled separately
+
           # need to account for twins, triplets etc here
           # check for duplicated and subset these if present
 
@@ -688,6 +691,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 # now fix the single-sex school combo problem
                 # get the counts by school
                 # some counts may have to be all in one school and some in the other
+                # 1. there is more than one single-sex school
+                # 2. a. children may only go to one of the single sex schools or
+                # 2. b. children may go to one of the single sex schools but only a subset go to the corresponding other single sex school
 
 
                 # closes if(nrow(ChildSchoolMerge) > ChildrenToFix & exists("SingleSexMatchedSchools") == TRUE)
