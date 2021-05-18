@@ -43,7 +43,36 @@ AddEmployer <- function(Employers, EmployerCountCol, EmployeeCountCol, UserSeed 
   EmployerRenamed <- EmployerRenamed %>%
     filter(CompanyCts > 0 & StaffCts > 0)
 
+  #####################################
+  #####################################
+  # Construct the separate companies
+  #####################################
+  #####################################
+
+  #####################################
+  # Expand so that each row is a different company
+  # there are 360,999 employers so new data frame must have
+  # 360,999 rows
+  #####################################
+
+  for (i in 1:nrow(EmployerRenamed)) {
+
+    NumberEmployers <- EmployerRenamed$CompanyCts[i]
+    NumberStaff <- EmployerRenamed$StaffCts[i]
+
+    cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
+
+    RandomRollVector <- runif(NumberEmployers)
 
 
- return(EmployerRenamed)
+    if (i == 1) {
+
+      return(RandomRollVector)
+    }
+
+
+  }
+
+#
+#  return(EmployerRenamed)
 }
