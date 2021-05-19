@@ -83,7 +83,7 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
       InternalEmployer <- CurrentCompany %>%
         slice(rep(seq_len(n()), NumberEmployers)) %>%
         mutate(StaffCts = 1,
-               CompanyName = paste0("Company", Paste0Value:nrow(.)))
+               CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)))
 
       # get max paste0 value so that the starting company name is updated for the next loop
       EndPaste0Value <- InternalEmployer %>%
@@ -113,15 +113,37 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
     RandomRollVector <- runif(NumberEmployers)
 
-    EmployeePropVector <- RandomRollVector
+    InternalEmployer <- CurrentCompany %>%
+      slice(rep(seq_len(n()), NumberEmployers)) %>%
+     mutate(CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)))
+
+    EndPaste0Value <- InternalEmployer %>%
+      slice_tail(n = 1) %>%
+      mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  CompanyName))) %>%
+      pull(ValueIs)
+
+    Paste0Value <- EndPaste0Value + 1
+
+    # add the employers to the final dataframe
+
+    if(exists("OutputDataframe")) {
+
+      OutputDataframe <- bind_rows(OutputDataframe, InternalEmployer)
+
+    } else {
+
+      OutputDataframe <- InternalEmployer
+
+      # closes else for if(exists("OutputDataframe"))
+    }
 
     # closes else under if (NumberEmployers == NumberStaff)
     }
 
 
-    if (i == 1) {
+    if (i == 2) {
 
-      return(Paste0Value)
+      return(OutputDataframe)
     }
 
 
