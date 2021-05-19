@@ -96,6 +96,19 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
       Paste0Value <- EndPaste0Value + 1
 
+      # add the employers to the final dataframe
+
+      if(exists("OutputDataframe")) {
+
+        OutputDataframe <- bind_rows(OutputDataframe, InternalEmployer)
+
+      } else {
+
+        OutputDataframe <- InternalEmployer
+
+        # closes else for if(exists("OutputDataframe"))
+      }
+
     } else {
 
     RandomRollVector <- runif(NumberEmployers)
