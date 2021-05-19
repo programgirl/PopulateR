@@ -41,6 +41,9 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
   EmployerRenamed <- EmployerRenamed %>%
     filter(CompanyCts > 0 & StaffCts > 0)
 
+  # put in the starting value for the paste0 used in the company name
+  Paste0Value <- 1
+
   #####################################
   #####################################
   # Construct the separate companies
@@ -55,10 +58,11 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
   for (i in 1:nrow(EmployerRenamed)) {
 
-    CurrentCompany <- as.data.frame(EmployerRenamed$CompanyCode[i])
+    CurrentCompany <- EmployerRenamed %>%
+      filter(row_number() == i)
 
-    NumberEmployers <- as.numeric(EmployerRenamed$CompanyCts[i])
-    NumberStaff <- as.numeric(EmployerRenamed$CurrentCompany[i])
+    NumberEmployers <- as.numeric(CurrentCompany$CompanyCts)
+    NumberStaff <- as.numeric(CurrentCompany$StaffCts)
 
     cat("Company", CurrentCompany$CompanyCode, "number employers", NumberEmployers, "number employees", NumberStaff, "\n")
 
@@ -77,7 +81,20 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
     cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
 
       InternalEmployer <- CurrentCompany %>%
-        slice(rep(1), each = NumberEmployers)
+        slice(rep(seq_len(n()), NumberEmployers)) %>%
+        mutate(StaffCts = 1,
+               CompanyName = paste0("Company", Paste0Value:nrow(.)))
+
+      # get max paste0 value so that the starting company name is updated for the next loop
+      EndPaste0Value <- InternalEmployer %>%
+        slice_tail(n = 1) %>%
+        mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  CompanyName))) %>%
+        pull(ValueIs)
+
+      cat("The last company number is", EndPaste0Value, "\n")
+
+
+      Paste0Value <- EndPaste0Value + 1
 
     } else {
 
@@ -91,8 +108,9 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
     if (i == 1) {
 
-      return(InternalEmployer)
+      return(Paste0Value)
     }
+
 
 
   }
