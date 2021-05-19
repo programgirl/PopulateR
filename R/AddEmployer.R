@@ -21,7 +21,7 @@
 #' @examples
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'
-AddEmployer <- function(Employers, EmployerCountCol, EmployeeCountCol, UserSeed = NULL) {
+AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCountCol, UserSeed = NULL) {
 
   #####################################
   #####################################
@@ -30,13 +30,11 @@ AddEmployer <- function(Employers, EmployerCountCol, EmployeeCountCol, UserSeed 
   #####################################
 
   # Recipient ID variable
-  EmployerCountColName <- sym(names(Employers[EmployerCountCol]))
-
-  # Recipient age variable
-  EmployeeCountColName <- sym(names(Employers[EmployeeCountCol]))
+  EmployerTypeColName <- sym(names(Employers[EmployerTypeCol]))
 
   EmployerRenamed <- Employers %>%
-    rename(CompanyCts = !! EmployerCountCol,
+    rename(CompanyCode = !! EmployerTypeCol,
+           CompanyCts = !! EmployerCountCol,
            StaffCts = !! EmployeeCountCol)
 
   # remove all rows with 0 employer or 0 employee counts
@@ -57,17 +55,43 @@ AddEmployer <- function(Employers, EmployerCountCol, EmployeeCountCol, UserSeed 
 
   for (i in 1:nrow(EmployerRenamed)) {
 
-    NumberEmployers <- EmployerRenamed$CompanyCts[i]
-    NumberStaff <- EmployerRenamed$StaffCts[i]
+    CurrentCompany <- as.data.frame(EmployerRenamed$CompanyCode[i])
+
+    NumberEmployers <- as.numeric(EmployerRenamed$CompanyCts[i])
+    NumberStaff <- as.numeric(EmployerRenamed$CurrentCompany[i])
+
+    cat("Company", CurrentCompany$CompanyCode, "number employers", NumberEmployers, "number employees", NumberStaff, "\n")
+
+    # fix problem if there are more employers than there are employees
+    # can happen, e.g. sole enterprises, partnerships with no employees
+    # etc
+    if(NumberStaff < NumberEmployers) {
+      NumberEmployers <- NumberStaff
+    }
+
+    # next step is to see whether there are the same number of companies as there are employees
+    # if the counts are the same, add one staff member to each company
+
+    if (NumberEmployers == NumberStaff) {
 
     cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
 
+      InternalEmployer <- CurrentCompany %>%
+        slice(rep(1), each = NumberEmployers)
+
+    } else {
+
     RandomRollVector <- runif(NumberEmployers)
+
+    EmployeePropVector <- RandomRollVector
+
+    # closes else under if (NumberEmployers == NumberStaff)
+    }
 
 
     if (i == 1) {
 
-      return(RandomRollVector)
+      return(InternalEmployer)
     }
 
 
