@@ -44,6 +44,10 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
   # put in the starting value for the paste0 used in the company name
   Paste0Value <- 1
 
+  if (!is.null(UserSeed)) {
+    set.seed(UserSeed)
+  }
+
   #####################################
   #####################################
   # Construct the separate companies
@@ -111,11 +115,28 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
     } else {
 
-    RandomRollVector <- runif(NumberEmployers)
+      cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
+
+      # below doesn't work when number of staff is only slightly greater than number of employees
+      # does not return enough values
+      # AchievedCompSize <- as.vector(table(sample(1:NumberEmployers, size = NumberStaff, replace = T)))
+
+      AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/NumberEmployers, NumberEmployers))
+
+      if(0 %in% AchievedCompSize) {
+
+
+        if(i == 3) {
+          return(AchievedCompSize)
+   }
+
+        # closes if(0 %in% AchievedCompSize)
+      }
 
     InternalEmployer <- CurrentCompany %>%
       slice(rep(seq_len(n()), NumberEmployers)) %>%
-     mutate(CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)))
+     mutate(CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)),
+            StaffCts = AchievedCompSize)
 
     EndPaste0Value <- InternalEmployer %>%
       slice_tail(n = 1) %>%
@@ -141,15 +162,10 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
     }
 
 
-    if (i == 2) {
 
-      return(OutputDataframe)
-    }
-
-
-
+    # closes for (i in 1:nrow(EmployerRenamed))
   }
 
 #
-#  return(EmployerRenamed)
+ # return(OutputDataframe)
 }
