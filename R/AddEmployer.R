@@ -125,8 +125,12 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
       while(0 %in% AchievedCompSize) {
 
-        AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/NumberEmployers, NumberEmployers))
+        BaseCompSize <- rep(1, NumberEmployers)
+        NewNumStaff <- NumberStaff - sum(BaseCompSize)
 
+        AddedCompSize <- rmultinom(n = 1, size = NewNumStaff, prob = rep(1/NumberEmployers, NumberEmployers))
+
+        AchievedCompSize <- BaseCompSize + AddedCompSize
 
         # closes while(0 %in% AchievedCompSize)
       }
@@ -165,5 +169,5 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
   }
 
 #
- # return(OutputDataframe)
+ return(OutputDataframe)
 }
