@@ -123,14 +123,12 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
       AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/NumberEmployers, NumberEmployers))
 
-      if(0 %in% AchievedCompSize) {
+      while(0 %in% AchievedCompSize) {
+
+        AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/NumberEmployers, NumberEmployers))
 
 
-        if(i == 3) {
-          return(AchievedCompSize)
-   }
-
-        # closes if(0 %in% AchievedCompSize)
+        # closes while(0 %in% AchievedCompSize)
       }
 
     InternalEmployer <- CurrentCompany %>%
