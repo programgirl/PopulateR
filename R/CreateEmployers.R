@@ -1,27 +1,22 @@
-#' Create a subset of observations containing only same-sex couples
+#' Create a data frame of individual employers, each with aggregate employee counts.
 #'
-#' This is a wrapper for randomly sampling observations into same-sex couples.
-#' It is mainly used for data frames that contain a subset of observations that require over-sampling.
-#' However, it can also be used to generate a simple random sample of observations.
-#' An even number of observations is output.
+#' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer. A non-zero count of employees is returned for each employer.
+#'
+#' The function removes any employer types with either no employees or no employers. This situation can occur due to random rounding in official statistics. Where the number of employers exceeds the number of employees, the former count is replaced by the employee count. Thus, no pre-processing of the data frame is required.
 #'
 #' @export
-#' @param dataframe A data frame containing observations limited to one sex that includes an age column.
-#' @param AgeCol The column number of the data frame that contains the ages.
-#' @param ProbSameSex The probability of any observation being assigned to a same-sex couple.
-#' @param UpWeightProp The proportion of individuals who are to be over-sampled.
-#' @param UpWeightLowerAge The youngest age for the over-sampling. Required if UpWeightProp value is provided.
-#' @param UpWeightUpperAge The oldest age for the over-sampling. Required if UpWeightProp value is provided.
-#' @param IDStartValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
+#' @param Employers A data frame containing aggregate data on employers.
+#' @param EmployerTypeCol The column number for the types of employers. This can be an industry code.
+#' @param EmployerCountCol The column number containing the aggregate counts of employers by employer type.
+#' @param EmployeeCountCol The column number containing the aggregate counts of employees by employer type.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
-#' @return A data frame of an even number of observations for allocation into same-sex couples. If IDStartValue is specified, household allocation will be performed.
+#' @return A data frame of synthetic companies, with randomised employee counts.
 #'
 #' @examples
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'
-AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCountCol, UserSeed = NULL) {
+CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCountCol, UserSeed = NULL) {
 
   #####################################
   #####################################
@@ -167,6 +162,11 @@ AddEmployer <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCo
 
     # closes for (i in 1:nrow(EmployerRenamed))
   }
+
+  # rename the variables
+
+  OutputDataframe <- OutputDataframe %>%
+    rename()
 
 #
  return(OutputDataframe)
