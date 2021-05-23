@@ -1,6 +1,6 @@
 #' Create a data frame of individual employers, each with aggregate employee counts.
 #'
-#' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer. A non-zero count of employees is returned for each employer.
+#' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer. A non-zero count of employees is returned for each employer. For these reasons the achieved company count and the achieved employee count may not sum to the original counts.
 #'
 #' The function removes any employer types with either no employees or no employers. This situation can occur due to random rounding in official statistics. Where the number of employers exceeds the number of employees, the former count is replaced by the employee count. Thus, no pre-processing of the data frame is required.
 #'
@@ -14,7 +14,7 @@
 #' @return A data frame of synthetic companies, with randomised employee counts.
 #'
 #' @examples
-#' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
+#'
 #'
 CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, EmployeeCountCol, UserSeed = NULL) {
 
@@ -24,8 +24,17 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
   #####################################
   #####################################
 
-  # Recipient ID variable
+  # Employer type variable
   EmployerTypeColName <- sym(names(Employers[EmployerTypeCol]))
+
+  # staff count column name
+  EmployeeCountColName <- sym(names(Employers[EmployeeCountCol]))
+
+  #####################################
+  #####################################
+  # data cleaning
+  #####################################
+  #####################################
 
   EmployerRenamed <- Employers %>%
     rename(CompanyCode = !! EmployerTypeCol,
@@ -63,7 +72,7 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
     NumberEmployers <- as.numeric(CurrentCompany$CompanyCts)
     NumberStaff <- as.numeric(CurrentCompany$StaffCts)
 
-    cat("Company", CurrentCompany$CompanyCode, "number employers", NumberEmployers, "number employees", NumberStaff, "\n")
+    # cat("Company", CurrentCompany$CompanyCode, "number employers", NumberEmployers, "number employees", NumberStaff, "\n")
 
     # fix problem if there are more employers than there are employees
     # can happen, e.g. sole enterprises, partnerships with no employees
@@ -77,7 +86,7 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
 
     if (NumberEmployers == NumberStaff) {
 
-    cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
+    # cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
 
       InternalEmployer <- CurrentCompany %>%
         slice(rep(seq_len(n()), NumberEmployers)) %>%
@@ -90,7 +99,7 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
         mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  CompanyName))) %>%
         pull(ValueIs)
 
-      cat("The last company number is", EndPaste0Value, "\n")
+      # cat("The last company number is", EndPaste0Value, "\n")
 
 
       Paste0Value <- EndPaste0Value + 1
@@ -110,11 +119,8 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
 
     } else {
 
-      cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
+      # cat("The number of employers is", NumberEmployers, "and the number of staff is", NumberStaff, "\n")
 
-      # below doesn't work when number of staff is only slightly greater than number of employees
-      # does not return enough values
-      # AchievedCompSize <- as.vector(table(sample(1:NumberEmployers, size = NumberStaff, replace = T)))
 
       AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/NumberEmployers, NumberEmployers))
 
@@ -166,7 +172,8 @@ CreateEmployers <- function(Employers, EmployerTypeCol, EmployerCountCol, Employ
   # rename the variables
 
   OutputDataframe <- OutputDataframe %>%
-    rename()
+    rename(!!EmployerTypeColName := CompanyCode, !!EmployeeCountColName := StaffCts) %>%
+    dplyr::select(-CompanyCts)
 
 #
  return(OutputDataframe)
