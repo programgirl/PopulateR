@@ -180,7 +180,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold)-1)
 
-      # cat(RandomRollVector, "\n")
+      cat(RandomRollVector, "\n")
 
       # test number of children who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
@@ -190,13 +190,13 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
 
       # fix the number of children that can go to the same school
-      if(NumberSameSchool == 1) {
+      if(NumberSameSchool == 1 | NumberSameSchool == 0) {
 
         NumberSameSchool <- 2
 
-      } else if (NumberSameSchool == 0) {
-
-        NumberSameSchool <- 2
+      # } else if (NumberSameSchool == 0) {
+      #
+      #   NumberSameSchool <- 2
 
       } else {
 
@@ -212,7 +212,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      # print(NumberSameSchool)
+      print(NumberSameSchool)
 
       # add children to same school
 
@@ -603,11 +603,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # close if(exists("SingleSexMatchedSchools") == TRUE)
         }
 
-        # cat("The children in the household are", "\n")
-        # str(ChildrenInHousehold)
+        cat("The children in the household are", "\n")
+        str(ChildrenInHousehold)
 
-        # cat("The file SchoolChosenDetail is", "\n")
-        # str(SchoolChosenDetail)
+        cat("The file SchoolChosenDetail is", "\n")
+        str(SchoolChosenDetail)
 
         # cat("ChildSchoolMerge IsMatch below", "\n")
 
@@ -624,7 +624,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
 
-          # cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
+          cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
           # only do this for the coed schools
           # presence of same-sex schools needs to be handled separately
@@ -792,6 +792,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         NumberKidsPerSchool <- NumberKidsPerSchool %>%
           filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
 
+        # if(CurrentHousehold == 672) {
+        #
+        #   return(AllSchoolsFromWhichToChoose)
+        # }
+
         # cat("The remaining schools are", "\n")
         # str(AllSchoolsFromWhichToChoose)
         # str(NumberKidsPerSchool)
@@ -836,9 +841,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     # closes  for(i in 1: nrow(MultipleChildrenHouseholds))
   }
 #
-#     if(CurrentHousehold == 538) {
-#       return(ChildrenFinalised)
-#     }
+
 
 
     # closes if(nrow(MultipleChildrenHouseholds > 0)
