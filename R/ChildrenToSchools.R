@@ -166,6 +166,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       rm(MergedSingleSexToAdd)
     }
 
+    if(exists("SingleSexMatchedSchools")) {
+      rm(SingleSexMatchedSchools)
+    }
+
+
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
     cat("The current household is", CurrentHousehold, "\n")
@@ -180,7 +185,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       # random roll to see if any children in same school, will prioritise the twins
       RandomRollVector <- runif(nrow(ChildrenInHousehold)-1)
 
-      cat(RandomRollVector, "\n")
+      # cat(RandomRollVector, "\n")
 
       # test number of children who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
@@ -212,7 +217,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      print(NumberSameSchool)
+      # print(NumberSameSchool)
 
       # add children to same school
 
@@ -542,8 +547,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         print(CurrentHousehold)
 
 
-        cat("And the school chosen is", "\n")
-        str(SchoolChosen)
+        # cat("And the school chosen is", "\n")
+        # str(SchoolChosen)
 
         # cat("With possible schools")
         # str(AllSchoolsFromWhichToChoose)
@@ -553,7 +558,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
            if(isTRUE(SchoolChosen$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
 
-              cat("Uses the combo single sex school SchoolID", "\n")
+              # cat("Uses the combo single sex school SchoolID", "\n")
 
           School1 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
@@ -572,7 +577,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           SchoolChosenDetail <- bind_rows(SchoolDetail1, SchoolDetail2)
 
           # close if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID)))
-           }
+           } else {
+
+             # cat("Should have else here", "\n")
+
+             SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
+               filter(SchoolID == SchoolChosen$SchoolID)
+
+         }
 
         } else {
 
@@ -582,7 +594,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           #
           # str(AllSchoolsFromWhichToChoose)
           #
-          # cat("The possible schools that will be merged are", "\n")
+          # cat("No single sex school combo and the possible schools that will be merged are", "\n")
           #
           # str(SchoolSubset)
 
@@ -603,11 +615,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # close if(exists("SingleSexMatchedSchools") == TRUE)
         }
 
-        cat("The children in the household are", "\n")
-        str(ChildrenInHousehold)
-
-        cat("The file SchoolChosenDetail is", "\n")
-        str(SchoolChosenDetail)
+        # cat("The children in the household are", "\n")
+        # str(ChildrenInHousehold)
+        #
+        # cat("The file SchoolChosenDetail is", "\n")
+        # str(SchoolChosenDetail)
 
         # cat("ChildSchoolMerge IsMatch below", "\n")
 
@@ -640,11 +652,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           # cat("The multiples are", nrow(CheckForMultiples), "\n")
 
-          # need to handle multiples and not multiples separately
+          # need to handle "multiples" and "not multiples" separately
           # code below assigns the not-multiples
           if(!(is.na(CheckForMultiples$ChildAge[1]))) {
 
-            cat("There are", nrow(CheckForMultiples), "multiples", "\n")
+            # cat("There are", nrow(CheckForMultiples), "multiples", "\n")
 
             # while school may have too many rows, there may not be enough kids
             # the same age
@@ -802,11 +814,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # str(NumberKidsPerSchool)
 
         # update for whether loop continues
-        cat("The number of children allocated was", nrow(ChildSchoolMerge), "\n")
+        # cat("The number of children allocated was", nrow(ChildSchoolMerge), "\n")
 
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
-        cat("The number of kids remaining is", NumKidsRemaining, "\n")
+        # cat("The number of kids remaining is", NumKidsRemaining, "\n")
 
         # update the maximum number that can be allocated to the same school
 
@@ -847,6 +859,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     # closes if(nrow(MultipleChildrenHouseholds > 0)
   }
 
+
+  return(ChildrenFinalised)
   # closes function
 }
 
