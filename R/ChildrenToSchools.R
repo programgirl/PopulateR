@@ -656,7 +656,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # code below assigns the not-multiples
           if(!(is.na(CheckForMultiples$ChildAge[1]))) {
 
-            # cat("There are", nrow(CheckForMultiples), "multiples", "\n")
+            cat("There are", nrow(CheckForMultiples), "multiples", "\n")
 
             # while school may have too many rows, there may not be enough kids
             # the same age
@@ -677,6 +677,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
               # get the largest age counts
               LargestAgeCount <- max(CheckForMultiples$NumberKidsThatAge)
+
+              if(CurrentHousehold == 687) {
+
+                return(LargestAgeCount)
+              }
 
               # filter those largest age counts
               SameAgeSample <- CheckForMultiples %>%
