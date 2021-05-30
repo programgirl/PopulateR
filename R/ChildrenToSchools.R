@@ -588,6 +588,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
           SchoolCountSummaries$AllocatedCounts[l]
 
+        SchoolsRenamed <- SchoolsRenamed %>%
+          filter(ChildCounts > 0)
+
         # closes for(l in 1:nrow(SchoolCountSummaries))
         }
 
@@ -640,10 +643,24 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             str(ChildAges)
             str(SchoolsRenamed)
             str(AllSchoolsFromWhichToChoose)
-            return(SchoolsRenamed)
+
+            # if school slots are small relative to school population
+            # and there are single-sex schools and co-ed schools
+            # can end up with situation where the only school slot available is at a single-sex school
+            # for the opposite sex
+            # so fix by doing a straight swap
+
+            if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+
+              cat("Entered this final fixit loop", "\n")
+
+              return(SchoolsRenamed)
+            }
 
           # close if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
         }
+
+
 
 
         NumberKidsPerSchool <- NumberKidsPerSchool %>%
