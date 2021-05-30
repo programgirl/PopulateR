@@ -217,7 +217,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      # print(NumberSameSchool)
+      print(NumberSameSchool)
 
       # add children to same school
 
@@ -348,6 +348,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           SingleSexMatchedSchools <- MatchedMales %>%
             select(SchoolID.x, SchoolID.y) %>%
             distinct() %>%
+            tidyr::drop_na() %>%
             left_join(NumberKidsPerSchool, by = c("SchoolID.x" = "SchoolID")) %>%
             rename(ChildCounts.x = ChildCounts, NumberKids.x = NumberKids) %>%
             left_join(NumberKidsPerSchool, by = c("SchoolID.y" = "SchoolID"))  %>%
@@ -355,6 +356,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
             mutate(ChildCounts = ChildCounts.x + ChildCounts.y,
                    NumberKids = NumberKids.x + NumberKids.y,
                    SchoolID = paste0("CombinedSchool", 1:nrow(.)))
+
 
 #         # sum the female counts by school
 #         SingleSexFemaleSchoolCounts <- FemaleAgesToMatch %>%
@@ -483,6 +485,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           AllSchoolsFromWhichToChoose <- CoedSchoolsSelected
 
         }
+
 #
 #         cat("The schools from which to choose are", "\n")
 #         str(AllSchoolsFromWhichToChoose)
@@ -546,7 +549,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         print(CurrentHousehold)
 
-
         # cat("And the school chosen is", "\n")
         # str(SchoolChosen)
 
@@ -579,7 +581,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           # close if(isTRUE(SchoolChosenDetail$SchoolID %in% c(SingleSexMatchedSchools$SchoolID)))
            } else {
 
-             # cat("Should have else here", "\n")
+             # cat("Should have else here and SchoolID is", SchoolChosen$SchoolID, "\n")
 
              SchoolChosenDetail <- AllSchoolsFromWhichToChoose %>%
                filter(SchoolID == SchoolChosen$SchoolID)
@@ -623,6 +625,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # cat("ChildSchoolMerge IsMatch below", "\n")
 
+
         ChildSchoolMerge <- left_join(ChildrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
           filter(IsMatch == "Y") %>%
@@ -636,23 +639,23 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(nrow(ChildSchoolMerge) > MaxChildrenCanTake) {
 
-          cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
+          # cat("There are", MaxChildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
           TimesToRepeat <- 1 + nrow(ChildSchoolMerge) - MaxChildrenCanTake
 
           AgesToLoop <- ChildSchoolMerge %>%
             pull(ChildAge)
 
-          print(AgesToLoop)
+          # print(AgesToLoop)
 
           for(k in 1:TimesToRepeat) {
             youngest = AgesToLoop[k]
             oldest = AgesToLoop[k + MaxChildrenCanTake - 1]
 
-           cat("Youngest is", youngest, "and oldest is", oldest, "\n")
+           # cat("Youngest is", youngest, "and oldest is", oldest, "\n")
             AgeDiffs = oldest - youngest
 
-            print(AgeDiffs)
+            # print(AgeDiffs)
 
             if(k == 1) {
               SmallestVector <- k
@@ -662,20 +665,20 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
             if (AgeDiffs < SmallestGap) {
 
-              cat("Loop entered, smallest gap is", SmallestGap, "smallest vector is", SmallestVector, "\n")
+              # cat("Loop entered, smallest gap is", SmallestGap, "smallest vector is", SmallestVector, "\n")
 
               SmallestVector <- k
               SmallestGap <- AgeDiffs
 
             }
 
-            cat("Start vector for smallest is", SmallestVector, "\n")
-
-
-            ChildSchoolMerge <- ChildSchoolMerge %>%
-              slice(SmallestVector:(SmallestVector+(MaxChildrenCanTake-1)))
+            # cat("Start row for subset is", SmallestVector, "and end row for subset is", (SmallestVector+(MaxChildrenCanTake-1)), "\n")
 
           }
+
+
+          ChildSchoolMerge <- ChildSchoolMerge %>%
+            slice(SmallestVector:(SmallestVector+(MaxChildrenCanTake-1)))
 
 
 
@@ -817,9 +820,6 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         }
 
 
-
-
-
         # merge the school into the household data
 
         # do the allocation
@@ -856,18 +856,60 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # cat("Before restricting the schools there are", "\n")
         # str(AllSchoolsFromWhichToChoose)
 
-        AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
-          filter(!(SchoolID == SchoolChosen$SchoolID),
-                 ChildAge %in% c(ChildrenInHousehold$ChildAge))
-
-
-        NumberKidsPerSchool <- NumberKidsPerSchool %>%
-          filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
-
-        # if(CurrentHousehold == 672) {
+        # ##################################################
+        # ##################################################
+        # # shifted this code block later
+        # ##################################################
+        # ##################################################
+        # AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
+        #   filter(!(SchoolID == SchoolChosen$SchoolID),
+        #          ChildAge %in% c(ChildrenInHousehold$ChildAge))
         #
-        #   return(AllSchoolsFromWhichToChoose)
+        # if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+        #
+        #  # construct a non-empty data frame if the schools went to zero because of school
+        #   # age ranges and age ranges of children in the household
+        #
+        #   AllSchoolsFromWhichToChoose <- left_join(ChildrenInHousehold, SchoolsRenamed, by = "ChildAge") %>%
+        #     mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+        #     filter(ChildCounts > 0,
+        #            IsMatch == "Y") %>%
+        #     group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+        #     summarise(NumberKids = sum(CountsByAge)) %>%
+        #     ungroup() %>%
+        #     mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+        #     filter(RemainingChildren >= 0,
+        #            !(SchoolID == SchoolChosen$SchoolID))
+        #
+        #   # may still have an empty data frame
+        #   # if so, just put the already assigned school in
+        #   if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+        #     AllSchoolsFromWhichToChoose <- left_join(ChildrenInHousehold, SchoolsRenamed, by = "ChildAge") %>%
+        #       mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+        #       filter(ChildCounts > 0,
+        #              IsMatch == "Y") %>%
+        #       group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+        #       summarise(NumberKids = sum(CountsByAge)) %>%
+        #       ungroup() %>%
+        #       mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+        #       filter(SchoolID == SchoolChosen$SchoolID)
+        #
+        #     # close empty data frame extra fix
+        #   }
+        #
+        #   # close initial if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
         # }
+        #
+        #
+        # NumberKidsPerSchool <- NumberKidsPerSchool %>%
+        #   filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
+        #
+        # ##################################################
+        # ##################################################
+        # # end of shift code block later
+        # ##################################################
+        # ##################################################
+
 
         # cat("The remaining schools are", "\n")
         # str(AllSchoolsFromWhichToChoose)
@@ -878,13 +920,72 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
-        # cat("The number of kids remaining is", NumKidsRemaining, "\n")
+        cat("The number of kids remaining is", NumKidsRemaining, "\n")
 
         # update the maximum number that can be allocated to the same school
 
         # stops the recalculation of this information if there are no more children to assign to schools
+        # put the code block in the loop below
+
         if (NumKidsRemaining > 0) {
         NumberSameSchool <- max(NumberSameSchool - nrow(ChildSchoolMerge), 1)
+
+
+
+        AllSchoolsFromWhichToChoose <- AllSchoolsFromWhichToChoose %>%
+          filter(!(SchoolID == SchoolChosen$SchoolID),
+                 ChildAge %in% c(ChildrenInHousehold$ChildAge))
+
+        if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+
+          cat("There were no schools subset", "/n")
+
+         # construct a non-empty data frame if the schools went to zero because of school
+          # age ranges and age ranges of children in the household
+
+          AllSchoolsFromWhichToChoose <- left_join(ChildrenInHousehold, SchoolsRenamed, by = "ChildAge") %>%
+            mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+            filter(ChildCounts > 0,
+                   IsMatch == "Y") %>%
+            group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+            summarise(NumberKids = sum(CountsByAge)) %>%
+            ungroup() %>%
+            mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+            filter(RemainingChildren >= 0,
+                   !(SchoolID == SchoolChosen$SchoolID))
+
+          cat("It passed through first loop", "/n")
+
+          # may still have an empty data frame
+          # if so, just put the already assigned school in
+          if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+            AllSchoolsFromWhichToChoose <- left_join(ChildrenInHousehold, SchoolsRenamed, by = "ChildAge") %>%
+              mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+              filter(ChildCounts > 0,
+                     IsMatch == "Y") %>%
+              group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+              summarise(NumberKids = sum(CountsByAge)) %>%
+              ungroup() %>%
+              mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+              filter(SchoolID == SchoolChosen$SchoolID)
+
+            cat("It passed through second loop", "\n")
+
+            # close empty data frame extra fix
+          }
+
+          # close initial if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
+        }
+
+
+        NumberKidsPerSchool <- NumberKidsPerSchool %>%
+          filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
+
+
+
+
+
+
 
         # cat("The number same school is", NumberSameSchool, "\n")
 
