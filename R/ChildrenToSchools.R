@@ -209,7 +209,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      print(NumberSameSchool)
+      # print(NumberSameSchool)
 
       # add children to same school
         # need to identify the number of children that can go to the same school
@@ -412,7 +412,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         # now need to loop through all the children in the family
 
-        print(CurrentHousehold)
+        # print(CurrentHousehold)
 
         # cat("And the school chosen is", "\n")
         # str(SchoolChosen)
@@ -563,6 +563,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
           ChildrenFinalised <- ChildSchoolMerge
 
+          # get column index for injection
+          # only need to grab this the once, when the file is constructed
+          SchoolsIDColIndex <- as.numeric(which(colnames(ChildrenFinalised) == "SchoolID"))
+
           # closes  if(exists(ChildrenFinalised))
         }
 
@@ -606,7 +610,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
-        cat("The number of kids remaining is", NumKidsRemaining, "\n")
+        # cat("The number of kids remaining is", NumKidsRemaining, "\n")
 
         # update the maximum number that can be allocated to the same school
 
@@ -654,7 +658,48 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
               cat("Entered this final fixit loop", "\n")
 
-              return(SchoolsRenamed)
+              # sample one school per remaining child
+              AllSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+                group_by(SchoolID) %>%
+                slice(rep(1:n(), first(ChildCounts))) %>%
+                left_join(ChildrenInHousehold, by = c("ChildAge", "ChildType")) %>%
+                select(ChildID, SchoolID, ChildAge, ChildType) %>%
+                group_by(ChildID) %>%
+                slice_sample(n = 1) %>%
+                ungroup()
+
+
+              # pick one school to swap in for remaining child
+              ChildrenToSwap <- ChildrenFinalised %>%
+                filter(SchoolType == "C") %>%
+                right_join(AllSchoolsFromWhichToChoose, by = "ChildAge") %>%
+                filter(!(ChildType.x == ChildType.y)) %>%
+                group_by(ChildID.y) %>%
+                slice_sample(n = 1) %>%
+                ungroup()
+
+              # process:
+              # 1. swap school IDs
+              # 2. sub in the new school ID for the donor child/ren, replacing the original
+              # 3. create the correctly formatted child merge file for the recipient children
+              # 4. add in those recipient children
+              # 5. decrease the counts for the schools that were the incorrect sex
+              InjectionInformation <- ChildrenToSwap %>%
+                select(ChildID.x, SchoolID.y)
+
+              for(m in 1:nrow(InjectionInformation)) {
+
+                ChildRowIndex <- as.numeric(which(ChildrenFinalised$ChildID==InjectionInformation$ChildID.x[m]))
+
+                ChildrenFinalised[ChildRowIndex, SchoolsIDColIndex] <- InjectionInformation$SchoolID.y[m]
+                # closes for(m in 1:nrow(InjectionInformation))
+              }
+
+
+              return(ChildrenFinalised)
+
+
+
             }
 
           # close if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
