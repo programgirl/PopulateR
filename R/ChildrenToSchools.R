@@ -570,15 +570,26 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # reduce the relevant roll count for the school
         # do straight injection of updated count
         # this will update each time the child/ren are allocated
-        # so the numbers will always be accurate.
+        # so the numbers will always be accurate
+
+        # NOTE: the usual approach is to remove the allocated school from the set available
+        # so it does not matter that the role counts aren't updated for that household
+        # as the school will not be used again
+        # and where the school has to be added in, the updated roll count is used
 
         SchoolCountSummaries <- ChildSchoolMerge %>%
           group_by(SchoolID, ChildAge) %>%
           summarise(AllocatedCounts = n())
 
+        for(l in 1:nrow(SchoolCountSummaries)) {
+        SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[l] &
+                                             SchoolsRenamed$ChildAge==SchoolCountSummaries$ChildAge[l]))
 
-        return(SchoolCountSummaries)
+        SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
+          SchoolCountSummaries$AllocatedCounts[l]
 
+        # closes for(l in 1:nrow(SchoolCountSummaries))
+        }
 
         # remove children who are matched
         ChildrenInHousehold <- ChildrenInHousehold %>%
@@ -625,6 +636,11 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
               summarise(NumberKids = sum(CountsByAge)) %>%
               ungroup() %>%
               mutate(RemainingChildren = ChildCounts - NumberKids)
+
+            str(ChildAges)
+            str(SchoolsRenamed)
+            str(AllSchoolsFromWhichToChoose)
+            return(SchoolsRenamed)
 
           # close if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
         }
