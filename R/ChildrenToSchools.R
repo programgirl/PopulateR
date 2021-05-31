@@ -669,6 +669,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 ungroup()
 
 
+              cat("AllSchoolsFromWhichToChoose", "\n")
               # pick one school to swap in for remaining child
               ChildrenToSwap <- ChildrenFinalised %>%
                 filter(SchoolType == "C") %>%
@@ -677,6 +678,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 group_by(ChildID.y) %>%
                 slice_sample(n = 1) %>%
                 ungroup()
+
+              cat("ChildrenToSwap", "\n")
 
               # process:
               # 1. swap school IDs
@@ -695,18 +698,37 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 # closes for(m in 1:nrow(InjectionInformation))
               }
 
+              FixProblemKids <- ChildrenToSwap %>%
+                select(ChildID.y, SchoolID.x) %>%
+                rename(ChildID = ChildID.y,
+                       SchoolID = SchoolID.x) %>%
+                left_join(ChildrenInHousehold, by = "ChildID")
 
-              return(ChildrenFinalised)
+              return(FixProblemKids)
 
+              SchoolCountSummaries <- FixProblemKids %>%
+                group_by(SchoolID, ChildAge) %>%
+                left_join(SchoolsRenamed) %>%
+                group_by(SchoolID, ChildAge) %>%
+                summarise(AllocatedCounts = n())
 
+              for(l in 1:nrow(SchoolCountSummaries)) {
+                SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[l] &
+                                                     SchoolsRenamed$ChildAge==SchoolCountSummaries$ChildAge[l]))
 
-            }
+                SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
+                  SchoolCountSummaries$AllocatedCounts[l]
+
+                SchoolsRenamed <- SchoolsRenamed %>%
+                  filter(ChildCounts > 0)
+
+              ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
+
+              # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
+             }
 
           # close if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
         }
-
-
-
 
         NumberKidsPerSchool <- NumberKidsPerSchool %>%
           filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
