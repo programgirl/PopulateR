@@ -145,6 +145,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
   # work through the multiple child households first, if these exist
 
+
   if(nrow(MultipleChildrenHouseholds > 0)) {
 
   for(i in 1:nrow(MultipleChildrenHouseholds)) {
@@ -165,7 +166,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    cat("The current household is", CurrentHousehold, "\n")
+    # cat("The current household is", CurrentHousehold, "\n")
 
       # get the children in the household
 
@@ -669,7 +670,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 ungroup()
 
 
-              cat("AllSchoolsFromWhichToChoose", "\n")
+              # cat("AllSchoolsFromWhichToChoose", "\n")
               # pick one school to swap in for remaining child
               ChildrenToSwap <- ChildrenFinalised %>%
                 filter(SchoolType == "C") %>%
@@ -679,7 +680,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 slice_sample(n = 1) %>%
                 ungroup()
 
-              cat("ChildrenToSwap", "\n")
+              # cat("ChildrenToSwap", "\n")
 
               # process:
               # 1. swap school IDs
@@ -698,19 +699,38 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 # closes for(m in 1:nrow(InjectionInformation))
               }
 
-              FixProblemKids <- ChildrenToSwap %>%
+              # replacement school injected, now fix the child/ren in the current household
+
+
+              # 3. create the correctly formatted child merge file for the recipient children
+              # get children and add the extra columns for merge
+              # need to mock up these columns as the schools dataset no longer contains
+              # this schoolID/childage combo
+              # only incorrect value is SchoolType
+
+              ChildSchoolMerge <- ChildrenToSwap %>%
                 select(ChildID.y, SchoolID.x) %>%
                 rename(ChildID = ChildID.y,
                        SchoolID = SchoolID.x) %>%
-                left_join(ChildrenInHousehold, by = "ChildID")
+                left_join(ChildrenInHousehold, by = "ChildID") %>%
+                mutate(SchoolType = "Z", ChildCounts = 0, NumberKids = 0, RemainingChildren = 0)
 
-              return(FixProblemKids)
 
-              SchoolCountSummaries <- FixProblemKids %>%
-                group_by(SchoolID, ChildAge) %>%
-                left_join(SchoolsRenamed) %>%
-                group_by(SchoolID, ChildAge) %>%
-                summarise(AllocatedCounts = n())
+              # 4. add in those recipient children
+              ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
+
+              return(ChildrenFinalised)
+              # 5. decrease the counts for the schools that were the incorrect sex
+
+
+              SchoolCountSummaries <- InjectionInformation #%>%
+               #  group_by(SchoolID, ChildAge) %>%
+               # left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
+                # group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+                # summarise(NumberKids = n()) %>%
+                # mutate(RemainingChildren = ChildCounts - NumberKids)
+
+
 
               for(l in 1:nrow(SchoolCountSummaries)) {
                 SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[l] &
@@ -722,7 +742,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 SchoolsRenamed <- SchoolsRenamed %>%
                   filter(ChildCounts > 0)
 
-              ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
+
+
+              # closes for(l in 1:nrow(SchoolCountSummaries))
+              }
 
               # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
              }
