@@ -719,16 +719,32 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
               # 4. add in those recipient children
               ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
 
-              return(ChildrenFinalised)
               # 5. decrease the counts for the schools that were the incorrect sex
-
-
-              SchoolCountSummaries <- InjectionInformation #%>%
-               #  group_by(SchoolID, ChildAge) %>%
-               # left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
+              SchoolCountSummaries <- ChildrenToSwap %>%
+                select(SchoolID.y, ChildAge) %>%
+                rename(SchoolID = SchoolID.y) %>%
+                group_by(SchoolID, ChildAge) %>%
+                summarise(NumberKids = n()) %>%
+               left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
                 # group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
                 # summarise(NumberKids = n()) %>%
-                # mutate(RemainingChildren = ChildCounts - NumberKids)
+                mutate(RemainingChildren = ChildCounts - NumberKids)
+
+              return(SchoolCountSummaries)
+
+              # SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+              #   mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+              #   filter(ChildCounts > 0,
+              #          IsMatch == "Y") %>%
+              #   group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+              #   summarise(NumberKids = sum(CountsByAge)) %>%
+              #   ungroup() %>%
+              #   mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+              #   filter(RemainingChildren >= 0)
+              #
+              # NumberKidsPerSchool <- SchoolSubset %>%
+              #   group_by(SchoolID) %>%
+              #   summarise(across(c(ChildCounts, NumberKids), sum))
 
 
 
