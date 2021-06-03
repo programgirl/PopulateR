@@ -166,7 +166,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    # cat("The current household is", CurrentHousehold, "\n")
+    cat("The current household is", CurrentHousehold, "\n")
+
 
       # get the children in the household
 
@@ -724,41 +725,21 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 select(SchoolID.y, ChildAge) %>%
                 rename(SchoolID = SchoolID.y) %>%
                 group_by(SchoolID, ChildAge) %>%
-                summarise(NumberKids = n()) %>%
-               left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
-                # group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
-                # summarise(NumberKids = n()) %>%
-                mutate(RemainingChildren = ChildCounts - NumberKids)
-
-              return(SchoolCountSummaries)
-
-              # SchoolSubset <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
-              #   mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
-              #   filter(ChildCounts > 0,
-              #          IsMatch == "Y") %>%
-              #   group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
-              #   summarise(NumberKids = sum(CountsByAge)) %>%
-              #   ungroup() %>%
-              #   mutate(RemainingChildren = ChildCounts - NumberKids) %>%
-              #   filter(RemainingChildren >= 0)
-              #
-              # NumberKidsPerSchool <- SchoolSubset %>%
-              #   group_by(SchoolID) %>%
-              #   summarise(across(c(ChildCounts, NumberKids), sum))
-
-
+                summarise(AllocatedCounts = n()) #%>%
+              #  left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
+            #    mutate(RemainingChildren = ChildCounts - AllocatedCounts)
 
               for(l in 1:nrow(SchoolCountSummaries)) {
                 SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[l] &
                                                      SchoolsRenamed$ChildAge==SchoolCountSummaries$ChildAge[l]))
+
+                cat("School row index is", SchoolRowIndex, "and the school column index is", SchoolsCountColIndex)
 
                 SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
                   SchoolCountSummaries$AllocatedCounts[l]
 
                 SchoolsRenamed <- SchoolsRenamed %>%
                   filter(ChildCounts > 0)
-
-
 
               # closes for(l in 1:nrow(SchoolCountSummaries))
               }
