@@ -490,7 +490,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
         # cat("The file SchoolChosenDetail is", "\n")
         # str(SchoolChosenDetail)
 
-        # cat("ChildSchoolMerge IsMatch below", "\n")
+        cat("ChildSchoolMerge IsMatch below line 496", "\n")
 
 
         ChildSchoolMerge <- left_join(ChildrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
@@ -733,7 +733,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[l] &
                                                      SchoolsRenamed$ChildAge==SchoolCountSummaries$ChildAge[l]))
 
-                cat("School row index is", SchoolRowIndex, "and the school column index is", SchoolsCountColIndex)
+                cat("School row index is", SchoolRowIndex, "and the school column index is", SchoolsCountColIndex, "\n")
 
                 SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
                   SchoolCountSummaries$AllocatedCounts[l]
@@ -743,6 +743,12 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
               # closes for(l in 1:nrow(SchoolCountSummaries))
               }
+
+              # remove children who are matched
+              ChildrenInHousehold <- ChildrenInHousehold %>%
+                filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
+
+              cat("The number of children remaining in the household is", nrow(ChildrenInHousehold), "\n")
 
               # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
              }
@@ -754,7 +760,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
           filter(SchoolID %in% c(AllSchoolsFromWhichToChoose$SchoolID))
 
 
-        # cat("The number same school is", NumberSameSchool, "\n")
+        cat("The number same school is", NumberSameSchool, "\n")
 
         # something here about the random roll - number of kids already allocated versus max number kids can take
         # need to update random roll, taking into account of the number of kids already assigned
