@@ -666,6 +666,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 slice_sample(n = 1) %>%
                 ungroup()
 
+              if(CurrentHousehold == 763) {
+
+                IntSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+                  group_by(SchoolID)
+
+                return(IntSchoolsFromWhichToChoose)
+              }
+
               # cat("AllSchoolsFromWhichToChoose", "\n")
               # pick one school to swap in for remaining child
               ChildrenToSwap <- ChildrenFinalised %>%
