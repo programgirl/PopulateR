@@ -166,7 +166,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- MultipleChildrenHouseholds$HouseholdID[i]
 
-    cat("The current household is", CurrentHousehold, "\n")
+    # cat("The current household is", CurrentHousehold, "\n")
 
 
       # get the children in the household
@@ -273,7 +273,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
         if(!(is.na(MatchedMales$SchoolID.y[1]))) {
 
-          cat("There is an overlap in the single-sex school ages", "\n")
+          # cat("There is an overlap in the single-sex school ages", "\n")
 
           SingleSexMatchedSchools <- MatchedMales %>%
             select(SchoolID.x, SchoolID.y) %>%
@@ -653,7 +653,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
             if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
 
-              cat(CurrentHousehold, "Entered this final fixit loop", "\n")
+              # cat(CurrentHousehold, "Entered this final fixit loop", "\n")
 
 
                # sample one school per remaining child
@@ -666,15 +666,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 slice_sample(n = 1) %>%
                 ungroup()
 
-              if(CurrentHousehold == 763) {
-
-                IntSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
-                  group_by(SchoolID)
-
-                return(IntSchoolsFromWhichToChoose)
-              }
-
-              # cat("AllSchoolsFromWhichToChoose", "\n")
+               # cat("AllSchoolsFromWhichToChoose", "\n")
               # pick one school to swap in for remaining child
               ChildrenToSwap <- ChildrenFinalised %>%
                 filter(SchoolType == "C") %>%
@@ -730,8 +722,8 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
                 rename(SchoolID = SchoolID.y) %>%
                 group_by(SchoolID, ChildAge) %>%
                 summarise(AllocatedCounts = n()) %>%
-             left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
-               mutate(RemainingChildren = ChildCounts - AllocatedCounts)
+                left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
+                mutate(RemainingChildren = ChildCounts - AllocatedCounts)
 
 
               for(l in 1:nrow(SchoolCountSummaries)) {
@@ -801,11 +793,155 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 #
 
 
-
     # closes if(nrow(MultipleChildrenHouseholds > 0)
   }
 
   # TODO add in single-child households
+
+  if(nrow(SingletonHouseholds > 0)) {
+
+    # removes them if they are constructed from the multiple children households
+    # only need to do this once as the multiple children households are completed first
+
+    if(exists("UnmatchedSingleSexToMerge")) {
+      rm(UnmatchedSingleSexToMerge)
+    }
+
+    if(exists("MergedSingleSexToAdd")) {
+      rm(MergedSingleSexToAdd)
+    }
+
+    if(exists("SingleSexMatchedSchools")) {
+      rm(SingleSexMatchedSchools)
+    }
+
+    for(o in 1:nrow(SingletonHouseholds)) {
+
+      CurrentHousehold <- SingletonHouseholds$HouseholdID[o]
+
+
+      cat("Household ID is", CurrentHousehold, "\n")
+
+      ChildrenInHousehold <- ChildrenRenamed %>%
+        filter(HouseholdID == CurrentHousehold)
+
+      ChildAges <- as.data.frame(ChildrenInHousehold %>%
+                                   group_by(ChildType, ChildAge) %>%
+                                   summarise(CountsByAge = n()))
+
+      AllSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+        mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
+        filter(ChildCounts > 0,
+               IsMatch == "Y") %>%
+        group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
+        summarise(NumberKids = sum(CountsByAge)) %>%
+        ungroup() %>%
+        mutate(RemainingChildren = ChildCounts - NumberKids) %>%
+        filter(RemainingChildren >= 0)
+
+      # single fix if no matched school for the one child in this household
+      if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
+
+
+        IntSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
+          group_by(SchoolID) %>%
+          slice(rep(1:n(), first(ChildCounts))) %>%
+          left_join(ChildrenInHousehold, by = c("ChildAge", "ChildType")) %>%
+          select(ChildID, SchoolID, ChildAge, ChildType, SchoolType) %>%
+          group_by(ChildID) %>%
+          slice_sample(n = 1) %>%
+          ungroup()
+
+        # cat("AllSchoolsFromWhichToChoose", "\n")
+        # pick one school to swap in for remaining child
+        ChildrenToSwap <- ChildrenFinalised %>%
+          filter(SchoolType == "C") %>%
+          right_join(IntSchoolsFromWhichToChoose, by = "ChildAge") %>%
+          filter(!(ChildType.x == ChildType.y)) %>%
+          group_by(ChildID.y) %>%
+          slice_sample(n = 1) %>%
+          ungroup()
+
+        # process:
+        # 1. swap school IDs
+        # 2. sub in the new school ID for the donor child/ren, replacing the original
+        # 2.A must also change sex allocation
+        # 3. create the correctly formatted child merge file for the recipient children
+        # 4. add in those recipient children
+        # 5. decrease the counts for the schools that were the incorrect sex
+        InjectionInformation <- ChildrenToSwap %>%
+          select(ChildID.x, SchoolID.y, SchoolType.y)
+
+          ChildRowIndex <- as.numeric(which(ChildrenFinalised$ChildID==InjectionInformation$ChildID.x[1]))
+
+          ChildrenFinalised[ChildRowIndex, SchoolsIDColIndex] <- InjectionInformation$SchoolID.y[1]
+          ChildrenFinalised[ChildRowIndex, SchoolsTypeColIndex] <- InjectionInformation$SchoolType.y[1]
+
+
+        # replacement school injected, now fix the child/ren in the current household
+
+
+        # 3. create the correctly formatted child merge file for the recipient children
+        # get children and add the extra columns for merge
+        # need to mock up these columns as the schools dataset no longer contains
+        # this schoolID/childage combo
+        # only incorrect value is SchoolType
+
+        ChildSchoolMerge <- ChildrenToSwap %>%
+          select(ChildID.y, SchoolID.x) %>%
+          rename(ChildID = ChildID.y,
+                 SchoolID = SchoolID.x) %>%
+          left_join(ChildrenInHousehold, by = "ChildID") %>%
+          mutate(SchoolType = "Z", ChildCounts = 0, NumberKids = 0, RemainingChildren = 0)
+
+        # 4. add in those recipient children
+        ChildrenFinalised <- bind_rows(ChildrenFinalised, ChildSchoolMerge)
+
+        # 5. decrease the counts for the schools that were the incorrect sex
+        # cat("Fixing school count summaries", "\n")
+
+        SchoolCountSummaries <- ChildrenToSwap %>%
+          select(SchoolID.y, ChildAge) %>%
+          rename(SchoolID = SchoolID.y) %>%
+          group_by(SchoolID, ChildAge) %>%
+          summarise(AllocatedCounts = n()) %>%
+          left_join(SchoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
+          mutate(RemainingChildren = ChildCounts - AllocatedCounts)
+
+
+        SchoolRowIndex <- as.numeric(which(SchoolsRenamed$SchoolID==SchoolCountSummaries$SchoolID[1] &
+                                             SchoolsRenamed$ChildAge==SchoolCountSummaries$ChildAge[1]))
+
+        # cat("School row index is", SchoolRowIndex, "and the school column index is", SchoolsCountColIndex, "\n")
+
+        SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] <- SchoolsRenamed[SchoolRowIndex, SchoolsCountColIndex] -
+          SchoolCountSummaries$AllocatedCounts[1]
+
+        SchoolsRenamed <- SchoolsRenamed %>%
+          filter(ChildCounts > 0)
+
+        # closes if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
+      } else {
+        # normal child school merge if this is non-problematic for the availability of school roll places
+
+        cat("Household ID is", CurrentHousehold, "\n")
+
+
+
+        ChildSchoolMerge <- left_join(ChildrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
+          mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
+          filter(IsMatch == "Y") %>%
+          select(-IsMatch)
+      }
+
+
+
+      # closes for(i in 1:nrow(SingletonHouseholds)) {
+    }
+
+
+    #closes if(nrow(SingletonHouseholds > 0)) {
+  }
 
   OutputDataframe <- ChildrenFinalised %>%
     select(-c(SchoolType, ChildCounts, NumberKids, RemainingChildren))
