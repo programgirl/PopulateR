@@ -45,6 +45,23 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     #mutate(across(where(is.factor), as.character)) %>%
     select(SchoolID, SchoolAge, ChildCounts, SchoolType)
 
+  ###############################################
+  ###############################################
+   # get the col names
+  ###############################################
+  ###############################################
+
+  ChildIDColName <- sym(names(Children[ChildIDCol]))
+  ChildAgeColName <- sym(names(Children[ChildAgeCol]))
+  HouseholdIDColName <- sym(names(Children[HouseholdIDCol]))
+  ChildSxColName <- sym(names(Children[ChildSxCol]))
+  SchoolIDColName <- sym(names(Schools[SchoolIDCol]))
+
+  ###############################################
+  ###############################################
+  # quick test of compatibility of counts
+  ###############################################
+  ###############################################
   ChildrenCountTest <- ChildrenRenamed %>%
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
@@ -138,6 +155,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
   ListofHouseholds <- ChildrenRenamed %>%
     group_by(HouseholdID) %>%
     summarise(NumberKids = n())
+
+  ###############################################
+  ###############################################
+  ###############################################
+  # assignment of schools
+  ###############################################
+  ###############################################
+  ###############################################
 
    for(i in 1:nrow(ListofHouseholds)) {
 
@@ -426,7 +451,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
            if(isTRUE(SchoolChosen$SchoolID %in% c(SingleSexMatchedSchools$SchoolID))) {
 
-              cat("Uses the combo single sex school SchoolID", "\n")
+              # cat("Uses the combo single sex school SchoolID", "\n")
 
           School1 <- SingleSexMatchedSchools %>%
             filter(SchoolID == SchoolChosen$SchoolID) %>%
@@ -538,7 +563,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
             }
 
-            cat("Start row for subset is", SmallestVector, "and end row for subset is", (SmallestVector+(MaxChildrenCanTake-1)), "\n")
+            # cat("Start row for subset is", SmallestVector, "and end row for subset is", (SmallestVector+(MaxChildrenCanTake-1)), "\n")
 
           }
 
@@ -656,10 +681,10 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
             if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])) {
 
-              cat(CurrentHousehold, "Entered this final fixit loop", "\n")
+              # cat(CurrentHousehold, "Entered this final fixit loop", "\n")
 
 
-              str(SchoolsRenamed)
+              # str(SchoolsRenamed)
                # sample one school per remaining child
               IntSchoolsFromWhichToChoose <- left_join(ChildAges, SchoolsRenamed, by = "ChildAge") %>%
                 group_by(SchoolID) %>%
@@ -797,9 +822,14 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
   }
 #
 
-
   OutputDataframe <- ChildrenFinalised %>%
-    select(-c(SchoolType, ChildCounts, NumberKids, RemainingChildren))
+    select(-c(SchoolType, ChildCounts, NumberKids, RemainingChildren)) %>%
+    rename(!!ChildIDColName := ChildID, !!ChildAgeColName := ChildAge,
+           !!HouseholdIDColName := HouseholdID, !!ChildSxColName := ChildType,
+           !!SchoolIDColName := SchoolID)
+
+  cat("The school allocation by sex is", "\n")
+  print(table(ChildrenFinalised$SchoolID, ChildrenFinalised$Sex))
 
   return(OutputDataframe)
   # closes function
