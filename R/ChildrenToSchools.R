@@ -125,6 +125,9 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
     group_by(SchoolType, ChildAge) %>%
     summarise(SchoolAgeCount = sum(ChildCounts))
 
+  # TODO remove this split, if no merge == shift between fix and not fix
+  # merge may fail on first attempt in household
+
   # singleton households, assign these last
   SingletonHouseholds <- ChildrenRenamed %>%
     group_by(HouseholdID) %>%
