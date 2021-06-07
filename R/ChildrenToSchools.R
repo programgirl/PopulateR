@@ -157,7 +157,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
 
     CurrentHousehold <- ListofHouseholds$HouseholdID[i]
 
-    cat("The current household is", CurrentHousehold, "\n")
+    # cat("The current household is", CurrentHousehold, "\n")
 
 
       # get the children in the household
@@ -214,7 +214,7 @@ ChildrenToSchools <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, Hou
       }
 
 
-      print(NumberSameSchool)
+      # print(NumberSameSchool)
 
       # add children to same school
       # need to identify the number of children that can go to the same school
