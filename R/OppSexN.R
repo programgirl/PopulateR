@@ -114,10 +114,11 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
 
   # Recipient ID variable
   RecipientIDColName <- sym(names(Recipient[RecipientIDCol]))
-
   # Recipient age variable
   RecipientAgeColName <- sym(names(Recipient[RecipientAgeCol]))
 
+  # Donor ID variable
+  DonorIDColName <- sym(names(Donor[DonorIDCol]))
   # Donor age variable
   DonorAgeColName <- sym(names(Donor[DonorAgeCol]))
 
@@ -339,6 +340,14 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
 
 
   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
+
+  if(nrow(Donor) > nrow(Recipient)) {
+
+    UnmatchedDataframe <- Donor %>%
+      filter((!!DonorIDColName) %in% (OutputDataframe))
+
+  }
+
   #
   # #####################################
   # #####################################
