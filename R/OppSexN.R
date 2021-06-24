@@ -341,14 +341,7 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
 
   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
 
-  if(nrow(Donor) > nrow(Recipient)) {
 
-    UnmatchedDataframe <- Donor %>%
-      filter((!!DonorIDColName) %in% (OutputDataframe))
-
-  }
-
-  #
   # #####################################
   # #####################################
   # # pairing the actual couples ends here
@@ -361,7 +354,33 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   # print(Critical_log_chisq)
   # print(log_chisq)
 
-  return(OutputDataframe)
+  if(nrow(Donor) > nrow(Recipient)) {
+
+    cat("The donor dataframe contained more observations than the recipient dataframe.", "\n")
+    cat("A merged dataframe has been returned as a list.", "\n")
+    cat("The individual dataframes are $Matched and $Unmatched.", "\n")
+
+    MatchedIDs <- OutputDataframe %>%
+      pull({{DonorIDColName}})
+
+    UnmatchedDataframe <- Donor %>%
+      filter(!({{DonorIDColName}} %in% MatchedIDs)) #%>%
+     # mutate({{HouseholdNumVariable}} = NA)
+
+    MergedList <- list()
+
+    MergedList$Matched <- OutputDataframe
+    MergedList$Unmatched <- UnmatchedDataframe
+
+    return(MergedList)
+
+    # closes test for non-matches and returns the merged data frame if there are non-matches
+  } else {
+
+    # if donor has the same number of rows as recipient, returns everything as the dataframe specified on the input.
+    return(OutputDataframe)
+
+     }
 
 
 }
