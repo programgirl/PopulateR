@@ -2,9 +2,9 @@
 # only use this once to demonstrate how to disaggregate age
 library(dplyr)
 
-DisaggregateAge <- AgeStructure(Relationships, IndividualSxCol = 1, MinimumAgeCol = 4,
-                                MaximumAgeCol = 5, SingleAges, PyramidSxCol = 2,
-                                PyramidAgeCol = 4, PyramidCountCol = 3, NewAgeVariable = "TheAge",
+DisaggregateAge <- agediss(Relationships, indsxcol = 1, minagecol = 4,
+                                maxagecol = 5, SingleAges, pyrsxcol = 2,
+                                pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge",
                                 UserSeed = 4)
 
 # Township is the file to use for the other functions
