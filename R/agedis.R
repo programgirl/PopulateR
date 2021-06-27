@@ -1,5 +1,5 @@
 #' Add a sex/age structure to a data frame of grouped ages.
-#' This function creates a data frame that adds an age structure to a data frame that contains age bands. The output contains the same data as the individuals data frame, with an added column that contains the age.
+#' This function creates a data frame that adds an age structure to a data frame that contains age bands.
 #' Two data frames are required: the data frame that contains individuals with age bands ("individuals"), and a data frame used as the basis for constructing a sex/age pyramid ("pyramid"). The pyramid data frame must contain counts by sex/age in the population of interest.
 #' The individuals data frame requires two columns relating to the age band. One is the minimum age in the age band. The second is the maximum age in the age band. For example, the age band 0 - 4 years would have 0 as the minimum age band value and 4 as the maximum age band value. Each person in the individuals data frame must have both the minimum and maximum age variables populated.
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the codes must match.  For example, if "F" and "M" are used in the individuals data frame to denote sex, then "F" and "M" are the codes required in the pyramid data frame. Any number of sex code values can be used, so long as they are unique.
@@ -15,6 +15,11 @@
 #' @param agevarname The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
+#' @return A data frame of an observations, with an added column that contains the age.
+
+#' @examples
+#' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
+#' pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", UserSeed = 4)
 
 agediss <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
                          pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", UserSeed = NULL)
