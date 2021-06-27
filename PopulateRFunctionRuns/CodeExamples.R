@@ -2,10 +2,8 @@
 # only use this once to demonstrate how to disaggregate age
 library(dplyr)
 
-DisaggregateAge <- agediss(Relationships, indsxcol = 1, minagecol = 4,
-                                maxagecol = 5, SingleAges, pyrsxcol = 2,
-                                pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge",
-                                UserSeed = 4)
+DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
+                                pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", UserSeed = 4)
 
 # Township is the file to use for the other functions
 ###########################################################
