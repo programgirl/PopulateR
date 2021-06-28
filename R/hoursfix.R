@@ -9,6 +9,11 @@
 #' @param hourscol The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
 #' @param hoursmax The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#'
+#' @return A data of observations, with working hours reallocated so that an adolesent's working hours is compatible with schooling.
+#'
+#' @examples
+#' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
 
 
 hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NULL, hoursmax = NULL, UserSeed = NULL) {
