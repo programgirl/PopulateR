@@ -25,8 +25,7 @@ rm(WithSchoolInd)
 # Fix hours function
 library(dplyr)
 
-AdolescentWork <- FixHours(WorkingAdolescents, AdolescentIDCol=3, AdolescentAgeCol=4, InSchoolCol=6,
-                           HoursWorkedCol=5, HoursCutOff=3, UserSeed=4)
+AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
 
 
 
