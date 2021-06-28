@@ -27,7 +27,7 @@
 #' #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
 #' if the algorithm does not converge.
-#' adding extra stuff heere to test commit
+
 #'
 #' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
