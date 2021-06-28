@@ -12,9 +12,10 @@
 #'     \item{Relationship}{Relationship status of the person}
 #'     \item{LowerAge}{The youngest age in the Age.group}
 #'     \item{UpperAge}{The oldest age in the Age.group}
-#'     \item{ID}{The unique identifier for each person}
+#'     \item{ID}{The unique identifier for the person}
 #' }
 #' "Relationships"
+
 
 
 #' Sex/age pyramid data for Timaru District
@@ -34,6 +35,7 @@
 #' "SingleAges"
 
 
+
 #' Random selection of 10,000 synthetic people in the Timaru District from the 2018 census
 #'
 #' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460
@@ -45,13 +47,14 @@
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Relationship}{Relationship status of the person}
-#'     \item{ID}{The unique identifier for each person}
+#'     \item{ID}{The unique identifier for the person}
 #'     \item{Age}{The age of the person}
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #' }
 #' "Township"
-#'
-#'
+
+
+
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
 #' A dataset produced from the official statistics of school leavers produced by the Ministry of Education
@@ -66,11 +69,12 @@
 #'     \item{Total}{The count of adolescents who left school in that year, of that age and sex}
 #' }
 #' "LeftSchool"
-#'
-#'
+
+
+
 #' Sex/Age pyramid for the Canterbury Region, 2018
 #'
-#' #' A dataset produced from combining aggregate 2018 census datasets, using tablecode 8277,
+#' A dataset produced from combining aggregate 2018 census datasets, using tablecode 8277,
 #' from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}.
 #' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
 #' 4.0 International licence.
@@ -83,3 +87,24 @@
 #'     \item{Age}{The age relating to that count}
 #' }
 #' "RegionalStructure"
+
+
+
+#' Adolescents with a school stats and employment hours
+#' A dataset of synthetic people aged between 15 and 24, produced bycombining the aggregate 2018 census
+#' datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education
+#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
+#' 4.0 International licence.
+#' The Ministry of Education's data are licensed by the Ministry of Education for reuse under the
+#' Creative Commons Attribution 4.0 International licence
+#'
+#' @format A data frame of 1,079 observations and 6 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{Age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#'     \item{SchoolStatus}{Whether the person is attending school}
+#' }
+#' "WorkingAdolescents"

@@ -1,6 +1,7 @@
 #' Reallocates the working hours between people in school and people not in school.
 #' This function reallocates working hours so that adolescents in school work fewer hours than adolescents still in school.
 #' The re-allocation is performed initially for the adolescents still in school. This ensures that the shorter hours worked have a higher probability of being allocated to adolescents who are very unlikely to have longer hours worked. The approach is designed to prevent longer working hours, for example full-time hours, being allocated to adolescents who are still studying.
+#' The data frame must be restricted to only those whose hours can be reallocated.
 #' @export
 #' @param adolescents A data frame containing all adolescents who have working hours.
 #' @param adlidcol The column number for the unique value that identifies unique adolescents.
