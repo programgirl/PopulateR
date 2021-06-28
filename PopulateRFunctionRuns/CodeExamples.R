@@ -12,12 +12,10 @@ DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol 
 # School leavers function
 library(dplyr)
 
-WithSchoolInd <- SchoolLeavers(Township, AdolescentSxCol = 1, AdolescentAgeCol = 4,
-                               AdolescentsYear = 2018, MinSchoolAge = 5, MaxSchoolAge = 18,
-                               LeftSchool, LeaversSxCol = 2, LeaversAgeCol = 3, LeaversCountCol = 4,
-                               LeaversYearCol = 1,
-                               RegionalStructure, PyramidSxCol = 1, PyramidAgeCol = 4, PyramidCountCol = 3,
-                               SchoolStatus = "SchoolStatus", UserSeed = 4)
+WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
+                           LeftSchool, lvrsxcol = 2, lvragecol = 3, lvrctcol = 4, lvryearcol = 1,
+                           RegionalStructure, strusxcol = 1, struagecol = 4, structcol = 3,
+                           stvarname = "SchoolStatus", UserSeed = 4)
 
 rm(WithSchoolInd)
 
