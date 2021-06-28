@@ -2,6 +2,8 @@
 #' This function creates a data frame with a variable indicating whether the person still attending school or is not attending school. This is an factor with two levels. Pre-cleaning so that only people inside the age range for attending school is not required.
 #' Three data frames are required. The first is the data frame that contains the people ("adolescents") to whom the indicator will be applied. The other two data frames are counts: school leaver counts ("leavers"), and the sex/age pyramid counts ("structure") that apply to the school leaver counts. As cumulative proportions of school leavers are calculated, the leavers data frames must contain multiple years of data. For example, if the minimum school leaving age is 17 and the maximum age is 18, then there must be two years of data in the leavers and structure data frames. The structure data frame contains the sex/age counts for the year of the adolescent data. For example, if the adolescents data frame is based on 2021, then the structure data frame should be the counts for 2021.
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the same code is used in all three data frames. For example, if "F" and "M" are used in the adolescents data frame to denote sex, then "F" and "M" are the codes required in both the leavers and structure data frames. Any number of values can be used, so long as they are unique.
+#'
+#' The proportion of adolescents, by age and sex, who have left school is printed to the Console.
 #' @export
 #' @param adolescents A data frame containing all adolescents who potentially have left school due to their age.
 #' @param adlsxcol The column number for the variable that contain the codes specifying females and males.
@@ -109,8 +111,6 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
 
 
   AgePyramid <- as.data.frame(structure %>%
-                                # rename(IntSex = !! strusxcol, IntAge = !! struagecol,
-                                #        structcol = !! lvrctcol) %>%
                                 rename(IntSex = !! strusxcol, IntAge = !! struagecol,
                                        AllPeople = !! structcol) %>%
                                 mutate(IntSex = as.character(IntSex),

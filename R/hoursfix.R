@@ -3,19 +3,18 @@
 #'The re-allocation is performed initially for the adolescents still in school. This ensures that the shorter hours worked have a higher probability of being allocated to adolescents who are very unlikely to have longer hours worked. The approach is designed to prevent longer working hours, for example full-time hours, being allocated to adolescents who are still studying.
 #' The variables specifying sex can be numeric, character, or factor. Any number of values can be used, so long as they are unique.
 #' @export
-#' @param Adolescents A data frame containing all adolescents who have working hours.
-#' @param AdolescentIDCol The column number for the unique value that identifies unique adolescents.
-#' @param AdolescentSxCol The column number for the variable that contain the codes specifying females and males.
-#' @param AdolescentAgeCol The column number for the variable that contains the ages of the adolescents. This must be integer format.
-#' @param InSchoolCol The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value. This is output as an ordered factor.
-#' @param HoursWorkedCol The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
-#' @param HoursCutOff The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
+#' @param adolescents A data frame containing all adolescents who have working hours.
+#' @param adlidcol The column number for the unique value that identifies unique adolescents.
+#' @param adlsxcol The column number for the variable that contain the codes specifying females and males.
+#' @param adlagecol The column number for the variable that contains the ages of the adolescents. This must be integer format.
+#' @param statuscol The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value. This is output as an ordered factor.
+#' @param hourscol The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
+#' @param hoursmax The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 
-FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL,
-                     AdolescentAgeCol = NULL, InSchoolCol= NULL, HoursWorkedCol= NULL,
-                     HoursCutOff = NULL, UserSeed = NULL) {
+hoursfix <- function(adolescents, adlidcol = NULL, adlsxcol = NULL, adlagecol = NULL, statuscol= NULL, hourscol= NULL,
+                     hoursmax = NULL, UserSeed = NULL) {
 
   options(dplyr.summarise.inform=F)
 
@@ -23,35 +22,35 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   # quick reasonableness checks
   #####################################
 
-  if (is.null(AdolescentIDCol)) {
-    stop("The column number containing the ID information in the Adolescents data frame must be supplied.")
+  if (is.null(adlidcol)) {
+    stop("The column number containing the ID information in the adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentSxCol)) {
-    stop("The column number containing the sex information in the Adolescents data frame must be supplied.")
+  if (is.null(adlsxcol)) {
+    stop("The column number containing the sex information in the adolescents data frame must be supplied.")
   }
 
-  if (is.null(AdolescentAgeCol)) {
-    stop("The column number containing the age information in the Adolescents data frame must be supplied.")
+  if (is.null(adlagecol)) {
+    stop("The column number containing the age information in the adolescents data frame must be supplied.")
   }
 
-  if (is.null(InSchoolCol)) {
+  if (is.null(statuscol)) {
     stop("The column number containing the information relating to whether an adolescent is still in school, or has left school, must be supplied.")
   }
 
-  if (!(is.factor(InSchoolCol)) & !(is.numeric(InSchoolCol))) {
+  if (!(is.factor(statuscol)) & !(is.numeric(statuscol))) {
     stop("The school indicator variable must be a factor or be numeric.")
   }
 
-  if (is.null(HoursWorkedCol)) {
+  if (is.null(hourscol)) {
     stop("The column number containing the hours worked values must be supplied.")
   }
 
-  if (!(is.ordered(HoursWorkedCol)) & !(is.numeric(HoursWorkedCol))) {
+  if (!(is.ordered(hourscol)) & !(is.numeric(hourscol))) {
     stop("Hours worked must be a factor or be numeric.")
   }
 
-  if (is.null(HoursCutOff)) {
+  if (is.null(hoursmax)) {
     stop("The maximum value for the number of hours worked, for adolescents still in school, must be supplied.")
   }
 
@@ -61,23 +60,22 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   #####################################
   #####################################
 
-  Children <- as.data.frame(Adolescents %>%
-                              rename(IntSex = !! AdolescentSxCol, IntAge = !! AdolescentAgeCol,
-                                     InSchool= !! InSchoolCol,
-                                     IntHours = !! HoursWorkedCol, IntID = !! AdolescentIDCol) %>%
+  Children <- as.data.frame(adolescents %>%
+                              rename(IntSex = !! adlsxcol, IntAge = !! adlagecol,
+                                     InSchool= !! statuscol,
+                                     IntHours = !! hourscol, IntID = !! adlidcol) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
                                      IntHours = as.integer(IntHours),
                                      InSchool = as.integer(InSchool)))
-                                    # IntHours = as.ordered(IntHours)))
 
   # get the original variable names
 
-  ChildrenIDColName <- sym(names(Adolescents[AdolescentIDCol]))
-  ChildrenAgeColName <- sym(names(Adolescents[AdolescentAgeCol]))
-  ChildrenSexColName <- sym(names(Adolescents[AdolescentSxCol]))
-  ChildrenStatusColName <- sym(names(Adolescents[InSchoolCol]))
-  ChildrenHoursColName <- sym(names(Adolescents[HoursWorkedCol]))
+  ChildrenIDColName <- sym(names(adolescents[adlidcol]))
+  ChildrenAgeColName <- sym(names(adolescents[adlagecol]))
+  ChildrenSexColName <- sym(names(adolescents[adlsxcol]))
+  ChildrenStatusColName <- sym(names(adolescents[statuscol]))
+  ChildrenHoursColName <- sym(names(adolescents[hourscol]))
 
   #####################################
   #####################################
@@ -85,7 +83,7 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   #####################################
   #####################################
 
-  # check if HoursWorkedColis an ordered factor or numeric
+  # check if hourscolis an ordered factor or numeric
 
   if (!(is.ordered(Children$IntHours)) == TRUE & !(is.numeric(Children$IntHours)) == TRUE) {
 
@@ -100,13 +98,13 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
   #####################################
 
   CorrectShorterHours <- Children %>%
-    filter(as.integer(IntHours) <= HoursCutOff,
+    filter(as.integer(IntHours) <= hoursmax,
            InSchool == 1
           # as.integer(InSchool) == 1)
     )
 
   CorrectLongerHours <- Children %>%
-    filter(as.integer(IntHours) > HoursCutOff,
+    filter(as.integer(IntHours) > hoursmax,
            InSchool == 2
           # as.integer(InSchool) == 2)
     )
@@ -143,7 +141,7 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
 
   # just use the damn counts
   RemainingShorterHours <- MismatchedHours %>%
-    filter(as.integer(IntHours) <= HoursCutOff) %>%
+    filter(as.integer(IntHours) <= hoursmax) %>%
     dplyr::select(IntHours)
 
 
@@ -225,11 +223,11 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
 
   OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
 
-  if (is.factor(Adolescents[,InSchoolCol]) == TRUE) {
+  if (is.factor(adolescents[,statuscol]) == TRUE) {
 
 #   cat("School identifier is a factor")
 
-   InSchoolLabels <- levels(Adolescents[,InSchoolCol])
+   InSchoolLabels <- levels(adolescents[,statuscol])
 
    OutputDataFrame <- OutputDataFrame %>%
      mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
@@ -237,11 +235,11 @@ FixHours <- function(Adolescents, AdolescentIDCol = NULL, AdolescentSxCol = NULL
    #close factor test for school variable
  }
 
-  if (is.ordered(Adolescents[,HoursWorkedCol]) == TRUE) {
+  if (is.ordered(adolescents[,hourscol]) == TRUE) {
 
   #  cat("Hours worked is a factor")
 
-    HoursLabels <- levels(Adolescents[,HoursWorkedCol])
+    HoursLabels <- levels(adolescents[,hourscol])
 
     OutputDataFrame <- OutputDataFrame %>%
       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
