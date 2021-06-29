@@ -155,13 +155,13 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   MaxAgeDifference <-  (max(Recipient[RecipientAgeCol]) -
                           min(Donor[DonorAgeCol]))-5
 
-  cat("Starting the bins", "\n")
+  # cat("Starting the bins", "\n")
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
   min_bin <- round(sn::qsn(0.000001,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))-0.5
   max_bin <- round(sn::qsn(0.999999,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))+0.5
 
-  cat("Error when trying to bin", "\n")
+  # cat("Error when trying to bin", "\n")
 
   bins <- c(-9999, min_bin:max_bin, 9999)
 
@@ -171,7 +171,7 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   Probabilities <- sn::psn(bins[-1], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed) -
     sn::psn(bins[-length(bins)], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed)
 
-  cat("Error after making the probabilities", "\n")
+  # cat("Error after making the probabilities", "\n")
 
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
@@ -182,7 +182,7 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
 
-  cat("Error after making the logProb and logBins", "\n")
+  # cat("Error after making the logProb and logBins", "\n")
 
   #####################################
   #####################################
