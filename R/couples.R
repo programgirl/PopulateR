@@ -1,68 +1,63 @@
-#' Create a subset of observations containing only opposite-sex couples
-#'
-#' This function creates a data frame of couples, based on a population distribution of age differences. The distribution used is the skew normal.
-#' Two data frames are required. The recipient data frame contains the age data, of one sex, to which the distribution will be applied. The
-#' donor data frame contains the age data, of the other sex, from which the age counts to match are constructed. If the two data frames are different
-#' lengths, the recipient data frame must be the shortest of the two. In this situation, a random subsample of the donor data frame will be used.
+#' Construct pairs of people into couples with a household identifier.
+#' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
+#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two.In this situation, a random subsample of the largedf data frame will be used.
 #' Both data frames must be restricted to only those ages that will have a couples match performed. No age reasonableness check is made.
-#' An even number of observations is output, using the defined age-difference distribution between the female and male ages for the couples.
-#'
-#' The function performs a reasonableness check for the first five variables. If any other parameters are missing, the usual error messages from the imported
-#' functions will be output.
-#'
-#' If desired, this can be used to construct same-sex couples.
-#'
 #' @export
-#' @param Recipient A data frame containing observations limited to one sex. An age column is required. Only include the ages that are eligible for partner allocation.
-#' @param RecipientIDCol The column number for the ID variable in the Recipient data frame.
-#' @param RecipientAgeCol The column number for the age variable in the Recipient data frame.
-#' @param Donor A data frame containing observations limited to one sex. An age column is required. Only include the ages that will be allocated to partners.
-#' @param DonorIDCol The column number for the donor ID. Must be numeric.
-#' @param DonorAgeCol The column number for the age variable in the Donor data frame.
-#' @param meanUsed The mean value for the  normal distribution.
-#' @param sdUsed The standard deviation value for the normal distribution.
-#' @param IDStartValue The starting number for generating a variable that identifies the observations in a couple. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
-#' @param pValueToStop The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule
-#' if the algorithm does not converge.
+#' @param smalldf A data frame containing one set of observations to be paired.
+#' @param smlidcol The column number for the ID variable in the smalldf data frame.
+#' @param smlagecol The column number for the age variable in the smalldf data frame.
+#' @param largedf A data frame containing the second set of observations to be paired.
+#' @param lrgidcol The column number for the ID variable in the largedf data frame.
+#' @param lrgagecol The column number for the age variable in the largedf data frame.
+#' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the  normal distribution.
+#' @param directomega If a skew-normal distribution is used, this is the scale value. If the default alphaused value of 0 is used, this defaults to the standard deviation value for the normal distribution.
+#' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
+#' @param hhidstart The starting number for generating the household identifier value that identifies a couple. Must be numeric.
+#' @param hhidvar The column name for the household variable. This must be supplied in quotes.
+#' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#'
-#' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
+#' @return If both data frames are the same size, a data frame of pairs that have been allocated into a household. If the largedf contains more observations, a list is returned. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf.
 #'
 #' @examples
-#' Recipients <- data.frame(cbind(PersonID = c(1:1000),
-#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=51, max=90),0))))
-#'
-#' Donors <- data.frame(cbind(PersonID = c(2001:4000),
-#'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
-#'
-#' ExampleOutput <- OppositeSex(Recipients, RecipientIDCol=1, RecipientAgeCol=2, Donors, DonorIDCol=1, DonorAgeCol=2, meanUsed=2, sdUsed=4, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
+# library(dplyr)
+#
+# set.seed(1)
+# PartneredFemales <- Township %>%
+#   filter(Sex == "Female", Relationship == "Partnered")
+# PartneredMales <- Township %>%
+#   filter(Sex == "Male", Relationship == "Partnered")
+#
+# partners females and males, using a normal distribution, with the females being younger by a mean of -2 and a standard deviation of 3
+# OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+#                            PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+#                            directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+#                            UserSeed = 4, ptostop=.01,  numiters=1000000)
 
 
-couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor, DonorIDCol=NULL,
-                    DonorAgeCol=NULL, DirectXi=NULL, DirectOmega=NULL, AlphaUsed=0, IDStartValue = NULL,
-                    HouseholdNumVariable=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
+couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NULL,
+                    lrgagecol=NULL, directxi=NULL, directomega=NULL, alphaused=0, hhidstart = NULL,
+                    hhidvar=NULL, UserSeed=NULL, ptostop=NULL, numiters=1000000) {
 
   # content check
-  if (!any(duplicated(Recipient[RecipientIDCol])) == FALSE) {
-    stop("The column number for the ID variable in the recipient data frame must be supplied.")
+  if (!any(duplicated(smalldf[smlidcol])) == FALSE) {
+    stop("The column number for the ID variable in the smalldf data frame must be supplied.")
   }
 
-  if (!is.numeric(RecipientAgeCol)) {
-    stop("Both the Recipient ID and the Recipient age column numbers must be supplied.")
+  if (!is.numeric(smlagecol)) {
+    stop("Both the smalldf ID and the smalldf age column numbers must be supplied.")
   }
 
-  if (!any(duplicated(Donor[DonorIDCol])) == FALSE) {
-    stop("The column number for the ID variable in the donor data frame must be supplied.")
+  if (!any(duplicated(largedf[lrgidcol])) == FALSE) {
+    stop("The column number for the ID variable in the largedf data frame must be supplied.")
   }
 
-  if(is.null(HouseholdNumVariable)) {
+  if(is.null(hhidvar)) {
     stop("A name for the household count variable must be supplied.")
   }
 
-  if(is.null(DirectOmega) | DirectOmega < 0) {
+  if(is.null(directomega) | directomega < 0) {
     stop("The mean age difference must be greater than zero.")
   }
 
@@ -72,10 +67,10 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   #####################################
   # pairing swap subfunction
 
-  swap_donor <- function(pair1, pair2) {
+  swap_largedf <- function(pair1, pair2) {
     swap <- pair1
-    swap$DonorID <- pair2$DonorID
-    swap$DonorAge <- pair2$DonorAge
+    swap$largedfID <- pair2$largedfID
+    swap$largedfAge <- pair2$largedfAge
     return(swap)
   }
 
@@ -116,15 +111,15 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   #####################################
   #####################################
 
-  # Recipient ID variable
-  RecipientIDColName <- sym(names(Recipient[RecipientIDCol]))
-  # Recipient age variable
-  RecipientAgeColName <- sym(names(Recipient[RecipientAgeCol]))
+  # smalldf ID variable
+  smlidcolName <- sym(names(smalldf[smlidcol]))
+  # smalldf age variable
+  smlagecolName <- sym(names(smalldf[smlagecol]))
 
-  # Donor ID variable
-  DonorIDColName <- sym(names(Donor[DonorIDCol]))
-  # Donor age variable
-  DonorAgeColName <- sym(names(Donor[DonorAgeCol]))
+  # largedf ID variable
+  lrgidcolName <- sym(names(largedf[lrgidcol]))
+  # largedf age variable
+  lrgagecolName <- sym(names(largedf[lrgagecol]))
 
   #####################################
   #####################################
@@ -139,45 +134,45 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   #####################################
   #####################################
 
-  # get counts for each single age from the donor data frame
-  DonorCounts <- Donor %>%
-    group_by_at(DonorAgeCol) %>%
+  # get counts for each single age from the largedf data frame
+  largedfCounts <- largedf %>%
+    group_by_at(lrgagecol) %>%
     summarise(AgeCount=n())
 
-  # DonorAges <- as.vector(DonorCounts[1])
-  DonorAges <- pull(DonorCounts[1])
-  DonorAgeCounts <- pull(DonorCounts[2])
+  # largedfAges <- as.vector(largedfCounts[1])
+  largedfAges <- pull(largedfCounts[1])
+  largedfAgeCounts <- pull(largedfCounts[2])
 
   # set up bins for iterations
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(Recipient[RecipientAgeCol]) -
-                          min(Donor[DonorAgeCol]))-5
+  MaxAgeDifference <-  (max(smalldf[smlagecol]) -
+                          min(largedf[lrgagecol]))-5
 
   # cat("Starting the bins", "\n")
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
-  min_bin <- round(sn::qsn(0.000001,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))-0.5
-  max_bin <- round(sn::qsn(0.999999,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))+0.5
+  min_bin <- round(sn::qsn(0.000001,xi=directxi, omega=directomega, alpha=alphaused))-0.5
+  max_bin <- round(sn::qsn(0.999999,xi=directxi, omega=directomega, alpha=alphaused))+0.5
 
   # cat("Error when trying to bin", "\n")
 
   bins <- c(-9999, min_bin:max_bin, 9999)
 
-  cat("Error after making the bins", "\n")
+  # cat("Error after making the bins", "\n")
 
   # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- sn::psn(bins[-1], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed) -
-    sn::psn(bins[-length(bins)], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed)
+  Probabilities <- sn::psn(bins[-1], xi=directxi, omega=directomega, alpha=alphaused) -
+    sn::psn(bins[-length(bins)], xi=directxi, omega=directomega, alpha=alphaused)
 
   # cat("Error after making the probabilities", "\n")
 
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- sn::dsn(-MaxAgeDifference:(min_bin-0.5), xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed, log=TRUE)
-  logProbHigh <- sn::dsn((max_bin+0.5):MaxAgeDifference, xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed, log=TRUE)
+  logProbLow <- sn::dsn(-MaxAgeDifference:(min_bin-0.5), xi=directxi, omega=directomega, alpha=alphaused, log=TRUE)
+  logProbHigh <- sn::dsn((max_bin+0.5):MaxAgeDifference, xi=directxi, omega=directomega, alpha=alphaused, log=TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
@@ -197,17 +192,17 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   #####################################
   #####################################
   # this is a random sample so age differences will not follow desired distribution
-  # however, if the donor data frame is larger than the recipient data frame
-  # this ensures that a random selection of donors has the correct count
+  # however, if the largedf data frame is larger than the smalldf data frame
+  # this ensures that a random selection of largedfs has the correct count
   if (!is.null(UserSeed)) {
     set.seed(UserSeed)
   }
 
 
-  CurrentAgeMatch <- data.frame(Recipient[RecipientIDCol],
-                                Recipient[RecipientAgeCol],
-                                DonorAge = sample(rep(DonorAges, DonorAgeCounts),
-                                                  size=nrow(Recipient),
+  CurrentAgeMatch <- data.frame(smalldf[smlidcol],
+                                smalldf[smlagecol],
+                                largedfAge = sample(rep(largedfAges, largedfAgeCounts),
+                                                  size=nrow(smalldf),
                                                   replace = FALSE))
 
   # set up for chi-squared test
@@ -222,13 +217,13 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
   log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-  if (is.null(pValueToStop)) {
+  if (is.null(ptostop)) {
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
   } else {
 
-    Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+    Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
   }
 
@@ -238,7 +233,7 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   #####################################
   #####################################
 
-  for (i in 1:NumIterations) {
+  for (i in 1:numiters) {
 
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -247,12 +242,12 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
     Current2 <- CurrentAgeMatch[Pick2,]
 
     # # proposed pairing after a swap
-    PropPair1 <- swap_donor(Current1, Current2)
-    PropPair2 <- swap_donor(Current2, Current1)
+    PropPair1 <- swap_largedf(Current1, Current2)
+    PropPair2 <- swap_largedf(Current2, Current1)
 
     # compute change in Chi-squared value from current pairing to proposed pairing
     PropAgeMatch <- CurrentAgeMatch %>%
-      filter(!({{RecipientIDColName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
+      filter(!({{smlidcolName}} %in% c(PropPair1[,1], PropPair2[,1]))) %>%
       bind_rows(., PropPair1,PropPair2)
 
     # do chi-squared
@@ -292,61 +287,61 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   # pairing the actual couples starts here
   #####################################
   #####################################
-  # return full donor and recipient rows as matched household pairs
-  # extract ages counts for matching the donors
-  MatchedDonorAges <- CurrentAgeMatch %>%
-    dplyr::select(DonorAge) %>%
-    group_by(DonorAge) %>%
-    mutate(DonorAgeCount = row_number()) %>%
+  # return full largedf and smalldf rows as matched household pairs
+  # extract ages counts for matching the largedfs
+  MatchedlargedfAges <- CurrentAgeMatch %>%
+    dplyr::select(largedfAge) %>%
+    group_by(largedfAge) %>%
+    mutate(largedfAgeCount = row_number()) %>%
     ungroup()
 
 
-  #   # generate same AgeCount second ID variable for the donor data
-  #   # the AgeCount is used to ensure that the first donor with a specific age is matched first
-  #   # the second donor with a specific age is matched second
+  #   # generate same AgeCount second ID variable for the largedf data
+  #   # the AgeCount is used to ensure that the first largedf with a specific age is matched first
+  #   # the second largedf with a specific age is matched second
   #   # and so forth
-  DonorsToMatch <- Donor %>%
-    group_by({{DonorAgeColName}}) %>%
-    mutate(DonorAgeCount = row_number()) %>%
+  largedfsToMatch <- largedf %>%
+    group_by({{lrgagecolName}}) %>%
+    mutate(largedfAgeCount = row_number()) %>%
     ungroup()
 
-  # reduce pool of potentially partnered donors to only those matched to recipients
-  DonorsMatched <- left_join(MatchedDonorAges,
-                             rename_at(DonorsToMatch, DonorAgeCol, ~ names(MatchedDonorAges)[1]),
-                             by = c(names(MatchedDonorAges)[1], "DonorAgeCount")) %>%
-    mutate(!!DonorAgeColName := DonorAge)
+  # reduce pool of potentially partnered largedfs to only those matched to smalldfs
+  largedfsMatched <- left_join(MatchedlargedfAges,
+                             rename_at(largedfsToMatch, lrgagecol, ~ names(MatchedlargedfAges)[1]),
+                             by = c(names(MatchedlargedfAges)[1], "largedfAgeCount")) %>%
+    mutate(!!lrgagecolName := largedfAge)
 
 
-  # construct same file for the recipients
-  # need both donor age and donor age count so that the join between the recipients and the donors works
-  # do not need Recipient age as this will be a duplicate column on the merge
-  RecipientsMatchPrep <- CurrentAgeMatch %>%
-    group_by(DonorAge) %>%
-    mutate(DonorAgeCount = row_number()) %>%
+  # construct same file for the smalldfs
+  # need both largedf age and largedf age count so that the join between the smalldfs and the largedfs works
+  # do not need smalldf age as this will be a duplicate column on the merge
+  smalldfsMatchPrep <- CurrentAgeMatch %>%
+    group_by(largedfAge) %>%
+    mutate(largedfAgeCount = row_number()) %>%
     dplyr::select(-c(2))
 
   #
-  RecipientsReadyToMatch <- left_join(Recipient, RecipientsMatchPrep, by = names(Recipient[RecipientIDCol]))
+  smalldfsReadyToMatch <- left_join(smalldf, smalldfsMatchPrep, by = names(smalldf[smlidcol]))
 
-  # now merge the full data of the subset donors to the recipients
-  # by donor age and donor age count
-  # recipient data frame is the one to which observations must be joined
+  # now merge the full data of the subset largedfs to the smalldfs
+  # by largedf age and largedf age count
+  # smalldf data frame is the one to which observations must be joined
   # also add the household numbers at this point
-  MaxIDStartValue <- (nrow(RecipientsReadyToMatch)-1) + IDStartValue
+  Maxhhidstart <- (nrow(smalldfsReadyToMatch)-1) + hhidstart
 
-  FullMatchedDataFrame <- left_join(RecipientsReadyToMatch, DonorsMatched, by=c("DonorAge", "DonorAgeCount")) %>%
-    dplyr::select(-DonorAge, -DonorAgeCount) %>%
+  FullMatchedDataFrame <- left_join(smalldfsReadyToMatch, largedfsMatched, by=c("largedfAge", "largedfAgeCount")) %>%
+    dplyr::select(-largedfAge, -largedfAgeCount) %>%
     ungroup() %>%
-    mutate({{HouseholdNumVariable}} := seq(IDStartValue, MaxIDStartValue))
+    mutate({{hhidvar}} := seq(hhidstart, Maxhhidstart))
 
   # convert from wide to long, use .x and .y to do the split
 
   FirstDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".x"), {{hhidvar}}) %>%
     rename_all(list(~gsub("\\.x$", "", .)))
 
   SecondDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".y"), {{hhidvar}}) %>%
     rename_all(list(~gsub("\\.y$", "", .)))
 
 
@@ -365,18 +360,18 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   # print(Critical_log_chisq)
   # print(log_chisq)
 
-  if(nrow(Donor) > nrow(Recipient)) {
+  if(nrow(largedf) > nrow(smalldf)) {
 
-    cat("The donor dataframe contained more observations than the recipient dataframe.", "\n")
+    cat("The largedf dataframe contained more observations than the smalldf dataframe.", "\n")
     cat("A merged dataframe has been returned as a list.", "\n")
     cat("The individual dataframes are $Matched and $Unmatched.", "\n")
 
     MatchedIDs <- OutputDataframe %>%
-      pull({{DonorIDColName}})
+      pull({{lrgidcolName}})
 
-    UnmatchedDataframe <- Donor %>%
-      filter(!({{DonorIDColName}} %in% MatchedIDs)) #%>%
-     # mutate({{HouseholdNumVariable}} = NA)
+    UnmatchedDataframe <- largedf %>%
+      filter(!({{lrgidcolName}} %in% MatchedIDs)) #%>%
+     # mutate({{hhidvar}} = NA)
 
     MergedList <- list()
 
@@ -388,7 +383,7 @@ couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
     # closes test for non-matches and returns the merged data frame if there are non-matches
   } else {
 
-    # if donor has the same number of rows as recipient, returns everything as the dataframe specified on the input.
+    # if largedf has the same number of rows as smalldf, returns everything as the dataframe specified on the input.
     return(OutputDataframe)
 
      }

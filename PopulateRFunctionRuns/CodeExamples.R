@@ -72,10 +72,10 @@ PartneredMales <- Township %>%
 # being the smallest data frame, the female one must be the first
 
 # normal distribution
-OppSexCouplessn <- couples(PartneredFemales, RecipientIDCol=3, RecipientAgeCol=4,
-                         PartneredMales, DonorIDCol=3, DonorAgeCol=4, DirectXi = -2,
-                         DirectOmega = 3, IDStartValue = 100, HouseholdNumVariable="HouseholdID",
-                         UserSeed = 4, pValueToStop=.01,  NumIterations=1000000)
+OppSexCouplessn <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+                         PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+                         directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                         UserSeed = 4, ptostop=.01,  numiters=1000000)
 
 
 
