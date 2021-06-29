@@ -72,10 +72,12 @@ PartneredMales <- Township %>%
 # being the smallest data frame, the female one must be the first
 
 # normal distribution
-OppSexCouples <- OppSexN(PartneredFemales, RecipientIDCol=3, RecipientAgeCol=4,
-                         PartneredMales, DonorIDCol=3, DonorAgeCol=4, meanUsed= -2,
-                         sdUsed = 3, IDStartValue = 100, HouseholdNumVariable="HouseholdID",
+OppSexCouplessn <- couples(PartneredFemales, RecipientIDCol=3, RecipientAgeCol=4,
+                         PartneredMales, DonorIDCol=3, DonorAgeCol=4, DirectXi = -2,
+                         DirectOmega = 3, IDStartValue = 100, HouseholdNumVariable="HouseholdID",
                          UserSeed = 4, pValueToStop=.01,  NumIterations=1000000)
+
+
 
 # repeat with matched counts
 set.seed(1)

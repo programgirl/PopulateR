@@ -41,9 +41,9 @@
 #' ExampleOutput <- OppositeSex(Recipients, RecipientIDCol=1, RecipientAgeCol=2, Donors, DonorIDCol=1, DonorAgeCol=2, meanUsed=2, sdUsed=4, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds", UserSeed=NULL, pValueToStop=.001, NumIterations=1000)
 
 
-OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor, DonorIDCol=NULL,
-                        DonorAgeCol=NULL, meanUsed= NULL, sdUsed = NULL, IDStartValue = NULL, HouseholdNumVariable=NULL,
-                        UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
+couples <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor, DonorIDCol=NULL,
+                    DonorAgeCol=NULL, DirectXi=NULL, DirectOmega=NULL, AlphaUsed=0, IDStartValue = NULL,
+                    HouseholdNumVariable=NULL, UserSeed=NULL, pValueToStop=NULL, NumIterations=1000000) {
 
   # content check
   if (!any(duplicated(Recipient[RecipientIDCol])) == FALSE) {
@@ -60,6 +60,10 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
 
   if(is.null(HouseholdNumVariable)) {
     stop("A name for the household count variable must be supplied.")
+  }
+
+  if(is.null(DirectOmega) | DirectOmega < 0) {
+    stop("The mean age difference must be greater than zero.")
   }
 
   #####################################
@@ -151,27 +155,34 @@ OppSexN <- function(Recipient, RecipientIDCol=NULL, RecipientAgeCol=NULL, Donor,
   MaxAgeDifference <-  (max(Recipient[RecipientAgeCol]) -
                           min(Donor[DonorAgeCol]))-5
 
-  # estimate expected minimum and maximum ages from the distribution, and bin these
+  cat("Starting the bins", "\n")
 
-  min_bin <- round(qnorm(0.000001, mean = meanUsed, sd = sdUsed))-0.5
-  max_bin <- round(qnorm(0.999999, mean = meanUsed, sd = sdUsed))+0.5
-  bins <- c(-Inf, min_bin:max_bin, Inf)
+  # estimate expected minimum and maximum ages from the distribution, and bin these
+  min_bin <- round(sn::qsn(0.000001,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))-0.5
+  max_bin <- round(sn::qsn(0.999999,xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed))+0.5
+
+  cat("Error when trying to bin", "\n")
+
+  bins <- c(-9999, min_bin:max_bin, 9999)
+
+  cat("Error after making the bins", "\n")
 
   # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- pnorm(bins[-1], mean = meanUsed, sd = sdUsed) -
-    pnorm(bins[-length(bins)], mean = meanUsed, sd = sdUsed)
+  Probabilities <- sn::psn(bins[-1], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed) -
+    sn::psn(bins[-length(bins)], xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed)
+
+  cat("Error after making the probabilities", "\n")
 
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = meanUsed, sd = sdUsed, log=TRUE)
-  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = meanUsed, sd = sdUsed, log=TRUE)
+  logProbLow <- sn::dsn(-MaxAgeDifference:(min_bin-0.5), xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed, log=TRUE)
+  logProbHigh <- sn::dsn((max_bin+0.5):MaxAgeDifference, xi=DirectXi, omega=DirectOmega, alpha=AlphaUsed, log=TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
 
-
-
+  cat("Error after making the logProb and logBins", "\n")
 
   #####################################
   #####################################
