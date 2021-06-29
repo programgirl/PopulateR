@@ -18,7 +18,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#' @return If both data frames are the same size, a data frame of pairs that have been allocated into a household. If the largedf contains more observations, a list is returned. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf.
+#' @return If both data frames are the same size, a data frame of pairs that have been allocated into a household. If the largedf contains more observations, a list is returned. A message will be printed to the console if a list has been output. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf.
 #'
 #' @examples
 # library(dplyr)
