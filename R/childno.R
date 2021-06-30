@@ -233,6 +233,8 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
   childrenRenamed <- childrenRenamed %>%
     filter(is.na(ParentAge))
 
+  return(childrenRenamed)
+
  # cat("The number of children that need to be matched in future is", nrow(childrenRenamed), "\n")
 
   # force last lot of children to be matched on the basis of first parent age after minimum
@@ -251,24 +253,28 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
     Currentchild <- childrenRenamed[j,]
 
-    Currentminparentage <- Currentchild$ChildAge + 1
-    Currentmaxparentage <- Currentchild$ChildAge + maxparage
+    Currentmin <- Currentchild$ChildAge - (minIndexAge-minparage)
+    Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
-    print(maxIndexAge)
-    print(maxparage)
-    print(Currentchild$ChildAge)
-    print(Currentminparentage)
-    print(Currentmaxparentage)
+    if(Currentmax > (maxIndexAge-minparage)) {
 
-    if(Currentmaxparentage > (maxIndexAge-minparage)) {
-
-      Currentmaxparentage <- maxIndexAge-minparage
+      Currentmax <- maxIndexAge-minparage
     }
 
+   cat("Current child is", Currentchild$ChildID, "Current mins is", Currentmin, "Currentmax is", Currentmax, "\n")
 
-    parentrange <-ParentAgeCountVector[Currentminparentage:Currentmaxparentage]
+    parentprobs <-ParentAgeCountVector[Currentmin:Currentmax]
+    parentindex <- seq(Currentmin, Currentmax, by=1)
 
-    return(parentrange)
+    age_index <- sample(parentindex, 1, prob=c(parentprobs))
+
+    Currentchild$ParentAge = age_index + minIndexAge - 1
+    Currentchild$AgeDifference = Currentchild$ParentAge - Currentchild$ChildAge
+
+    ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+    # random draw from the vector, weighted by count
+
 
     # ensure initial age selection is within min and max parent ages
 #
@@ -316,6 +322,14 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
     #closes the loop through children renamed
   }
+
+    if(!(exists("LastSet"))) {
+      LastSet <- Currentchild
+    } else{
+      LastSet <- bind_rows(LastSet, Currentchild)
+    }
+
+    return(LastSet)
 
   #   Combine the three children Dataframes
 
