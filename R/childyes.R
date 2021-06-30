@@ -21,7 +21,7 @@
 #' @examples
 # library(dplyr)
 
-childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
+childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
                     alphaused=0, minparage = NULL, maxparage = NULL, hhidcol = NULL, UserSeed=NULL)
 
 {
@@ -71,7 +71,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   parentsAgeColName <- sym(names(parents[paragecol]))
 
-  parentsIDColName <- sym(names(parents[hhidcol]))
+  parentsHHColName <- sym(names(parents[hhidcol]))
 
 
 
@@ -359,25 +359,23 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   childrenFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
-    dplyr::select(all_of(1:NumberColschildren), all_of(parentsIDColName)) %>%
-    rename_all(list(~gsub("\\.x$", "", .))) %>%
-    mutate({{hhidvar}} := seq(hhidstart, Maxhhidstart))
+    dplyr::select(all_of(1:NumberColschildren), all_of(parentsHHColName)) %>%
+    rename_all(list(~gsub("\\.x$", "", .)))
 
-#   cat("childrenFinal data frame constructed", "\n")
+  cat("childrenFinal data frame constructed", "\n")
 
   parentsFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
     dplyr::select(all_of((NumberColschildren+1): ncol(.))) %>%
-    rename_all(list(~gsub("\\.y$", "", .))) %>%
-    mutate({{hhidvar}} := seq(hhidstart, Maxhhidstart))
+    rename_all(list(~gsub("\\.y$", "", .)))
 
-#   cat("parentsFinal data frame constructed", "\n")
+  cat("parentsFinal data frame constructed", "\n")
 
   childrenFinal <- childrenFinal %>%
     rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge)
 
   parentsFinal <- parentsFinal %>%
-    rename(!!parentsIDColName := ParentID, !!parentsAgeColName := ParentAge) %>%
+   rename(!!parentsIDColName := ParentID, !!parentsAgeColName := ParentAge) %>%
     dplyr::select(-c(AgeDifference, ParentAgeCount))
 
   OutputDataframe <- rbind(parentsFinal, childrenFinal)
