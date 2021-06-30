@@ -264,7 +264,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
       Currentmax <- maxIndexAge-minparage
     }
 
-   cat("Current child is", Currentchild$ChildID, "Current mins is", Currentmin, "Currentmax is", Currentmax, "\n")
+   # cat("Current child is", Currentchild$ChildID, "Current mins is", Currentmin, "Currentmax is", Currentmax, "\n")
 
     parentprobs <-ParentAgeCountVector[Currentmin:Currentmax]
     parentindex <- seq(Currentmin, Currentmax, by=1)
@@ -389,8 +389,25 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 #   #####################################
 #   #####################################
 
+  cat("The individual dataframes are $Matched, $Parents, and $Children", "\n")
 
-  return(OutputDataframe)
+  MatchedIDs <- OutputDataframe %>%
+    pull({{parentsIDColName}})
+
+  Nokids <- parents %>%
+    filter(!({{parentsIDColName}} %in% MatchedIDs))
+
+  Noparents <- children %>%
+    filter(!({{parentsIDColName}} %in% MatchedIDs))
+
+
+  MergedList <- list()
+
+  MergedList$Matched <- OutputDataframe
+  MergedList$Parents <- Nokids
+  MergedList$Children <- Noparents
+
+  return(MergedList)
 
 
 }
