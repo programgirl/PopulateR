@@ -362,14 +362,10 @@ childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol
     dplyr::select(all_of(1:NumberColschildren), all_of(parentsHHColName)) %>%
     rename_all(list(~gsub("\\.x$", "", .)))
 
-  cat("childrenFinal data frame constructed", "\n")
-
   parentsFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
     dplyr::select(all_of((NumberColschildren+1): ncol(.))) %>%
     rename_all(list(~gsub("\\.y$", "", .)))
-
-  cat("parentsFinal data frame constructed", "\n")
 
   childrenFinal <- childrenFinal %>%
     rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge)
