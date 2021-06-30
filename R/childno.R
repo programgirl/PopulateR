@@ -129,7 +129,6 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     tidyr::complete(ParentAge = seq(min(ParentAge), max(ParentAge)),
                     fill = list(AgeCount = 0))
 
-
   minIndexAge <- as.integer(ParentCounts[1,1])
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
@@ -214,6 +213,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
       childrenRenamed$AgeDifference[j] <- AgeDifference
       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
+
     } else {
 
       childrenRenamed$ParentAge[j] <- NA
@@ -251,20 +251,24 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
     Currentchild <- childrenRenamed[j,]
 
-    Currentminparentage <- Currentchild$ChildAge + minparage
+    Currentminparentage <- Currentchild$ChildAge + 1
     Currentmaxparentage <- Currentchild$ChildAge + maxparage
 
-    if(Currentmaxparentage > maxIndexAge) {
+    print(maxIndexAge)
+    print(maxparage)
+    print(Currentchild$ChildAge)
+    print(Currentminparentage)
+    print(Currentmaxparentage)
 
-      Currentmaxparentage <- maxIndexAge
+    if(Currentmaxparentage > (maxIndexAge-minparage)) {
+
+      Currentmaxparentage <- maxIndexAge-minparage
     }
 
-    cat("Min parent age is", Currentminparentage, "Max parent age is", Currentmaxparentage)
 
-   # parentrange <-
+    parentrange <-ParentAgeCountVector[Currentminparentage:Currentmaxparentage]
 
-    return(ParentAgeCountVector)
-
+    return(parentrange)
 
     # ensure initial age selection is within min and max parent ages
 #
