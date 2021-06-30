@@ -59,12 +59,19 @@ rm(PartneredFemales, NoUpweightGiven, Upweighted)
 
 library(dplyr)
 
+# demonstrate matched dataframe sizes first
 set.seed(1)
 PartneredFemales <- Township %>%
   filter(Sex == "Female", Relationship == "Partnered")
+PartneredMalesSmall <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered") %>%
+  slice_sample(n = nrow(PartneredFemales))
 
-PartneredMales <- Township %>%
-  filter(Sex == "Male", Relationship == "Partnered")
+OppSexCouples1 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+                          PartneredMalesSmall, lrgidcol=3, lrgagecol=4, directxi = -2,
+                         directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                         UserSeed = 4, ptostop=.01, numiters=1000000)
+
 
 # there are more partnered males than partnered females
 # so all partnered males will have a matched female partner
@@ -72,26 +79,19 @@ PartneredMales <- Township %>%
 # being the smallest data frame, the female one must be the first
 
 # normal distribution
-OppSexCouplessn <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+set.seed(1)
+PartneredFemales <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered")
+
+PartneredMales <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered")
+
+OppSexCouples2 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-                         UserSeed = 4, ptostop=.01,  numiters=1000000)
+                         UserSeed = 4, ptostop=.01, numiters=1000000)
 
-
-
-# repeat with matched counts
-set.seed(1)
-PartneredMalesSmall <- Township %>%
-  filter(Sex == "Male", Relationship == "Partnered") %>%
-  slice_sample(n = nrow(PartneredFemales))
-
-OppSexCouples2 <- OppSexN(PartneredFemales, RecipientIDCol=3, RecipientAgeCol=4,
-                          PartneredMalesSmall, DonorIDCol=3, DonorAgeCol=4, meanUsed= -2,
-                         sdUsed = 3, IDStartValue = 100, HouseholdNumVariable="HouseholdID",
-                         UserSeed = 4, pValueToStop=.01,  NumIterations=1000000)
-
-
-TheMatched <- OppSexCouples$Matched
+TheMatched <- OppSexCouples2$Matched
 
 # skew normal distribution (not run)
 # OppSexCouplesSN <-OppSexSN(PartneredFemales, RecipientIDCol=4, RecipientAgeCol=5,

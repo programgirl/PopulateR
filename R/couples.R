@@ -1,7 +1,7 @@
 #' Construct pairs of people into couples with a household identifier.
 #' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two.In this situation, a random subsample of the largedf data frame will be used.
-#' Both data frames must be restricted to only those ages that will have a couples match performed. No age reasonableness check is made.
+#' Both data frames must be restricted to only those people that will have a couples match performed.
 #' @export
 #' @param smalldf A data frame containing one set of observations to be paired.
 #' @param smlidcol The column number for the ID variable in the smalldf data frame.
@@ -18,7 +18,7 @@
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#' @return If both data frames are the same size, a data frame of pairs that have been allocated into a household. If the largedf contains more observations, a list is returned. A message will be printed to the console if a list has been output. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf.
+#' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
 #'
 #' @examples
 # library(dplyr)
@@ -360,10 +360,10 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
   # print(Critical_log_chisq)
   # print(log_chisq)
 
-  if(nrow(largedf) > nrow(smalldf)) {
-
-    cat("The largedf dataframe contained more observations than the smalldf dataframe.", "\n")
-    cat("A merged dataframe has been returned as a list.", "\n")
+  # if(nrow(largedf) > nrow(smalldf)) {
+  #
+  #   cat("The second dataframe contained more observations than the first dataframe.", "\n")
+  #   cat("A merged dataframe has been returned as a list.", "\n")
     cat("The individual dataframes are $Matched and $Unmatched.", "\n")
 
     MatchedIDs <- OutputDataframe %>%
@@ -379,14 +379,5 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
     MergedList$Unmatched <- UnmatchedDataframe
 
     return(MergedList)
-
-    # closes test for non-matches and returns the merged data frame if there are non-matches
-  } else {
-
-    # if largedf has the same number of rows as smalldf, returns everything as the dataframe specified on the input.
-    return(OutputDataframe)
-
-     }
-
 
 }
