@@ -244,51 +244,71 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   if(nrow(childrenRenamed) > 0) {
 
+
   for (j in 1:nrow(childrenRenamed)) {
 
-    # ensure initial age selection is within min and max parent ages
+    # estimate permissible parent age range
 
-    AgeDifference <- round(runif(1, minparage, maxparage))
-    childrenRenamed$ParentAge[j] <- childrenRenamed$ChildAge[j] + AgeDifference
-    age_index <- childrenRenamed$ParentAge[j]-(minIndexAge -1)
+    Currentchild <- childrenRenamed[j,]
 
-     if (ParentAgeCountVector[age_index] > 0)  {
+    Currentminparentage <- Currentchild$ChildAge + minparage
+    Currentmaxparentage <- Currentchild$ChildAge + maxparage
 
-      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-      childrenRenamed$AgeDifference[j] <- AgeDifference
+    if(Currentmaxparentage > maxIndexAge) {
 
-    } else {
-
-      childrenRenamed$AgeDifference[j] <- NA
-      childrenRenamed$ParentAge[j] <- NA
-
-      age_index <- which.max(ParentAgeCountVector)
-      childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
-      childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
-
-      while (!(ParentAgeCountVector[age_index] > 0 && childrenRenamed$AgeDifference[j] >= minparage &&
-               childrenRenamed$AgeDifference[j] <= maxparage)) {
-
-        age_index <- age_index + round(runif(1,-2,2),0)
-
-        if(age_index < 1) {
-          age_index <- round(length(ParentAgeCountVector)*.2, 0)
-        }
-
-        if(age_index > length(ParentAgeCountVector)) {
-          age_index <- round(length(ParentAgeCountVector)*.8, 0)
-        }
-
-        childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
-        childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
-
-        #closes while index or age numbers are wrong
-      }
-
-      ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-
-      #closes if the age vector is greater than 0
+      Currentmaxparentage <- maxIndexAge
     }
+
+    cat("Min parent age is", Currentminparentage, "Max parent age is", Currentmaxparentage)
+
+   # parentrange <-
+
+    return(ParentAgeCountVector)
+
+
+    # ensure initial age selection is within min and max parent ages
+#
+#     AgeDifference <- round(runif(1, minparage, maxparage))
+#     childrenRenamed$ParentAge[j] <- childrenRenamed$ChildAge[j] + AgeDifference
+#     age_index <- childrenRenamed$ParentAge[j]-(minIndexAge -1)
+#
+     # if (ParentAgeCountVector[age_index] > 0)  {
+     #
+     #  ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
+     #  childrenRenamed$AgeDifference[j] <- AgeDifference
+#
+    # } else {
+    #
+    #   childrenRenamed$AgeDifference[j] <- NA
+    #   childrenRenamed$ParentAge[j] <- NA
+    #
+    #   age_index <- which.max(ParentAgeCountVector)
+    #   childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
+    #   childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
+    #
+    #   while (!(ParentAgeCountVector[age_index] > 0 && childrenRenamed$AgeDifference[j] >= minparage &&
+    #            childrenRenamed$AgeDifference[j] <= maxparage)) {
+    #
+    #     age_index <- age_index + round(runif(1,-2,2),0)
+    #
+    #     if(age_index < 1) {
+    #       age_index <- round(length(ParentAgeCountVector)*.2, 0)
+    #     }
+    #
+    #     if(age_index > length(ParentAgeCountVector)) {
+    #       age_index <- round(length(ParentAgeCountVector)*.8, 0)
+    #     }
+    #
+    #     childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
+    #     childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
+    #
+    #     #closes while index or age numbers are wrong
+    #   }
+    #
+    #   ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
+    #
+    #   #closes if the age vector is greater than 0
+    # }
 
     #closes the loop through children renamed
   }
