@@ -9,7 +9,7 @@
 #' @param largedf A data frame containing the second set of observations to be paired.
 #' @param lrgidcol The column number for the ID variable in the largedf data frame.
 #' @param lrgagecol The column number for the age variable in the largedf data frame.
-#' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the  normal distribution.
+#' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the normal distribution.
 #' @param directomega If a skew-normal distribution is used, this is the scale value. If the default alphaused value of 0 is used, this defaults to the standard deviation value for the normal distribution.
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
 #' @param hhidstart The starting number for generating the household identifier value that identifies a couple. Must be numeric.
