@@ -252,12 +252,11 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
     Currentchild <- childrenRenamed[j,]
 
-    Currentmin <- Currentchild$ChildAge - (minIndexAge-minparage)
+    Currentmin <- (minparage - minIndexAge) + Currentchild$ChildAge
     Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
-    if(Currentmin < minIndexAge) {
-
-      Currentmin <- minIndexAge
+    if(Currentmin < 1) {
+      Currentmin <- 1
     }
 
     if(Currentmax > (maxIndexAge-minparage)) {
