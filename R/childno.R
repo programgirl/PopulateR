@@ -233,7 +233,6 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
   childrenRenamed <- childrenRenamed %>%
     filter(is.na(ParentAge))
 
-  return(childrenRenamed)
 
  # cat("The number of children that need to be matched in future is", nrow(childrenRenamed), "\n")
 
@@ -256,6 +255,11 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     Currentmin <- Currentchild$ChildAge - (minIndexAge-minparage)
     Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
+    if(Currentmin < minIndexAge) {
+
+      Currentmin <- minIndexAge
+    }
+
     if(Currentmax > (maxIndexAge-minparage)) {
 
       Currentmax <- maxIndexAge-minparage
@@ -266,6 +270,8 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     parentprobs <-ParentAgeCountVector[Currentmin:Currentmax]
     parentindex <- seq(Currentmin, Currentmax, by=1)
 
+    if(sum(parentprobs > 0)) {
+
     age_index <- sample(parentindex, 1, prob=c(parentprobs))
 
     Currentchild$ParentAge = age_index + minIndexAge - 1
@@ -273,83 +279,46 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
-    # random draw from the vector, weighted by count
+    if(exists("LastSet")) {
+      LastSet <- bind_rows(LastSet, Currentchild)
+    } else{
+      LastSet <- Currentchild
+
+      # closes creation of the matched children data frame
+    }
 
 
-    # ensure initial age selection is within min and max parent ages
-#
-#     AgeDifference <- round(runif(1, minparage, maxparage))
-#     childrenRenamed$ParentAge[j] <- childrenRenamed$ChildAge[j] + AgeDifference
-#     age_index <- childrenRenamed$ParentAge[j]-(minIndexAge -1)
-#
-     # if (ParentAgeCountVector[age_index] > 0)  {
-     #
-     #  ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-     #  childrenRenamed$AgeDifference[j] <- AgeDifference
-#
-    # } else {
-    #
-    #   childrenRenamed$AgeDifference[j] <- NA
-    #   childrenRenamed$ParentAge[j] <- NA
-    #
-    #   age_index <- which.max(ParentAgeCountVector)
-    #   childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
-    #   childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
-    #
-    #   while (!(ParentAgeCountVector[age_index] > 0 && childrenRenamed$AgeDifference[j] >= minparage &&
-    #            childrenRenamed$AgeDifference[j] <= maxparage)) {
-    #
-    #     age_index <- age_index + round(runif(1,-2,2),0)
-    #
-    #     if(age_index < 1) {
-    #       age_index <- round(length(ParentAgeCountVector)*.2, 0)
-    #     }
-    #
-    #     if(age_index > length(ParentAgeCountVector)) {
-    #       age_index <- round(length(ParentAgeCountVector)*.8, 0)
-    #     }
-    #
-    #     childrenRenamed$ParentAge[j] <- age_index + (minIndexAge -1)
-    #     childrenRenamed$AgeDifference[j] <- childrenRenamed$ParentAge[j] - childrenRenamed$ChildAge[j]
-    #
-    #     #closes while index or age numbers are wrong
-    #   }
-    #
-    #   ParentAgeCountVector[age_index] <- ParentAgeCountVector[age_index] - 1
-    #
-    #   #closes if the age vector is greater than 0
-    # }
+    # constructs an unmatched child data frame if no parent is available
+    } else {
+
+      if(exists("Noparents")) {
+        Noparents <- bind_rows(Noparents, Currentchild)
+      } else{
+        Noparents <- Currentchild
+
+        # closes creation of the matched children data frame
+      }
+
+      # closes the loop that puts children either into a matched-to-parent age data frame
+      # or an unmatched to parent data frame
+    }
 
     #closes the loop through children renamed
   }
+    # bind in the last dataframe if there were children missing parents
+    Matchedchildren <- rbind(Matchedchildren, LastSet)
 
-    if(!(exists("LastSet"))) {
-      LastSet <- Currentchild
-    } else{
-      LastSet <- bind_rows(LastSet, Currentchild)
-    }
-
-    return(LastSet)
-
-  #   Combine the three children Dataframes
-
-  childrenRenamed <- rbind(Matchedchildren, childrenRenamed)
-
-  } else {
-
-    childrenRenamed <- Matchedchildren
+    # closes test if there is any unmatched children
   }
 
- #  cat("Second rbind here", "\n")
-
-  # #####################################
+  #####################################
   #####################################
   # pairing the actual parent-child dyads starts here
   #####################################
   #####################################
   # return full donor and recipient rows as matched household pairs
   # extract ages counts for matching the donors
-  MatchedParentAges <- childrenRenamed %>%
+  MatchedParentAges <- Matchedchildren %>%
     dplyr::select(ParentAge) %>%
     group_by(ParentAge) %>%
     mutate(ParentAgeCount = row_number()) %>%
@@ -372,7 +341,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
   # construct same file for the children
   # need both parent age and parent age count so that the join between the children and the parents works
   # do not need child age as this will be a duplicate column on the merge
-  childrenMatchPrep <- childrenRenamed %>%
+  childrenMatchPrep <- Matchedchildren %>%
     group_by(ParentAge) %>%
     mutate(ParentAgeCount = row_number()) %>%
     ungroup()
@@ -415,8 +384,6 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   OutputDataframe <- rbind(parentsFinal, childrenFinal)
 
-#  cat("Third rbind here")
-#
 #   #####################################
 #   #####################################
 #   # pairing the parents to children ends here
