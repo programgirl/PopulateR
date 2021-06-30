@@ -21,6 +21,7 @@
 #'
 #' @examples
 # library(dplyr)
+# set.seed(1)
 # sample a combination of females and males to be parents
 # Parents <- Township %>%
 #   filter(Relationship == "Partnered", Age > 18) %>%
