@@ -21,6 +21,29 @@
 #'
 #' @examples
 # library(dplyr)
+# sample a combination of females and males to be parents
+# Parents <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 500)
+#
+# Children <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20) %>%
+#   slice_sample(n = 200)
+#
+# match the children to the parents
+# no ID on the parents
+#
+# ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+#                            directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                            maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", UserSeed=4)
+#
+# ShorterParents <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 200)
+#
+# ChildWithNonMatches<- childno(Children, chlidcol = 3, chlagecol = 4, ShorterParents, paridcol = 3, paragecol = 4,
+#                               directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                               maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", UserSeed=4)
 
 childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
                     alphaused=0, minparage = NULL, maxparage = NULL, hhidstart = NULL, hhidvar= NULL,
