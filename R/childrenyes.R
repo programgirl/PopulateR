@@ -138,7 +138,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     set.seed(UserSeed)
   }
 
-  cat("Number of rows of parents is", nrow(parentsRenamed), "\n", "Number of rows of children is", nrow(children), "\n")
+  # cat("Number of rows of parents is", nrow(parentsRenamed), "\n", "Number of rows of children is", nrow(children), "\n")
 
   if ((nrow(parentsRenamed)*numchild) < (nrow(children)*1.1)) {
 
@@ -151,7 +151,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     childrenRenamed <- childrenRenamed[-sample(1:nrow(childrenRenamed), nrow(childrenRenamed) %% numchild), ]
   }
 
-  cat("Final size of child data frame is ", nrow(childrenRenamed), "\n")
+  # cat("Final size of child data frame is ", nrow(childrenRenamed), "\n")
 
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
@@ -394,7 +394,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
         OtherKids <- TwinsMatched %>%
           ungroup() %>%
-          select(all_of((NumberColsChildren*2)+z-1), ncol(.)) %>%
+          select(all_of((NumberColschildren*2)+z-1), ncol(.)) %>%
           rename(ChildAge = paste0("ChildAge", z))
 
         OtherKids <- left_join(OtherKids %>% group_by(ChildAge) %>% mutate(Counter = row_number()),
@@ -548,7 +548,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
 
-    for (y in (NumberColsChildren + 4):ncol(BaseDataFrame)) {
+    for (y in (NumberColschildren + 4):ncol(BaseDataFrame)) {
 
       Counter <- 0
 
@@ -628,14 +628,14 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
   NotTwins <- BaseDataFrame %>%
     ungroup() %>%
-    select(all_of(1:NumberColsChildren), NumberColsChildren+3)
+    select(all_of(1:NumberColschildren), NumberColschildren+3)
 
   NoTwinsDataFrame <- NoTwinsDataFrame %>%
     filter(!(ChildID %in% c(NotTwins$ChildID)))
 
   ParentOfNotTwins <- BaseDataFrame %>%
     ungroup() %>%
-    select(all_of((NumberColsChildren+2) : (NumberColsChildren+3)))
+    select(all_of((NumberColschildren+2) : (NumberColschildren+3)))
 
   ParentOfNotTwins <- left_join(ParentOfNotTwins, parentsRenamed, by = c("ParentID", "HouseholdID"))
 
@@ -644,7 +644,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
   # extract the base child
   BaseNonTwin <- BaseDataFrame %>%
-    select(all_of(1:c(NumberColsChildren)), NumberColsChildren+3)
+    select(all_of(1:c(NumberColschildren)), NumberColschildren+3)
 
   # return other children
   # need HH ID and child age
@@ -652,7 +652,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
   for(z in 2:numchild) {
 
     CurrentChildIteration <- BaseDataFrame %>%
-      select(NumberColsChildren+3, NumberColsChildren+(3+z-1)) %>%
+      select(NumberColschildren+3, NumberColschildren+(3+z-1)) %>%
       rename_with(.cols = 2, ~"ChildAge")
 
     if(exists("ChildrenToAdd")) {
@@ -727,8 +727,6 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
   # fix the out-of-bounds ages and households with twins who shouldn't have
   #####################################
   #####################################
-
-  # deal with too young parents first
   if(exists("WrongParentAge")) {
 
     # # convert to unique households
@@ -736,6 +734,11 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
     WrongParentAgeHouseholds <- parentsFinal %>%
       filter(HouseholdID %in% c(WrongParentAge))
+
+    ChildrenInWrongAgeHousehold <- ChildrenFinal %>%
+      filter(HouseholdID %in% c(WrongParentAge))
+
+    return(ChildrenInWrongAgeHousehold)
 
     AmendedparentsFinal <- parentsFinal %>%
       filter(!HouseholdID %in% c(WrongParentAgeHouseholds$HouseholdID))
@@ -779,7 +782,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
             filter(HouseholdID %in% c(AmendedparentsFinal$HouseholdID)) %>%
             slice_sample(n= 1)
 
-          # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$HouseholdID, "\n")
+          cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$HouseholdID, "\n")
 
           # need to check:
           # 1. will the swap to the problem household recreate the problem with the
@@ -875,12 +878,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
             slice_sample(n = 1)
 
           if(nrow(NewSampleParent) == 0) {
-
-            if(exists("Noparents")) {
-              Noparents <- bind_rows(Noparents, ChildProblemAges[b])
-            } else {
-              Noparents <- ChildProblemAges[b]
-            }
+            break
           }
 
           # swap in the new parent for the old
@@ -969,8 +967,6 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       for(b in 1:length(DuplicateAges)) {
 
         AgeToSwap <- DuplicateAges[b]
-
-        #    print(AgeToSwap)
 
         # sample that age from the household
         SampledIncorrectTwin <- ChildrenFinal %>%
@@ -1063,11 +1059,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
           if(SwapLoopCount == 200) {
             cat("No swap for", SampledIncorrectTwin$ChildID, "in household", SampledIncorrectTwin$HouseholdID, "\n")
 
-            if(exists("Noparents")) {
-              Noparents <- bind_rows(Noparents, SampledIncorrectTwin)
-            } else {
-              Noparents <- SampledIncorrectTwin
-              }
+            break
 
             # closes loop for swapping
           }
@@ -1088,6 +1080,19 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
   if (exists("TwinsFinal")) {
     ChildrenFinal <- bind_rows(ChildrenFinal, TwinsFinal)
   }
+
+  # remove any children who are not in the right household size
+  KidsWrongSize <- ChildrenFinal %>%
+    group_by(HouseholdID) %>%
+    summarise(KidsInHH = n()) %>%
+    filter(KidsInHH < numchild)
+
+  if(exists("KidsWrongSize")) {
+
+    ChildrenFinal <- ChildrenFinal %>%
+      filter(!(HouseholdID %in% c(KidsWrongSize)))
+
+    }
 
   ChildrenFinal <- ChildrenFinal %>%
     rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge,
