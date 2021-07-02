@@ -738,8 +738,6 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     ChildrenInWrongAgeHousehold <- ChildrenFinal %>%
       filter(HouseholdID %in% c(WrongParentAge))
 
-    return(ChildrenInWrongAgeHousehold)
-
     AmendedparentsFinal <- parentsFinal %>%
       filter(!HouseholdID %in% c(WrongParentAgeHouseholds$HouseholdID))
 
@@ -752,10 +750,16 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
         rename(IncorrectParentAge = ParentAge) %>%
         pull(IncorrectParentAge)
 
-      if(IncorrectParentAge < maxparage + 1) {
+      print(IncorrectParentAge)
+
+      if(IncorrectParentAge <= maxparage) {
         PermittedChildAgeMin <- 0
       } else {
         PermittedChildAgeMin <- IncorrectParentAge - maxparage
+
+        if(PermittedChildAgeMin < 0) {
+          PermittedChildAgeMin <- 0
+        }
       }
 
       PermittedChildAgeMax <- IncorrectParentAge - minparage
@@ -817,9 +821,8 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
             select(OtherAges) %>%
             pull(OtherAges)
 
-          # cat("Problem child age is", AgeToSwap, "Matched child age is", MatchedAge, "Test 1 is", Test1,
-          #     "Test 2 is", Test2, "Test 3 data are", Test3, "Test 4 data are", Test4,
-          #     "matched parent household is", PossibleMatch$HouseholdID, "\n")
+          cat("Test 1 is", Test1, "Permitted child age min is", PermittedChildAgeMin, "permitted child age max is", PermittedChildAgeMax, "\n")
+          cat("Test 2 is", Test2, "min parent age is", minparage, "max parent age is", maxparage, "\n")
 
 
           if(between(Test1, PermittedChildAgeMin, PermittedChildAgeMax) == TRUE &
