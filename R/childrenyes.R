@@ -146,7 +146,6 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
     childrenRenamed <- childrenRenamed %>%
       slice_sample(n = nrow(parentsRenamed)*numchild)
 
-    cat("Number of rows of child dataset is now", nrow(childrenRenamed), "\n")
   }
 
 
@@ -327,7 +326,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
             AgeDifference <- TwinsMatched$ParentAge[x]- TwinsMatched[x,y]
             age_index <- (NewChildAge + 1) - minChildAge
 
-            # cat("3 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+            cat("3 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
             # close while test
           }
@@ -395,7 +394,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
       for (z in 3:numchild) {
 
-        # cat("Number of children is", numchild, "and z is", z, "\n")
+        cat("Number of children is", numchild, "and z is", z, "\n")
 
         OtherKids <- TwinsMatched %>%
           ungroup() %>%
@@ -465,6 +464,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   BaseDataFrame <- as.data.frame(BaseDataFrame)
 
   # match parent
+  cat("number of rows in base dataframe is", nrow(BaseDataFrame), "\n")
 
   for (c in 1:nrow(BaseDataFrame)) {
 
@@ -482,11 +482,11 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
       age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
       BaseDataFrame$age_index[c] <- age_index
 
+      cat("stuck in loop")
       # closes while loop
     }
 
-    # cat("Current row is ",  c, "Age difference is ", TwinsMatched$AgeDifference[c], "age index is ", age_index,
-    #     "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
+    cat("Current row is ",  c, "age index is ", age_index, "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
 
     ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
@@ -523,9 +523,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   maxChildIndexAge <- as.integer(ChildrenCounts[nrow(ChildrenCounts),1])
 
   ChildrenAgeCountVector <- ChildrenCounts$AgeCount
-  # cat("ChildrenAgeCountVector=\n")
-  # print(ChildrenAgeCountVector)
-  # cat("\n")
+
+  cat("ChildrenAgeCountVector=", ChildrenAgeCountVector, "\n")
 
   # match the remaining children
 
@@ -562,7 +561,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
       age_index <- (NewChildAge + 1) - minChildAge
 
-      #   cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+        cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < minparage || AgeDifference > maxparage || ChildrenAgeCountVector[age_index] == 0) {
 
@@ -919,8 +918,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
         # closes if(IncorrectParentAge <= maxparage)
       }
 
-      # cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin,
-      #     "and household ID is", CurrentHouseholdID, "\n")
+      cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin,
+          "and household ID is", CurrentHouseholdID, "\n")
 
       # randomly select a duplicate child
       # the function assumes only one child in the household needs to be swapped
@@ -1072,10 +1071,6 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
     filter(KidsInHH < numchild)
 
   if(exists("KidsWrongSize")) {
-
-  #   Finalnoparents <- ChildrenFinal %>%
-  #     filter(HouseholdID %in% c(KidsWrongSize$HouseholdID)) %>%
-  #     select(-HouseholdID)
 
     ChildrenFinal <- ChildrenFinal %>%
       filter(!(HouseholdID %in% c(KidsWrongSize$HouseholdID)))
