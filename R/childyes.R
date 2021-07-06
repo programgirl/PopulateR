@@ -354,9 +354,6 @@ childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol
 
   FullMatchedDataFrame <- left_join(childrenMatchPrep, parentsMatched, by=c("ParentAge", "ParentAgeCount"))
 
-
-  return(FullMatchedDataFrame)
-
   # separate child and parent in data frames
 
   childrenFinal <- FullMatchedDataFrame %>%
