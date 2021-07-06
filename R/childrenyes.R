@@ -525,8 +525,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   # construct the child ages remaining into a vector
 
-  BaseDataFrame <- BaseDataFrame %>%
-    select(-c(AgeDifference, age_index, Counter))
+   BaseDataFrame <- BaseDataFrame %>%
+    select(-c(AgeDifference, Counter))
 
   # remove the matched children ids from the available children in ChildrenRenamed
 
@@ -554,6 +554,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   # match the remaining children
 
   # create the column names
+
   for (x in 2:numchild) {
 
     BaseDataFrame <- BaseDataFrame %>%
@@ -579,7 +580,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
     for (y in (NumberColschildren + 4):ncol(BaseDataFrame)) {
 
-      cat("x is", x, "and y is", y, "\n")
+      # cat("Numbercols is", NumberColschildren, "x is", x, "and y is", y, "\n")
 
       Counter <- 0
 
@@ -604,9 +605,9 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
         if (Counter == 1000 ) {
 
-          if (ChildrenAgeCountVector[age_index] == 0) {
-            cat("No children were available at the ages tested", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
-          }
+          # if (ChildrenAgeCountVector[age_index] == 0) {
+          #   cat("No children were available at the ages tested", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+          # }
 
           if (AgeDifference < minparage || AgeDifference > maxparage) {
 
@@ -656,8 +657,6 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   # base data frame contains the original child and numchild matched - 1
   # so a three-person household has two additional children matched
-
-  return(BaseDataFrame)
 
   NotTwins <- BaseDataFrame %>%
     ungroup() %>%
@@ -779,7 +778,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
         rename(IncorrectParentAge = ParentAge) %>%
         pull(IncorrectParentAge)
 
-      print(IncorrectParentAge)
+      # print(IncorrectParentAge)
 
       if(IncorrectParentAge <= maxparage) {
         PermittedChildAgeMin <- 0
@@ -811,14 +810,14 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
         # draw a random number for the data frame check to start
         Startrow <- round(runif(1, min= 1, max = nrow(AmendedparentsFinal)))
 
-        print(Startrow)
+        # print(Startrow)
 
          while (SwapLoopCount < nrow(AmendedparentsFinal) & Swap == "No") {
 
           PossibleMatch <- AmendedChildrenFinal[Startrow,]
 
-           cat("Current household ID is", CurrentHouseholdID, "and matched household ID is",
-               PossibleMatch$HouseholdID, "\n")
+           # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is",
+           #     PossibleMatch$HouseholdID, "\n")
 
           # need to check:
           # 1. will the swap to the problem household recreate the problem with the
@@ -859,15 +858,15 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
              (MatchedAge %in% c(Test3)) == FALSE  &
              (AgeToSwap %in% c(Test4)) == FALSE) {
 
-            cat("Swap is okay", "\n")
+            # cat("Swap is okay", "\n")
 
             Swap <- "Yes"
 
             SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
             ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==ChildProblemAges$ChildID[b]))
 
-            cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
-                ProblemChildRowIndex, "\n")
+            # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
+            #     ProblemChildRowIndex, "\n")
 
             # do the swapping
             # note: this is directly to the file used, so there is no interim file
@@ -894,7 +893,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
         if(Swap == "No" & Startrow == nrow(AmendedparentsFinal)) {
 
-          cat("Reached max", "\n")
+          # cat("Reached max", "\n")
 
 
           ChildrenFinal <- ChildrenFinal %>%
@@ -929,7 +928,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
     for(a in 1:nrow(WrongTwinHouseholds)) {
       CurrentHouseholdID <- WrongTwinHouseholds$HouseholdID[a]
 
-      cat("Current wrong twin household is", CurrentHouseholdID, "\n")
+      # cat("Current wrong twin household is", CurrentHouseholdID, "\n")
 
       IncorrectParentAge <- WrongTwinHouseholds %>%
         filter(HouseholdID == WrongTwinHouseholds$HouseholdID[a]) %>%
@@ -950,8 +949,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
         # closes if(IncorrectParentAge <= maxparage)
       }
 
-      cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin,
-          "and household ID is", CurrentHouseholdID, "\n")
+      # cat("Parent age is", IncorrectParentAge, "and child minimum age is", PermittedChildAgeMin,
+      #     "and household ID is", CurrentHouseholdID, "\n")
 
       # randomly select a duplicate child
       # the function assumes only one child in the household needs to be swapped
@@ -1034,7 +1033,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
              (AgeToSwap %in% c(Test4)) == FALSE) {
 
 
-            cat("ChildID is", SampledIncorrectTwin$ChildID, "\n")
+            # cat("ChildID is", SampledIncorrectTwin$ChildID, "\n")
             # cat("Swap is okay", "\n")
 
             SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
