@@ -396,7 +396,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
       for (z in 3:numchild) {
 
-        cat("Number of children is", numchild, "and z is", z, "\n")
+        # cat("Number of children is", numchild, "and z is", z, "\n")
 
         OtherKids <- TwinsMatched %>%
           ungroup() %>%
