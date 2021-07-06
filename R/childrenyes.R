@@ -1,25 +1,47 @@
-#' Create a subset of observations containing only children matched to parents/guardians
-#' This function creates a data frame of child-parent/guardian pairs, based on a population distribution of age differences. The distribution used in this function is the log normal. However, the matching is affected by the age structure of the children and parent data frames. The distribution provides a framework upon which to base the matching. The final distribution of age differences, however, may not follow a lognormal distribution.
-#' Two data frames are required. The Children data frame contains the age data, to which the Parent (Guardian) data will be applied.
-#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the Parent data frame is not required.
-#' It is possible that some children may not be matched, or will be matched incorrectly. While the code attempts to prevent this, incorrect matching may occur. First, twins may be allocated to a household not selected for the presence of twins. Second, there may be no suitable parent ages for the remaining child ages. If either of these problems occur, a message will be printed to the console, identifying the problem household. Testing has shown that use of a different set.seed() may remove the problem. Alternatively, a manual fix can be performed after using this function.
-#' The function only outputs the children and parents that have been matched. As the output combines the children and parents into one data frame. The number of columns in the parent data frame must be one larger than the number of columns in the children data frame, as the parents data frame is the only one that contains the household ID variable. In the case where a problem in matching has occurred, a combined parent/children data frame is still output.
-#'
-#' The function performs a reasonableness check for child ID, child age, parent ID variable, and household number.
+#' Create child- parent/guardian pairs as many-to-one  using an existing household identifier
+#' This function creates a data frame of child-parent/guardian pairs, based on a distribution of age differences. Multiple children will be matched to the same parent.
+#' Two data frames are required: one for children and one for potential parents.
+#' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the parents data frame is not required.
 #'
 #' @export
-#' @param children A data frame containing observations limited to the children to be matched An age column is required. All children in this data frame will be matched to a parent/guardian.
+#' @param children A data frame containing the children to be paired with a parent/guardian.
 #' @param chlidcol The column number for the ID variable in the children data frame.
-#' @param chlagecol The column number for the Age variable in the children data frame.
+#' @param chlagecol The column number for the age variable in the children data frame.
 #' @param numchild The number of children that are required in each household.
 #' @param twinrate The proportion of the child population who are twins.
-#' @param parents A data frame containing observations limited to parents. An age column is required. This can contain the entire set of people who can be parents, as the assignment is made on age at becoming a parent, not current age. This file can contain the people who can be guardians, as well as parents. This data frame should contain more observations than the children data frame. The relative sizes of the data frames are compared. If the Parens data frame is not sufficiently larger than the children data frame, the latter is randomly sampled to construct a smaller data frame.
-#' @param paridcol The column number for the ID variable in the Parent data frame.
-#' @param paragecol The column number for the Age variable in the Parent data frame.
+#' @param parents A data frame containing the potential parents. This data frame must contain at least the same number of observations as the children data frame.
+#' @param paridcol The column number for the ID variable in the parents data frame.
+#' @param paragecol The column number for the age variable in the parent data frame.
 #' @param minparage The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param maxparage The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
-#' @param hhidcol The column number for the household variable in the parents data frame. This must be provided.
+#' @param hhidcol The column number for the household identifier variable in the parent data frame
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#'
+#' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
+#'
+#' @examples
+# library(dplyr)
+# library("dplyr")
+# set.seed(1)
+# Parents <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 500) %>%
+#   mutate(HouseholdID = row_number()+500)
+#
+# Children <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20) %>%
+#   slice_sample(n = 400)
+#
+# # example with assigning two children to a parent
+# # the same number of children is assigned to all parents
+# # adding two children to each parent
+#
+# ChildrenMatchedID <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 5,
+#                      twinrate = .2, Parents, paridcol = 3, paragecol = 4,
+#                      minparage = 18, maxparage = 54, hhidcol = 6,
+#                      UserSeed = 4)
+
+
 
 childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0, parents, paridcol, paragecol,
                         minparage = NULL, maxparage = NULL, hhidcol= NULL, UserSeed=NULL)

@@ -1,5 +1,5 @@
-#' Create child- parent/guardian pairs with an added household identifier
-#' This function creates a data frame of child-parent/guardian pairs, based on a distribution of age differences. TThe function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
+#' Create child- parent/guardian pairs using an existing household identifier
+#' This function creates a data frame of child-parent/guardian pairs, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required: one for children and one for potential parents.
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the parents data frame is not required.
 #'
@@ -13,6 +13,8 @@
 #' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the normal distribution.
 #' @param directomega If a skew-normal distribution is used, this is the scale value. If the default alphaused value of 0 is used, this defaults to the standard deviation value for the normal distribution.
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
+#' @param minparage The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
+#' @param maxparage The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param hhidcol The column number for the household identifier variable in the parent data frame
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
@@ -20,6 +22,20 @@
 #'
 #' @examples
 # library(dplyr)
+# set.seed(1)
+# Parents <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 500) %>%
+#   mutate(HouseholdID = row_number()+500)
+#
+# Children <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20) %>%
+#   slice_sample(n = 200)
+#
+#
+# ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+#                               directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                               maxparage = 54, hhidcol = 6, UserSeed = 4)
 
 childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
                     alphaused=0, minparage = NULL, maxparage = NULL, hhidcol = NULL, UserSeed=NULL)
