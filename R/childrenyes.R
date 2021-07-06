@@ -171,7 +171,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   minIndexAge <- as.integer(ParentCounts[1,1])
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
-  cat("minindexage is ", minIndexAge, "maxindexage is", maxIndexAge, "\n")
+  cat("Minimum parent age is ", minIndexAge, ", and maximum parent age is", maxIndexAge, "\n")
 
   ParentAgeCountVector <- ParentCounts$AgeCount
 
@@ -466,7 +466,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   BaseDataFrame <- as.data.frame(BaseDataFrame)
 
   # match parent
-  cat("number of rows in base dataframe is", nrow(BaseDataFrame), "\n")
+  # cat("number of rows in base dataframe is", nrow(BaseDataFrame), "\n")
 
   for (c in 1:nrow(BaseDataFrame)) {
 
@@ -549,7 +549,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   ChildrenAgeCountVector <- ChildrenCounts$AgeCount
 
-  cat("ChildrenAgeCountVector=", ChildrenAgeCountVector, "\n")
+  # cat("ChildrenAgeCountVector=", ChildrenAgeCountVector, "\n")
 
   # match the remaining children
 
@@ -578,6 +578,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
     AgesUsed <- as.numeric(BaseDataFrame$ChildAge[x])
 
     for (y in (NumberColschildren + 4):ncol(BaseDataFrame)) {
+
+      cat("x is", x, "and y is", y, "\n")
 
       Counter <- 0
 
@@ -654,6 +656,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   # base data frame contains the original child and numchild matched - 1
   # so a three-person household has two additional children matched
+
+  return(BaseDataFrame)
 
   NotTwins <- BaseDataFrame %>%
     ungroup() %>%
