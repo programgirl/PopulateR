@@ -171,6 +171,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   minIndexAge <- as.integer(ParentCounts[1,1])
   maxIndexAge <- as.integer(ParentCounts[nrow(ParentCounts),1])
 
+  cat("minindexage is ", minIndexAge, "maxindexage is", maxIndexAge, "\n")
+
   ParentAgeCountVector <- ParentCounts$AgeCount
 
   # get the number of columns in the children data frames
@@ -468,22 +470,80 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   for (c in 1:nrow(BaseDataFrame)) {
 
-    CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-    BaseDataFrame$ParentAge[c] <- CurrentAge
-    BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-    age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-    BaseDataFrame$age_index[c] <- age_index
+    # CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
+    # BaseDataFrame$ParentAge[c] <- CurrentAge
+    # BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
+    # age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+    # BaseDataFrame$age_index[c] <- age_index
+    #
+    # while (ParentAgeCountVector[age_index] == 0 || BaseDataFrame$AgeDifference[c] < minparage || BaseDataFrame$AgeDifference[c] > maxparage) {
+    #
+    #   CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
+    #   BaseDataFrame$ParentAge[c] <- CurrentAge
+    #   BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
+    #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
+    #   BaseDataFrame$age_index[c] <- age_index
+    #
+    #   cat("stuck in loop")
 
-    while (ParentAgeCountVector[age_index] == 0 || BaseDataFrame$AgeDifference[c] < minparage || BaseDataFrame$AgeDifference[c] > maxparage) {
+    Currentchild <- BaseDataFrame[c,]
 
-      CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-      BaseDataFrame$ParentAge[c] <- CurrentAge
-      BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-      age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-      BaseDataFrame$age_index[c] <- age_index
+    Currentmin <- (minparage - minIndexAge) + Currentchild$ChildAge
+    Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
-      cat("stuck in loop")
-      # closes while loop
+   if(Currentmin < 1) {
+      Currentmin <- 1
+    }
+
+     if(Currentmax > (maxIndexAge-(minIndexAge-1))) {
+
+      Currentmax <- maxIndexAge-(minIndexAge-1)
+    }
+
+    cat("Updated max is", Currentmax, "\n")
+
+    parentprobs <-ParentAgeCountVector[Currentmin:Currentmax]
+
+    parentindex <- seq(Currentmin, Currentmax, by=1)
+
+
+    if(sum(parentprobs > 0)) {
+
+      cat("sum of parent probs is", sum(parentprobs), "\n")
+
+      age_index <- sample(parentindex, 1, prob=c(parentprobs))
+
+      cat("parent index is", parentindex, "\n")
+      cat("and age_index is",  age_index, "\n")
+
+      Currentchild$ParentAge = age_index + minIndexAge - 1
+      Currentchild$AgeDifference = Currentchild$ParentAge - Currentchild$ChildAge
+
+      ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
+
+      print(ParentAgeCountVector)
+
+      if(exists("LastSet")) {
+        LastSet <- bind_rows(LastSet, Currentchild)
+      } else{
+        LastSet <- Currentchild
+
+        # closes creation of the matched children data frame
+      }
+
+
+      # constructs an unmatched child data frame if no parent is available
+    } else {
+
+      if(exists("Noparents")) {
+        Noparents <- bind_rows(Noparents, Currentchild)
+      } else{
+        Noparents <- Currentchild
+
+        # closes creation of the matched children data frame
+      }
+
+      # for (c in 1:nrow(BaseDataFrame))
     }
 
     cat("Current row is ",  c, "age index is ", age_index, "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
