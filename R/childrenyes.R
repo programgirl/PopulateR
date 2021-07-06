@@ -124,10 +124,10 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   # have to restrict parent data frame to only those parent ages where there are at least min parent age + numkids
   # otherwise get into the problem of not enough parents for numkids of different ages
 
-  parentsRenamed <- parentsRenamed %>%
-    filter(ParentAge >= minparage + (numchild*2) ,
-           ParentAge <= maxparage + maxChildAge - (numchild*2)
-    )
+  # parentsRenamed <- parentsRenamed %>%
+  #   filter(ParentAge >= minparage + (numchild*2) ,
+  #          ParentAge <= maxparage + maxChildAge - (numchild*2)
+  #   )
 
   parentsSubset <- parentsRenamed %>%
     select(ParentAge, ParentID, HouseholdID)
@@ -328,7 +328,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
             AgeDifference <- TwinsMatched$ParentAge[x]- TwinsMatched[x,y]
             age_index <- (NewChildAge + 1) - minChildAge
 
-            cat("3 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+            # cat("3 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
             # close while test
           }
@@ -470,37 +470,19 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
   for (c in 1:nrow(BaseDataFrame)) {
 
-    # CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-    # BaseDataFrame$ParentAge[c] <- CurrentAge
-    # BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-    # age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-    # BaseDataFrame$age_index[c] <- age_index
-    #
-    # while (ParentAgeCountVector[age_index] == 0 || BaseDataFrame$AgeDifference[c] < minparage || BaseDataFrame$AgeDifference[c] > maxparage) {
-    #
-    #   CurrentAge <- sample(minIndexAge:maxIndexAge, 1, replace = FALSE, prob = c(ParentAgeCountVector))
-    #   BaseDataFrame$ParentAge[c] <- CurrentAge
-    #   BaseDataFrame$AgeDifference[c] <- CurrentAge - BaseDataFrame$ChildAge[c]
-    #   age_index <- BaseDataFrame$ParentAge[c]-(minIndexAge -1)
-    #   BaseDataFrame$age_index[c] <- age_index
-    #
-    #   cat("stuck in loop")
-
     Currentchild <- BaseDataFrame[c,]
 
-    Currentmin <- (minparage - minIndexAge) + Currentchild$ChildAge
+    Currentmin <- (minparage - minIndexAge) + Currentchild$ChildAge + 1
     Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
    if(Currentmin < 1) {
       Currentmin <- 1
-    }
+   }
 
      if(Currentmax > (maxIndexAge-(minIndexAge-1))) {
 
       Currentmax <- maxIndexAge-(minIndexAge-1)
     }
-
-    cat("Updated max is", Currentmax, "\n")
 
     parentprobs <-ParentAgeCountVector[Currentmin:Currentmax]
 
@@ -509,50 +491,33 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
 
     if(sum(parentprobs > 0)) {
 
-      cat("sum of parent probs is", sum(parentprobs), "\n")
+      # cat("sum of parent probs is", sum(parentprobs), "\n")
 
       age_index <- sample(parentindex, 1, prob=c(parentprobs))
-
-      cat("parent index is", parentindex, "\n")
-      cat("and age_index is",  age_index, "\n")
+#
+#       cat("parent index is", parentindex, "\n")
+#       cat("parent probs are", parentprobs, "\n")
+#       cat("and age_index is",  age_index, "\n")
 
       Currentchild$ParentAge = age_index + minIndexAge - 1
       Currentchild$AgeDifference = Currentchild$ParentAge - Currentchild$ChildAge
 
       ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
 
-      print(ParentAgeCountVector)
-
-      if(exists("LastSet")) {
-        LastSet <- bind_rows(LastSet, Currentchild)
-      } else{
-        LastSet <- Currentchild
-
-        # closes creation of the matched children data frame
+      if(exists("InterimDataFrame")) {
+        InterimDataFrame <- bind_rows(InterimDataFrame, Currentchild)
+      } else {
+        InterimDataFrame <- Currentchild
+        # closes build of data frame of children matched to parents
       }
 
-
-      # constructs an unmatched child data frame if no parent is available
-    } else {
-
-      if(exists("Noparents")) {
-        Noparents <- bind_rows(Noparents, Currentchild)
-      } else{
-        Noparents <- Currentchild
-
-        # closes creation of the matched children data frame
-      }
-
-      # for (c in 1:nrow(BaseDataFrame))
+      # closes if(sum(parentprobs > 0))
     }
 
-    cat("Current row is ",  c, "age index is ", age_index, "Parent age count vector index is ", ParentAgeCountVector[age_index], "\n")
-
-    ParentAgeCountVector[age_index] = ParentAgeCountVector[age_index] - 1
-
-    # closes parent match loop
+      # closes for (c in 1:nrow(BaseDataFrame))
   }
 
+  BaseDataFrame <- InterimDataFrame
 
   BaseDataFrame <- left_join(BaseDataFrame %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
                              parentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
@@ -621,7 +586,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
       age_index <- (NewChildAge + 1) - minChildAge
 
-        cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+        # cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < minparage || AgeDifference > maxparage || ChildrenAgeCountVector[age_index] == 0) {
 
@@ -706,6 +671,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
   # extract remaining children and rbind these to each other
   # will eventually be rbind'ed to the twins and parent data
 
+
   # extract the base child
   BaseNonTwin <- BaseDataFrame %>%
     select(all_of(1:c(NumberColschildren)), NumberColschildren+3)
@@ -748,12 +714,14 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
     mutate(AgeCounter = row_number()) %>%
     ungroup()
 
-  ChildrenRenamed <- left_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
+  ChildrenRenamed <- right_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
+#  ChildrenRenamed <- left_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
     select(-AgeCounter)
 
   # bind the children in the base dataframe
 
   NoTwinsDataFrame <- bind_rows(BaseNonTwin, ChildrenRenamed)
+
 
 
   #####################################
@@ -1061,6 +1029,8 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
              (MatchedAge %in% c(Test3)) == FALSE  &
              (AgeToSwap %in% c(Test4)) == FALSE) {
 
+
+            cat("ChildID is", SampledIncorrectTwin$ChildID, "\n")
             # cat("Swap is okay", "\n")
 
             SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
