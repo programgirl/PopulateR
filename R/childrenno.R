@@ -82,7 +82,8 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     rename(ChildID = !! chlidcol, ChildAge = !! chlagecol)
 
   parentsRenamed <- parents %>%
-    rename(ParentID = !! paridcol, ParentAge = !! paragecol)
+    rename(ParentID = !! paridcol, ParentAge = !! paragecol) %>%
+    mutate(IntHHVar = 1:n())
 
   # Child variable names
   chlidcolName <- sym(names(children[chlidcol]))
@@ -143,7 +144,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
   #   )
 
   parentsSubset <- parentsRenamed %>%
-    select(ParentAge, ParentID)
+    select(ParentAge, ParentID, IntHHVar)
 
   # seed must come before first sample is cut
   if (!is.null(UserSeed)) {
@@ -169,6 +170,11 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
   }
 
   cat("Final size of child data frame is ", nrow(childrenRenamed), "\n")
+
+  # get counts for each single age from the parent data frame
+  # ensure that any requirements to not use a particular number of counts per age is incorporated
+  # ensure all parent ages are represented in the data frame of counts
+  # use the minimum and maximum values to create an age sequence from minparage to maxparage
 
   # get counts for each single age from the parent data frame
   # ensure that any requirements to not use a particular number of counts per age is incorporated
@@ -369,19 +375,9 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     # (Parent Age, Parent ID, Household ID)
     # this adds an additional two columns - Parent ID and Household ID
 
-
     TwinsMatched <- left_join(TwinsMatched %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
                               parentsSubset %>% group_by(ParentAge) %>% mutate(Counter = row_number()),
-                              by = c("ParentAge", "Counter")) %>%
-      ungroup() %>%
-      mutate(HouseholdID = 1:n())
-
-    tempid <- nrow(TwinsMatched) + 1
-    print(tempid)
-
-    return(TwinsMatched)
-
-
+                              by = c("ParentAge", "Counter"))
 
     # remove all parent information brought in via join, apart from Parent ID and Household ID
     # need to do this so that the joins work okay
@@ -408,7 +404,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       ungroup() %>%
       select((ncol(.)-1):ncol(.))
 
-    ParentOfTwins <- left_join(ParentOfTwins, parentsRenamed, by = c("ParentID", "HouseholdID"))
+    ParentOfTwins <- left_join(ParentOfTwins, parentsRenamed, by = c("ParentID", "IntHHVar"))
 
     # extract remaining children and rbind these to each other
     # will eventually be rbind'ed to the twins and parent data
@@ -457,7 +453,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       filter(!(ParentID %in%  ParentOfTwins$ParentID))
 
     parentsSubset <- parentsRenamed %>%
-      select(ParentAge, ParentID, HouseholdID)
+      select(ParentAge, ParentID, IntHHVar)
 
     ParentCounts <- parentsRenamed %>%
       group_by(ParentAge) %>%
@@ -498,11 +494,11 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     Currentmin <- (minparage - minIndexAge) + Currentchild$ChildAge + 1
     Currentmax <- Currentchild$ChildAge + maxparage - (minIndexAge -1)
 
-   if(Currentmin < 1) {
+    if(Currentmin < 1) {
       Currentmin <- 1
-   }
+    }
 
-     if(Currentmax > (maxIndexAge-(minIndexAge-1))) {
+    if(Currentmax > (maxIndexAge-(minIndexAge-1))) {
 
       Currentmax <- maxIndexAge-(minIndexAge-1)
     }
@@ -517,10 +513,10 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       # cat("sum of parent probs is", sum(parentprobs), "\n")
 
       age_index <- sample(parentindex, 1, prob=c(parentprobs))
-#
-#       cat("parent index is", parentindex, "\n")
-#       cat("parent probs are", parentprobs, "\n")
-#       cat("and age_index is",  age_index, "\n")
+      #
+      #       cat("parent index is", parentindex, "\n")
+      #       cat("parent probs are", parentprobs, "\n")
+      #       cat("and age_index is",  age_index, "\n")
 
       Currentchild$ParentAge = age_index + minIndexAge - 1
       Currentchild$AgeDifference = Currentchild$ParentAge - Currentchild$ChildAge
@@ -537,7 +533,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       # closes if(sum(parentprobs > 0))
     }
 
-      # closes for (c in 1:nrow(BaseDataFrame))
+    # closes for (c in 1:nrow(BaseDataFrame))
   }
 
   BaseDataFrame <- InterimDataFrame
@@ -548,7 +544,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
   # construct the child ages remaining into a vector
 
-   BaseDataFrame <- BaseDataFrame %>%
+  BaseDataFrame <- BaseDataFrame %>%
     select(-c(AgeDifference, Counter))
 
   # remove the matched children ids from the available children in ChildrenRenamed
@@ -612,7 +608,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       AgeDifference <- BaseDataFrame$ParentAge[x]- BaseDataFrame[x,y]
       age_index <- (NewChildAge + 1) - minChildAge
 
-        # cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
+      # cat("4 New child age is", NewChildAge, "age_index =", age_index,  "Age diff is", AgeDifference, "\n")
 
       while (BaseDataFrame[x,y] %in% (AgesUsed) || AgeDifference < minparage || AgeDifference > maxparage || ChildrenAgeCountVector[age_index] == 0) {
 
@@ -629,30 +625,30 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
         if (Counter == 1000 ) {
 
           # if (ChildrenAgeCountVector[age_index] == 0) {
-          #   cat("No children were available at the ages tested", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+          #   cat("No children were available at the ages tested", "The problem household is", BaseDataFrame$IntHHVar[x],"\n")
           # }
 
           if (AgeDifference < minparage || AgeDifference > maxparage) {
 
-            # cat("No credible available parent ages were located", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+            # cat("No credible available parent ages were located", "The problem household is", BaseDataFrame$IntHHVar[x],"\n")
 
             if (exists("WrongParentAge")) {
-              WrongParentAge <- c(WrongParentAge, BaseDataFrame$HouseholdID[x])
+              WrongParentAge <- c(WrongParentAge, BaseDataFrame$IntHHVar[x])
 
             } else {
-              WrongParentAge <- as.vector(BaseDataFrame$HouseholdID[x])
+              WrongParentAge <- as.vector(BaseDataFrame$IntHHVar[x])
             }
           }
 
           if (BaseDataFrame[x,y] %in% (AgesUsed)) {
-            # cat("Twins were constructed even though the twin families were previously allocated", "The problem household is", BaseDataFrame$HouseholdID[x],"\n")
+            # cat("Twins were constructed even though the twin families were previously allocated", "The problem household is", BaseDataFrame$IntHHVar[x],"\n")
 
 
             if (exists("ShouldNotBeTwins")) {
-              ShouldNotBeTwins <- c(ShouldNotBeTwins, BaseDataFrame$HouseholdID[x])
+              ShouldNotBeTwins <- c(ShouldNotBeTwins, BaseDataFrame$IntHHVar[x])
 
             } else {
-              ShouldNotBeTwins <- as.vector(BaseDataFrame$HouseholdID[x])
+              ShouldNotBeTwins <- as.vector(BaseDataFrame$IntHHVar[x])
             }
 
           }
@@ -692,7 +688,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     ungroup() %>%
     select(all_of((NumberColschildren+2) : (NumberColschildren+3)))
 
-  ParentOfNotTwins <- left_join(ParentOfNotTwins, parentsRenamed, by = c("ParentID", "HouseholdID"))
+  ParentOfNotTwins <- left_join(ParentOfNotTwins, parentsRenamed, by = c("ParentID", "IntHHVar"))
 
   # extract remaining children and rbind these to each other
   # will eventually be rbind'ed to the twins and parent data
@@ -741,7 +737,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     ungroup()
 
   ChildrenRenamed <- right_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
-#  ChildrenRenamed <- left_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
+    #  ChildrenRenamed <- left_join(ChildrenRenamed, ChildrenToAdd, by = c("ChildAge", "AgeCounter")) %>%
     select(-AgeCounter)
 
   # bind the children in the base dataframe
@@ -758,7 +754,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
 
   if (exists("TwinsFinal")) {
-   # ChildrenFinal <- rbind(TwinsFinal, NoTwinsDataFrame)
+    # ChildrenFinal <- rbind(TwinsFinal, NoTwinsDataFrame)
     ChildrenFinal <- NoTwinsDataFrame
 
 
@@ -766,7 +762,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     ChildrenFinal <- NotTwins
   }
 
-    parentsFinal <- ParentOfNotTwins
+  parentsFinal <- ParentOfNotTwins
 
 
   ChildrenFinal <- ChildrenFinal
@@ -784,20 +780,20 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     WrongParentAge <- unique(WrongParentAge)
 
     WrongParentAgeHouseholds <- parentsFinal %>%
-      filter(HouseholdID %in% c(WrongParentAge))
+      filter(IntHHVar %in% c(WrongParentAge))
 
     AmendedparentsFinal <- parentsFinal %>%
-      filter(!HouseholdID %in% c(WrongParentAgeHouseholds$HouseholdID))
+      filter(!IntHHVar %in% c(WrongParentAgeHouseholds$IntHHVar))
 
     AmendedChildrenFinal <- ChildrenFinal %>%
-      filter(!HouseholdID %in% c(WrongParentAgeHouseholds$HouseholdID))
+      filter(!IntHHVar %in% c(WrongParentAgeHouseholds$IntHHVar))
 
     #extract out parent age
     for(a in 1:length(WrongParentAge)) {
-      CurrentHouseholdID <- WrongParentAgeHouseholds$HouseholdID[a]
+      CurrentHouseholdID <- WrongParentAgeHouseholds$IntHHVar[a]
 
       IncorrectParentAge <- WrongParentAgeHouseholds %>%
-        filter(HouseholdID == WrongParentAgeHouseholds$HouseholdID[a]) %>%
+        filter(IntHHVar == WrongParentAgeHouseholds$IntHHVar[a]) %>%
         rename(IncorrectParentAge = ParentAge) %>%
         pull(IncorrectParentAge)
 
@@ -817,7 +813,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
       # get the problem children
       ChildProblemAges <- ChildrenFinal %>%
-        filter(HouseholdID == WrongParentAgeHouseholds$HouseholdID[a] &
+        filter(IntHHVar == WrongParentAgeHouseholds$IntHHVar[a] &
                  !(between(ChildAge, PermittedChildAgeMin, PermittedChildAgeMax)))
 
       # move through this data frame doing swaps with children in the Children Final data frame
@@ -835,12 +831,12 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
         # print(Startrow)
 
-         while (SwapLoopCount < nrow(AmendedparentsFinal) & Swap == "No") {
+        while (SwapLoopCount < nrow(AmendedparentsFinal) & Swap == "No") {
 
           PossibleMatch <- AmendedChildrenFinal[Startrow,]
 
-           # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is",
-           #     PossibleMatch$HouseholdID, "\n")
+          # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is",
+          #     PossibleMatch$IntHHVar, "\n")
 
           # need to check:
           # 1. will the swap to the problem household recreate the problem with the
@@ -854,23 +850,23 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
           Test1 <- IncorrectParentAge - MatchedAge
 
-          MatchedHousehold <- PossibleMatch$HouseholdID
+          MatchedHousehold <- PossibleMatch$IntHHVar
 
           Test2 <- AmendedparentsFinal %>%
-            filter(HouseholdID == MatchedHousehold) %>%
+            filter(IntHHVar == MatchedHousehold) %>%
             select(ParentAge) %>%
             mutate(DonorAgeDiff = ParentAge - AgeToSwap) %>%
             pull(DonorAgeDiff)
 
           Test3 <- ChildrenFinal %>%
-            filter(HouseholdID == WrongParentAgeHouseholds$HouseholdID[a] &
+            filter(IntHHVar == WrongParentAgeHouseholds$IntHHVar[a] &
                      !(ChildID == ChildProblemAges$ChildID[b])) %>%
             rename(OtherAges = ChildAge) %>%
             select(OtherAges) %>%
             pull(OtherAges)
 
           Test4 <- ChildrenFinal %>%
-            filter(HouseholdID == PossibleMatch$HouseholdID,
+            filter(IntHHVar == PossibleMatch$IntHHVar,
                    !(ChildID == PossibleMatch$ChildID)) %>%
             rename(OtherAges = ChildAge) %>%
             select(OtherAges) %>%
@@ -893,8 +889,8 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
             # do the swapping
             # note: this is directly to the file used, so there is no interim file
-            ChildrenFinal[SwapChildRowIndex, "HouseholdID"] <- ChildProblemAges$HouseholdID[b]
-            ChildrenFinal[ProblemChildRowIndex, "HouseholdID"] <- PossibleMatch$HouseholdID
+            ChildrenFinal[SwapChildRowIndex, "IntHHVar"] <- ChildProblemAges$IntHHVar[b]
+            ChildrenFinal[ProblemChildRowIndex, "IntHHVar"] <- PossibleMatch$IntHHVar
 
             # closes if loop for check if the swap parameters are in range
 
@@ -920,17 +916,17 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
 
           ChildrenFinal <- ChildrenFinal %>%
-            filter(!(HouseholdID == CurrentHouseholdID))
+            filter(!(IntHHVar == CurrentHouseholdID))
 
-            parentsFinal <- parentsFinal %>%
-              filter(!(HouseholdID == CurrentHouseholdID))
-          }
-
-          # closes for (b in 1:nrow(ChildProblemAges))
+          parentsFinal <- parentsFinal %>%
+            filter(!(IntHHVar == CurrentHouseholdID))
         }
 
-        # closes for(a in 1:length(WrongParentAge))
+        # closes for (b in 1:nrow(ChildProblemAges))
       }
+
+      # closes for(a in 1:length(WrongParentAge))
+    }
 
     # closes if(exists("WrongParentAge"))
   }
@@ -943,18 +939,18 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
     # cat("There is a problem with too many twins in the data, with", length(ShouldNotBeTwins), "households affected", "\n")
 
     WrongTwinHouseholds <- parentsFinal %>%
-      filter(HouseholdID %in% c(ShouldNotBeTwins))
+      filter(IntHHVar %in% c(ShouldNotBeTwins))
 
     AmendedparentsFinal <- parentsFinal %>%
-      filter(!HouseholdID %in% c(WrongTwinHouseholds$HouseholdID))
+      filter(!IntHHVar %in% c(WrongTwinHouseholds$IntHHVar))
 
     for(a in 1:nrow(WrongTwinHouseholds)) {
-      CurrentHouseholdID <- WrongTwinHouseholds$HouseholdID[a]
+      CurrentHouseholdID <- WrongTwinHouseholds$IntHHVar[a]
 
       # cat("Current wrong twin household is", CurrentHouseholdID, "\n")
 
       IncorrectParentAge <- WrongTwinHouseholds %>%
-        filter(HouseholdID == WrongTwinHouseholds$HouseholdID[a]) %>%
+        filter(IntHHVar == WrongTwinHouseholds$IntHHVar[a]) %>%
         rename(IncorrectParentAge = ParentAge) %>%
         pull(IncorrectParentAge)
 
@@ -963,9 +959,9 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       } else {
         PermittedChildAgeMin <- IncorrectParentAge - maxparage
 
-      if(PermittedChildAgeMin < 0) {
-        PermittedChildAgeMin <- 0
-      }
+        if(PermittedChildAgeMin < 0) {
+          PermittedChildAgeMin <- 0
+        }
 
         PermittedChildAgeMax <- IncorrectParentAge - minparage
 
@@ -983,7 +979,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
       # identify the duplicate age/s
 
       DuplicateAges <- ChildrenFinal %>%
-        filter(HouseholdID == CurrentHouseholdID) %>%
+        filter(IntHHVar == CurrentHouseholdID) %>%
         group_by(ChildAge) %>%
         filter(n()>1) %>%
         summarise(AgesToFix = n()) %>%
@@ -991,122 +987,122 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
       if (!(is.na(DuplicateAges)) == TRUE) {
 
-      for(b in 1:length(DuplicateAges)) {
+        for(b in 1:length(DuplicateAges)) {
 
-        Swap <- "No"
+          Swap <- "No"
 
-        SwapLoopCount <- 1
+          SwapLoopCount <- 1
 
-        AgeToSwap <- DuplicateAges[b]
+          AgeToSwap <- DuplicateAges[b]
 
-        # extract random child age
-        # draw a random number for the data frame check to start
-        Startrow <- round(runif(1, min= 1, max = nrow(AmendedparentsFinal)))
+          # extract random child age
+          # draw a random number for the data frame check to start
+          Startrow <- round(runif(1, min= 1, max = nrow(AmendedparentsFinal)))
 
-        print(Startrow)
+          print(Startrow)
 
-        # sample that age from the household
-        SampledIncorrectTwin <- ChildrenFinal %>%
-          filter(HouseholdID == CurrentHouseholdID,
-                 ChildAge == AgeToSwap) %>%
-          slice_sample(n = 1)
+          # sample that age from the household
+          SampledIncorrectTwin <- ChildrenFinal %>%
+            filter(IntHHVar == CurrentHouseholdID,
+                   ChildAge == AgeToSwap) %>%
+            slice_sample(n = 1)
 
-        while (SwapLoopCount < nrow(AmendedparentsFinal) & Swap == "No") {
+          while (SwapLoopCount < nrow(AmendedparentsFinal) & Swap == "No") {
 
-          PossibleMatch <- AmendedChildrenFinal[Startrow,]
+            PossibleMatch <- AmendedChildrenFinal[Startrow,]
 
-          # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$HouseholdID, "\n")
+            # cat("Current household ID is", CurrentHouseholdID, "and matched household ID is", PossibleMatch$IntHHVar, "\n")
 
-  #         # need to check:
-  #         # 1. will the swap to the problem household recreate the problem with the
-  #         #    problem household parent being too young or too old?
-  #         # 2. will the swap to the donor create a problem with the donor being too young or too old?
-  #         # 3. will the swap create a twin for the recipient
-  #         # 4. will the swap create a twin for the donor
-  #
-  #         # test 1
-          MatchedAge <- PossibleMatch$ChildAge
-
-          Test1 <- IncorrectParentAge - MatchedAge
-
-          MatchedHousehold <- PossibleMatch$HouseholdID
-
-          Test2 <- AmendedparentsFinal %>%
-            filter(HouseholdID == MatchedHousehold) %>%
-            select(ParentAge) %>%
-            mutate(DonorAgeDiff = ParentAge - AgeToSwap) %>%
-            pull(DonorAgeDiff)
-
-          Test3 <- ChildrenFinal %>%
-            filter(HouseholdID == WrongTwinHouseholds$HouseholdID[a]) %>%
-            rename(OtherAges = ChildAge) %>%
-            select(OtherAges) %>%
-            pull(OtherAges)
-
-          Test4 <- ChildrenFinal %>%
-            filter(HouseholdID == PossibleMatch$HouseholdID &
-                     !(ChildID == PossibleMatch$ChildID)) %>%
-            rename(OtherAges = ChildAge) %>%
-            select(OtherAges) %>%
-            pull(OtherAges)
-
-          if(between(Test1, minparage, maxparage) == TRUE &
-             between(Test2, minparage, maxparage) == TRUE &
-             (MatchedAge %in% c(Test3)) == FALSE  &
-             (AgeToSwap %in% c(Test4)) == FALSE) {
-
-
-            # cat("ChildID is", SampledIncorrectTwin$ChildID, "\n")
-            # cat("Swap is okay", "\n")
-
-            SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
-            ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==SampledIncorrectTwin$ChildID))
-
-            Swap <- "Yes"
-
-            # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
-            #     ProblemChildRowIndex, "\n")
+            #         # need to check:
+            #         # 1. will the swap to the problem household recreate the problem with the
+            #         #    problem household parent being too young or too old?
+            #         # 2. will the swap to the donor create a problem with the donor being too young or too old?
+            #         # 3. will the swap create a twin for the recipient
+            #         # 4. will the swap create a twin for the donor
             #
-            # cat("The original household IDs are", SampledIncorrectTwin$HouseholdID, "for the problem child, and",
-            #     PossibleMatch$HouseholdID, "for the child that will be swapped in", "\n")
+            #         # test 1
+            MatchedAge <- PossibleMatch$ChildAge
 
-            # do the swapping
-            # note: this is directly to the file used, so there is no interim file
-            ChildrenFinal[SwapChildRowIndex, "HouseholdID"] <- SampledIncorrectTwin$HouseholdID
-            ChildrenFinal[ProblemChildRowIndex, "HouseholdID"] <- PossibleMatch$HouseholdID
+            Test1 <- IncorrectParentAge - MatchedAge
 
-            # closes if loop for check if the swap parameters are in range
-          }
+            MatchedHousehold <- PossibleMatch$IntHHVar
 
-          SwapLoopCount <- SwapLoopCount + 1
+            Test2 <- AmendedparentsFinal %>%
+              filter(IntHHVar == MatchedHousehold) %>%
+              select(ParentAge) %>%
+              mutate(DonorAgeDiff = ParentAge - AgeToSwap) %>%
+              pull(DonorAgeDiff)
 
-          Startrow <- Startrow + 1
+            Test3 <- ChildrenFinal %>%
+              filter(IntHHVar == WrongTwinHouseholds$IntHHVar[a]) %>%
+              rename(OtherAges = ChildAge) %>%
+              select(OtherAges) %>%
+              pull(OtherAges)
 
-          if(Startrow > nrow(AmendedparentsFinal)) {
+            Test4 <- ChildrenFinal %>%
+              filter(IntHHVar == PossibleMatch$IntHHVar &
+                       !(ChildID == PossibleMatch$ChildID)) %>%
+              rename(OtherAges = ChildAge) %>%
+              select(OtherAges) %>%
+              pull(OtherAges)
 
-            Startrow <- 1
+            if(between(Test1, minparage, maxparage) == TRUE &
+               between(Test2, minparage, maxparage) == TRUE &
+               (MatchedAge %in% c(Test3)) == FALSE  &
+               (AgeToSwap %in% c(Test4)) == FALSE) {
 
-            # closes loop for swapping
-          }
 
-          if(Swap == "No") {
+              # cat("ChildID is", SampledIncorrectTwin$ChildID, "\n")
+              # cat("Swap is okay", "\n")
 
-            ChildrenFinal <- ChildrenFinal %>%
-              filter(!(HouseholdID == CurrentHouseholdID))
+              SwapChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==PossibleMatch$ChildID))
+              ProblemChildRowIndex <- as.numeric(which(ChildrenFinal$ChildID==SampledIncorrectTwin$ChildID))
+
+              Swap <- "Yes"
+
+              # cat("The donor row index is", SwapChildRowIndex, "and the problem child row index is",
+              #     ProblemChildRowIndex, "\n")
+              #
+              # cat("The original household IDs are", SampledIncorrectTwin$IntHHVar, "for the problem child, and",
+              #     PossibleMatch$IntHHVar, "for the child that will be swapped in", "\n")
+
+              # do the swapping
+              # note: this is directly to the file used, so there is no interim file
+              ChildrenFinal[SwapChildRowIndex, "IntHHVar"] <- SampledIncorrectTwin$IntHHVar
+              ChildrenFinal[ProblemChildRowIndex, "IntHHVar"] <- PossibleMatch$IntHHVar
+
+              # closes if loop for check if the swap parameters are in range
+            }
+
+            SwapLoopCount <- SwapLoopCount + 1
+
+            Startrow <- Startrow + 1
+
+            if(Startrow > nrow(AmendedparentsFinal)) {
+
+              Startrow <- 1
+
+              # closes loop for swapping
+            }
+
+            if(Swap == "No") {
+
+              ChildrenFinal <- ChildrenFinal %>%
+                filter(!(IntHHVar == CurrentHouseholdID))
 
               parentsFinal <- parentsFinal %>%
-                filter(!(HouseholdID == CurrentHouseholdID))
+                filter(!(IntHHVar == CurrentHouseholdID))
 
               # closes if(Swap == "No")
+            }
+
+            # close while (SwapLoopCount < nrow(AmendedparentsFinal))
           }
 
-          # close while (SwapLoopCount < nrow(AmendedparentsFinal))
+          # closes for(b in 1:length(DuplicateAges))
         }
 
-        # closes for(b in 1:length(DuplicateAges))
-      }
-
-       # closes if (!(is.na(DuplicateAges)) == TRUE)
+        # closes if (!(is.na(DuplicateAges)) == TRUE)
       }
 
       # closes  for(a in 1:nrow(WrongTwinHouseholds))
@@ -1122,51 +1118,66 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
   # remove any children who are not in the right household size
   KidsWrongSize <- ChildrenFinal %>%
-    group_by(HouseholdID) %>%
+    group_by(IntHHVar) %>%
     summarise(KidsInHH = n()) %>%
     filter(KidsInHH < numchild)
 
   if(exists("KidsWrongSize")) {
 
     ChildrenFinal <- ChildrenFinal %>%
-      filter(!(HouseholdID %in% c(KidsWrongSize$HouseholdID)))
+      filter(!(IntHHVar %in% c(KidsWrongSize$IntHHVar)))
 
     parentsFinal <- parentsFinal %>%
-      filter(!(HouseholdID %in% c(KidsWrongSize$HouseholdID)))
+      filter(!(IntHHVar %in% c(KidsWrongSize$IntHHVar)))
 
     # closes if(exists("KidsWrongSize"))
-    }
+  }
 
-  ChildrenFinal <- ChildrenFinal %>%
-    rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge,
-           !!parentsHouseholdColName := HouseholdID)
 
   if (exists("ParentOfTwins")) {
     parentsFinal <- rbind(parentsFinal, ParentOfTwins)
   }
 
+  hhidend <- hhidstart+(nrow(parentsFinal)-1)
+
+  print(hhidend)
+
   parentsFinal <- parentsFinal %>%
+    mutate(NewHHVar = hhidstart:hhidend)
+
+  JoinHHValues <- parentsFinal %>%
+    select(IntHHVar, NewHHVar)
+
+  ChildrenFinal <- left_join(ChildrenFinal, JoinHHValues, by = "IntHHVar")
+
+  ChildrenFinal <- ChildrenFinal %>%
+    select(-IntHHVar) %>%
+    rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge,
+           {{hhidvar}} := NewHHVar)
+
+  parentsFinal <- parentsFinal %>%
+    select(-IntHHVar) %>%
     rename(!!parentsIDColName := ParentID, !!parentsAgeColName := ParentAge,
-           !!parentsHouseholdColName := HouseholdID)
+           {{hhidvar}} := NewHHVar)
 
-    OutputDataframe <- bind_rows(ChildrenFinal, parentsFinal)
+  OutputDataframe <- bind_rows(ChildrenFinal, parentsFinal)
 
-    MatchedIDs <- OutputDataframe %>%
-      pull({{parentsIDColName}})
+  MatchedIDs <- OutputDataframe %>%
+    pull({{parentsIDColName}})
 
-    Nokids <- parents %>%
-      filter(!({{parentsIDColName}} %in% MatchedIDs))
+  Nokids <- parents %>%
+    filter(!({{parentsIDColName}} %in% MatchedIDs))
 
-    Noparents <- children %>%
-      filter(!({{parentsIDColName}} %in% MatchedIDs))
+  Noparents <- children %>%
+    filter(!({{parentsIDColName}} %in% MatchedIDs))
 
-    MergedList <- list()
+  MergedList <- list()
 
-    MergedList$Matched <- OutputDataframe
-    MergedList$Adults <- Nokids
-    MergedList$Children <- Noparents
+  MergedList$Matched <- OutputDataframe
+  MergedList$Adults <- Nokids
+  MergedList$Children <- Noparents
 
-    return(MergedList)
+  return(MergedList)
 
   return(OutputDataframe)
 
