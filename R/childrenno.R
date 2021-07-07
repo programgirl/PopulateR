@@ -1140,8 +1140,6 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
 
   hhidend <- hhidstart+(nrow(parentsFinal)-1)
 
-  print(hhidend)
-
   parentsFinal <- parentsFinal %>%
     mutate(NewHHVar = hhidstart:hhidend)
 
