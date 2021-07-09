@@ -45,6 +45,8 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
     #mutate(across(where(is.factor), as.character)) %>%
     select(SchoolID, SchoolAge, ChildCounts, SchoolType)
 
+  OriginalSchoolsCounts <- SchoolsRenamed
+
   ###############################################
   ###############################################
    # get the col names
@@ -721,6 +723,7 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                 ChildrenFinalised[ChildRowIndex, SchoolsIDColIndex] <- InjectionInformation$SchoolID.y[m]
                 ChildrenFinalised[ChildRowIndex, SchoolsTypeColIndex] <- InjectionInformation$SchoolType.y[m]
+
                 # closes for(m in 1:nrow(InjectionInformation))
               }
 
@@ -779,7 +782,7 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
               NumKidsRemaining <- 0
 
-              cat("The number of children remaining in the household is", nrow(ChildrenInHousehold), "\n")
+              # cat("The number of children remaining in the household is", nrow(ChildrenInHousehold), "\n")
 
               # add a child to a school when the addition will be an overcount
               if(nrow(ChildrenInHousehold) > 0) {
@@ -790,12 +793,24 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                 SchoolsAlreadyUsed <- ChildrenFinalised %>%
                   filter(HouseholdID == CurrentHousehold) %>%
                   select(SchoolID) %>%
-                  unique()
+                  unique() %>%
+                  left_join(OriginalSchoolsCounts, by = "SchoolID") %>%
+                  filter(SchoolAge %in% ChildrenInHousehold$ChildAge,
+                         ChildCounts > 0)
 
-                return(SchoolsAlreadyUsed)
 
+                if(nrow(SchoolsAlreadyUsed) == 0) {
 
-                # closes if(!(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])))
+               #   return(SchoolsAlreadyUsed)
+
+                } else {
+
+                  # TODO if there are children who have a matching school
+
+                  # closes if(nrow(SchoolsAlreadyUsed) == 0)
+                }
+
+                # closes if(nrow(ChildrenInHousehold) > 0)
               }
 
               # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
