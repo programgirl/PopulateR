@@ -801,7 +801,27 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                 if(nrow(SchoolsAlreadyUsed) == 0) {
 
-               #   return(SchoolsAlreadyUsed)
+                 MissingMatchedSchools <- ChildrenInHousehold %>%
+                    left_join(OriginalSchoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
+                    filter((SchoolType == "C" | SchoolType == ChildType) &
+                             ChildCounts > 0)
+
+                 MoreThanOneOccurrence <- MissingMatchedSchools %>%
+                   group_by(SchoolID) %>%
+                   summarise(MultipleThere = n()) %>%
+                   filter(MultipleThere > 1)
+
+
+                 # if MoreThanOneOccurrence has multiple matches, need to join those
+
+                 if (nrow(MoreThanOneOccurrence) == 0) {
+
+                   return(MoreThanOneOccurrence)
+
+                 } # TODO else if MoreThanOneOccurrence > 0
+
+
+
 
                 } else {
 
