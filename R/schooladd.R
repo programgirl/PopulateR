@@ -779,11 +779,26 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
               NumKidsRemaining <- 0
 
-              # cat("The number of children remaining in the household is", nrow(ChildrenInHousehold), "\n")
+              cat("The number of children remaining in the household is", nrow(ChildrenInHousehold), "\n")
+
+              # add a child to a school when the addition will be an overcount
+              if(nrow(ChildrenInHousehold) > 0) {
+
+              print(list(ChildrenInHousehold$ChildID))
+
+                # check to see if there is any school that matches the ones the others are in
+                SchoolsAlreadyUsed <- ChildrenFinalised %>%
+                  filter(HouseholdID == CurrentHousehold) %>%
+                  select(SchoolID) %>%
+                  unique()
+
+                return(SchoolsAlreadyUsed)
+
+
+                # closes if(!(is.na(AllSchoolsFromWhichToChoose$ChildAge[1])))
+              }
 
               # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
-
-
              }
 
           # close if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
