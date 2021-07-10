@@ -816,7 +816,24 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                  if (nrow(MoreThanOneOccurrence) == 0) {
 
-                   return(MoreThanOneOccurrence)
+                   FinalSchoolMatch <- ChildrenInHousehold %>%
+                     left_join(OriginalSchoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
+                     filter((SchoolType == "C" | SchoolType == ChildType) &
+                              ChildCounts > 0)
+
+                   for (m in 1: nrow(ChildrenInHousehold)) {
+
+                       SchoolThatMatched <- FinalSchoolMatch %>%
+                         filter(ChildID == ChildrenInHousehold$ChildID[m]) %>%
+                         slice_sample(weight_by = ChildCounts, n=1) %>%
+                         select(-c(ChildCounts, SchoolType))
+
+                   return(SchoolThatMatched)
+
+
+
+                     # closes for (m in 1: nrow(ChildrenInHousehold))
+                   }
 
                  } # TODO else if MoreThanOneOccurrence > 0
 
