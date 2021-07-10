@@ -799,11 +799,9 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                   filter(HouseholdID == CurrentHousehold) %>%
                   select(SchoolID) %>%
                   unique() %>%
-                  left_join(OriginalSchoolsCounts, by = "SchoolID") #%>%
+                  left_join(OriginalSchoolsCounts, by = "SchoolID") %>%
                   filter(SchoolAge %in% ChildrenInHousehold$ChildAge,
                          ChildCounts > 0)
-
-                return(SchoolsAlreadyUsed)
 
                 if(nrow(SchoolsAlreadyUsed) == 0) {
 
@@ -820,7 +818,6 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                           ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
 
-
                         # closes for (m in 1: nrow(ChildrenInHousehold))
                       }
 
@@ -832,7 +829,6 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                   # options remaining are
                   # 1. school already used, co-ed or same-sex
                   # 2. an equivalent same-sex school already used
-
 
                   # get the age matches
                   InterimSchoolMatches <- ChildrenFinalised %>%
@@ -855,13 +851,65 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                     #  # option
                     # 1. school already used, co-ed or same-sex
 
-                    if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType) {
+                    if(CurrentChild$ChildType %in% c(SchoolMatchOptions$SchoolType)) {
+
+                      # remove matches that are opposite sex
+                      SchoolMatchOptions <- SchoolMatchOptions %>%
+                        filter(SchoolType == CurrentChild$ChildType)
 
                       # random sample one of the schools and add child to the final dataframe
 
+                      SchoolThatMatched <- SchoolMatchOptions %>%
+                        slice_sample(weight_by = ChildCounts, n=1)
+
+                      ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
 
                       # closes if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType)
+
                     } else {
+                      # co-ed and not matching single-sex schools
+
+                      SchoolMatchOptionsSexes <- SchoolMatchOptions %>%
+                        group_by(SchoolType) %>%
+                        summarise(DiffTypes = n())
+
+                      # deal with the situation where there are schools of different types
+                      if (nrow(SchoolMatchOptionsSexes) > 1) {
+
+                        PossibleOptions <- SchoolMatchOptions %>%
+                          filter(SchoolType == CurrentChild$ChildType)
+                          slice_sample(weight_by = ChildCounts, n=1)
+
+                          # there may be no single-sex schools that match the sex of the child
+                          if(nrow(PossibleOptions) > 0) {
+
+                            SchoolThatMatched <- SchoolMatchOptions %>%
+                              slice_sample(weight_by = ChildCounts, n=1)
+
+                            ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
+
+                            # closes if(nrow(PossibleOptions) > 0)
+                          } else {
+
+                            # for the co-ed only schools
+                            SchoolThatMatched <- SchoolMatchOptions %>%
+                              filter(SchoolType == "C") %>%
+                              slice_sample(weight_by = ChildCounts, n=1)
+
+                            ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
+
+                            # closes else to if(nrow(PossibleOptions) > 0)
+                            }
+
+                          # closes if (nrow(SchoolMatchOptionsSexes) > 1)
+                      }
+
+
+                      # options remaining is
+                      # 2. an equivalent same-sex school already used
+
+
+
 
                       # closes else for if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType)
                     }
