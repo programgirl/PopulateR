@@ -825,10 +825,11 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                        SchoolThatMatched <- FinalSchoolMatch %>%
                          filter(ChildID == ChildrenInHousehold$ChildID[m]) %>%
-                         slice_sample(weight_by = ChildCounts, n=1) %>%
-                         select(-c(ChildCounts, SchoolType))
+                         slice_sample(weight_by = ChildCounts, n=1)
 
-                   return(SchoolThatMatched)
+                       ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
+
+                   return(ChildrenFinalised)
 
 
 
