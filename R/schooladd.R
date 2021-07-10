@@ -831,12 +831,17 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                    return(ChildrenFinalised)
 
-
-
                      # closes for (m in 1: nrow(ChildrenInHousehold))
                    }
 
-                 } # TODO else if MoreThanOneOccurrence > 0
+                 } else {
+
+
+
+                 # TODO else if MoreThanOneOccurrence > 0
+
+                   # closes the else loop on if MoreThanOneOccurrence > 0
+                 }
 
 
 
