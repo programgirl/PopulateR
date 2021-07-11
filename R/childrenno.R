@@ -21,7 +21,6 @@
 #'
 #' @examples
 # library(dplyr)
-# library("dplyr")
 # set.seed(1)
 # Parents <- Township %>%
 #   filter(Relationship == "Partnered", Age > 18) %>%
