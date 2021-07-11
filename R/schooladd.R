@@ -778,7 +778,8 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                 filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
               AllSchoolsFromWhichToChoose <- bind_rows(SchoolID = "0", "ChildAge" = 0, "SchoolType" = "0",
-                                                       "ChildCounts" = 0, "NumberKids" = 0, "RemainingChildren" = 0)
+                                                       "ChildCounts" = 0, "NumberKids" = 0,
+                                                       "RemainingChildren" = 0)
 
               NumKidsRemaining <- 0
 
@@ -787,10 +788,10 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
               # add a child to a school when the addition will be an overcount
               if(nrow(ChildrenInHousehold) > 0) {
 
-              print(list(ChildrenInHousehold$ChildID))
+            #  print(list(ChildrenInHousehold$ChildID))
 
                 # options are:
-                # 1. school already used, co-ed or same-sex
+                # 1. school already used
                 # 2. an equivalent same-sex school already used
                 # 3. no school used and need to match new school
 
@@ -803,6 +804,7 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                   filter(SchoolAge %in% ChildrenInHousehold$ChildAge,
                          ChildCounts > 0)
 
+                # Option 3. no school used and need to match new school
                 if(nrow(SchoolsAlreadyUsed) == 0) {
 
                     FinalSchoolMatch <- ChildrenInHousehold %>%
@@ -827,7 +829,7 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                   # NOT TESTED
 
                   # options remaining are
-                  # 1. school already used, co-ed or same-sex
+                  # 1. school already used
                   # 2. an equivalent same-sex school already used
 
                   # get the age matches
@@ -849,7 +851,7 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                       filter(SchoolID %in% c(InterimSchoolMatches$SchoolID))
 
                     #  # option
-                    # 1. school already used, co-ed or same-sex
+                    # 1. school already used, same-sex
 
                     if(CurrentChild$ChildType %in% c(SchoolMatchOptions$SchoolType)) {
 
@@ -867,28 +869,26 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
                       # closes if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType)
 
                     } else {
-                      # co-ed and not matching single-sex schools
+
+                      # no matching single-sex schools
+                      # look at opposite-sex single-sex school
 
                       SchoolMatchOptionsSexes <- SchoolMatchOptions %>%
-                        group_by(SchoolType) %>%
-                        summarise(DiffTypes = n())
+                        filter(!(SchoolType == CurrentChild$ChildType) &
+                                !(SchoolType == "C"))
 
                       # deal with the situation where there are schools of different types
-                      if (nrow(SchoolMatchOptionsSexes) > 1) {
+                      if (nrow(SchoolMatchOptionsSexes) > 0) {
 
-                        PossibleOptions <- SchoolMatchOptions %>%
-                          filter(SchoolType == CurrentChild$ChildType)
+                        SchoolThatMatched <- SchoolMatchOptions %>%
                           slice_sample(weight_by = ChildCounts, n=1)
 
+                        ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
+
                           # there may be no single-sex schools that match the sex of the child
-                          if(nrow(PossibleOptions) > 0) {
+                        # which means only co-ed schools left
 
-                            SchoolThatMatched <- SchoolMatchOptions %>%
-                              slice_sample(weight_by = ChildCounts, n=1)
-
-                            ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
-
-                            # closes if(nrow(PossibleOptions) > 0)
+                        # closes if (nrow(SchoolMatchOptionsSexes) > 0)
                           } else {
 
                             # for the co-ed only schools
@@ -898,73 +898,19 @@ schooladd <- function(Children, ChildIDCol, ChildAgeCol, ChildSxCol, HouseholdID
 
                             ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
 
-                            # closes else to if(nrow(PossibleOptions) > 0)
-                            }
-
-                          # closes if (nrow(SchoolMatchOptionsSexes) > 1)
+                          # closes else to if (nrow(SchoolMatchOptionsSexes) > 0)
                       }
 
-
-                      # options remaining is
-                      # 2. an equivalent same-sex school already used
-
-
-
-
-                      # closes else for if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType)
+                      # closes else to if(CurrentChild$ChildType %in% c(SchoolMatchOptions$SchoolType))
                     }
 
                     # closes for (n in 1: nrow(ChildrenInHousehold))
                   }
 
-
                   # closes else for if(nrow(SchoolsAlreadyUsed) == 0)
                 }
 
-                  # MissingMatchedSchools <- ChildrenInHousehold %>%
-                  #   left_join(OriginalSchoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
-                  #   filter(ChildCounts > 0)
-                 # if MoreThanOneOccurrence has multiple matches, need to join those
-
-                 # if (nrow(MoreThanOneOccurrence) == 0) {
-                 #
-                 #   FinalSchoolMatch <- ChildrenInHousehold %>%
-                 #     left_join(OriginalSchoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
-                 #     filter((SchoolType == "C" | SchoolType == ChildType) &
-                 #              ChildCounts > 0)
-                 #
-                 #   for (m in 1: nrow(ChildrenInHousehold)) {
-                 #
-                 #       SchoolThatMatched <- FinalSchoolMatch %>%
-                 #         filter(ChildID == ChildrenInHousehold$ChildID[m]) %>%
-                 #         slice_sample(weight_by = ChildCounts, n=1)
-                 #
-                 #       ChildrenFinalised <- bind_rows(ChildrenFinalised, SchoolThatMatched)
-                 #
-                 #
-                 #     # closes for (m in 1: nrow(ChildrenInHousehold))
-                 #   }
-#
-#                  } else {
-#
-#
-#
-#                  # TODO else if MoreThanOneOccurrence > 0
-#
-#                    # closes the else loop on if MoreThanOneOccurrence > 0
-#                  }
-
-
-
-#
-#                 } else {
-#
-#                   # TODO if there are children who already have a matching school
-
-                  # closes if(nrow(SchoolsAlreadyUsed) == 0)
-                # }
-
-                # closes if(nrow(ChildrenInHousehold) > 0)
+                   # closes if(nrow(ChildrenInHousehold) > 0)
               }
 
               # closes INSIDE if(is.na(AllSchoolsFromWhichToChoose$ChildAge[1]))
