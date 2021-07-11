@@ -3,6 +3,7 @@
 #' Two data frames are required: one for the children and one for the schools.
 #' No minimum or maximum child ages are required, as the function limits the ages within the age range across the schools. Thus, pre-cleaning the children data frame is not required.
 #' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used.
+#' The minimum and maximum school ages, and the counts by sex for each school, are printed to the console.
 #'
 #' @export
 #' @param children A data frame containing the children to be paired with a parent/guardian.
@@ -17,6 +18,14 @@
 #' @param schtypecol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
 #' @param childprob If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all similarly aged children will be assigned to their respective same-sex schools, or all will be to co-educational schools.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @return A single data frame.
+#'
+#' @examples
+# library(dplyr)
+# set.seed(1)
+#' SchoolsAdded <- schooladd(KidsIntoSchools, chlidcol = 3, chlagecol = 4, chlsxcol = 7, hhidcol = 6,
+#'                           SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+#'                           UserSeed = 4)
 
 schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, schools, schidcol, schagecol,
                       schrollcol, schtypecol, childprob = 1, UserSeed=NULL)
