@@ -984,7 +984,7 @@ childrenno <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 0
         summarise(AgesToFix = n()) %>%
         pull(ChildAge)
 
-      if (!(is.na(DuplicateAges)) == TRUE) {
+      if (length(DuplicateAges) > 0) {
 
         for(b in 1:length(DuplicateAges)) {
 
