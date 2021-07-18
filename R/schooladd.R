@@ -1,22 +1,23 @@
 #' Create a data frame of children matched to schools
 #' This function creates a data frame of children and matching schools. By default, all similarly-aged children in the same household will be matched to the same school. If one child is matched to a same-sex school, then all similarly aged children will also be matched to a same-sex school. This includes opposite-sex children.
 #' Two data frames are required: one for the children and one for the schools.
-#' No minimum or maximum child ages are required, as the function limits the ages within the age range across the schools. Thus, pre-cleaning the children data frame is not required.
+#' A numeric or ordered factor for school status is required. This must be either a numeric variable, or an ordered factor. The smallest value/level will be treated as the code for people not in school. Thus, pre-cleaning the children data frame is not required.
 #' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used.
 #' The minimum and maximum school ages, and the counts by sex for each school, are printed to the console.
 #'
 #' @export
-#' @param children A data frame containing the children to be paired with a parent/guardian.
-#' @param chlidcol The column number for the ID variable in the children data frame.
-#' @param chlagecol The column number for the age variable in the children data frame.
-#' @param chlsxcol The column number for the sex indicator for children. This column is used to assign children to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
+#' @param individuals A data frame containing the individuals to be paired with a parent/guardian.
+#' @param indidcol The column number for the ID variable in the individuals data frame.
+#' @param indagecol The column number for the age variable in the individuals data frame.
+#' @param indsxcol The column number for the sex indicator for individuals. This column is used to assign individuals to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
 #' @param hhidcol The column number for the household identifier variable in the parent data frame.
 #' @param schools A data frame containing the school observations.
 #' @param schidcol The column number for the ID variable in the schools data frame. Values in this column are treated as character. If the IDs are factors, these will be converted to character.
 #' @param schagecol The column number for the Age variable in the schools data frame..
-#' @param schrollcol The number of places available for children at that school age, within the school.
+#' @param schrollcol The number of places available for individuals at that school age, within the school.
 #' @param schtypecol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
-#' @param childprob If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all similarly aged children will be assigned to their respective same-sex schools, or all will be to co-educational schools.
+#' @param childprob If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all similarly aged individuals will be assigned to their respective same-sex schools, or all will be to co-educational schools.
+#' @param sttscol The column number for the school status.
 #' @param schmiss The value that will be given to those people not in school. If left blank, the default value is "None".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @return A single data frame.
@@ -24,15 +25,20 @@
 #' @examples
 # library(dplyr)
 # set.seed(1)
-#' SchoolsAdded <- schooladd(KidsIntoSchools, chlidcol = 3, chlagecol = 4, chlsxcol = 7, hhidcol = 6,
+#' SchoolsAdded <- schooladd(KidsIntoSchools, indidcol = 3, indagecol = 4, indsxcol = 7, hhidcol = 6,
 #'                           SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
 #'                           UserSeed = 4)
 
-schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, schools, schidcol, schagecol,
-                      schrollcol, schtypecol, childprob = 1, schmiss = "None", UserSeed=NULL)
+schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL, schools, schidcol, schagecol,
+                      schrollcol, schtypecol, childprob = 1, sttscol = NULL, schmiss = "None", UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
+
+  # content check
+  if (!(is.factor(sttscol)) & !(is.numeric(sttscol))) {
+    stop("The school status variable must be a factor or be numeric.")
+  }
 
 
   #####################################################################
@@ -41,11 +47,11 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   #####################################################################
   #####################################################################
 
-  childrenRenamed <- children %>%
-    rename(ChildID = !! chlidcol, ChildAge = !! chlagecol, ChildType = !! chlsxcol,
+  individualsRenamed <- individuals %>%
+    rename(ChildID = !! indidcol, ChildAge = !! indagecol, ChildType = !! indsxcol,
            HouseholdID = !! hhidcol)
 
-  OutofAgeRange <- childrenRenamed
+  OutofAgeRange <- individualsRenamed
 
   schoolsRenamed <- schools %>%
     rename(SchoolID = !! schidcol, SchoolAge = !! schagecol,
@@ -63,10 +69,10 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   ###############################################
   ###############################################
 
-  chlidcolName <- sym(names(children[chlidcol]))
-  chlagecolName <- sym(names(children[chlagecol]))
-  hhidcolName <- sym(names(children[hhidcol]))
-  chlsxcolName <- sym(names(children[chlsxcol]))
+  indidcolName <- sym(names(individuals[indidcol]))
+  indagecolName <- sym(names(individuals[indagecol]))
+  hhidcolName <- sym(names(individuals[hhidcol]))
+  indsxcolName <- sym(names(individuals[indsxcol]))
   schidcolName <- sym(names(schools[schidcol]))
 
   ###############################################
@@ -74,7 +80,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   # quick test of compatibility of counts
   ###############################################
   ###############################################
-  childrenCountTest <- childrenRenamed %>%
+  individualsCountTest <- individualsRenamed %>%
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
 
@@ -82,7 +88,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
     group_by(SchoolAge) %>%
     summarise(SchoolAgeCount = sum(ChildCounts))
 
-  CountComparison <- full_join(childrenCountTest, schoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
+  CountComparison <- full_join(individualsCountTest, schoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
     mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
            SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0),
            CountDiff = SchoolAgeCount - AgeCount) %>%
@@ -99,13 +105,13 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   #
   #   TooManyKids <- as.vector(TooManyKids)
   #
-  #   stop(paste("The number of children at these ages exceeds the available school roll places: ", shQuote(TooManyKids), collapse=", "))
+  #   stop(paste("The number of individuals at these ages exceeds the available school roll places: ", shQuote(TooManyKids), collapse=", "))
   #
   # }
 
   MaxSchoolAge <- as.numeric(CountComparison[nrow(CountComparison), 1])
 
-  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
+  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
   # restrict child and school data frames to these minimum and maximum ages
@@ -114,36 +120,36 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
     filter(CountDiff >= 0) %>%
     select(ChildAge)
 
-  # apply to children
+  # apply to individuals
 
-  childrenRenamed <- left_join(AgeRestriction, childrenRenamed, by = "ChildAge")
+  individualsRenamed <- left_join(AgeRestriction, individualsRenamed, by = "ChildAge")
 
   Notschool <- OutofAgeRange %>%
-    filter(!(ChildID %in% c(childrenRenamed$ChildID))) %>%
+    filter(!(ChildID %in% c(individualsRenamed$ChildID))) %>%
     mutate(SchoolID = schmiss)
 
 
 
 
-  # NOTE: this removes any school classrooms where NO children of that age exist in the data
+  # NOTE: this removes any school classrooms where NO individuals of that age exist in the data
   schoolsRenamed <- left_join(AgeRestriction, schoolsRenamed, by = c("ChildAge" = "SchoolAge"))
 
   schoolsCountColIndex <- as.numeric(which(colnames(schoolsRenamed) == "ChildCounts"))
 
   # get rid of the tibbles
-  childrenRenamed <- as.data.frame(childrenRenamed)
+  individualsRenamed <- as.data.frame(individualsRenamed)
   schoolsRenamed <- as.data.frame(schoolsRenamed)
 
   #####################################################################
   # Create household meta data data frame
   #####################################################################
   # get the number of households
-  NumberHouseholds <- as.numeric(childrenRenamed %>%
+  NumberHouseholds <- as.numeric(individualsRenamed %>%
                                    dplyr::summarise(Count = n_distinct(HouseholdID)) %>%
                                    pull(Count))
 
   # get list of household IDs
-  HouseholdIDList <- as.data.frame(childrenRenamed %>%
+  HouseholdIDList <- as.data.frame(individualsRenamed %>%
                                      distinct(HouseholdID))
 
 #####################################################################
@@ -152,7 +158,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 # the availability of
 #####################################################################
 
-  childrenSexAge <- childrenRenamed %>%
+  individualsSexAge <- individualsRenamed %>%
     group_by(ChildType, ChildAge) %>%
     summarise(AgeCount = n())
 
@@ -167,7 +173,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
     set.seed(UserSeed)
   }
 
-  ListofHouseholds <- childrenRenamed %>%
+  ListofHouseholds <- individualsRenamed %>%
     group_by(HouseholdID) %>%
     summarise(NumberKids = n())
 
@@ -200,30 +206,30 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
     # cat("The current household is", CurrentHousehold, "\n")
 
 
-      # get the children in the household
+      # get the individuals in the household
 
-      childrenInHousehold <- childrenRenamed %>%
+      individualsInHousehold <- individualsRenamed %>%
         filter(HouseholdID == CurrentHousehold)
 
-      NumKidsRemaining <- nrow(childrenInHousehold)
+      NumKidsRemaining <- nrow(individualsInHousehold)
 
       # only need to do this for households with more than one child
       if(NumKidsRemaining >1) {
 
 
-      # random roll to see if any children in same school, will prioritise the twins
-      RandomRollVector <- runif(nrow(childrenInHousehold)-1)
+      # random roll to see if any individuals in same school, will prioritise the twins
+      RandomRollVector <- runif(nrow(individualsInHousehold)-1)
 
       # cat(RandomRollVector, "\n")
 
-      # test number of children who should go to the same school
+      # test number of individuals who should go to the same school
       NumberSameSchool <- data.frame(RandomRollVector) %>%
         filter(RandomRollVector > (1-childprob)) %>%
         summarise(SameSchool = n()) %>%
         pull(SameSchool)
 
 
-      # fix the number of children that can go to the same school
+      # fix the number of individuals that can go to the same school
       if(NumberSameSchool == 1 | NumberSameSchool == 0) {
 
         NumberSameSchool <- 2
@@ -256,16 +262,16 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
       # print(NumberSameSchool)
 
-      # add children to same school
-      # need to identify the number of children that can go to the same school
+      # add individuals to same school
+      # need to identify the number of individuals that can go to the same school
 
         # get child ages vector
-        ChildAges <- as.data.frame(childrenInHousehold %>%
+        ChildAges <- as.data.frame(individualsInHousehold %>%
           group_by(ChildType, ChildAge) %>%
           summarise(CountsByAge = n()))
 
 
-        # locate schools that can take the maximum number of children from NumberSameSchool down
+        # locate schools that can take the maximum number of individuals from NumberSameSchool down
 
          schoolsubset <- left_join(ChildAges, schoolsRenamed, by = "ChildAge") %>%
            mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
@@ -274,8 +280,8 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
            group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
            summarise(NumberKids = sum(CountsByAge)) %>%
            ungroup() %>%
-           mutate(Remainingchildren = ChildCounts - NumberKids) %>%
-           filter(Remainingchildren >= 0)
+           mutate(Remainingindividuals = ChildCounts - NumberKids) %>%
+           filter(Remainingindividuals >= 0)
 
          NumberKidsPerSchool <- schoolsubset %>%
            group_by(SchoolID) %>%
@@ -345,7 +351,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
           # cat("MergedSingleSexToAdd okay for household", CurrentHousehold, "\n")
 
-          # note the NA value for the children remaining as this information is absent from the merger
+          # note the NA value for the individuals remaining as this information is absent from the merger
           # of the single-sex schools
         AllschoolsFromWhichToChoose <- bind_rows(CoedschoolsSelected, MergedSingleSexToAdd)
 
@@ -422,7 +428,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
         # select schools
         # select school combination by probability
-        # but limit to those schools that accept the number of children that do not exceed the number
+        # but limit to those schools that accept the number of individuals that do not exceed the number
         # to be assigned to the same school
 
         # cat("The schools from which to choose are", "\n")
@@ -436,16 +442,16 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
           #     NumberSameSchool, "household ID is", CurrentHousehold, "Number kids remaining is",
           #     NumKidsRemaining, "\n")
 
-          MaxchildrenCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
+          MaxindividualsCanTake <- (min(NumberSameSchool, max(NumberKidsPerSchool$NumberKids)))
 
        # extract these schools
        Multiplesschools <- NumberKidsPerSchool %>%
-         filter(NumberKids >= MaxchildrenCanTake)
+         filter(NumberKids >= MaxindividualsCanTake)
 
 
-      # cat("The max children is", MaxchildrenCanTake, "\n")
+      # cat("The max individuals is", MaxindividualsCanTake, "\n")
 
-        # cat("The number of children to the same school", NumberSameSchool, "\n")
+        # cat("The number of individuals to the same school", NumberSameSchool, "\n")
 
         # random select from the Multipleschools
         # probability based on roll size
@@ -453,14 +459,14 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
         # print(Multiplesschools$RollCountSum)
 
         # will always be at least one child that a school can take
-        # need to loop through the number of children in the household so that
+        # need to loop through the number of individuals in the household so that
         # the school assignment is done for each one
 
         SchoolChosen <- Multiplesschools %>%
           slice_sample(weight_by = NumberKids, n=1)
 
 
-        # now need to loop through all the children in the family
+        # now need to loop through all the individuals in the family
 
         # print(CurrentHousehold)
 
@@ -532,8 +538,8 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
           # close if(exists("SingleSexMatchedschools") == TRUE)
         }
 
-        # cat("The children in the household are", "\n")
-        # str(childrenInHousehold)
+        # cat("The individuals in the household are", "\n")
+        # str(individualsInHousehold)
         #
         # cat("The file SchoolChosenDetail is", "\n")
         # str(SchoolChosenDetail)
@@ -541,22 +547,22 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
         # cat("ChildSchoolMerge IsMatch below line 496", "\n")
 
 
-        ChildSchoolMerge <- left_join(childrenInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
+        ChildSchoolMerge <- left_join(individualsInHousehold, SchoolChosenDetail, by = "ChildAge") %>%
           mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType | SchoolType == "S", "Y", "N")) %>%
           filter(IsMatch == "Y") %>%
           select(-IsMatch)
 
 
       # pick the kids that will go to this school, using the max number that can be assigned
-        # loop is only entered if there are more school spots than children
-        # due to the join, this can only happen if there are multiple children who are the same age
+        # loop is only entered if there are more school spots than individuals
+        # due to the join, this can only happen if there are multiple individuals who are the same age
         # and permitted same-sex combinations
 
-        if(nrow(ChildSchoolMerge) > MaxchildrenCanTake) {
+        if(nrow(ChildSchoolMerge) > MaxindividualsCanTake) {
 
-          # cat("There are", MaxchildrenCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
+          # cat("There are", MaxindividualsCanTake, "for", nrow(ChildSchoolMerge), "school slots", "\n")
 
-          TimesToRepeat <- 1 + nrow(ChildSchoolMerge) - MaxchildrenCanTake
+          TimesToRepeat <- 1 + nrow(ChildSchoolMerge) - MaxindividualsCanTake
 
           AgesToLoop <- ChildSchoolMerge %>%
             pull(ChildAge)
@@ -565,7 +571,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
           for(k in 1:TimesToRepeat) {
             youngest = AgesToLoop[k]
-            oldest = AgesToLoop[k + MaxchildrenCanTake - 1]
+            oldest = AgesToLoop[k + MaxindividualsCanTake - 1]
 
            # cat("Youngest is", youngest, "and oldest is", oldest, "\n")
             AgeDiffs = oldest - youngest
@@ -587,40 +593,40 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
             }
 
-            # cat("Start row for subset is", SmallestVector, "and end row for subset is", (SmallestVector+(MaxchildrenCanTake-1)), "\n")
+            # cat("Start row for subset is", SmallestVector, "and end row for subset is", (SmallestVector+(MaxindividualsCanTake-1)), "\n")
 
             # closes for(k in 1:TimesToRepeat)
           }
 
 
           ChildSchoolMerge <- ChildSchoolMerge %>%
-            slice(SmallestVector:(SmallestVector+(MaxchildrenCanTake-1)))
+            slice(SmallestVector:(SmallestVector+(MaxindividualsCanTake-1)))
 
 
-          # closes if(nrow(ChildSchoolMerge) > MaxchildrenCanTake)
+          # closes if(nrow(ChildSchoolMerge) > MaxindividualsCanTake)
         }
 
 
         # merge the school into the household data
 
         # do the allocation
-        if(exists("childrenFinalised")) {
+        if(exists("individualsFinalised")) {
 
-          # cat("children Finalised exists", "\n")
+          # cat("individuals Finalised exists", "\n")
 
-          childrenFinalised <- bind_rows(childrenFinalised, ChildSchoolMerge)
+          individualsFinalised <- bind_rows(individualsFinalised, ChildSchoolMerge)
 
         } else {
 
-          childrenFinalised <- ChildSchoolMerge
+          individualsFinalised <- ChildSchoolMerge
 
           # get column index for injection
           # only need to grab this the once, when the file is constructed
-          schoolsIDColIndex <- as.numeric(which(colnames(childrenFinalised) == "SchoolID"))
+          schoolsIDColIndex <- as.numeric(which(colnames(individualsFinalised) == "SchoolID"))
 
-          schoolsTypeColIndex <- as.numeric(which(colnames(childrenFinalised) == "SchoolType"))
+          schoolsTypeColIndex <- as.numeric(which(colnames(individualsFinalised) == "SchoolType"))
 
-          # closes  if(exists(childrenFinalised))
+          # closes  if(exists(individualsFinalised))
         }
 
         # reduce the relevant roll count for the school
@@ -654,15 +660,15 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
         # closes for(l in 1:nrow(SchoolCountSummaries))
         }
 
-        # remove children who are matched
-        childrenInHousehold <- childrenInHousehold %>%
+        # remove individuals who are matched
+        individualsInHousehold <- individualsInHousehold %>%
           filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
-        # cat("The children in household data are", "\n")
-        # str(childrenInHousehold)
+        # cat("The individuals in household data are", "\n")
+        # str(individualsInHousehold)
 
         # update for whether loop continues
-        # cat("The number of children allocated was", nrow(ChildSchoolMerge), "\n")
+        # cat("The number of individuals allocated was", nrow(ChildSchoolMerge), "\n")
 
         NumKidsRemaining <- NumKidsRemaining - nrow(ChildSchoolMerge)
 
@@ -670,7 +676,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
         # update the maximum number that can be allocated to the same school
 
-        # stops the recalculation of this information if there are no more children to assign to schools
+        # stops the recalculation of this information if there are no more individuals to assign to schools
         # put the code block in the loop below
 
         if (NumKidsRemaining > 0) {
@@ -679,16 +685,16 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
         AllschoolsFromWhichToChoose <- AllschoolsFromWhichToChoose %>%
           filter(!(SchoolID == SchoolChosen$SchoolID),
-                 ChildAge %in% c(childrenInHousehold$ChildAge))
+                 ChildAge %in% c(individualsInHousehold$ChildAge))
 
         if(is.na(AllschoolsFromWhichToChoose$ChildAge[1])) {
 
-          ChildAges <- as.data.frame(childrenInHousehold %>%
+          ChildAges <- as.data.frame(individualsInHousehold %>%
                                        group_by(ChildType, ChildAge) %>%
                                        summarise(CountsByAge = n()))
 
          # construct a non-empty data frame if the schools went to zero because of school
-          # age ranges and age ranges of children in the household
+          # age ranges and age ranges of individuals in the household
 
             AllschoolsFromWhichToChoose <- left_join(ChildAges, schoolsRenamed, by = "ChildAge") %>%
               mutate(IsMatch = ifelse(SchoolType == "C" | SchoolType == ChildType, "Y", "N")) %>%
@@ -697,7 +703,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
               group_by(SchoolID, ChildAge, SchoolType, ChildCounts) %>%
               summarise(NumberKids = sum(CountsByAge)) %>%
               ungroup() %>%
-              mutate(Remainingchildren = ChildCounts - NumberKids)
+              mutate(Remainingindividuals = ChildCounts - NumberKids)
 
             # str(ChildAges)
             # str(schoolsRenamed)
@@ -719,7 +725,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
               IntschoolsFromWhichToChoose <- left_join(ChildAges, schoolsRenamed, by = "ChildAge") %>%
                 group_by(SchoolID) %>%
                 slice(rep(1:n(), first(ChildCounts))) %>%
-                left_join(childrenInHousehold, by = c("ChildAge", "ChildType")) %>%
+                left_join(individualsInHousehold, by = c("ChildAge", "ChildType")) %>%
                 select(ChildID, SchoolID, ChildAge, ChildType, SchoolType) %>%
                 group_by(ChildID) %>%
                 slice_sample(n = 1) %>%
@@ -727,7 +733,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
                # cat("AllschoolsFromWhichToChoose", "\n")
               # pick one school to swap in for remaining child
-              childrenToSwap <- childrenFinalised %>%
+              individualsToSwap <- individualsFinalised %>%
                 filter(SchoolType == "C") %>%
                 right_join(IntschoolsFromWhichToChoose, by = "ChildAge") %>%
                 filter(!(ChildType.x == ChildType.y)) %>%
@@ -739,18 +745,18 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
               # 1. swap school IDs
               # 2. sub in the new school ID for the donor child/ren, replacing the original
               # 2.A must also change sex allocation
-              # 3. create the correctly formatted child merge file for the recipient children
-              # 4. add in those recipient children
+              # 3. create the correctly formatted child merge file for the recipient individuals
+              # 4. add in those recipient individuals
               # 5. decrease the counts for the schools that were the incorrect sex
-              InjectionInformation <- childrenToSwap %>%
+              InjectionInformation <- individualsToSwap %>%
                 select(ChildID.x, SchoolID.y, SchoolType.y)
 
               for(m in 1:nrow(InjectionInformation)) {
 
-                ChildRowIndex <- as.numeric(which(childrenFinalised$ChildID==InjectionInformation$ChildID.x[m]))
+                ChildRowIndex <- as.numeric(which(individualsFinalised$ChildID==InjectionInformation$ChildID.x[m]))
 
-                childrenFinalised[ChildRowIndex, schoolsIDColIndex] <- InjectionInformation$SchoolID.y[m]
-                childrenFinalised[ChildRowIndex, schoolsTypeColIndex] <- InjectionInformation$SchoolType.y[m]
+                individualsFinalised[ChildRowIndex, schoolsIDColIndex] <- InjectionInformation$SchoolID.y[m]
+                individualsFinalised[ChildRowIndex, schoolsTypeColIndex] <- InjectionInformation$SchoolType.y[m]
 
                 # closes for(m in 1:nrow(InjectionInformation))
               }
@@ -758,32 +764,32 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
               # replacement school injected, now fix the child/ren in the current household
 
 
-              # 3. create the correctly formatted child merge file for the recipient children
-              # get children and add the extra columns for merge
+              # 3. create the correctly formatted child merge file for the recipient individuals
+              # get individuals and add the extra columns for merge
               # need to mock up these columns as the schools dataset no longer contains
               # this schoolID/childage combo
               # only incorrect value is SchoolType
 
-              ChildSchoolMerge <- childrenToSwap %>%
+              ChildSchoolMerge <- individualsToSwap %>%
                 select(ChildID.y, SchoolID.x) %>%
                 rename(ChildID = ChildID.y,
                        SchoolID = SchoolID.x) %>%
-                left_join(childrenInHousehold, by = "ChildID") %>%
-                mutate(SchoolType = "Z", ChildCounts = 0, NumberKids = 0, Remainingchildren = 0)
+                left_join(individualsInHousehold, by = "ChildID") %>%
+                mutate(SchoolType = "Z", ChildCounts = 0, NumberKids = 0, Remainingindividuals = 0)
 
-              # 4. add in those recipient children
-              childrenFinalised <- bind_rows(childrenFinalised, ChildSchoolMerge)
+              # 4. add in those recipient individuals
+              individualsFinalised <- bind_rows(individualsFinalised, ChildSchoolMerge)
 
               # 5. decrease the counts for the schools that were the incorrect sex
               # cat("Fixing school count summaries", "\n")
 
-              SchoolCountSummaries <- childrenToSwap %>%
+              SchoolCountSummaries <- individualsToSwap %>%
                 select(SchoolID.y, ChildAge) %>%
                 rename(SchoolID = SchoolID.y) %>%
                 group_by(SchoolID, ChildAge) %>%
                 summarise(AllocatedCounts = n()) %>%
                 left_join(schoolsRenamed, by = c("SchoolID", "ChildAge")) %>%
-                mutate(Remainingchildren = ChildCounts - AllocatedCounts)
+                mutate(Remainingindividuals = ChildCounts - AllocatedCounts)
 
 
               for(l in 1:nrow(SchoolCountSummaries)) {
@@ -801,24 +807,24 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
               # closes for(l in 1:nrow(SchoolCountSummaries))
               }
 
-              # remove children who are matched
+              # remove individuals who are matched
 
 
-              childrenInHousehold <- childrenInHousehold %>%
+              individualsInHousehold <- individualsInHousehold %>%
                 filter(!(ChildID %in% c(ChildSchoolMerge$ChildID)))
 
               # AllschoolsFromWhichToChoose <- bind_rows(SchoolID = "0", "ChildAge" = 0, "SchoolType" = "0",
               #                                          "ChildCounts" = 0, "NumberKids" = 0,
-              #                                          "Remainingchildren" = 0)
+              #                                          "Remainingindividuals" = 0)
               #
               # NumKidsRemaining <- 0
 
-              # cat("The number of children remaining in the household is", nrow(childrenInHousehold), "\n")
+              # cat("The number of individuals remaining in the household is", nrow(individualsInHousehold), "\n")
 
               # add a child to a school when the addition will be an overcount
-              if(nrow(childrenInHousehold) > 0) {
+              if(nrow(individualsInHousehold) > 0) {
 
-             # cat("The number of children in the household is", list(childrenInHousehold$ChildID), "\n")
+             # cat("The number of individuals in the household is", list(individualsInHousehold$ChildID), "\n")
 
                 # options are:
                 # 1. school already used
@@ -826,31 +832,31 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                 # 3. no school used and need to match new school
 
                 # check to see if there is any school that matches the ones the others are in
-                schoolsAlreadyUsed <- childrenFinalised %>%
+                schoolsAlreadyUsed <- individualsFinalised %>%
                   filter(HouseholdID == CurrentHousehold) %>%
                   select(SchoolID) %>%
                   unique() %>%
                   left_join(OriginalschoolsCounts, by = "SchoolID") %>%
-                  filter(SchoolAge %in% childrenInHousehold$ChildAge,
+                  filter(SchoolAge %in% individualsInHousehold$ChildAge,
                          ChildCounts > 0)
 
                 # Option 3. no school used and need to match new school
                 if(nrow(schoolsAlreadyUsed) == 0) {
 
-                    FinalSchoolMatch <- childrenInHousehold %>%
+                    FinalSchoolMatch <- individualsInHousehold %>%
                       left_join(OriginalschoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
                       filter((SchoolType == "C" | SchoolType == ChildType) &
                                ChildCounts > 0)
 
-                      for (m in 1: nrow(childrenInHousehold)) {
+                      for (m in 1: nrow(individualsInHousehold)) {
 
                           SchoolThatMatched <- FinalSchoolMatch %>%
-                            filter(ChildID == childrenInHousehold$ChildID[m]) %>%
+                            filter(ChildID == individualsInHousehold$ChildID[m]) %>%
                             slice_sample(weight_by = ChildCounts, n=1)
 
-                          childrenFinalised <- bind_rows(childrenFinalised, SchoolThatMatched)
+                          individualsFinalised <- bind_rows(individualsFinalised, SchoolThatMatched)
 
-                        # closes for (m in 1: nrow(childrenInHousehold))
+                        # closes for (m in 1: nrow(individualsInHousehold))
                       }
 
                   # closes if(nrow(schoolsAlreadyUsed) == 0)
@@ -863,18 +869,18 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                   # 2. an equivalent same-sex school already used
 
                   # get the age matches
-                  InterimSchoolMatches <- childrenFinalised %>%
+                  InterimSchoolMatches <- individualsFinalised %>%
                     filter(HouseholdID == CurrentHousehold) %>%
                     select(SchoolID) %>%
                     unique() %>%
-                    filter(SchoolAge %in% childrenInHousehold$ChildAge,
+                    filter(SchoolAge %in% individualsInHousehold$ChildAge,
                            ChildCounts > 0)
 
-                  # loop through the children matched to no school
+                  # loop through the individuals matched to no school
 
-                  for (n in 1: nrow(childrenInHousehold)) {
+                  for (n in 1: nrow(individualsInHousehold)) {
 
-                    CurrentChild <- childrenInHousehold[n,]
+                    CurrentChild <- individualsInHousehold[n,]
 
                     SchoolMatchOptions <- CurrentChild %>%
                       left_join(OriginalschoolsCounts, by = c("ChildAge" = "SchoolAge")) %>%
@@ -894,7 +900,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                       SchoolThatMatched <- SchoolMatchOptions %>%
                         slice_sample(weight_by = ChildCounts, n=1)
 
-                      childrenFinalised <- bind_rows(childrenFinalised, SchoolThatMatched)
+                      individualsFinalised <- bind_rows(individualsFinalised, SchoolThatMatched)
 
                       # closes if(SchoolMatchOptions %in% SchoolType == "C" | SchoolType == ChildType)
 
@@ -913,7 +919,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                         SchoolThatMatched <- SchoolMatchOptions %>%
                           slice_sample(weight_by = ChildCounts, n=1)
 
-                        childrenFinalised <- bind_rows(childrenFinalised, SchoolThatMatched)
+                        individualsFinalised <- bind_rows(individualsFinalised, SchoolThatMatched)
 
                           # there may be no single-sex schools that match the sex of the child
                         # which means only co-ed schools left
@@ -926,7 +932,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                               filter(SchoolType == "C") %>%
                               slice_sample(weight_by = ChildCounts, n=1)
 
-                            childrenFinalised <- bind_rows(childrenFinalised, SchoolThatMatched)
+                            individualsFinalised <- bind_rows(individualsFinalised, SchoolThatMatched)
 
                           # closes else to if (nrow(SchoolMatchOptionsSexes) > 0)
                       }
@@ -934,18 +940,18 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
                       # closes else to if(CurrentChild$ChildType %in% c(SchoolMatchOptions$SchoolType))
                     }
 
-                    # cat("The maximum children can take on line 952 is", MaxchildrenCanTake, "\n")
+                    # cat("The maximum individuals can take on line 952 is", MaxindividualsCanTake, "\n")
                     # cat("The min number same school is", min(NumberSameSchool), "The other is",
                         # max(AllschoolsFromWhichToChoose$NumberKids), "\n")
 
-                    # closes for (n in 1: nrow(childrenInHousehold))
+                    # closes for (n in 1: nrow(individualsInHousehold))
                   }
 
                   # closes else for if(nrow(schoolsAlreadyUsed) == 0)
                 }
 
 
-                 # closes if(nrow(childrenInHousehold) > 0)
+                 # closes if(nrow(individualsInHousehold) > 0)
               }
 
               # closes INSIDE if(is.na(AllschoolsFromWhichToChoose$ChildAge[1]))
@@ -968,7 +974,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
         # cat("The remaining schools from which to choose are", nrow(AllschoolsFromWhichToChoose), "\n")
 
-        MaxchildrenCanTake <- max((min(NumberSameSchool, max(AllschoolsFromWhichToChoose$NumberKids))), 1)
+        MaxindividualsCanTake <- max((min(NumberSameSchool, max(AllschoolsFromWhichToChoose$NumberKids))), 1)
 
 
         # closes if (NumKidsRemaining > 0)
@@ -983,7 +989,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
       # }
 
 
-    # closes  for(i in 1:nrow(childrenRenamed))
+    # closes  for(i in 1:nrow(individualsRenamed))
 
    }
 
@@ -993,22 +999,22 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   # add in the out-of-age people
 
   Notschool <- Notschool %>%
-    filter(!(ChildID %in% c(childrenRenamed$ChildID))) %>%
-    rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge,
-           !!hhidcolName := HouseholdID, !!chlsxcolName := ChildType,
+    filter(!(ChildID %in% c(individualsRenamed$ChildID))) %>%
+    rename(!!indidcolName := ChildID, !!indagecolName := ChildAge,
+           !!hhidcolName := HouseholdID, !!indsxcolName := ChildType,
            !!schidcolName := SchoolID)
 
 
-  OutputDataframe <- childrenFinalised %>%
-    select(-c(SchoolType, ChildCounts, NumberKids, Remainingchildren)) %>%
-    rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge,
-           !!hhidcolName := HouseholdID, !!chlsxcolName := ChildType,
+  OutputDataframe <- individualsFinalised %>%
+    select(-c(SchoolType, ChildCounts, NumberKids, Remainingindividuals)) %>%
+    rename(!!indidcolName := ChildID, !!indagecolName := ChildAge,
+           !!hhidcolName := HouseholdID, !!indsxcolName := ChildType,
            !!schidcolName := SchoolID)
 
   OutputDataframe <- bind_rows(Notschool, OutputDataframe)
 
   cat("The school allocation by sex is", "\n")
-  print(table(childrenFinalised$SchoolID, childrenFinalised$Sex))
+  print(table(individualsFinalised$SchoolID, individualsFinalised$Sex))
 
   return(OutputDataframe)
   # closes function
