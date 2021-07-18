@@ -1002,7 +1002,7 @@ childrenyes <- function(children, chlidcol, chlagecol, numchild = 2, twinrate = 
         # draw a random number for the data frame check to start
         Startrow <- round(runif(1, min= 1, max = nrow(AmendedparentsFinal)))
 
-        print(Startrow)
+        # print(Startrow)
 
         # sample that age from the household
         SampledIncorrectTwin <- ChildrenFinal %>%
