@@ -253,10 +253,10 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
 
    #   print("Entered loop")
 
-      Children$Status[x] <- "No"
+      Children$Status[x] <- "N"
 
     } else {
-      Children$Status[x] <- "Yes"
+      Children$Status[x] <- "Y"
 
       # closes random assignment to school statust
     }
@@ -273,7 +273,7 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   # print(str(Children))
 
   CompleteDF <- bind_rows(Children, WrongAged) %>%
-    mutate(Status = factor(Status, levels = c("Yes", "No"))) %>%
+    mutate(Status = factor(Status, levels = c("N", "Y"))) %>%
     rename(!!stvarname := Status)
 
   return(CompleteDF)
