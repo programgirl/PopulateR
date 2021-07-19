@@ -1,7 +1,7 @@
 #' Create a data frame of children matched to schools
 #' This function creates a data frame of children and matching schools. By default, all similarly-aged children in the same household will be matched to the same school. If one child is matched to a same-sex school, then all similarly aged children will also be matched to a same-sex school. This includes opposite-sex children.
 #' Two data frames are required: one for the children and one for the schools.
-#' A numeric or ordered factor for school status is required. This must be either a numeric variable, or an ordered factor. The smallest value/level will be treated as the code for people not in school. Thus, pre-cleaning the children data frame is not required.
+#' A numeric or ordered factor for school status is required. This must be either a numeric variable, or an ordered factor. The smallest value/level will be treated as the code for people not in school. If one value is used, everyone in the data frame will be allocated a school. Thus, pre-cleaning a data frame is not required.
 #' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used.
 #' The minimum and maximum school ages, and the counts by sex for each school, are printed to the console.
 #'
@@ -10,6 +10,7 @@
 #' @param indidcol The column number for the ID variable in the individuals data frame.
 #' @param indagecol The column number for the age variable in the individuals data frame.
 #' @param indsxcol The column number for the sex indicator for individuals. This column is used to assign individuals to the appropriate school type (co-educational or single-sex). The expected values are "F" (female) or "M" (male).
+#' @param indstcol The column number for the school status. Only two values/factor levels can be used. The smallest number/level is the code for people not in school.
 #' @param hhidcol The column number for the household identifier variable in the parent data frame.
 #' @param schools A data frame containing the school observations.
 #' @param schidcol The column number for the ID variable in the schools data frame. Values in this column are treated as character. If the IDs are factors, these will be converted to character.
@@ -17,7 +18,6 @@
 #' @param schrollcol The number of places available for individuals at that school age, within the school.
 #' @param schtypecol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
 #' @param childprob If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all similarly aged individuals will be assigned to their respective same-sex schools, or all will be to co-educational schools.
-#' @param sttscol The column number for the school status.
 #' @param schmiss The value that will be given to those people not in school. If left blank, the default value is "None".
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @return A single data frame.
@@ -29,15 +29,24 @@
 #'                           SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
 #'                           UserSeed = 4)
 
-schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL, schools, schidcol, schagecol,
-                      schrollcol, schtypecol, childprob = 1, sttscol = NULL, schmiss = "None", UserSeed=NULL)
+schooladd <- function(individuals, indidcol, indagecol, indsxcol, indstcol = NULL, hhidcol = NULL, schools,
+                      schidcol, schagecol, schrollcol, schtypecol, childprob = 1, schmiss = "None",
+                      UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
 
   # content check
-  if (!(is.factor(sttscol)) & !(is.numeric(sttscol))) {
+  if (!(is.factor(indstcol)) & !(is.numeric(indstcol))) {
     stop("The school status variable must be a factor or be numeric.")
+  }
+
+  # can only take two values for school status variable
+
+  TestLevels <- table(indstcol)
+
+  if(length(TestLevels) > 2) {
+    stop("The school status variable must contain a maximum of two values.")
   }
 
 
@@ -49,9 +58,7 @@ schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL
 
   individualsRenamed <- individuals %>%
     rename(ChildID = !! indidcol, ChildAge = !! indagecol, ChildType = !! indsxcol,
-           HouseholdID = !! hhidcol)
-
-  OutofAgeRange <- individualsRenamed
+           SchoolFactor = !! indstcol, HouseholdID = !! hhidcol)
 
   schoolsRenamed <- schools %>%
     rename(SchoolID = !! schidcol, SchoolAge = !! schagecol,
@@ -73,13 +80,15 @@ schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL
   indagecolName <- sym(names(individuals[indagecol]))
   hhidcolName <- sym(names(individuals[hhidcol]))
   indsxcolName <- sym(names(individuals[indsxcol]))
+  indstcolName <- sym(names(individuals[indstcol]))
   schidcolName <- sym(names(schools[schidcol]))
 
   ###############################################
   ###############################################
-  # quick test of compatibility of counts
+  # split into school assignment versus not in school data frames
   ###############################################
   ###############################################
+
   individualsCountTest <- individualsRenamed %>%
     group_by(ChildAge) %>%
     summarise(AgeCount = n())
@@ -94,42 +103,41 @@ schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL
            CountDiff = SchoolAgeCount - AgeCount) %>%
     filter(SchoolAgeCount != 0, AgeCount != 0)
 
-  TooManyKids <- CountComparison %>%
-    filter(CountDiff < 0) %>%
+  AgeRestriction <- CountComparison %>%
+ #  filter(CountDiff >= 0) %>%
     select(ChildAge)
 
-  # TooManyKids <- as_tibble(CountComparison$ChildAge) # testing if loop
 
-
-  # if (!(nrow(TooManyKids)==0)) {
-  #
-  #   TooManyKids <- as.vector(TooManyKids)
-  #
-  #   stop(paste("The number of individuals at these ages exceeds the available school roll places: ", shQuote(TooManyKids), collapse=", "))
-  #
-  # }
-
+  MinSchoolAge <- as.numeric(CountComparison[1,1])
   MaxSchoolAge <- as.numeric(CountComparison[nrow(CountComparison), 1])
 
-  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
+  cat("The minimum school age is", MinSchoolAge, "and the maximum school age is", MaxSchoolAge, "\n")
 
+  # apply factor levels to remaining children
 
-  # restrict child and school data frames to these minimum and maximum ages
-  # get age range
-  AgeRestriction <- CountComparison %>%
-    filter(CountDiff >= 0) %>%
-    select(ChildAge)
+  if(length(TestLevels) == 2) {
 
-  # apply to individuals
+    # get min factor level to exclude
 
-  individualsRenamed <- left_join(AgeRestriction, individualsRenamed, by = "ChildAge")
+    MinFactorLevel <- min(as.integer(individualsRenamed$SchoolFactor))
 
-  Notschool <- OutofAgeRange %>%
-    filter(!(ChildID %in% c(individualsRenamed$ChildID))) %>%
-    mutate(SchoolID = schmiss)
+    # print(MinFactorLevel)
 
+    NotFactor <- individualsRenamed %>%
+      filter(as.integer(SchoolFactor) == as.integer(MinFactorLevel)) %>%
+      mutate(SchoolStatus = 0)
 
+    individualsRenamed <- individualsRenamed %>%
+      filter(!(ChildID %in% NotFactor$ID))
 
+    return(individualsRenamed)
+
+  } else {
+    # use age exclusion if no factor
+    individualsRenamed <- individualsRenamed %>%
+      filter(between(ChildAge, MinSchoolAge, MaxSchoolAge))
+
+  }
 
   # NOTE: this removes any school classrooms where NO individuals of that age exist in the data
   schoolsRenamed <- left_join(AgeRestriction, schoolsRenamed, by = c("ChildAge" = "SchoolAge"))
@@ -996,20 +1004,18 @@ schooladd <- function(individuals, indidcol, indagecol, indsxcol, hhidcol = NULL
 
 #
 
-  # add in the out-of-age people
-
+  # add in the out-of-age people and excluded-by-factor-level people
   Notschool <- Notschool %>%
-    filter(!(ChildID %in% c(individualsRenamed$ChildID))) %>%
+    mutate(SchoolID = 0) %>%
     rename(!!indidcolName := ChildID, !!indagecolName := ChildAge,
            !!hhidcolName := HouseholdID, !!indsxcolName := ChildType,
-           !!schidcolName := SchoolID)
-
+           !!indstcolName := SchoolFactor)
 
   OutputDataframe <- individualsFinalised %>%
     select(-c(SchoolType, ChildCounts, NumberKids, Remainingindividuals)) %>%
     rename(!!indidcolName := ChildID, !!indagecolName := ChildAge,
            !!hhidcolName := HouseholdID, !!indsxcolName := ChildType,
-           !!schidcolName := SchoolID)
+           !!indstcolName := SchoolFactor, !!schidcolName := SchoolID)
 
   OutputDataframe <- bind_rows(Notschool, OutputDataframe)
 
