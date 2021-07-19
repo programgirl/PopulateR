@@ -17,7 +17,7 @@
 #' @param schrollcol The number of places available for children at that school age, within the school.
 #' @param schtypecol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
 #' @param childprob If one child is assigned to a same-sex school, the probability that another child in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other child will be assigned to a co-ed school. The default value is 1, so that all similarly aged children will be assigned to their respective same-sex schools, or all will be to co-educational schools.
-#' @param schmiss The value that will be given to those people not in school. If left blank, the default value is "None".
+#' @param schmiss The value that will be given to those people not in school. If left blank, the default value is 0.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @return A single data frame.
 #'
@@ -28,11 +28,17 @@
 #'                           SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
 #'                           UserSeed = 4)
 
-schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, schools, schidcol, schagecol,
-                      schrollcol, schtypecol, childprob = 1, schmiss = "None", UserSeed=NULL)
+schooladd <- function(children, chlidcol, chlagecol, chlsxcol, indstcol = NULL, hhidcol = NULL, schools,
+                      schidcol, schagecol, schrollcol, schtypecol, childprob = 1, schmiss = 0,
+                      UserSeed=NULL)
 {
 
   options(dplyr.summarise.inform=F)
+
+  # content check
+  if (!(is.factor(indstcol)) & !(is.numeric(indstcol))) {
+    stop("The school status variable must be a factor or be numeric.")
+  }
 
 
   #####################################################################
@@ -43,9 +49,19 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
   childrenRenamed <- children %>%
     rename(ChildID = !! chlidcol, ChildAge = !! chlagecol, ChildType = !! chlsxcol,
-           HouseholdID = !! hhidcol)
+           HouseholdID = !! hhidcol, SchStat = !! indstcol)
 
-  OutofAgeRange <- childrenRenamed
+  # can only take two values for school status variable
+
+  TestLevels <- childrenRenamed %>%
+    select(SchStat) %>%
+    group_by(SchStat) %>%
+    summarise(Nums = n()) %>%
+    pull(SchStat)
+
+  if(length(TestLevels) > 2) {
+    stop("The school status variable must contain a maximum of two values.")
+  }
 
   schoolsRenamed <- schools %>%
     rename(SchoolID = !! schidcol, SchoolAge = !! schagecol,
@@ -74,28 +90,79 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
   # quick test of compatibility of counts
   ###############################################
   ###############################################
-  childrenCountTest <- childrenRenamed %>%
-    group_by(ChildAge) %>%
-    summarise(AgeCount = n())
+
 
   schoolsCountTest <- schoolsRenamed %>%
     group_by(SchoolAge) %>%
     summarise(SchoolAgeCount = sum(ChildCounts))
 
-  CountComparison <- full_join(childrenCountTest, schoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
-    mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
-           SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0),
-           CountDiff = SchoolAgeCount - AgeCount) %>%
-    filter(SchoolAgeCount != 0, AgeCount != 0)
+  ###############################################
+  # test if there is only one factor level, i.e. all kids to assign
+  ###############################################
 
-  TooManyKids <- CountComparison %>%
-    filter(CountDiff < 0) %>%
-    select(ChildAge)
+  print(length(TestLevels))
+
+  if(length(TestLevels) == 1) {
+
+    childrenCountTest <- childrenRenamed %>%
+      group_by(ChildAge) %>%
+      summarise(AgeCount = n())
+
+    CountComparison <- full_join(childrenCountTest, schoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
+      mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
+             SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0),
+             CountDiff = SchoolAgeCount - AgeCount) %>%
+      filter(SchoolAgeCount != 0, AgeCount != 0)
+
+    TooManyKids <- CountComparison %>%
+      filter(CountDiff < 0) %>%
+      select(ChildAge)
+
+    # need to construct the reduced data frame on the basis of age at school
 
 
-  # TooManyKids <- as_tibble(CountComparison$ChildAge) # testing if loop
+
+  } else {
+
+    cat("Entered multiple factor loop", "\n")
+    # get min factor level to exclude
+
+    MinFactorLevel <- min(as.integer(childrenRenamed$SchStat))
+
+    # print(MinFactorLevel)
+
+    NotFactor <- childrenRenamed %>%
+      filter(as.integer(SchStat) == as.integer(MinFactorLevel)) %>%
+      mutate(SchoolID = schmiss)
+
+    cat("The notfactor data frame has this number of rows", nrow(NotFactor), "\n")
+
+    cat("The number of rows in original childrenrenamed is", nrow(childrenRenamed), "\n")
+
+    childrenRenamed <- childrenRenamed %>%
+      filter(!(ChildID %in% NotFactor$ChildID))
+
+    cat("The revised count after removing wrong factor level is", nrow(childrenRenamed), "\n")
+
+    childrenCountTest <- childrenRenamed %>%
+      group_by(ChildAge) %>%
+      summarise(AgeCount = n())
+
+    CountComparison <- full_join(childrenCountTest, schoolsCountTest, by = c("ChildAge" = "SchoolAge")) %>%
+      mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
+             SchoolAgeCount = replace(SchoolAgeCount, is.na(SchoolAgeCount), 0),
+             CountDiff = SchoolAgeCount - AgeCount) %>%
+      filter(SchoolAgeCount != 0, AgeCount != 0)
+
+    TooManyKids <- CountComparison %>%
+      filter(CountDiff < 0) %>%
+      select(ChildAge)
+
+    # closes else to if(length(TestLevels) == 1)
+  }
 
 
+  # test should now work for both situations
   if (!(nrow(TooManyKids)==0)) {
 
     TooManyKids <- as.vector(TooManyKids)
@@ -110,6 +177,7 @@ schooladd <- function(children, chlidcol, chlagecol, chlsxcol, hhidcol = NULL, s
 
 
   # restrict child and school data frames to these minimum and maximum ages
+  # is done for multiple factor levels too, just in case the school age range is incompatible
   # get age range
   AgeRestriction <- CountComparison %>%
    # filter(CountDiff >= 0) %>%
