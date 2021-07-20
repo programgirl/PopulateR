@@ -2,8 +2,8 @@
 #' This function creates a data frame of people and matching schools. By default, all similarly-aged people in the same household, who are in school, will be matched to the same school. If one person is matched to a same-sex school, then all similarly aged people will also be matched to a same-sex school. This includes opposite-sex children.
 #' Two data frames are required: one for the children and one for the schools.
 #' A numeric or ordered factor for school status is required. The smallest value/level will be treated as the code for people not in school. If one value is used, everyone in the data frame will be allocated a school. Thus, pre-cleaning a data frame is not required. If everyone in the data frame is to be allocated a school, then the same value must be used for everyone.
-#' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used.
-#' The minimum and maximum school ages, and the counts by sex for each school, are printed to the console.
+#' The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used. School ID can be numeric or character. The function will return a data frame of the correct School ID type.
+#' The minimum and maximum school ages, followed by the achieved counts by sex for each school, are printed to the console.
 #'
 #' @export
 #' @param people A data frame containing the people to be paired with a parent/guardian.
@@ -13,14 +13,14 @@
 #' @param pplstcol The column number for the school status. Only two numeric values/factor levels can be used. The smallest number/level is the code for people not in school.
 #' @param hhidcol The column number for the household identifier variable in the people data frame.
 #' @param schools A data frame containing the school observations.
-#' @param schidcol The column number for the ID variable in the schools data frame. Values in this column are treated as character. If the IDs are factors, these will be converted to character.
+#' @param schidcol The column number for the ID variable in the schools data frame.
 #' @param schagecol The column number for the Age variable in the schools data frame.
 #' @param schrollcol The number of places available for people at that school age, within the school.
 #' @param schtypecol An indicator variable used to determine whether the school is co-educational or single-sex. The expected values are "C" (co-educational), "F" (female only), and "M" (male-only).
 #' @param personprob If one person is assigned to a same-sex school, the probability that another person in the household is also assigned to a same-sex school. If an equivalent same-sex school is not available, the other person will be assigned to a co-ed school. The default value is 1, so that all similarly aged people will be assigned to their respective same-sex schools, or all will be to co-educational schools.
-#' @param schmiss The value that will be given to those people not in school. If left blank, the default value is 0.
+#' @param schmiss The value that will be given to those people not in school. If left blank, the default value is 0. If the school IDs are numeric in the schools data frame, a numeric missing value must be supplied.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @return A single data frame.
+#' @return A single data frame with a school column.
 #'
 #' @examples
 # library(dplyr)
@@ -38,6 +38,10 @@ schooladd <- function(people, pplidcol, pplagecol, pplsxcol, pplstcol = NULL, hh
   # content check
   if (!(is.factor(pplstcol)) & !(is.numeric(pplstcol))) {
     stop("The school status variable must be a factor or be numeric.")
+  }
+
+  if(is.numeric(schidcol) & !(is.numeric(schmiss))) {
+    stop("The School ID for people not in school must be numeric. Type mismatch with School ID.")
   }
 
   #####################################################################
