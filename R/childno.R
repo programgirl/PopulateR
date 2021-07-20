@@ -17,7 +17,7 @@
 #' @param maxparage The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param hhidstart The starting number for generating the household identifier value that identifies a couple. Must be numeric.
 #' @param hhidvar The column name for the household variable. This must be supplied in quotes.
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 #' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
@@ -37,12 +37,12 @@
 # # no ID on the parents
 # ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
 #                            directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                            maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", UserSeed=4)
+#                            maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
 
 
 childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
                     alphaused=0, minparage = NULL, maxparage = NULL, hhidstart = NULL, hhidvar= NULL,
-                    UserSeed=NULL)
+                    userseed=NULL)
 
 {
 
@@ -177,8 +177,8 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
   # if still no match, third pass gives a drunkard's walk assigned to one of the
   # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
 
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   for (j in 1:nrow(childrenRenamed)) {
