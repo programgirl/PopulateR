@@ -44,6 +44,7 @@ schooladd <- function(people, pplidcol, pplagecol, pplsxcol, pplstcol = NULL, hh
     stop("The School ID for people not in school must be numeric. Type mismatch with School ID.")
   }
 
+
   #####################################################################
   #####################################################################
   # Test for any problem ages, stop function if this situation exists
@@ -175,7 +176,7 @@ schooladd <- function(people, pplidcol, pplagecol, pplsxcol, pplstcol = NULL, hh
 
   MaxSchoolAge <- as.numeric(CountComparison[nrow(CountComparison), 1])
 
-  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is ", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
+  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
   # restrict person and school data frames to these minimum and maximum ages
@@ -1057,10 +1058,7 @@ schooladd <- function(people, pplidcol, pplagecol, pplsxcol, pplstcol = NULL, hh
   # add in the out-of-age people
 
   # need to test the school ID input - whether character or numeric
-
-  print(is.numeric(pplstcol))
-
-  if (is.numeric(pplstcol) == TRUE) {
+  if (is.numeric(class(schools[schidcol])) == TRUE) {
     NotInSchool <- NotInSchool %>%
     filter(!(personID %in% c(peopleRenamed$personID))) %>%
     mutate(SchoolID = 0) %>%
