@@ -14,8 +14,8 @@
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
 #' @param hhidstart The starting number for generating the household identifier value that identifies a couple. Must be numeric.
 #' @param hhidvar The column name for the household variable. This must be supplied in quotes.
-#' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
 #' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
