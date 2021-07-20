@@ -8,23 +8,24 @@
 #' The function performs a reasonableness check for person ID variable, person age, and household number.
 #'
 #' @export
-#' @param people A data frame containing observations limited to the people to be matched into households An age column is required.
+#' @param people A data frame containing the people to be matched into households.
 #' @param pplidcol The column number for the ID variable.
 #' @param pplagecol The column number for the Age variable.
 #' @param pplsxcol The column number for the Sex variable.
-#' @param numppl The number of people expected in each household.
+#' @param numppl The household size to be constructed.
 #' @param ssrate Must be either 0 or 1. The default value of 0 is random generation.
-#' @param sdused The standard deviation of the normal distribution for the distribution of parent ages at the time the child is born. For women, this will commonly be the age at childbirth.
-#' @param IDStartValue The starting number for generating a variable that identifies the observations in the same household. Must be numeric. If no value is provided, the Household ID starts at 1.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied, and in quotes.
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param pValueToStop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param NumIterations The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
+#' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
+#' @param hhidvar The column name for the household variable. This must be supplied, and in quotes.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param ptostop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#'
+#' @return A list of two data frames $Matched contains the data frame of households contained matched people. $Unmatched contains the unmatched people. If there are no unmatched people, $Unmatched will be an empty data frame.
 
-otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
-                          ssrate = 0, sdused, IDStartValue = 1,
-                          HouseholdNumVariable= NULL, UserSeed=NULL, pValueToStop = .01,
-                          NumIterations = 1000000)
+otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate = 0, sdused, hhidstart = 1,
+                    hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
+                    )
 {
 
   options(dplyr.summarise.inform=F)
@@ -46,7 +47,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
     stop("The rate for same-sex cohabitation must either be completely random (0) or completely sex-segregated (1)")
     }
 
-  if (is.null(HouseholdNumVariable)) {
+  if (is.null(hhidvar)) {
     stop("A name for the household count variable must be supplied.")
   }
 
@@ -164,8 +165,8 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
   #####################################
 
 
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   #####################################
@@ -237,15 +238,15 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
 
       SampleSizeToUse <- nrow(WorkingSexDataFrame)/numppl
 
-      #    cat("Sample size is", SampleSizeToUse, "and ID start value is", IDStartValue, "\n")
+      #    cat("Sample size is", SampleSizeToUse, "and ID start value is", hhidstart, "\n")
 
       BaseSample <- WorkingSexDataFrame %>%
         slice_sample(n = SampleSizeToUse) %>%
-        mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue + SampleSizeToUse - 1)))
+        mutate({{hhidvar}} := seq(hhidstart, (hhidstart + SampleSizeToUse - 1)))
 
       #   cat("Base sample size is", nrow(BaseSample), "\n")
 
-      IDStartValue = IDStartValue + SampleSizeToUse - 1
+      hhidstart = hhidstart + SampleSizeToUse - 1
 
       WorkingSexDataFrame <- WorkingSexDataFrame %>%
         filter(!(RenamedID %in% BaseSample$RenamedID))
@@ -297,13 +298,13 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
                                   log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
         log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-        if (is.null(pValueToStop)) {
+        if (is.null(ptostop)) {
 
           Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
         } else {
 
-          Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+          Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
           # closes p-value stopping rule
         }
@@ -314,7 +315,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
         #####################################
         #####################################
 
-        for (i in 1:NumIterations) {
+        for (i in 1:numiters) {
 
           # randomly choose two pairs
           Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -415,15 +416,15 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
 
     SampleSizeToUse <- nrow(WorkingSexDataFrame)/numppl
 
-    #    cat("Sample size is", SampleSizeToUse, "and ID start value is", IDStartValue, "\n")
+    #    cat("Sample size is", SampleSizeToUse, "and ID start value is", hhidstart, "\n")
 
     BaseSample <- WorkingSexDataFrame %>%
       slice_sample(n = SampleSizeToUse) %>%
-      mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue + SampleSizeToUse - 1)))
+      mutate({{hhidvar}} := seq(hhidstart, (hhidstart + SampleSizeToUse - 1)))
 
     #   cat("Base sample size is", nrow(BaseSample), "\n")
 
-    IDStartValue = IDStartValue + SampleSizeToUse - 1
+    hhidstart = hhidstart + SampleSizeToUse - 1
 
     WorkingSexDataFrame <- WorkingSexDataFrame %>%
       filter(!(RenamedID %in% BaseSample$RenamedID))
@@ -475,13 +476,13 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
                                 log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
       log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-      if (is.null(pValueToStop)) {
+      if (is.null(ptostop)) {
 
         Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
       } else {
 
-        Critical_log_chisq <- log(qchisq(pValueToStop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+        Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
         # closes p-value stopping rule
       }
@@ -492,7 +493,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL,
       #####################################
       #####################################
 
-      for (i in 1:NumIterations) {
+      for (i in 1:numiters) {
 
         # randomly choose two pairs
         Pick1 <- sample(nrow(CurrentAgeMatch), 1)
