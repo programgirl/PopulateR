@@ -15,7 +15,7 @@
 #' @param hhidstart The starting number for generating the household identifier value that identifies a couple. Must be numeric.
 #' @param hhidvar The column name for the household variable. This must be supplied in quotes.
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
 #' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
@@ -33,12 +33,12 @@
 # OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
 #                            PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
 #                            directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-#                            UserSeed = 4, ptostop=.01,  numiters=1000000)
+#                            userseed = 4, ptostop=.01,  numiters=1000000)
 
 
 couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NULL,
                     lrgagecol=NULL, directxi=NULL, directomega=NULL, alphaused=0, hhidstart = NULL,
-                    hhidvar=NULL, UserSeed=NULL, ptostop=NULL, numiters=1000000) {
+                    hhidvar=NULL, userseed=NULL, ptostop=NULL, numiters=1000000) {
 
   # content check
   if (!any(duplicated(smalldf[smlidcol])) == FALSE) {
@@ -194,8 +194,8 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
   # this is a random sample so age differences will not follow desired distribution
   # however, if the largedf data frame is larger than the smalldf data frame
   # this ensures that a random selection of largedfs has the correct count
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
 
