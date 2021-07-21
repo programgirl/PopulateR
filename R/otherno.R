@@ -196,7 +196,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused
     filter(!(RenamedID %in% c(BasePeople$RenamedID)))
 
 
-      cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
+      # cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
 
     while(!(is.na(RemainingPeople$RenamedAge[1])) == TRUE) {
 
@@ -265,7 +265,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused
       #####################################
       #####################################
 
-      cat("Gets to matching age iterations", "\n")
+      # cat("Gets to matching age iterations", "\n")
 
 
       for (i in 1:numiters) {
@@ -381,13 +381,23 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused
            {{SexColName}} := RenamedSex) %>%
     select(-c(RenamedID, RenamedAge, RenamedSex))
 
+  OutputDataframe <- bind_rows(TheBase, TheMatched)
 
-  OutputDataFrame <- bind_rows(TheBase, TheMatched)
+  cat("The individual dataframes are $Matched and $Unmatched.", "\n")
+
+  MatchedIDs <- OutputDataframe %>%
+    pull({{IDColName}})
+
+  UnmatchedDataframe <- people %>%
+    filter(!({{IDColName}} %in% MatchedIDs))
 
 
-  # TODO: Unmatched is the difference between the matched and the input df so create list
+  MergedList <- list()
 
-  return(OutputDataFrame)
+  MergedList$Matched <- OutputDataframe
+  MergedList$Unmatched <- UnmatchedDataframe
+
+  return(MergedList)
 
 }
 
