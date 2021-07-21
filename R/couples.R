@@ -356,7 +356,7 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
 
   # use for checking number of iterations used, the p-value to stop, and the p-value reached
   #
-  print(i)
+  # print(i)
   # print(Critical_log_chisq)
   # print(log_chisq)
 
