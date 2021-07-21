@@ -180,20 +180,68 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
     NumberSexes <- peopleRenamed %>%
       group_by(RenamedSex) %>%
       summarise(NumberEachSex = n()) %>%
-      mutate(CountModulo = NumberEachSex %% numppl)
+      mutate(CountModulo = NumberEachSex %% numppl) %>%
+      filter(CountModulo > 0)
+
 
     # test if each Sex is divisible by household size
+    if(nrow(NumberSexes) > 0) {
 
-    # TODO will be separating out the sexes at this point.
-    if(!(sum(NumberSexes$CountModulo)) == 0) {
+      NumberSexes <- as.vector(NumberSexes$RenamedSex)
 
-      cat("At least one sex has a count indivisible by", numppl,
-          "and one household will contain different sexes", "\n")
+      cat("The number of people who are", NumberSexes, "is not divisible by", numppl,
+                 "and the extras will be in the $Unmatched dataframe", "\n")
 
-      # closes modulo check for console print
+      # closes if(nrow(NumberSexes) > 0)
     }
 
-    return(NumberSexes)
+    # TODO will be separating out the sexes at this point.
+
+    # get number of sexes
+    SexesDF <- peopleRenamed %>%
+      group_by(RenamedSex) %>%
+      summarise()
+
+    # iterate through the NumberSexes data frame, as the RenamedSex column is unique for each sex
+
+    for (i in 1:nrow(SexesDF)) {
+
+      CurrentSex <- peopleRenamed %>%
+        filter(RenamedSex == SexesDF$RenamedSex[i])
+
+      # create dataframe divisible by modulo
+
+      ModuloCurrentSex <- nrow(CurrentSex) %% numppl
+
+      # delete out the extras randomly, these will be added to Unmatched at the end
+
+      if(ModuloCurrentSex > 0) {
+
+        # tested and works
+
+        SampleSizeUsed <- nrow(CurrentSex) - ModuloCurrentSex
+
+        CurrentSex <- CurrentSex %>%
+          slice_sample(n = SampleSizeUsed)
+
+        # closes if(ModuloCurrentSex > 0)
+      }
+
+      BaseSize <- nrow(CurrentSex)/numppl
+
+      BasePeople <- CurrentSex %>%
+        slice_sample(n = BaseSize)
+
+      RemainingPeople <- CurrentSex %>%
+        filter(!(RenamedID %in% c(BasePeople$RenamedID)))
+
+      return(RemainingPeople)
+
+
+
+
+      # closes for (i in 1:nrow(NumberSexes))
+    }
 
    # closes if(ssrate == 1)
   }
@@ -613,6 +661,8 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
   # OutputDataFrame <- bind_rows(TheBase, TheMatched)
   #
   #
+  # TODO: Unmatched is the difference between the matched and the input df.
+
   # return(OutputDataFrame)
 
 }
