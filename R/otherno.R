@@ -1,10 +1,7 @@
 #' Create a match of people into households
-#' This function creates a data frame of household inhabitants, of the required numbered of inhabitants.
-#' One data frame, containing the people to match, is required. The function outputs an equivalent data frame of households. If the number of people in the data frame is not divisible by the household size specified, the excess number of people will be removed using a random process.
-#' The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
-#'
-#' default value of 0 reflects populations with co-sex households. completely sex-split households take the value 1. binary variable.
-#' The function performs a reasonableness check for person ID variable, person age, and household number.
+#' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
+#' One data frame, containing the people to match, is required. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
+#' The output data frame of matches will only contain households of the required size. If the number of rows in the people data frame is not divisible by household size, the overcount will be output to a separate data frame.
 #'
 #' @export
 #' @param people A data frame containing the people to be matched into households.
@@ -19,7 +16,7 @@
 #' @param ptostop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 #'
-#' @return A list of two data frames $Matched contains the data frame of households contained matched people. $Unmatched contains the unmatched people. If there are no unmatched people, $Unmatched will be an empty data frame.
+#' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 
 otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused, hhidstart = 1,
                     hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
