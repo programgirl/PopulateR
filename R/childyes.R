@@ -16,9 +16,9 @@
 #' @param minparage The youngest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param maxparage The oldest age at which a person becomes a parent. The default value is NULL, which will cause the function to stop.
 #' @param hhidcol The column number for the household identifier variable in the parent data frame
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
-#' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
+#' @return A list of three data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
 # library(dplyr)
@@ -35,10 +35,10 @@
 #
 # ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
 #                               directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                               maxparage = 54, hhidcol = 6, UserSeed = 4)
+#                               maxparage = 54, hhidcol = 6, userseed = 4)
 
 childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
-                    alphaused=0, minparage = NULL, maxparage = NULL, hhidcol = NULL, UserSeed=NULL)
+                    alphaused=0, minparage = NULL, maxparage = NULL, hhidcol = NULL, userseed=NULL)
 
 {
 
@@ -177,8 +177,8 @@ childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol
   # if still no match, third pass gives a drunkard's walk assigned to one of the
   # still-available parent ages that will not cause the age at childbirth to be out-of-bounds
 
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   for (j in 1:nrow(childrenRenamed)) {
