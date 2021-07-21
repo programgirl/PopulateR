@@ -43,7 +43,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
     stop("The household size must be supplied.")
   }
 
-  if (!(ssrate == 0) | !(ssrate == 1)) {
+  if (!(ssrate == 0) & !(ssrate == 1)) {
     stop("The rate for same-sex cohabitation must either be completely random (0) or completely sex-segregated (1)")
     }
 
@@ -73,8 +73,8 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(people[peopleAgeCol]) -
-                          min(people[peopleAgeCol]))-5
+  MaxAgeDifference <-  (max(people[pplagecol]) -
+                          min(people[pplagecol]))-5
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -136,10 +136,10 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
   IDColName <- sym(names(people[pplidcol]))
 
   # Age variable
-  AgeColName <- sym(names(people[peopleAgeCol]))
+  AgeColName <- sym(names(people[pplagecol]))
 
   # Sex variable
-  SexColName <- sym(names(people[peoplexCol]))
+  SexColName <- sym(names(people[pplsxcol]))
 
   # need column count for turning wide dataframe into long
   NumberColspeoplePlusOne <- as.numeric(ncol(people))+1
@@ -157,8 +157,8 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
   #####################################
 
   peopleRenamed <- people %>%
-    rename(RenamedID = !! pplidcol, RenamedAge = !! peopleAgeCol,
-           RenamedSex = !! peoplexCol) %>%
+    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol,
+           RenamedSex = !! pplsxcol) %>%
     mutate(RenamedSex = as.character(RenamedSex))
 
   #####################################
