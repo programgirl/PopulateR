@@ -1,7 +1,6 @@
 #' Create a match of people into households
 #' This function creates a data frame of household inhabitants, of the required numbered of inhabitants.
 #' One data frame, containing the people to match, is required. The function outputs an equivalent data frame of households. If the number of people in the data frame is not divisible by the household size specified, the excess number of people will be removed using a random process.
-#' If the people in the same household should be the same sex, then the value for ssrate should be set to "yes".
 #' The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
 #'
 #' default value of 0 reflects populations with co-sex households. completely sex-split households take the value 1. binary variable.
@@ -13,7 +12,6 @@
 #' @param pplagecol The column number for the Age variable.
 #' @param pplsxcol The column number for the Sex variable.
 #' @param numppl The household size to be constructed.
-#' @param ssrate Must be either 0 or 1. The default value of 0 is random generation.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
 #' @param hhidvar The column name for the household variable. This must be supplied, and in quotes.
@@ -23,7 +21,7 @@
 #'
 #' @return A list of two data frames $Matched contains the data frame of households contained matched people. $Unmatched contains the unmatched people. If there are no unmatched people, $Unmatched will be an empty data frame.
 
-otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate = 0, sdused, hhidstart = 1,
+otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused, hhidstart = 1,
                     hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
                     )
 {
@@ -43,14 +41,17 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
     stop("The household size must be supplied.")
   }
 
-  if (!(ssrate == 0) & !(ssrate == 1)) {
-    stop("The rate for same-sex cohabitation must either be completely random (0) or completely sex-segregated (1)")
-    }
-
   if (is.null(hhidvar)) {
     stop("A name for the household count variable must be supplied.")
   }
 
+
+  #######################
+  # set up user seed
+
+  if (!is.null(userseed)) {
+    set.seed(userseed)
+  }
 
 
   #####################################
@@ -164,506 +165,229 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, ssrate
   #####################################
   #####################################
 
+  # fix dataset to be a factor of household size
 
-  if (!is.null(userseed)) {
-    set.seed(userseed)
-  }
-
-  #####################################
-  #####################################
-  # work on sex is correlated first
-  #####################################
-  #####################################
-
-  if(ssrate == 1) {
-
-    NumberSexes <- peopleRenamed %>%
-      group_by(RenamedSex) %>%
-      summarise(NumberEachSex = n()) %>%
-      mutate(CountModulo = NumberEachSex %% numppl) %>%
-      filter(CountModulo > 0)
+  ModuloDF <- nrow(peopleRenamed) %% numppl
 
 
     # test if each Sex is divisible by household size
-    if(nrow(NumberSexes) > 0) {
+    if(ModuloDF > 0) {
 
-      NumberSexes <- as.vector(NumberSexes$RenamedSex)
+      SampleSizeUsed <- nrow(peopleRenamed) - ModuloDF
 
-      cat("The number of people who are", NumberSexes, "is not divisible by", numppl,
-                 "and the extras will be in the $Unmatched dataframe", "\n")
+      peopleRenamed <- peopleRenamed %>%
+        slice_sample(n = SampleSizeUsed)
 
-      # closes if(nrow(NumberSexes) > 0)
+      # closes if(ModuloDF > 0)
     }
 
-    # TODO will be separating out the sexes at this point.
+    #####################################
+    # matching
+    #####################################
 
-    # get number of sexes
-    SexesDF <- peopleRenamed %>%
-      group_by(RenamedSex) %>%
-      summarise()
 
-    # iterate through the NumberSexes data frame, as the RenamedSex column is unique for each sex
+  BaseSize <- nrow(peopleRenamed)/numppl
 
-    for (i in 1:nrow(SexesDF)) {
+  BasePeople <- peopleRenamed %>%
+    slice_sample(n = BaseSize) %>%
+    mutate({{hhidvar}} := seq(hhidstart, (hhidstart + BaseSize - 1)))
 
-      CurrentSex <- peopleRenamed %>%
-        filter(RenamedSex == SexesDF$RenamedSex[i])
+  RemainingPeople <- peopleRenamed %>%
+    filter(!(RenamedID %in% c(BasePeople$RenamedID)))
 
-      # create dataframe divisible by modulo
 
-      ModuloCurrentSex <- nrow(CurrentSex) %% numppl
+      cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
 
-      # delete out the extras randomly, these will be added to Unmatched at the end
+    while(!(is.na(RemainingPeople$RenamedAge[1])) == TRUE) {
 
-      if(ModuloCurrentSex > 0) {
-
-        # tested and works
-
-        SampleSizeUsed <- nrow(CurrentSex) - ModuloCurrentSex
-
-        CurrentSex <- CurrentSex %>%
-          slice_sample(n = SampleSizeUsed)
-
-        # closes if(ModuloCurrentSex > 0)
+      if(BaseSize < 1) {
+        stop("Sample size is less than 1", "\n")
       }
 
-      BaseSize <- nrow(CurrentSex)/numppl
-
-      BasePeople <- CurrentSex %>%
+      MatchingSample <- RemainingPeople %>%
         slice_sample(n = BaseSize)
 
-      RemainingPeople <- CurrentSex %>%
-        filter(!(RenamedID %in% c(BasePeople$RenamedID)))
+      #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
 
-      return(RemainingPeople)
+      RemainingPeople <- RemainingPeople %>%
+        filter(!(RenamedID %in% MatchingSample$RenamedID))
+
+      # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
+
+      # get age differences
+
+      CurrentAgeMatch <- BasePeople %>%
+        select(RenamedAge,RenamedID)
+
+      MatchedAgeExtract <- MatchingSample %>%
+        select(RenamedAge, RenamedID) %>%
+        rename(MatchedAge = RenamedAge,
+               MatchedID = RenamedID)
+
+      CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
+
+      # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
+      #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+
+      ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+      logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+
+      ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+                                     breaks = bins, plot=FALSE)$counts
 
 
+      # set up for chi-squared
+      log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+                               breaks = logBins, plot=FALSE)$counts
+      logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
+                                log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+      log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+      # print(log_chisq)
 
 
-      # closes for (i in 1:nrow(NumberSexes))
+      if (is.null(ptostop)) {
+
+        Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+      } else {
+
+        Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+        # closes p-value stopping rule
+      }
+
+      # print(Critical_log_chisq)
+
+      #####################################
+      #####################################
+      # iteration for matching  ages starts here
+      #####################################
+      #####################################
+
+      cat("Gets to matching age iterations", "\n")
+
+
+      for (i in 1:numiters) {
+
+        # print(i)
+
+        # randomly choose two pairs
+        Pick1 <- sample(nrow(CurrentAgeMatch), 1)
+        Pick2 <- sample(nrow(CurrentAgeMatch), 1)
+        Current1 <- CurrentAgeMatch[Pick1,]
+        Current2 <- CurrentAgeMatch[Pick2,]
+
+        # # proposed pairing after a swap
+        PropPair1 <- swap_household_matches(Current1, Current2)
+        PropPair2 <- swap_household_matches(Current2, Current1)
+
+        # compute change in Chi-squared value from current pairing to proposed pairing
+        PropAgeMatch <- CurrentAgeMatch %>%
+          filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
+          bind_rows(., PropPair1,PropPair2)
+
+        # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
+
+        # do chi-squared
+        Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+        ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
+                          log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
+
+        prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
+
+        if (compare_logK(ProplogK, logKObservedAges) < 0) {
+
+                 # cat("Loop entered", prop_log_chisq, "\n")
+
+          CurrentAgeMatch[Pick1,] <- PropPair1
+          CurrentAgeMatch[Pick2,] <- PropPair2
+
+
+          log0ObservedAges <- Proplog0
+          logKObservedAges <- ProplogK
+          log_chisq <- prop_log_chisq
+
+          # closes pair swqp
+
+        }
+
+                 # cat("log chi-square is", log_chisq, "\n")
+
+        if (log_chisq <= Critical_log_chisq) {
+          break
+
+          cat("Break due to critical p-value reached", "\n")
+        }
+
+        # closes iterations through the age matching
+      }
+
+      # cat("Gets out of loop", "\n")
+
+      if(exists("TheMatched")) {
+
+        InterimDataFrame <- BasePeople %>%
+          left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
+          left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
+          select(all_of(NumberColspeoplePlusOne:ncol(.)))
+
+        TheMatched <- bind_rows(TheMatched, InterimDataFrame)
+
+      } else {
+
+        TheMatched <- BasePeople %>%
+          left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
+          left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
+          select(all_of(NumberColspeoplePlusOne:ncol(.)))
+
+
+      }
+
+      # closes the loop through the number of sets of people to match,
+      # e.g. 1 set for two-person households, 2 sets for three-person households
     }
-
-   # closes if(ssrate == 1)
-  }
-
-
-  #   #####################################
-  #   # if sex is correlated
-  #   # matching is within-subset first
-  #   #####################################
-  #
-  #   for(i in 1:nrow(NumberSexes)) {
-  #
-  #     SexInUse <- as.character(NumberSexes[i,1])
-  #
-  #     # cat("Sex in use is", SexInUse, "\n")
-  #
-  #     WorkingSexDataFrame <- peopleRenamed %>%
-  #       filter(RenamedSex == SexInUse)
-  #
-  #     if(!(nrow(WorkingSexDataFrame) %% numppl == 0)) {
-  #
-  #       if(exists("ExtraPeople")) {
-  #
-  #         NewAddition <-  WorkingSexDataFrame %>%
-  #           slice_sample(n = nrow(WorkingSexDataFrame) %% numppl)
-  #
-  #         ExtraPeople <- bind_rows(ExtraPeople, NewAddition)
-  #
-  #         WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #           filter(!(RenamedID %in% NewAddition$RenamedID))
-  #
-  #       } else {
-  #
-  #         ExtraPeople <- WorkingSexDataFrame %>%
-  #           slice_sample(n = nrow(WorkingSexDataFrame) %% numppl)
-  #
-  #         WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #           filter(!(RenamedID %in% ExtraPeople$RenamedID))
-  #
-  #
-  #         # closes loop for extracting people who cannot be matched to the same sex
-  #       }
-  #
-  #       # closes loop for extracting extra people into a separate data frame to be
-  #       # dealt with later
-  #     }
-  #
-  #     #    cat("Working data frame is", nrow(WorkingSexDataFrame), "rows", "\n")
-  #
-  #     SampleSizeToUse <- nrow(WorkingSexDataFrame)/numppl
-  #
-  #     #    cat("Sample size is", SampleSizeToUse, "and ID start value is", hhidstart, "\n")
-  #
-  #     BaseSample <- WorkingSexDataFrame %>%
-  #       slice_sample(n = SampleSizeToUse) %>%
-  #       mutate({{hhidvar}} := seq(hhidstart, (hhidstart + SampleSizeToUse - 1)))
-  #
-  #     #   cat("Base sample size is", nrow(BaseSample), "\n")
-  #
-  #     hhidstart = hhidstart + SampleSizeToUse - 1
-  #
-  #     WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #       filter(!(RenamedID %in% BaseSample$RenamedID))
-  #
-  #     #   cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
-  #
-  #     while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
-  #
-  #       if(SampleSizeToUse < 1) {
-  #         stop("Sample size is less than 1", "\n")
-  #       }
-  #
-  #       MatchingSample <- WorkingSexDataFrame %>%
-  #         slice_sample(n = SampleSizeToUse)
-  #
-  #       #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
-  #
-  #       WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #         filter(!(RenamedID %in% MatchingSample$RenamedID))
-  #
-  #       # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
-  #
-  #       # get age differences
-  #
-  #       CurrentAgeMatch <- BaseSample %>%
-  #         select(RenamedAge,RenamedID)
-  #
-  #       MatchedAgeExtract <- MatchingSample %>%
-  #         select(RenamedAge, RenamedID) %>%
-  #         rename(MatchedAge = RenamedAge,
-  #                MatchedID = RenamedID)
-  #
-  #       CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
-  #
-  #       # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-  #       #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
-  #
-  #       ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-  #       logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-  #
-  #       ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-  #                                      breaks = bins, plot=FALSE)$counts
-  #
-  #
-  #       # set up for chi-squared
-  #       log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-  #                                breaks = logBins, plot=FALSE)$counts
-  #       logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
-  #                                 log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-  #       log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-  #
-  #       if (is.null(ptostop)) {
-  #
-  #         Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-  #
-  #       } else {
-  #
-  #         Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-  #
-  #         # closes p-value stopping rule
-  #       }
-  #
-  #       #####################################
-  #       #####################################
-  #       # iteration for matching  ages starts here
-  #       #####################################
-  #       #####################################
-  #
-  #       for (i in 1:numiters) {
-  #
-  #         # randomly choose two pairs
-  #         Pick1 <- sample(nrow(CurrentAgeMatch), 1)
-  #         Pick2 <- sample(nrow(CurrentAgeMatch), 1)
-  #         Current1 <- CurrentAgeMatch[Pick1,]
-  #         Current2 <- CurrentAgeMatch[Pick2,]
-  #
-  #         # # proposed pairing after a swap
-  #         PropPair1 <- swap_household_matches(Current1, Current2)
-  #         PropPair2 <- swap_household_matches(Current2, Current1)
-  #
-  #         # compute change in Chi-squared value from current pairing to proposed pairing
-  #         PropAgeMatch <- CurrentAgeMatch %>%
-  #           filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
-  #           bind_rows(., PropPair1,PropPair2)
-  #
-  #         # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
-  #
-  #         # do chi-squared
-  #         Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-  #         ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
-  #                           log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-  #
-  #         prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-  #
-  #         if (compare_logK(ProplogK, logKObservedAges) < 0) {
-  #
-  #           #        cat("Loop entered", prop_log_chisq, "\n")
-  #
-  #           CurrentAgeMatch[Pick1,] <- PropPair1
-  #           CurrentAgeMatch[Pick2,] <- PropPair2
-  #
-  #
-  #           log0ObservedAges <- Proplog0
-  #           logKObservedAges <- ProplogK
-  #           log_chisq <- prop_log_chisq
-  #
-  #           # closes pair swqp
-  #
-  #         }
-  #
-  #         #          cat("log chi-square is", log_chisq, "\n")
-  #
-  #         if (log_chisq <= Critical_log_chisq) {
-  #           break
-  #
-  #         }
-  #
-  #         # closes iterations through the age matching
-  #       }
-  #
-  #
-  #       if(exists("TheMatched")) {
-  #
-  #         InterimDataFrame <- BaseSample %>%
-  #           left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-  #           left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-  #           select(all_of(NumberColspeoplePlusOne:ncol(.)))
-  #
-  #         TheMatched <- bind_rows(TheMatched, InterimDataFrame)
-  #
-  #       } else {
-  #
-  #         TheMatched <- BaseSample %>%
-  #           left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-  #           left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-  #           select(all_of(NumberColspeoplePlusOne:ncol(.)))
-  #
-  #
-  #       }
-  #
-  #       # closes the loop through the number of sets of people to match,
-  #       # e.g. 1 set for two-person households, 2 sets for three-person households
-  #     }
-  #
-  #     # need to ensure that the base for BOTH sexes exists, not just one
-  #     if(exists("AppendedBase")){
-  #
-  #       AppendedBase <- bind_rows(AppendedBase, BaseSample)
-  #
-  #     } else {
-  #
-  #       AppendedBase <- BaseSample
-  #
-  #     }
-  #
-  #
-  #     # closes for loop through the data frame for each sex
-  #   }
-  #
-  #
-  #   # closes the if loop for matching people if sex IS correlated
-  #   #corresponding else for sex not correlated is below
-  #
-  # }  else {
-  #
-  #   WorkingSexDataFrame <- peopleRenamed
-  #
-  #   SampleSizeToUse <- nrow(WorkingSexDataFrame)/numppl
-  #
-  #   #    cat("Sample size is", SampleSizeToUse, "and ID start value is", hhidstart, "\n")
-  #
-  #   BaseSample <- WorkingSexDataFrame %>%
-  #     slice_sample(n = SampleSizeToUse) %>%
-  #     mutate({{hhidvar}} := seq(hhidstart, (hhidstart + SampleSizeToUse - 1)))
-  #
-  #   #   cat("Base sample size is", nrow(BaseSample), "\n")
-  #
-  #   hhidstart = hhidstart + SampleSizeToUse - 1
-  #
-  #   WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #     filter(!(RenamedID %in% BaseSample$RenamedID))
-  #
-  #   #   cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
-  #
-  #   while(!(is.na(WorkingSexDataFrame$RenamedAge[1])) == TRUE) {
-  #
-  #     if(SampleSizeToUse < 1) {
-  #       stop("Sample size is less than 1", "\n")
-  #     }
-  #
-  #     MatchingSample <- WorkingSexDataFrame %>%
-  #       slice_sample(n = SampleSizeToUse)
-  #
-  #     #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
-  #
-  #     WorkingSexDataFrame <- WorkingSexDataFrame %>%
-  #       filter(!(RenamedID %in% MatchingSample$RenamedID))
-  #
-  #     # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
-  #
-  #     # get age differences
-  #
-  #     CurrentAgeMatch <- BaseSample %>%
-  #       select(RenamedAge,RenamedID)
-  #
-  #     MatchedAgeExtract <- MatchingSample %>%
-  #       select(RenamedAge, RenamedID) %>%
-  #       rename(MatchedAge = RenamedAge,
-  #              MatchedID = RenamedID)
-  #
-  #     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
-  #
-  #     # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-  #     #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
-  #
-  #     ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-  #     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-  #
-  #     ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-  #                                    breaks = bins, plot=FALSE)$counts
-  #
-  #
-  #     # set up for chi-squared
-  #     log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-  #                              breaks = logBins, plot=FALSE)$counts
-  #     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
-  #                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-  #     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-  #
-  #     if (is.null(ptostop)) {
-  #
-  #       Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-  #
-  #     } else {
-  #
-  #       Critical_log_chisq <- log(qchisq(ptostop, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-  #
-  #       # closes p-value stopping rule
-  #     }
-  #
-  #     #####################################
-  #     #####################################
-  #     # iteration for matching  ages starts here
-  #     #####################################
-  #     #####################################
-  #
-  #     for (i in 1:numiters) {
-  #
-  #       # randomly choose two pairs
-  #       Pick1 <- sample(nrow(CurrentAgeMatch), 1)
-  #       Pick2 <- sample(nrow(CurrentAgeMatch), 1)
-  #       Current1 <- CurrentAgeMatch[Pick1,]
-  #       Current2 <- CurrentAgeMatch[Pick2,]
-  #
-  #       # # proposed pairing after a swap
-  #       PropPair1 <- swap_household_matches(Current1, Current2)
-  #       PropPair2 <- swap_household_matches(Current2, Current1)
-  #
-  #       # compute change in Chi-squared value from current pairing to proposed pairing
-  #       PropAgeMatch <- CurrentAgeMatch %>%
-  #         filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
-  #         bind_rows(., PropPair1,PropPair2)
-  #
-  #       # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
-  #
-  #       # do chi-squared
-  #       Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-  #       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
-  #                         log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
-  #
-  #       prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
-  #
-  #       if (compare_logK(ProplogK, logKObservedAges) < 0) {
-  #
-  #         #        cat("Loop entered", prop_log_chisq, "\n")
-  #
-  #         CurrentAgeMatch[Pick1,] <- PropPair1
-  #         CurrentAgeMatch[Pick2,] <- PropPair2
-  #
-  #
-  #         log0ObservedAges <- Proplog0
-  #         logKObservedAges <- ProplogK
-  #         log_chisq <- prop_log_chisq
-  #
-  #         # closes pair swqp
-  #
-  #       }
-  #
-  #       #          cat("log chi-square is", log_chisq, "\n")
-  #
-  #       if (log_chisq <= Critical_log_chisq) {
-  #         break
-  #
-  #       }
-  #
-  #       # closes iterations through the age matching
-  #     }
-  #
-  #
-  #     if(exists("TheMatched")) {
-  #
-  #       InterimDataFrame <- BaseSample %>%
-  #         left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-  #         left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-  #         select(all_of(NumberColspeoplePlusOne:ncol(.)))
-  #
-  #       TheMatched <- bind_rows(TheMatched, InterimDataFrame)
-  #
-  #     } else {
-  #
-  #       TheMatched <- BaseSample %>%
-  #         left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-  #         left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-  #         select(all_of(NumberColspeoplePlusOne:ncol(.)))
-  #
-  #
-  #     }
-  #
-  #     # closes the loop through the number of sets of people to match,
-  #     # e.g. 1 set for two-person households, 2 sets for three-person households
-  #   }
   #
   #   # need to ensure that the base for BOTH sexes exists, not just one
-  #   if(exists("AppendedBase")){
-  #
-  #     AppendedBase <- bind_rows(AppendedBase, BaseSample)
-  #
-  #   } else {
-  #
-  #     AppendedBase <- BaseSample
-  #
-  #   }
+    if(exists("AppendedBase")){
+
+      AppendedBase <- bind_rows(AppendedBase, BasePeople)
+
+    } else {
+
+      AppendedBase <- BasePeople
+
+    }
   #
   #
   #   # closes loop for matching people if sex IS NOT correlated
   # }
-  #
-  #
-  # # correct the names of the variables in the interim and base data frames
-  # # row bind these and output
-  #
-  # TheMatched <- TheMatched %>%
-  #   rename_all(list(~gsub("\\.y$", "", .))) %>%
-  #   select(-RenamedAge) %>%
-  #   mutate({{IDColName}} := MatchedID,
-  #          {{AgeColName}} := MatchedAge,
-  #          {{SexColName}} := RenamedSex) %>%
-  #   select(-c(MatchedID, MatchedAge, RenamedSex))
-  #
-  # TheBase <- AppendedBase %>%
-  #   mutate({{IDColName}} := RenamedID,
-  #          {{AgeColName}} := RenamedAge,
-  #          {{SexColName}} := RenamedSex) %>%
-  #   select(-c(RenamedID, RenamedAge, RenamedSex))
-  #
-  #
-  # OutputDataFrame <- bind_rows(TheBase, TheMatched)
-  #
-  #
-  # TODO: Unmatched is the difference between the matched and the input df.
 
-  # return(OutputDataFrame)
+
+  # correct the names of the variables in the interim and base data frames
+  # row bind these and output
+
+  TheMatched <- TheMatched %>%
+    rename_all(list(~gsub("\\.y$", "", .))) %>%
+    select(-RenamedAge) %>%
+    mutate({{IDColName}} := MatchedID,
+           {{AgeColName}} := MatchedAge,
+           {{SexColName}} := RenamedSex) %>%
+    select(-c(MatchedID, MatchedAge, RenamedSex))
+
+  TheBase <- AppendedBase %>%
+    mutate({{IDColName}} := RenamedID,
+           {{AgeColName}} := RenamedAge,
+           {{SexColName}} := RenamedSex) %>%
+    select(-c(RenamedID, RenamedAge, RenamedSex))
+
+
+  OutputDataFrame <- bind_rows(TheBase, TheMatched)
+
+
+  # TODO: Unmatched is the difference between the matched and the input df so create list
+
+  return(OutputDataFrame)
 
 }
 
