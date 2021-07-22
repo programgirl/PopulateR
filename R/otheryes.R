@@ -17,28 +17,28 @@
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 
-otheryes <- function(existing, exsidcol, exsagecol, additions, addidcol, addagecol, numppl = NULL,
-                     sdused, hhidcol = NULL, userseed=NULL, ptostop = .01, numiters = 1000000
+otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, addidcol, addagecol,
+                     numppl = NULL, sdused, userseed=NULL, ptostop = .01, numiters = 1000000
 )
 {
 
   options(dplyr.summarise.inform=F)
 
   # content check
-  if (!any(duplicated(existing[exsidcol])) == FALSE) {
-    stop("The column number for the ID variable in the data frame must be supplied.")
-  }
-
-  if (!is.numeric(exsagecol)) {
-    stop("Both the existing ID and the age column numbers must be supplied.")
-  }
-
   if (is.null(numppl)) {
     stop("The household size must be supplied.")
   }
 
-  if (is.null(hhidvar)) {
-    stop("A name for the household count variable must be supplied.")
+  if (!any(duplicated(existing[hhidcol])) == FALSE) {
+    stop("The column number for the household ID variable in the 'existing' data frame must be supplied, and the household number must be unique to each person")
+  }
+
+  if (!any(duplicated(existing[exsidcol])) == FALSE) {
+    stop("The column number for the ID variable in the parent data frame must be supplied, and the ID must be unique to each parent.")
+  }
+
+  if (!any(duplicated(additions[addidcol])) == FALSE) {
+    stop("The column number for the ID variable in the 'additions' data frame must be supplied, and the ID must be unique to each person")
   }
 
 
