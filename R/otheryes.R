@@ -7,6 +7,9 @@
 #' @param existing A data frame containing the people already in households.
 #' @param exsidcol The column number for the ID variable, for people in the existing data frame.
 #' @param exsagecol The column number for the Age variable, for people in the existing data frame.
+#' @param additions A data frame containing the people to be added to the existing households.
+#' @param addidcol The column number for the ID variable, for people to be added to the existing households.
+#' @param addagecol The column number for the Age variable, for people in the existing data frame.
 #' @param numppl The household size to be constructed.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
