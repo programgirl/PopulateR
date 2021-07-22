@@ -10,7 +10,7 @@
 #' @param additions A data frame containing the people to be added to the existing households.
 #' @param addidcol The column number for the ID variable, for people to be added to the existing households.
 #' @param addagecol The column number for the Age variable, for people in the existing data frame.
-#' @param numppl The household size to be constructed.
+#' @param numppl The number of people to be added to the household.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
 #' @param hhidvar The column name for the household variable. This must be supplied, and in quotes.
@@ -132,13 +132,28 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
   #####################################
   #####################################
 
-  # ID variable
-  IDColName <- sym(names(existing[exsidcol]))
 
-  # Age variable
-  AgeColName <- sym(names(existing[exsagecol]))
+  existingRenamed <- existing %>%
+    rename(existID = !! exsidcol, existAge = !! exsagecol,
+           HouseholdID = !! hhidcol)
 
-  # need column count for turning wide dataframe into long
+
+  additionsRenamed <- additions %>%
+    rename(addID = !! addidcol, addAge = !! addagecol)
+
+  # variable names for existing data frame
+  existsIDColName <- sym(names(existing[exsidcol]))
+
+  existsAgeColName <- sym(names(existing[exsagecol]))
+
+  existsHouseholdColName <- sym(names(existing[hhidcol]))
+
+  # variable names for the household additions
+  addscolName <- sym(names(additions[addidcol]))
+
+  chlagecolName <- sym(names(additions[addagecol]))
+
+  # need column count for turning wide dataframe into long, uses the existing data frame
   NumberColsexistingPlusOne <- as.numeric(ncol(existing))+1
 
   #####################################
