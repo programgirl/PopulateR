@@ -151,8 +151,7 @@ otherno <- function(people, pplidcol, pplagecol, numppl = NULL, sdused, hhidstar
   #####################################
 
   peopleRenamed <- people %>%
-    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol) %>%
-    mutate(RenamedSex = as.character(RenamedSex))
+    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol)
 
   #####################################
   #####################################
@@ -363,15 +362,13 @@ otherno <- function(people, pplidcol, pplagecol, numppl = NULL, sdused, hhidstar
     rename_all(list(~gsub("\\.y$", "", .))) %>%
     select(-RenamedAge) %>%
     mutate({{IDColName}} := MatchedID,
-           {{AgeColName}} := MatchedAge,
-           {{SexColName}} := RenamedSex) %>%
-    select(-c(MatchedID, MatchedAge, RenamedSex))
+           {{AgeColName}} := MatchedAge) %>%
+    select(-c(MatchedID, MatchedAge))
 
   TheBase <- AppendedBase %>%
     mutate({{IDColName}} := RenamedID,
-           {{AgeColName}} := RenamedAge,
-           {{SexColName}} := RenamedSex) %>%
-    select(-c(RenamedID, RenamedAge, RenamedSex))
+           {{AgeColName}} := RenamedAge) %>%
+    select(-c(RenamedID, RenamedAge))
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
 
