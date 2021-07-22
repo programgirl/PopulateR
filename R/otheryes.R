@@ -4,10 +4,9 @@
 #' The output data frame of matches will only contain households of the required size. If the number of rows in the people data frame is not divisible by household size, the overcount will be output to a separate data frame.
 #'
 #' @export
-#' @param people A data frame containing the people to be matched into households.
-#' @param pplidcol The column number for the ID variable.
-#' @param pplagecol The column number for the Age variable.
-#' @param pplsxcol The column number for the Sex variable.
+#' @param existing A data frame containing the people already in households.
+#' @param exsidcol The column number for the ID variable, for people in the existing data frame.
+#' @param exsagecol The column number for the Age variable, for people in the existing data frame.
 #' @param numppl The household size to be constructed.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
@@ -18,20 +17,20 @@
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 
-otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused, hhidstart = 1,
-                    hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
+otheryes <- function(existing, exsidcol, exsagecol, additions, addidcol, addagecol, numppl = NULL,
+                     sdused, hhidcol = NULL, userseed=NULL, ptostop = .01, numiters = 1000000
 )
 {
 
   options(dplyr.summarise.inform=F)
 
   # content check
-  if (!any(duplicated(people[pplidcol])) == FALSE) {
+  if (!any(duplicated(existing[exsidcol])) == FALSE) {
     stop("The column number for the ID variable in the data frame must be supplied.")
   }
 
-  if (!is.numeric(pplagecol)) {
-    stop("Both the people ID and the age column numbers must be supplied.")
+  if (!is.numeric(exsagecol)) {
+    stop("Both the existing ID and the age column numbers must be supplied.")
   }
 
   if (is.null(numppl)) {
@@ -71,8 +70,8 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(people[pplagecol]) -
-                          min(people[pplagecol]))-5
+  MaxAgeDifference <-  (max(existing[exsagecol]) -
+                          min(existing[exsagecol]))-5
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -131,16 +130,13 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
   #####################################
 
   # ID variable
-  IDColName <- sym(names(people[pplidcol]))
+  IDColName <- sym(names(existing[exsidcol]))
 
   # Age variable
-  AgeColName <- sym(names(people[pplagecol]))
-
-  # Sex variable
-  SexColName <- sym(names(people[pplsxcol]))
+  AgeColName <- sym(names(existing[exsagecol]))
 
   # need column count for turning wide dataframe into long
-  NumberColspeoplePlusOne <- as.numeric(ncol(people))+1
+  NumberColsexistingPlusOne <- as.numeric(ncol(existing))+1
 
   #####################################
   #####################################
@@ -154,25 +150,23 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
   #####################################
   #####################################
 
-  peopleRenamed <- people %>%
-    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol,
-           RenamedSex = !! pplsxcol) %>%
-    mutate(RenamedSex = as.character(RenamedSex))
+  existingRenamed <- existing %>%
+    rename(RenamedID = !! exsidcol, RenamedAge = !! exsagecol)
 
   #####################################
   #####################################
 
   # fix dataset to be a factor of household size
 
-  ModuloDF <- nrow(peopleRenamed) %% numppl
+  ModuloDF <- nrow(existingRenamed) %% numppl
 
 
   # test if each Sex is divisible by household size
   if(ModuloDF > 0) {
 
-    SampleSizeUsed <- nrow(peopleRenamed) - ModuloDF
+    SampleSizeUsed <- nrow(existingRenamed) - ModuloDF
 
-    peopleRenamed <- peopleRenamed %>%
+    existingRenamed <- existingRenamed %>%
       slice_sample(n = SampleSizeUsed)
 
     # closes if(ModuloDF > 0)
@@ -183,37 +177,37 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
   #####################################
 
 
-  BaseSize <- nrow(peopleRenamed)/numppl
+  BaseSize <- nrow(existingRenamed)/numppl
 
-  BasePeople <- peopleRenamed %>%
+  Baseexisting <- existingRenamed %>%
     slice_sample(n = BaseSize) %>%
     mutate({{hhidvar}} := seq(hhidstart, (hhidstart + BaseSize - 1)))
 
-  RemainingPeople <- peopleRenamed %>%
-    filter(!(RenamedID %in% c(BasePeople$RenamedID)))
+  Remainingexisting <- existingRenamed %>%
+    filter(!(RenamedID %in% c(Baseexisting$RenamedID)))
 
 
-  # cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
+  # cat("Remainingexisting is", nrow(Remainingexisting), "rows", "\n")
 
-  while(!(is.na(RemainingPeople$RenamedAge[1])) == TRUE) {
+  while(!(is.na(Remainingexisting$RenamedAge[1])) == TRUE) {
 
     if(BaseSize < 1) {
       stop("Sample size is less than 1", "\n")
     }
 
-    MatchingSample <- RemainingPeople %>%
+    MatchingSample <- Remainingexisting %>%
       slice_sample(n = BaseSize)
 
     #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
 
-    RemainingPeople <- RemainingPeople %>%
+    Remainingexisting <- Remainingexisting %>%
       filter(!(RenamedID %in% MatchingSample$RenamedID))
 
     # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
 
     # get age differences
 
-    CurrentAgeMatch <- BasePeople %>%
+    CurrentAgeMatch <- Baseexisting %>%
       select(RenamedAge,RenamedID)
 
     MatchedAgeExtract <- MatchingSample %>%
@@ -324,40 +318,40 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
 
     if(exists("TheMatched")) {
 
-      InterimDataFrame <- BasePeople %>%
+      InterimDataFrame <- Baseexisting %>%
         left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
         left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-        select(all_of(NumberColspeoplePlusOne:ncol(.)))
+        select(all_of(NumberColsexistingPlusOne:ncol(.)))
 
       TheMatched <- bind_rows(TheMatched, InterimDataFrame)
 
     } else {
 
-      TheMatched <- BasePeople %>%
+      TheMatched <- Baseexisting %>%
         left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
         left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-        select(all_of(NumberColspeoplePlusOne:ncol(.)))
+        select(all_of(NumberColsexistingPlusOne:ncol(.)))
 
 
     }
 
-    # closes the loop through the number of sets of people to match,
+    # closes the loop through the number of sets of existing to match,
     # e.g. 1 set for two-person households, 2 sets for three-person households
   }
   #
   #   # need to ensure that the base for BOTH sexes exists, not just one
   if(exists("AppendedBase")){
 
-    AppendedBase <- bind_rows(AppendedBase, BasePeople)
+    AppendedBase <- bind_rows(AppendedBase, Baseexisting)
 
   } else {
 
-    AppendedBase <- BasePeople
+    AppendedBase <- Baseexisting
 
   }
   #
   #
-  #   # closes loop for matching people if sex IS NOT correlated
+  #   # closes loop for matching existing if sex IS NOT correlated
   # }
 
 
@@ -368,15 +362,13 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
     rename_all(list(~gsub("\\.y$", "", .))) %>%
     select(-RenamedAge) %>%
     mutate({{IDColName}} := MatchedID,
-           {{AgeColName}} := MatchedAge,
-           {{SexColName}} := RenamedSex) %>%
-    select(-c(MatchedID, MatchedAge, RenamedSex))
+           {{AgeColName}} := MatchedAge) %>%
+    select(-c(MatchedID, MatchedAge))
 
   TheBase <- AppendedBase %>%
     mutate({{IDColName}} := RenamedID,
-           {{AgeColName}} := RenamedAge,
-           {{SexColName}} := RenamedSex) %>%
-    select(-c(RenamedID, RenamedAge, RenamedSex))
+           {{AgeColName}} := RenamedAge) %>%
+    select(-c(RenamedID, RenamedAge))
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
 
@@ -385,7 +377,7 @@ otheryes <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sduse
   MatchedIDs <- OutputDataframe %>%
     pull({{IDColName}})
 
-  UnmatchedDataframe <- people %>%
+  UnmatchedDataframe <- existing %>%
     filter(!({{IDColName}} %in% MatchedIDs))
 
 
