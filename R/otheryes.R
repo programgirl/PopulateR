@@ -168,27 +168,45 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
   #####################################
   #####################################
 
-  existingRenamed <- existing %>%
-    rename(RenamedID = !! exsidcol, RenamedAge = !! exsagecol)
-
   #####################################
   #####################################
 
-  # fix dataset to be a factor of household size
+  # work out data frame compatibility
+  # the additions data frame may be too small or too large based on the size of the
+  # existing count and the number of people to add
 
-  ModuloDF <- nrow(existingRenamed) %% numppl
+  # get the length of the existing data frame
 
+  NumExisting <- nrow(existingRenamed)
 
-  # test if each Sex is divisible by household size
-  if(ModuloDF > 0) {
+  NumNeeded <- NumExisting * numppl
 
-    SampleSizeUsed <- nrow(existingRenamed) - ModuloDF
+  NumProvided <- nrow(additionsRenamed)
+
+  if(NumNeeded < NumProvided) {
+
+    cat("The additions data frame should contain", NumNeeded, "people but only contains", NumProvided, "\n")
+
+    NumCanUse <- floor(NumProvided / numppl)
+
+    cat(NumCanUse, "will be randomly sampled from the", NumExisting, "people already in households", "\n")
 
     existingRenamed <- existingRenamed %>%
-      slice_sample(n = SampleSizeUsed)
-
-    # closes if(ModuloDF > 0)
+      slice_sample(n = NumCanUse)
   }
+
+  if(NumProvided > NumNeeded) {
+
+    cat("The additions data frame should contain", NumNeeded, "people and contains", NumProvided, "\n")
+
+    cat(NumNeeded, "will be randomly sampled from the", NumProvided, "people to add to households", "\n")
+
+    additionsRenamed <- additionsRenamed %>%
+      slice_sample(n = NumNeeded)
+
+  }
+
+
 
   #####################################
   # matching
