@@ -7,7 +7,6 @@
 #' @param people A data frame containing the people to be matched into households.
 #' @param pplidcol The column number for the ID variable.
 #' @param pplagecol The column number for the Age variable.
-#' @param pplsxcol The column number for the Sex variable.
 #' @param numppl The household size to be constructed.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param hhidstart The starting number for generating the household identifier value for showing unique households. Must be numeric.
@@ -18,7 +17,7 @@
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 
-otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused, hhidstart = 1,
+otherno <- function(people, pplidcol, pplagecol, numppl = NULL, sdused, hhidstart = 1,
                     hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
                     )
 {
@@ -136,9 +135,6 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused
   # Age variable
   AgeColName <- sym(names(people[pplagecol]))
 
-  # Sex variable
-  SexColName <- sym(names(people[pplsxcol]))
-
   # need column count for turning wide dataframe into long
   NumberColspeoplePlusOne <- as.numeric(ncol(people))+1
 
@@ -155,8 +151,7 @@ otherno <- function(people, pplidcol, pplagecol, pplsxcol, numppl = NULL, sdused
   #####################################
 
   peopleRenamed <- people %>%
-    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol,
-           RenamedSex = !! pplsxcol) %>%
+    rename(RenamedID = !! pplidcol, RenamedAge = !! pplagecol) %>%
     mutate(RenamedSex = as.character(RenamedSex))
 
   #####################################
