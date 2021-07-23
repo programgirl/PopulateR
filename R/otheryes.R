@@ -148,9 +148,9 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
   existsHouseholdColName <- sym(names(existing[hhidcol]))
 
   # variable names for the household additions
-  addscolName <- sym(names(additions[addidcol]))
+  addsidcolName <- sym(names(additions[addidcol]))
 
-  chlagecolName <- sym(names(additions[addagecol]))
+  addsagecolName <- sym(names(additions[addagecol]))
 
   # need column count for turning wide dataframe into long, uses the existing data frame
   NumberColsexistingPlusTwo <- as.numeric(ncol(existing))+2
@@ -376,29 +376,30 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
            {{existsHouseholdColName}} := HouseholdID) %>%
     select(-c(addID, addAge))
 
-  return(TheMatched)
-
-  TheBase <- AppendedBase %>%
-    mutate({{existsIDColName}} := RenamedID,
-           {{existsAgeColName}} := RenamedAge,
+  TheOriginal <- existingRenamed %>%
+    mutate({{existsIDColName}} := existID,
+           {{existsAgeColName}} := existAge,
            {{existsHouseholdColName}} := HouseholdID) %>%
-    select(-c(RenamedID, RenamedAge))
+    select(-c(existID, existAge))
 
-  OutputDataframe <- bind_rows(TheBase, TheMatched)
+  OutputDataframe <- bind_rows(TheOriginal, TheMatched)
 
-  cat("The individual dataframes are $Matched and $Unmatched.", "\n")
+  cat("The individual dataframes are $Matched, $Existing, and $Additions", "\n")
 
   MatchedIDs <- OutputDataframe %>%
-    pull({{IDColName}})
+    pull({{existsIDColName}})
 
-  UnmatchedDataframe <- existing %>%
-    filter(!({{IDColName}} %in% MatchedIDs))
+  UnmatchedExisting <- existing %>%
+    filter(!({{existsIDColName}} %in% MatchedIDs))
 
+  UnmatchedAdditions <- additions %>%
+    filter(!({{addsidcolName}} %in% MatchedIDs))
 
   MergedList <- list()
 
   MergedList$Matched <- OutputDataframe
-  MergedList$Unmatched <- UnmatchedDataframe
+  MergedList$Existing <- UnmatchedExisting
+  MergedList$Additions <- UnmatchedAdditions
 
   return(MergedList)
 
