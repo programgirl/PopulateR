@@ -245,7 +245,6 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
-    return(CurrentAgeMatch)
 
     # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
     #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
@@ -305,7 +304,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
+        filter(!(existID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
         bind_rows(., PropPair1,PropPair2)
 
       # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
@@ -350,7 +349,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
       InterimDataFrame <- Baseexisting %>%
         left_join(CurrentAgeMatch, by=c("existID", "existAge")) %>%
-        left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
+        left_join(MatchingSample, by= c("addID" = "existID")) %>%
         select(all_of(NumberColsexistingPlusOne:ncol(.)))
 
       TheMatched <- bind_rows(TheMatched, InterimDataFrame)
