@@ -238,10 +238,10 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
     # get age differences
 
     CurrentAgeMatch <- existingRenamed %>%
-      select(existID, existAge)
+      select(existAge, existID)
 
     MatchedAgeExtract <- MatchingSample %>%
-      select(addID, addAge)
+      select(addAge, addID)
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
@@ -349,7 +349,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
     if(exists("TheMatched")) {
 
       InterimDataFrame <- Baseexisting %>%
-        left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
+        left_join(CurrentAgeMatch, by=c("existID", "existAge")) %>%
         left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
         select(all_of(NumberColsexistingPlusOne:ncol(.)))
 
@@ -359,10 +359,10 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
       TheMatched <- Baseexisting %>%
         left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-        left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
+        left_join(MatchingSample, by= c("addID" = "existID")) %>%
         select(all_of(NumberColsexistingPlusOne:ncol(.)))
 
-
+      return(TheMatched)
     }
 
     # closes the loop through the number of sets of existing to match,
