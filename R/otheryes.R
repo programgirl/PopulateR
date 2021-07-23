@@ -153,7 +153,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
   chlagecolName <- sym(names(additions[addagecol]))
 
   # need column count for turning wide dataframe into long, uses the existing data frame
-  NumberColsexistingPlusOne <- as.numeric(ncol(existing))+1
+  NumberColsexistingPlusTwo <- as.numeric(ncol(existing))+2
 
   #####################################
   #####################################
@@ -219,13 +219,13 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
   # cat("Remainingexisting is", nrow(Remainingexisting), "rows", "\n")
 
-  while(!(is.na(additionsRenamed$addAge[1])) == TRUE) {
+  for (i in 1: numppl) {
 
     # if(BaseSize < 1) {
     #   stop("Sample size is less than 1", "\n")
     # }
 
-    MatchingSample <- additionsRenamed %>%
+    MatchingSample <- Remainingadditions %>%
       slice_sample(n = BaseSize)
 
     #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
@@ -288,7 +288,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
     # cat("Gets to matching age iterations", "\n")
 
 
-    for (i in 1:numiters) {
+    for (j in 1:numiters) {
 
       # print(i)
 
@@ -347,56 +347,41 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
     if(exists("TheMatched")) {
 
-      InterimDataFrame <- Baseexisting %>%
+      InterimDataFrame <- existingRenamed %>%
         left_join(CurrentAgeMatch, by=c("existID", "existAge")) %>%
-        left_join(MatchingSample, by= c("addID" = "existID")) %>%
-        select(all_of(NumberColsexistingPlusOne:ncol(.)))
+        left_join(MatchingSample, by = "addID") %>%
+        select(HouseholdID, all_of(NumberColsexistingPlusTwo:ncol(.)))
 
       TheMatched <- bind_rows(TheMatched, InterimDataFrame)
 
     } else {
 
-      TheMatched <- Baseexisting %>%
-        left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
-        left_join(MatchingSample, by= c("addID" = "existID")) %>%
-        select(all_of(NumberColsexistingPlusOne:ncol(.)))
+      TheMatched <- existingRenamed %>%
+        left_join(CurrentAgeMatch, by=c("existID", "existAge")) %>%
+        left_join(MatchingSample, by = "addID") %>%
+        select(HouseholdID, all_of(NumberColsexistingPlusTwo:ncol(.)))
 
-      return(TheMatched)
     }
 
     # closes the loop through the number of sets of existing to match,
     # e.g. 1 set for two-person households, 2 sets for three-person households
   }
-  #
-  #   # need to ensure that the base for BOTH sexes exists, not just one
-  if(exists("AppendedBase")){
-
-    AppendedBase <- bind_rows(AppendedBase, Baseexisting)
-
-  } else {
-
-    AppendedBase <- Baseexisting
-
-  }
-  #
-  #
-  #   # closes loop for matching existing if sex IS NOT correlated
-  # }
-
-
   # correct the names of the variables in the interim and base data frames
   # row bind these and output
 
   TheMatched <- TheMatched %>%
     rename_all(list(~gsub("\\.y$", "", .))) %>%
-    select(-RenamedAge) %>%
-    mutate({{IDColName}} := MatchedID,
-           {{AgeColName}} := MatchedAge) %>%
-    select(-c(MatchedID, MatchedAge))
+    mutate({{existsIDColName}} := addID,
+           {{existsAgeColName}} := addAge,
+           {{existsHouseholdColName}} := HouseholdID) %>%
+    select(-c(addID, addAge))
+
+  return(TheMatched)
 
   TheBase <- AppendedBase %>%
-    mutate({{IDColName}} := RenamedID,
-           {{AgeColName}} := RenamedAge) %>%
+    mutate({{existsIDColName}} := RenamedID,
+           {{existsAgeColName}} := RenamedAge,
+           {{existsHouseholdColName}} := HouseholdID) %>%
     select(-c(RenamedID, RenamedAge))
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
