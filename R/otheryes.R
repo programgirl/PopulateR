@@ -21,8 +21,7 @@
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 
 otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, addidcol, addagecol,
-                     numppl = NULL, sdused, userseed=NULL, ptostop = .01, numiters = 1000000
-)
+                     numppl = NULL, sdused, userseed=NULL, ptostop = .01, numiters = 1000000)
 {
 
   options(dplyr.summarise.inform=F)
@@ -183,7 +182,9 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
 
   NumProvided <- nrow(additionsRenamed)
 
-  if(NumNeeded < NumProvided) {
+  # cat("Number existing is", NumExisting, "number needed is", NumNeeded, "number provided is", NumProvided, "\n")
+
+  if((NumNeeded > NumProvided) == TRUE) {
 
     cat("The additions data frame should contain", NumNeeded, "people but only contains", NumProvided, "\n")
 
@@ -195,7 +196,7 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
       slice_sample(n = NumCanUse)
   }
 
-  if(NumProvided > NumNeeded) {
+  if((NumProvided > NumNeeded) == TRUE) {
 
     cat("The additions data frame should contain", NumNeeded, "people and contains", NumProvided, "\n")
 
@@ -207,51 +208,44 @@ otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, a
   }
 
 
-
   #####################################
   # matching
   #####################################
 
 
-  BaseSize <- nrow(existingRenamed)/numppl
+  BaseSize <- (nrow(existingRenamed))
 
-  Baseexisting <- existingRenamed %>%
-    slice_sample(n = BaseSize) %>%
-    mutate({{hhidvar}} := seq(hhidstart, (hhidstart + BaseSize - 1)))
-
-  Remainingexisting <- existingRenamed %>%
-    filter(!(RenamedID %in% c(Baseexisting$RenamedID)))
-
+  Remainingadditions <- additionsRenamed
 
   # cat("Remainingexisting is", nrow(Remainingexisting), "rows", "\n")
 
-  while(!(is.na(Remainingexisting$RenamedAge[1])) == TRUE) {
+  while(!(is.na(additionsRenamed$addAge[1])) == TRUE) {
 
-    if(BaseSize < 1) {
-      stop("Sample size is less than 1", "\n")
-    }
+    # if(BaseSize < 1) {
+    #   stop("Sample size is less than 1", "\n")
+    # }
 
-    MatchingSample <- Remainingexisting %>%
+    MatchingSample <- additionsRenamed %>%
       slice_sample(n = BaseSize)
 
     #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
 
-    Remainingexisting <- Remainingexisting %>%
-      filter(!(RenamedID %in% MatchingSample$RenamedID))
+    Remainingadditions <- Remainingadditions %>%
+      filter(!(addID %in% MatchingSample$addID))
 
     # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
 
     # get age differences
 
-    CurrentAgeMatch <- Baseexisting %>%
-      select(RenamedAge,RenamedID)
+    CurrentAgeMatch <- existingRenamed %>%
+      select(existID, existAge)
 
     MatchedAgeExtract <- MatchingSample %>%
-      select(RenamedAge, RenamedID) %>%
-      rename(MatchedAge = RenamedAge,
-             MatchedID = RenamedID)
+      select(addID, addAge)
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
+
+    return(CurrentAgeMatch)
 
     # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
     #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
