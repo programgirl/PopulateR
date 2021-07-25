@@ -2,7 +2,7 @@
 #'
 #' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer. A non-zero count of employees is returned for each employer.
 #'
-#' The function removes any employer types with either no employees or no employers. This situation can occur due to random rounding in official statistics. Where the number of employers exceeds the number of employees, the former count is replaced by the employee count. Thus, no pre-processing of the data frame is required.
+#' The function removes any employer types with either no employees or no employers. This situation can occur due to random rounding in official statistics. Where the number of employers exceeds the number of employees, the employer count is replaced by the employee count. Thus, no pre-processing of the data frame is required.
 #'
 #' @export
 #' @param employers A data frame containing aggregate data on employers.
@@ -26,6 +26,9 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
 
   # employer type variable
   emptypecolName <- sym(names(employers[emptypecol]))
+
+  # employer counts column name
+  empnumcolName <- sym(names(employers[empnumcol]))
 
   # staff count column name
   staffnumcolName <- sym(names(employers[staffnumcol]))
@@ -78,6 +81,17 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
     # can happen, e.g. sole enterprises, partnerships with no employees
     # etc
     if(NumberStaff < Numberemployers) {
+
+      if(exists("OvercountEmployers")) {
+
+        OvercountEmployers <- bind_rows(OvercountEmployers, CurrentCompany)
+
+      } else {
+
+        OvercountEmployers <- CurrentCompany
+
+        # closes else to if(NumberStaff < Numberemployers)
+      }
 
       cat("The number of employers is", Numberemployers, "and the number of staff is", NumberStaff, "\n")
       Numberemployers <- NumberStaff
@@ -176,6 +190,14 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
   OutputDataframe <- OutputDataframe %>%
     rename(!!emptypecolName := CompanyCode, !!staffnumcolName := StaffCts) %>%
     dplyr::select(-CompanyCts)
+
+  if(exists("OvercountEmployers")) {
+
+    OvercountEmployers <- OvercountEmployers %>%
+      rename(!!empnumcolName :=CompanyCts, !!staffnumcolName := StaffCts)
+
+    return(OvercountEmployers)
+  }
 
   #
   return(OutputDataframe)
