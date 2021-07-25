@@ -1,8 +1,6 @@
 #' Create a data frame of individual employers, each with aggregate employee counts.
 #'
-#' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer. A non-zero count of employees is returned for each employer.
-#'
-#' The function removes any employer types with either no employees or no employers. This situation can occur due to random rounding in official statistics. Where the number of employers exceeds the number of employees, the employer count is replaced by the employee count. Thus, no pre-processing of the data frame is required.
+#' This function constructs individual employers from aggregate counts, such as number of employers per employer type. Employer type is often industry, such as "Sheep, Beef Cattle and Grain Farming". Within each employer type, the number of employers is extracted. The number of employees is then randomly assigned to each of those employers, using the total employee count for that industry. A randomisation method is used to ensure that the company counts can be quite dissimilar across the employers within a type. However, this is constructed by the ratio of employers to employees. If the counts are similar, in this case the number of employees will tend to be 1 for each employer.
 #'
 #' @export
 #' @param employers A data frame containing aggregate data on employers.
@@ -11,9 +9,21 @@
 #' @param staffnumcol The column number containing the aggregate counts of employees by employer type.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
-#' @return A data frame of synthetic companies, with randomised employee counts.
+#' @return #'A list of three data frames $Companies contains the data frame of synthetic companies, with the number of employees and a mock company name. $Overcounts contains the companies where the number of employers in an industry exceeds the number of employees. This is an informational data frame provides the original values for employee and employee counts. These industries are included in the $Companies file. The count of employers is reset to the count of employees, resulting in synthetic companies with employees count of 1. $NoEmps contains industries with employer counts but no employee counts, employee counts but no employer counts, and a combination of no employers and no employees. These are excluded from the $Companies data frame. Industries with 0 employee and 0 employer counts is likely due to a standardised list of industries being used for all geographic regions. The existence of employers with no employees is indicative of sole-trader/director-only companies. The presence of employees but no employers suggests a data accuracy problem.
 #'
-#' @examples
+#' @example
+#'
+#' AdultsID <- IntoSchools %>%
+#' filter(Age > 20)
+#'
+#' NoHousehold <- Township %>%
+#'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
+#'   slice_sample(n = 1500)
+#'
+#' OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
+#'                           NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
+#'                           userseed=4, ptostop = .01, numiters = 5000)
+#'
 #'
 #'
 empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = NULL) {
@@ -43,6 +53,13 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
     rename(CompanyCode = !! emptypecol,
            CompanyCts = !! empnumcol,
            StaffCts = !! staffnumcol)
+
+  # put the 0 counts into a file
+
+  # put employers and employees with 0 counts into a file
+
+ Nocounts <- employerRenamed %>%
+   filter(CompanyCts == 0 | StaffCts == 0)
 
   # remove all rows with 0 employer or 0 employee counts
   employerRenamed <- employerRenamed %>%
@@ -77,6 +94,7 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
 
     # cat("Company", CurrentCompany$CompanyCode, "number employers", Numberemployers, "number employees", NumberStaff, "\n")
 
+
     # fix problem if there are more employers than there are employees
     # can happen, e.g. sole enterprises, partnerships with no employees
     # etc
@@ -93,7 +111,7 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
         # closes else to if(NumberStaff < Numberemployers)
       }
 
-      cat("The number of employers is", Numberemployers, "and the number of staff is", NumberStaff, "\n")
+      # cat("The number of employers is", Numberemployers, "and the number of staff is", NumberStaff, "\n")
       Numberemployers <- NumberStaff
     }
 
@@ -195,10 +213,19 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
 
     OvercountEmployers <- OvercountEmployers %>%
       rename(!!empnumcolName :=CompanyCts, !!staffnumcolName := StaffCts)
-
-    return(OvercountEmployers)
   }
 
+  # if(exists("Nocounts")) {
   #
-  return(OutputDataframe)
+  #   return(Nocounts)
+  # }
+
+  MergedList <- list()
+
+  MergedList$Companies <- OutputDataframe
+  MergedList$Overcount <- OvercountEmployers
+  MergedList$NoEmps <- Nocounts
+
+  return(MergedList)
+
 }
