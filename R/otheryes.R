@@ -1,7 +1,7 @@
-#' Create a match of people into households
+#' Create a match of people into existing households
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
-#' One data frame, containing the people to match, is required. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
-#' The output data frame of matches will only contain households of the required size. If the number of rows in the people data frame is not divisible by household size, the overcount will be output to a separate data frame.
+#' Two data frames are required. The 'existing' data frame contains the people already in households. The 'additions' data frame contains the people. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
+#' The output data frame of matches will only contain households of the required size.
 #'
 #' @export
 #' @param existing A data frame containing the people already in households.
@@ -19,6 +19,20 @@
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
+#'
+#' @example
+#'
+#' AdultsID <- IntoSchools %>%
+#' filter(Age > 20)
+#'
+#' NoHousehold <- Township %>%
+#'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
+#'   slice_sample(n = 1500)
+#'
+#' OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
+#'                           NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
+#'                           userseed=4, ptostop = .01, numiters = 5000)
+#'
 
 otheryes <- function(existing, exsidcol, exsagecol, hhidcol = NULL, additions, addidcol, addagecol,
                      numppl = NULL, sdused, userseed=NULL, ptostop = .01, numiters = 1000000)

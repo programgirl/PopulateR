@@ -16,6 +16,12 @@
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
+#'
+#' @examples
+# library(dplyr)
+#' NewHouseholds <- otherno(AdultsNoID, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3,
+#'                        hhidstart = 1, hhidvar= "TheHousehold", userseed=4, ptostop = .01,
+#'                         numiters = 50000)
 
 otherno <- function(people, pplidcol, pplagecol, numppl = NULL, sdused, hhidstart = 1,
                     hhidvar= NULL, userseed=NULL, ptostop = .01, numiters = 1000000
