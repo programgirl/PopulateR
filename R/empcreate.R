@@ -146,14 +146,15 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
       # cat("The number of employers is", Numberemployers, "and the number of staff is", NumberStaff, "\n")
 
 
-      AchievedCompSize <- rmultinom(n = 1, size = NumberStaff, prob = rep(1/Numberemployers, Numberemployers))
+      AchievedCompSize <- as.integer(rmultinom(n = 1, size = NumberStaff, prob = rep(1/Numberemployers, Numberemployers)))
+
 
       while(0 %in% AchievedCompSize) {
 
         BaseCompSize <- rep(1, Numberemployers)
         NewNumStaff <- NumberStaff - sum(BaseCompSize)
 
-        AddedCompSize <- rmultinom(n = 1, size = NewNumStaff, prob = rep(1/Numberemployers, Numberemployers))
+        AddedCompSize <- as.integer(rmultinom(n = 1, size = NewNumStaff, prob = rep(1/Numberemployers, Numberemployers)))
 
         AchievedCompSize <- BaseCompSize + AddedCompSize
 
