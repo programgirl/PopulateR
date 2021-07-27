@@ -73,7 +73,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
   #####################################
   #####################################
 
-  # check if hourscolis an ordered factor or numeric
+  # check if hourscol is an ordered factor or numeric
 
   if (!(is.ordered(Children$IntHours)) == TRUE & !(is.numeric(Children$IntHours)) == TRUE) {
 
