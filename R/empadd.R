@@ -39,8 +39,34 @@ empadd <- function(employers, empid, empcount, workers, hourscol, hoursmin, user
 
   # expand the employer data frame to one row per employee
 
-  employersRenamed2 <- tidyr::uncount(employersRenamed, NumStaff)
+  employersRenamed <- tidyr::uncount(employersRenamed, NumStaff)
 
-return(employersRenamed)
+   workersRenamed <- workers %>%
+    rename(WorkHours= !! hourscol) %>%
+     filter(as.integer(WorkHours) >= hoursmin)
+
+   # check if the employer list can take all the workers
+  if (nrow(employersRenamed) < nrow(workersRenamed)) {
+
+    CountDiff <- nrow(workersRenamed) - nrow(employersRenamed)
+
+    ExtraEmployers <- employersRenamed %>%
+      slice_sample(n = CountDiff)
+
+    employersRenamed <- bind_rows(employersRenamed, ExtraEmployers)
+
+  }
+
+   # shuffle the rows of the employer data frame
+
+   ShuffleCount <- nrow(workersRenamed)
+
+   employersRenamed <- employersRenamed %>%
+     slice_sample(n = ShuffleCount)
+
+   OutputDataframe <- bind_cols(workersRenamed, employersRenamed)
+
+
+return(OutputDataframe)
 
 }
