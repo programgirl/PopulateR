@@ -12,20 +12,10 @@
 #' @return #'A list of three data frames $Companies contains the data frame of synthetic companies, with the number of employees and a mock company name. $Overcounts contains the companies where the number of employers in an industry exceeds the number of employees. This is an informational data frame provides the original values for employee and employee counts. These industries are included in the $Companies file. The count of employers is reset to the count of employees, resulting in synthetic companies with employees count of 1. $NoEmps contains industries with employer counts but no employee counts, employee counts but no employer counts, and a combination of no employers and no employees. These are excluded from the $Companies data frame. Industries with 0 employee and 0 employer counts is likely due to a standardised list of industries being used for all geographic regions. The existence of employers with no employees is indicative of sole-trader/director-only companies. The presence of employees but no employers suggests a data accuracy problem.
 #'
 #' @example
+#' library("dplyr")
 #'
-#' AdultsID <- IntoSchools %>%
-#' filter(Age > 20)
-#'
-#' NoHousehold <- Township %>%
-#'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
-#'   slice_sample(n = 1500)
-#'
-#' OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
-#'                           NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
-#'                           userseed=4, ptostop = .01, numiters = 5000)
-#'
-#'
-#'
+#' TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
+
 empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = NULL) {
 
   #####################################

@@ -842,7 +842,7 @@ CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
 
 # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
 
-rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps)
+rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
 
 # write out data frame examples below
 # saveRDS(Parents, "Parents.rds")
