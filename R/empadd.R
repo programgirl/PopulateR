@@ -14,6 +14,7 @@
 #' @param empid The column number for the employer ID.
 #' @param empcount The column number that provides the number of employees for each employer.
 #' @param workers A data frame containing the people that must be matched to employers.
+#' @wrkid The column number for the unique value that identifies unique people.
 #' @param hourscol The column number containing the hours worked by each person Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
 #' @param hoursmin The relevant factor level/number from hourscol representing the workers. Anything lower than this level/number will be treated as unemployed.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
@@ -29,7 +30,9 @@
 #' TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
 #' END OF TO FIX
 
-empadd <- function(employers, empid, empcount, workers, hourscol, hoursmin, userseed = NULL) {
+empadd <- function(employers, empid, empcount, workers, wrkid, hourscol, hoursmin, userseed = NULL) {
+
+  # check if hourscol is an ordered factor or numeric
 
   # setup
 
@@ -39,18 +42,54 @@ empadd <- function(employers, empid, empcount, workers, hourscol, hoursmin, user
   # employer variable names
   empidcolName <- sym(names(employers[empid]))
 
+  # workers variable names
+  wrkidcolName <- sym(names(workers[wrkid]))
+
+  wrkhrscolName <- sym(names(workers[hourscol]))
+
   # expand the employer data frame to one row per employee
 
   employersRenamed <- tidyr::uncount(employersRenamed, NumStaff)
 
    workersRenamed <- workers %>%
-    rename(WorkHours= !! hourscol) %>%
-     filter(as.integer(WorkHours) >= hoursmin)
+    rename(IntHours = !! hourscol,
+           workersid = !! wrkid)
+
+   if (is.ordered(workersRenamed$IntHours) == FALSE &
+       is.numeric(workersRenamed$IntHours) == FALSE) {
+
+     stop("Hours worked must be an ordered factor or numeric.")
+   }
+
+   workersWorking <- workers %>%
+     rename(IntHours = !! hourscol,
+            workersid = !! wrkid) %>%
+     filter(as.integer(IntHours) >= hoursmin)
+
+   workersUnemployed <- workers %>%
+     rename(IntHours = !! hourscol,
+            workersid = !! wrkid) %>%
+     filter(!(workersid %in% c(workersWorking$workersid)))
+
+   # fix the 0 employer id for unemployed
+   # does "0" if factor and 0 if numeric on employerid
+   if(is.ordered(class(employers[empid])) == TRUE) {
+
+     workersUnemployed <- workersUnemployed %>%
+       mutate(EmployerID = "0")
+
+   } else {
+
+     workersUnemployed <- workersUnemployed %>%
+       mutate(EmployerID = 0)
+
+     # closes if(is.ordered(class(employers[empid]))
+   }
 
    # check if the employer list can take all the workers
-  if (nrow(employersRenamed) < nrow(workersRenamed)) {
+  if (nrow(employersRenamed) < nrow(workersWorking)) {
 
-    CountDiff <- nrow(workersRenamed) - nrow(employersRenamed)
+    CountDiff <- nrow(workersWorking) - nrow(employersRenamed)
 
     ExtraEmployers <- employersRenamed %>%
       slice_sample(n = CountDiff)
@@ -61,12 +100,38 @@ empadd <- function(employers, empid, empcount, workers, hourscol, hoursmin, user
 
    # shuffle the rows of the employer data frame
 
-   ShuffleCount <- nrow(workersRenamed)
+   ShuffleCount <- nrow(workersWorking)
 
    employersRenamed <- employersRenamed %>%
      slice_sample(n = ShuffleCount)
 
-   OutputDataframe <- bind_cols(workersRenamed, employersRenamed)
+
+   OutputDataframe <- bind_cols(workersWorking, employersRenamed)
+
+
+
+   OutputDataframe <- bind_rows(OutputDataframe, workersUnemployed)
+
+
+   if (is.ordered(workers[,hourscol]) == TRUE) {
+
+     #  cat("Hours worked is a factor")
+
+     HoursLabels <- levels(workers[,hourscol])
+
+     OutputDataframe <- OutputDataframe %>%
+       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
+
+     #close factor test for hours worked variable
+   }
+
+
+   OutputDataframe <- OutputDataframe %>%
+     rename(!!wrkidcolName := workersid,
+            !!wrkhrscolName := IntHours,
+            !!empidcolName := EmployerID)
+
+   # Unemployed <-
 
 
 return(OutputDataframe)
