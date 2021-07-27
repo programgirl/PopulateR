@@ -73,15 +73,15 @@ empadd <- function(employers, empid, empcount, workers, wrkid, hourscol, hoursmi
 
    # fix the 0 employer id for unemployed
    # does "0" if factor and 0 if numeric on employerid
-   if(is.ordered(class(employers[empid])) == TRUE) {
+   if(is.numeric(class(employers[empid])) == TRUE) {
 
-     workersUnemployed <- workersUnemployed %>%
-       mutate(EmployerID = "0")
+       workersUnemployed <- workersUnemployed %>%
+       mutate(EmployerID = 0)
 
    } else {
 
      workersUnemployed <- workersUnemployed %>%
-       mutate(EmployerID = 0)
+       mutate(EmployerID = "0")
 
      # closes if(is.ordered(class(employers[empid]))
    }
