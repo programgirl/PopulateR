@@ -7,9 +7,9 @@ DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol 
 
 # Township is the file to use for the other functions
 ###########################################################
-
-########################################################### #
 # School leavers function
+###########################################################
+
 library(dplyr)
 
 WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
@@ -20,9 +20,9 @@ WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018
 rm(WithSchoolInd)
 
 ########################################################### ##
-
-########################################################### #
 # Fix hours function
+########################################################### #
+
 library(dplyr)
 
 AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
@@ -102,12 +102,18 @@ TheMatched <- OppSexCouples2$Matched
 
 
 rm(PartneredFemales, PartneredMales, OppSexCouples, PartneredMalesSmall, OppSexCouples2, TheMatched)
-########################################################### ##
 
+
+
+
+
+########################################################### ##
+# Assign children
 ########################################################### #
 # assign child, no parental household
 
 library("dplyr")
+set.seed(1)
 # sample a combination of females and males to be parents
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 18) %>%
@@ -119,13 +125,21 @@ Children <- Township %>%
 
 # match the children to the parents
 # no ID on the parents
-ParentsAndKids <- AddChildSN(Children, ChildIDCol = 3, ChildAgeCol = 4,
-                             Parents, ParentIDCol = 3, ParentAgeCol = 4,
-                             DirectXi = 30, DirectOmega = 3, AlphaUsed = 1.2,
-                             MinParentAge = 18, MaxParentAge = 54, MinPropRemain = 0,
-                             IDStartValue = 100, HouseholdNumVariable = "HouseholdID", UserSeed=4)
 
-rm(Parents, Children, ParentsAndKids, ParentKidDiffs, AgeDiffs)
+ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+                                   directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+                                   maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", UserSeed=4)
+
+ShorterParents <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 200)
+
+ChildWithNonMatches<- childno(Children, chlidcol = 3, chlagecol = 4, ShorterParents, paridcol = 3, paragecol = 4,
+                   directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+                   maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", UserSeed=4)
+
+
+rm(Parents, Children, ChildAllMatched, ShorterParents, ChildWithNonMatches)
 
 ########################################################### ##
 
@@ -133,7 +147,7 @@ rm(Parents, Children, ParentsAndKids, ParentKidDiffs, AgeDiffs)
 # assign child, parent has household ID
 
 library("dplyr")
-
+set.seed(1)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 18) %>%
   slice_sample(n = 500) %>%
@@ -143,25 +157,10 @@ Children <- Township %>%
   filter(Relationship == "NonPartnered", Age < 20) %>%
   slice_sample(n = 200)
 
-OutputWithID <- AddChildSNID(Children, ChildIDCol = 4, ChildAgeCol = 5,
-                             Parents, ParentIDCol = 4, ParentAgeCol = 5,
-                             DirectXi = 30, DirectOmega = 3, AlphaUsed = 1.2,
-                             MinParentAge = 18, MaxParentAge = 54, MinPropRemain = 0,
-                             HouseholdIDCol = 8, UserSeed = 4)
 
-ParentKidDiffs <- OutputWithID %>%
-  group_by(HouseholdID) %>%
-  arrange(desc(Age), .by_group = TRUE) %>%
-  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
-  filter(AgeDiff > 0)
-
-library(ggplot2)
-AgeDiffs <- ggplot(ParentKidDiffs, aes (x = AgeDiff)) +
-  geom_bar(fill = "#fdb863") +
-  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs")
-# ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAgeDiffsWithID.pdf")
-
-detach("package:ggplot2", unload = TRUE)
+ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+                         directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+                         maxparage = 54, hhidcol = 6, UserSeed = 4)
 
 rm(Parents, Children, OutputWithID, ParentKidDiffs, AgeDiffs)
 
@@ -171,10 +170,10 @@ rm(Parents, Children, OutputWithID, ParentKidDiffs, AgeDiffs)
 # assign multiple children, no parental household
 
 library("dplyr")
-
+set.seed(1)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 18) %>%
-  slice_sample(n = 500) %>%
+ slice_sample(n = 500) %>%
   mutate(HouseholdID = row_number()+500)
 
 Children <- Township %>%
@@ -185,30 +184,86 @@ Children <- Township %>%
 # the same number of children is assigned to all parents
 # adding two children to each parent
 
-ParentsAndKids <- AddChildren(Children, ChildIDCol = 3, ChildAgeCol = 4, NumChildren = 2,
-                              TwinRate = .2, Parents, ParentIDCol = 3, ParentAgeCol = 4,
-                              MinParentAge = 18, MaxParentAge = 54, HouseholdIDCol = 6,
-                              UserSeed = 4)
+KidsMatched <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .2,
+                           Parents, paridcol = 3, paragecol = 4, minparage = 18, maxparage = 54,
+                           hhidcol = 6, UserSeed = 4)
 
 
-# trying to add three results in one child unmatched, 400 is not divisible by 3
-ParentsAndKids <- AddChildren(Children, ChildIDCol = 4, ChildAgeCol = 5, NumChildren = 3,
-                              TwinRate = .2, Parents, ParentIDCol = 4, ParentAgeCol = 5,
-                              MinParentAge = 18, MaxParentAge = 54, HouseholdIDCol = 8,
-                              UserSeed = 4)
 
 rm(Parents, Children, ParentsAndKids)
+
+# with no household ID
+library("dplyr")
+set.seed(1)
+Parents <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 200)
+
+Children <- Township %>%
+  filter(Relationship == "NonPartnered", Age < 20) %>%
+  slice_sample(n = 400)
+
+# example with assigning two children to a parent
+# the same number of children is assigned to all parents
+# adding two children to each parent
+
+KidsMatched <- childrenno(Children, chlidcol = 3, chlagecol = 4, numchild = 2,
+                     twinrate = .2, Parents, paridcol = 3, paragecol = 4,
+                     minparage = 18, maxparage = 54, hhidstart = 501, hhidvar= "TheHousehold",
+                     UserSeed = 4)
+
+
+
+
 
 ########################################################### ##
 # add children to schools
 ########################################################### #
+
 library("dplyr")
 
-SchoolsAdded <- ChildrenToSchools(KidsIntoSchools, ChildIDCol = 3, ChildAgeCol = 4, ChildSxCol = 7,
-                                           HouseholdIDCol = 6, SchoolsToUse, SchoolIDCol = 2, SchoolAgeCol = 4,
-                                           SchoolRollCol = 5, SchoolTypeCol = 3, ChildProb = .8, UserSeed = 4)
+SchoolsAdded <- schooladd(IntoSchools, indidcol = 3, indagecol = 4, indsxcol = 8, indstcol = 6, hhidcol = 7,
+                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+                          UserSeed = 4)
+
+# uses a character school ID
+SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
+                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+                          UserSeed = 4)
+# # test with numeric school ID
+# SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
+#                           SchoolsToUse, schidcol = 1, schagecol = 4, schrollcol = 5, schtypecol = 3,
+#                           UserSeed = 4)
+
 
 table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
+
+
+
+
+
+###########################################################
+# Add people to households
+###########################################################
+library("dplyr")
+
+# people into new households
+NewHouseholds <- otherno(AdultsNoID, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3,
+                         hhidstart = 1, hhidvar= "TheHousehold", userseed=4, ptostop = .01,
+                         numiters = 50000)
+
+# people into existing households
+# the people to add data frame is smaller than required, by 40 people
+AdultsID <- IntoSchools %>%
+  filter(Age > 20)
+
+NoHousehold <- Township %>%
+  filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
+  slice_sample(n = 1500)
+
+OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
+                          NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
+                          userseed=4, ptostop = .01, numiters = 5000)
 
 
 ########################################################### ##
@@ -216,7 +271,7 @@ table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
 ########################################################### #
 library("dplyr")
 
-TownshipEmployment <- CreateEmployers(AllEmployers, EmployerTypeCol = 1, EmployerCountCol = 2, EmployeeCountCol = 3, UserSeed = 4)
+TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
 
 
 

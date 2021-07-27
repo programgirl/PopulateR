@@ -485,11 +485,13 @@ rm(OppSexAgeDiffPlotValues, AgeDiffs)
 
 detach("package:ggplot2", unload = TRUE)
 
+
+
 ####################################
 # Graph and differences parents and kids
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
 #####################################
-ParentKidDiffs <- ParentsAndKids %>%
+ParentKidDiffs <- ChildrenMatchedID$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Age), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
@@ -498,11 +500,41 @@ ParentKidDiffs <- ParentsAndKids %>%
 library(ggplot2)
 AgeDiffs <- ggplot(ParentKidDiffs, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
-  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs")
+  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+  theme(text = element_text(size = 18))
 # ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAgeDiffs.pdf")
+
+rm(ParentKidDiffs, AgeDiffs)
 
 detach("package:ggplot2", unload = TRUE)
 
+
+
+
+
+####################################
+# Graph and differences parents and kids
+# multiple children households
+# NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
+#####################################
+# generic testing
+
+Adultsnotmatched <- KidsMatched$Adults
+Kidsnotmatched <- KidsMatched$Children
+TheMatched <- KidsMatched$Matched
+
+Inboth <- inner_join(Adultsnotmatched, KidsMatched$Matched)
+
+# doubled up parents?
+TestIDSize <- KidsMatched$Matched %>%
+  group_by(ID) %>%
+  summarise(numinid = n())
+
+TestHHSize <- KidsMatched$Matched %>%
+  group_by(HouseholdID) %>%
+  summarise(numinhouse = n())
+
+rm(Adultsnotmatched, Kidsnotmatched, TheMatched, Inboth, TestIDSize, TestHHSize)
 ####################################
 # Add schools
 #####################################
@@ -524,43 +556,101 @@ CRSchools <- InterimSchools %>%
                       values_to = "RollCount") %>%
   mutate(AgeInRoll = as.numeric(stringr::str_sub(AgeInRoll, 5, -1)))
 
+#####################################
 # extract kids for schools
 KidsYoung <- Township %>%
-  filter(between(Age, 5, 14))
+  filter(between(Age, 0, 14)) %>%
+  mutate(SchoolStatus = ifelse(Age < 5, "N", "Y"))
 
 KidsOlderTemp <- Township %>%
   filter(between(Age, 15, 18))
 
-KidsOlder <- KidsOlderTemp %>%
-  slice_sample(n = 177)
+KidsCounts <- KidsOlderTemp %>%
+  group_by(Age) %>%
+  summarise(AgeCounts = n()) %>%
+  mutate(Probs = ifelse(Age == 15, round(AgeCounts*.98),
+                        ifelse(Age == 16, round(AgeCounts*.85),
+                              ifelse(Age == 17, round(AgeCounts*.6), round(AgeCounts*.2)))))
+Probs15to18 <- KidsCounts %>%
+  pull(Probs)
 
-KidsForSchools <- bind_rows(KidsYoung, KidsOlder)
 
-rm(KidsYoung, KidsOlder, KidsOlderTemp)
+# now do sample for each age for school status
+# use the stratify package
+
+library(splitstackshape)
+# https://stackoverflow.com/questions/62603942/how-do-i-sample-specific-sizes-within-groups
+set.seed(4)
+SampledKids <- stratified(KidsOlderTemp, "Age", c("15" = Probs15to18[1], "16" = Probs15to18[2],
+                                               "17" = Probs15to18[3], "18" = Probs15to18[4]))
+
+# add school indicator for these kids
+SampledKids <- SampledKids %>%
+  mutate(SchoolStatus = "Y")
+
+NotSampledKids <- KidsOlderTemp %>%
+  filter(!(ID %in% c(SampledKids$ID))) %>%
+  mutate(SchoolStatus = "N")
+
+# add in the other older kids, with a school status of N
+
+KidsForSchools <- bind_rows(KidsYoung, SampledKids, NotSampledKids) %>%
+  mutate(SchoolStatus = forcats::fct_relevel(SchoolStatus, c("N", "Y")))
+
+rm(KidsYoung, KidsOlderTemp, KidsCounts, SampledKids, NotSampledKids, Probs15to18, Schools2018MOEData)
 
 # construct parents
+set.seed(4)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 19) %>%
   slice_sample(n = 2000) %>%
-  mutate(HouseholdID = row_number()+500)
+  mutate(HouseholdID = row_number()+500,
+         SchoolStatus = factor("N"))
 
-ParentsAndKids <- AddChildren(KidsForSchools, ChildIDCol = 3, ChildAgeCol = 4, NumChildren = 3,
-                              TwinRate = .2, Parents, ParentIDCol = 3, ParentAgeCol = 4,
-                              MinParentAge = 18, MaxParentAge = 54, HouseholdIDCol = 6,
-                              UserSeed = 4)
+ParentsAndKids <- childrenyes(KidsForSchools, 3, 4, 3, .2, Parents, 3, 4, 18, 54, 6, UserSeed = 4)
 
-# extract the children back out, as they now have households attached
-KidsIntoSchools <- ParentsAndKids %>%
-  filter(ID %in% c(KidsForSchools$ID)) %>%
-  mutate(SexCode = ifelse(Sex == "Female", "F", "M"))
+# create the factor for SchoolStatus into an ordered factor
+IntoSchools <- ParentsAndKids$Matched %>%
+  mutate(SexCode = ifelse(Sex == "Female", "F", "M"),
+         SchoolStatus = factor(SchoolStatus, c("N", "Y"), ordered = TRUE))
+
+rm(ParentsAndKids, Parents)
+
+# check counts of kids of school age
+# SchoolCountCheck <- IntoSchools %>%
+#   filter(between(Age, 5, 18) & SchoolStatus == "Y") %>%
+#   group_by(Age) %>%
+#   summarise(NumKidsThatAge = n())
+#
+# FiveYearOldCounts <- CRSchools %>%
+#   filter(AgeInRoll == 5 & RollCount > 0)
+#
+# CheckPrimaryCounts <- CRSchools %>%
+#   filter(School.ID %in% c(3335, 355, 335, 3488)) %>%
+#   group_by(AgeInRoll) %>%
+#   summarise(NumKidsThatAge = sum(RollCount))
+#
+# # add in the secondary schools, only add in the single-sex ones
+# CheckAllCounts <- CRSchools %>%
+#   filter(School.ID %in% c(3335, 355, 335, 3488, 357, 360)) %>%
+#   group_by(AgeInRoll) %>%
+#   summarise(NumKidsThatAge = sum(RollCount))
+#
+# rm(SchoolCountCheck, FiveYearOldCounts, CheckPrimaryCounts, CheckAllCounts)
+
 
 # get subset of schools as the kids data frame is smaller relative to the kids count in the Township file
 SchoolsToUse <- CRSchools %>%
   filter(School.ID %in% c(352, 357, 360, 2110, 3348, 3354, 3368, 3432, 3441, 3519, 3529, 3535, 3539, 3540,
                           3565, 3566, 3567, 3574, 3597))
 
+# check short by
+OriginalSchoolsToUse <- SchoolsToUse %>%
+  filter(AgeInRoll == 5 & RollCount > 0)
+
+
 save(SchoolsToUse, file = "data/SchoolsToUse.RData")
-save(KidsIntoSchools, file = "data/KidsIntoSchools.RData")
+save(IntoSchools, file = "data/IntoSchools.RData")
 
 # get the sums of each age
 AgeSums <- colSums(SchoolsInterim[6:19], na.rm = T)
@@ -591,7 +681,7 @@ SelectedCollegeSchoolAgeSums <- colSums(Colleges[6:19], na.rm = T)
 BothCounts <- SelectedPrimarySchoolAgeSums + SelectedCollegeSchoolAgeSums
 
 rm(Schools2018MOEData, InterimSchools, AgeSums, SelectedPrimarySchoolAgeSums, Colleges,
-   SelectedCollegeSchoolAgeSums, BothCounts)
+   SelectedCollegeSchoolAgeSums, BothCounts, OriginalSchoolsToUse, CRSchools)
 
 # add in some extra mock children as singletons to test the amended code
 ExtraKids <- KidsIntoSchools %>%
@@ -606,16 +696,60 @@ SchoolsAdded <- ChildrenToSchools(ExtraTesting, ChildIDCol = 3, ChildAgeCol = 4,
                                   HouseholdIDCol = 6, SchoolsToUse, SchoolIDCol = 2, SchoolAgeCol = 4,
                                   SchoolRollCol = 5, SchoolTypeCol = 3, ChildProb = .8, UserSeed = 4)
 
+
+####################################
+# Matching into households
+#####################################
+# Dataframe for matching into households, no pre-existing household id
+
+AdultsNoID <- Township %>%
+  filter(Age > 19, Relationship == "NonPartnered")
+
+save(AdultsNoID, file = "data/AdultsNoID.RData")
+
 ####################################
 # Businesses
 #####################################
-TABLECODE7602 <- read_csv("DataForPopsim/TABLECODE7602_Data_a4aa8e6e-60d1-45ae-a5f0-310ec3fb5001.csv",
-                          col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip()))
+# this data is somehow contaminated
+# TABLECODE7602 <- read_csv("DataForPopsim/TABLECODE7602_Data_a4aa8e6e-60d1-45ae-a5f0-310ec3fb5001.csv",
+#                           col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip()))
 
-TABLECODE7602 <- TABLECODE7602 %>%
+# replacement data is excel format, and directly downloaded
+# csv data was via a link in email
+
+library("stringr")
+
+Tablecode7602 <- read_csv("DataForPopsim/newdownload/TABLECODE7602_Data_c80a8f15-9e6b-4dba-8f22-94d3409e4751.csv", col_types = cols(Flags = col_skip()))
+
+# remove rows that are totals, this will be painful
+Tablecode7602fixed <- Tablecode7602 %>%
+  select(-c(Year, Area)) %>%
+  filter(!(ANZSIC06 %in% c("A Agriculture, Forestry and Fishing", "A01 Agriculture", "A02 Aquaculture",
+                           "A03 Forestry and Logging", "A04 Fishing, Hunting and Trapping",
+                           "A05 Agriculture, Forestry and Fishing Support Services",
+                           "B Mining", "B06 Coal Mining", "B08 Metal Ore Mining",
+                           "B09 Non-Metallic Mineral Mining and Quarrying",
+                           "B10 Exploration and Other Mining Support Services",
+                           "C Manufacturing", "C11 Food Product Manufacturing",
+                           "C12  Beverage and Tobacco Product Manufacturing",
+                           "C13 Textile, Leather, Clothing and Footwear Manufacturing",
+                           "C14 Wood Product Manufacturing",
+                           "C15 Pulp, Paper and Converted Paper Product Manufacturing",
+                           "C16 Printing", "")))
+
+Tablecode7602fixed <- Tablecode7602 %>%
+  select(-c(Year, Area)) %>%
+  filter(str_detect(ANZSIC06, "^[a-zA-Z][0-9]{3}"))
+
+Tablecode7602probs <- Tablecode7602 %>%
+  select(-c(Year, Area)) %>%
+  filter(!(str_detect(ANZSIC06, "^[a-zA-Z][0-9]{3}")))
+
+
+Tablecode7602fixed <- Tablecode7602fixed %>%
   mutate(Measure = ifelse(Measure == "Geographic Units", "BusinessCount", "EmployeeCount"))
 
-AllEmployers <-tidyr::spread(TABLECODE7602, Measure, Value)
+AllEmployers <-tidyr::spread(Tablecode7602fixed, Measure, Value)
 
 # remove all double-up counts
 
@@ -646,7 +780,10 @@ OriginalAveEmpl <- AllEmployers %>%
   summarise(n = n()) %>%
   mutate(freq = n/sum(n))
 
-NewAveEmpl <- TownshipEmployment %>%
+######################################
+# NEED THE OUTPUT FROM THE FUNCTION
+
+NewAveEmpl <- TownshipEmployment$Companies %>%
   group_by(ANZSIC06) %>%
   summarise(AveEmp = mean(EmployeeCount)) %>%
   mutate(Size = ifelse(between(AveEmp, 1, 5), "1 - 5",
@@ -669,8 +806,8 @@ NewAveEmpl <- TownshipEmployment %>%
 
 
 FullCompData <- bind_rows(OriginalAveEmpl, NewAveEmpl) %>%
-  mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50", "51 - 100", "101 - 150",
-                                      "> 150", "Other")))
+  mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+                                      "51 - 100", "101 - 150", "> 150", "Other")))
 
 CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -680,7 +817,7 @@ CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
 # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
 
 
-rm(TABLECODE7602, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps)
+rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps)
 
 # write out data frame examples below
 # saveRDS(Parents, "Parents.rds")
@@ -704,8 +841,7 @@ NotChildren <- Township %>%
 AllChildren <- Township %>%
   filter(Relationship == "NonPartnered", Age < 20)
 
-ParentHouseholds <- AddChildren(AllChildren, ChildIDCol = 3, ChildAgeCol = 4, NumChildren = 2,
-                              TwinRate = .2,
+ParentHouseholds <- AddChildren(AllChildren, ChildIDCol = 3, ChildAgeCol = 4, NumChildren = 2,TwinRate = .2,
                               NotChildren, ParentIDCol = 3, ParentAgeCol = 4, MinParentAge = 18, MaxParentAge = 54,
                               HouseholdIDCol = 6, UserSeed = 4)
 
