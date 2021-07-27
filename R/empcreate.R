@@ -212,7 +212,17 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
   if(exists("OvercountEmployers")) {
 
     OvercountEmployers <- OvercountEmployers %>%
-      rename(!!empnumcolName :=CompanyCts, !!staffnumcolName := StaffCts)
+      rename(!!empnumcolName :=CompanyCts, !!staffnumcolName := StaffCts,
+             !!emptypecolName := CompanyCode)
+
+  }
+
+  if(exists("Nocounts")) {
+
+    Nocounts <- Nocounts %>%
+      rename(!!empnumcolName :=CompanyCts, !!staffnumcolName := StaffCts,
+             !!emptypecolName := CompanyCode)
+
   }
 
   # if(exists("Nocounts")) {
