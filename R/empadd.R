@@ -7,6 +7,8 @@
 #' @param empid The column number for the employer ID.
 #' @param empcount The column number that provides the number of employees for each employer.
 #' @param workers A data frame containing the people that must be matched to employers.
+#' @param hourscol The column number containing the hours worked by each person Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
+#' @param hoursmin The relevant factor level/number from hourscol representing the workers. Anything lower than this level/number will be treated as unemployed.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return
@@ -19,7 +21,7 @@
 #'
 #' TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
 
-empadd <- function(employers, empid, empcount, workers, maxfill = 1, userseed = NULL) {
+empadd <- function(employers, empid, empcount, workers, hourscol, hoursmin, userseed = NULL) {
 
   # expand the employers to one row per employee
 
