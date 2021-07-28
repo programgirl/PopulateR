@@ -267,16 +267,31 @@ OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
 
 
 ########################################################### ##
-# expand employers
+# create employers
 ########################################################### #
 library("dplyr")
 
 TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
 
-TheCompanies <- TownshipEmployment$Companies
+########################################################### ##
+# allocate employers to employees
+########################################################### #
+
+library("dplyr")
+
+EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5,
+                         hoursmin = 2, userseed = 4)
+
 
 ########################################################### ##
 # social networks
 ########################################################### #
 
-TownshipNetworks <- SocialNetworks(NetworkSizes, IDCol = 3, AgeCol = 4, HouseholdCol = 6, NetworkCol = 6, SDUsed = 2, UserSeed = 4)
+# TownshipNetworks <- SocialNetworks(NetworkSizes, IDCol = 3, AgeCol = 4, HouseholdCol = 6, NetworkCol = 6,
+#                                    SDUsed = 2, UserSeed = 4)
+
+NetworksMade <- socnet(Networks, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
+                       probsame = .5, #NetworkVariable = NULL,
+                       userseed=4,
+                       #pValueToStop=NULL,
+                       NumIterations=5000)

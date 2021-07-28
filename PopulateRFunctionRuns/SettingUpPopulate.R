@@ -724,21 +724,6 @@ Tablecode7602 <- read_csv("DataForPopsim/newdownload/TABLECODE7602_Data_c80a8f15
 # remove rows that are totals, this will be painful
 Tablecode7602fixed <- Tablecode7602 %>%
   select(-c(Year, Area)) %>%
-  filter(!(ANZSIC06 %in% c("A Agriculture, Forestry and Fishing", "A01 Agriculture", "A02 Aquaculture",
-                           "A03 Forestry and Logging", "A04 Fishing, Hunting and Trapping",
-                           "A05 Agriculture, Forestry and Fishing Support Services",
-                           "B Mining", "B06 Coal Mining", "B08 Metal Ore Mining",
-                           "B09 Non-Metallic Mineral Mining and Quarrying",
-                           "B10 Exploration and Other Mining Support Services",
-                           "C Manufacturing", "C11 Food Product Manufacturing",
-                           "C12  Beverage and Tobacco Product Manufacturing",
-                           "C13 Textile, Leather, Clothing and Footwear Manufacturing",
-                           "C14 Wood Product Manufacturing",
-                           "C15 Pulp, Paper and Converted Paper Product Manufacturing",
-                           "C16 Printing", "")))
-
-Tablecode7602fixed <- Tablecode7602 %>%
-  select(-c(Year, Area)) %>%
   filter(str_detect(ANZSIC06, "^[a-zA-Z][0-9]{3}"))
 
 Tablecode7602probs <- Tablecode7602 %>%
@@ -820,6 +805,8 @@ library("ggplot2")
 
 #######
 # by employer
+library("ggplot2")
+
 AveEmpCount <- TownshipEmployment$Companies %>%
   mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
                 ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
@@ -837,7 +824,7 @@ AveEmpCount <- TownshipEmployment$Companies %>%
 CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
   geom_bar(stat = "identity", fill = "#5e3c99") +
   coord_cartesian(ylim = c(0, .8)) +
-  labs(x="Number of employers per company", y = "Proportion of companies") +
+  labs(x="Number of employees per company", y = "Proportion of companies") +
   theme(text = element_text(size = 18))
 
 # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
@@ -852,41 +839,177 @@ rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, Original
 # KidsForSchools <- readRDS("KidsForSchools.rds")
 
 
+
+####################################
+# Add employers
+#####################################
+
+library("dplyr")
+
+# extract a subset of employers
+
+# how many employed in Township?
+table(Township$HoursWorked)
+#10000-4770 = 5230
+# therefore need employers that can employ at least 5230 employees
+# USES THE DATA OUTPUT FROM THE TOWNSHIPEMPLOYMENT EXAMPLE
+# TheCompanies <- TownshipEmployment$Companies
+#
+# A014 <- TheCompanies %>%
+#   filter(ANZSIC06 == "A014 Sheep, Beef Cattle and Grain Farming")
+
+set.seed(4)
+EmployerSet <- TownshipEmployment$Companies %>%
+  slice_sample(weight_by = EmployeeCount, n = 225)
+
+sum(EmployerSet$EmployeeCount)
+
+save(EmployerSet, file = "data/EmployerSet.RData")
+
 ####################################
 # Social networks
-#####################################
-set.seed(4)
-NotChildren <- Township %>%
-  filter(Relationship == "Partnered", Age > 18) %>%
-  group_by(Sex) %>%
-  slice_sample(n = 1000) %>%
-  ungroup() %>%
-  mutate(HouseholdID = row_number()+500)
+# #####################################
+# set.seed(4)
+# NotChildren <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   group_by(Sex) %>%
+#   slice_sample(n = 1000) %>%
+#   ungroup() %>%
+#   mutate(HouseholdID = row_number()+500)
+#
+# AllChildren <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20)
+#
+#
+#
+#
+# ParentHouseholds <- childrenyes(AllChildren, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .2,
+#                               NotChildren, paridcol = 3, paragecol = 4, minparage = 18,
+#                               maxparage = 54, hhidcol = 6, UserSeed = 4)
+#
+# ParentsMatched <- ParentHouseholds$Matched
+#
+# LeftOvers <- Township %>%
+#   filter(!(ID %in% c(ParentsMatched$ID)))
+#
+# LeftOverPartneredF <- LeftOvers %>%
+#   filter(Relationship == "Partnered" & Sex=="Female")
+# LeftOverPartneredM <- LeftOvers %>%
+#   filter(Relationship == "Partnered" & Sex=="Male")
+#
+# ParentFWithChildren <- ParentsMatched %>%
+#   filter(Sex== "Female" & Relationship == "Partnered" & Age > 18)
+# ParentMWithChildren <- ParentsMatched %>%
+#   filter(Sex== "Male" & Relationship == "Partnered" & Age > 18)
+#
+# CouplesFbase <- otheryes(ParentFWithChildren, exsidcol = 3, exsagecol = 4, hhidcol = 6,
+#                          LeftOverPartneredM, addidcol = 3, addagecol = 4, numppl = 1, sdused = 3,
+#                          userseed=4, ptostop = .01, numiters = 5000)
+#
+# CouplesMbase <- otheryes(ParentMWithChildren, exsidcol = 3, exsagecol = 4, hhidcol = 6,
+#                          LeftOverPartneredF, addidcol = 3, addagecol = 4, numppl = 1, sdused = 3,
+#                          userseed=4, ptostop = .01, numiters = 5000)
+#
+# Families <- bind_rows(CouplesFbase$Matched, CouplesMbase$Matched)
+#
+# ChildrenMatched <- ParentsMatched %>%
+#   filter(!(ID %in% c(Families$ID)))
+#
+# Families <- bind_rows(Families, ChildrenMatched)
+#
+# TownshipNetworks <- Township %>%
+#   mutate(NetworkSize = rpois(nrow(.), lambda = 4))
 
-AllChildren <- Township %>%
-  filter(Relationship == "NonPartnered", Age < 20)
+MaleToCouple <- Township %>%
+  filter(Relationship == "Partnered", Age > 19, Sex == "Male")
 
-ParentHouseholds <- AddChildren(AllChildren, ChildIDCol = 3, ChildAgeCol = 4, NumChildren = 2,TwinRate = .2,
-                              NotChildren, ParentIDCol = 3, ParentAgeCol = 4, MinParentAge = 18, MaxParentAge = 54,
-                              HouseholdIDCol = 6, UserSeed = 4)
+FemaleToCouple <- Township %>%
+  filter(Relationship == "Partnered", Age > 19, Sex == "Female")
 
-LeftOvers <- Township %>%
-  filter(!(ID %in% c(ParentHouseholds$ID)))
+TCouples <-couples(FemaleToCouple, smlidcol=3, smlagecol=4, MaleToCouple, lrgidcol=3,
+            lrgagecol=4, directxi=-2, directomega=3, alphaused=0, hhidstart = 1,
+            hhidvar="Household", UserSeed=4, ptostop=.01, numiters=1000000)
 
-LeftOverPartneredF <- LeftOvers %>%
-  filter(Relationship == "Partnered" & Sex=="Female")
-LeftOverPartneredM <- LeftOvers %>%
-  filter(Relationship == "Partnered" & Sex=="Male")
+Parents <- TCouples$Matched
 
-ParentFWithChildren <- ParentHouseholds %>%
-  filter(Sex== "Female" & Relationship == "Partnered" & Age > 18)
-ParentMWithChildren <- ParentHouseholds %>%
-  filter(Sex== "Male" & Relationship == "Partnered" & Age > 18)
+Children <- Township %>%
+    filter(Relationship == "NonPartnered", Age < 20)
 
+FemaleForChild <- Parents %>%
+  filter(Sex=="Female") %>%
+  slice_sample(n = 1000)
 
+MaleForChild <- Parents %>%
+  filter(Sex=="Male", !(Household %in% c(FemaleForChild$Household))) %>%
+  slice_sample(n = 110)
 
+PossibleParents <- bind_rows(FemaleForChild, MaleForChild)
 
-TownshipNetworks <- Township %>%
-  mutate(NetworkSize = rpois(nrow(.), lambda = 4))
+ParentsAndKids <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .1,
+                              PossibleParents, paridcol = 3, paragecol = 4, minparage = 22, maxparage = 56,
+                              hhidcol= 6, UserSeed=4)
 
-save(TownshipNetworks, file="data/NetworkSizes.RData")
+CompletedHH <- ParentsAndKids$Matched
+
+OtherPartToCouple <- Parents %>%
+  filter(Household %in% CompletedHH$Household,
+         !(ID %in% CompletedHH$ID))
+
+CompletedHH <- bind_rows(CompletedHH, OtherPartToCouple)
+
+RemainingAdultsInHH <- Parents %>%
+  filter(!(ID %in% CompletedHH$ID))
+
+# random extract half of them
+RemainingAinHHSample <- RemainingAdultsInHH %>%
+  group_by(Household) %>%
+  slice_sample(n = 1)
+
+RemainingKids <-  Township %>%
+  filter(ID %in% ParentsAndKids$Children$ID)
+
+ParentAndKids2 <- childyes(RemainingKids, chlidcol = 3, chlagecol = 4, RemainingAinHHSample, paridcol = 3,
+                           paragecol = 4, directxi = 30, directomega = 2, minparage = 22, maxparage = 56,
+                           hhidcol = 6, UserSeed=4)
+
+CompletedHH2 <- ParentAndKids2$Matched
+
+OtherPartToCouple2 <- Parents %>%
+  filter(Household %in% CompletedHH2$Household,
+         !(ID %in% CompletedHH2$ID))
+
+CompletedHH2 <- bind_rows(CompletedHH2, OtherPartToCouple2)
+
+AllCompletedHH <- bind_rows(CompletedHH, CompletedHH2)
+
+HHMissingPPl <- Parents %>%
+  filter(!(ID %in% AllCompletedHH$ID))
+
+AllCompletedHH <- bind_rows(AllCompletedHH, HHMissingPPl)
+
+RemainingPPl <- Township %>%
+  filter(!(ID %in% AllCompletedHH$ID))
+
+ThreePPl <- RemainingPPl %>%
+  slice_sample(n = 900)
+
+ThreepplHH <- otherno(ThreePPl, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3, hhidstart = 2320,
+                      hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
+
+RemainingPeople <- RemainingPPl %>%
+  filter(!(ID %in% ThreepplHH$Matched$ID))
+
+AllCompletedHH <- bind_rows(AllCompletedHH, ThreepplHH$Matched)
+
+TwoPPl <- RemainingPeople %>%
+  slice_sample(n = 700)
+
+TwopplHH <- otherno(TwoPPl, pplidcol = 3, pplagecol = 4, numppl = 2, sdused = 3, hhidstart = 2620,
+                      hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
+
+AllCompletedHH <- bind_rows(AllCompletedHH, TwopplHH$Matched)
+
+Networks <- AllCompletedHH %>%
+    mutate(NetworkSize = rpois(nrow(.), lambda = 4))
+
+save(Networks, file="data/NetworkSizes.RData")
