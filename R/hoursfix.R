@@ -61,6 +61,10 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
                               mutate(IntHours = as.integer(IntHours),
                                      InSchool = as.integer(InSchool)))
 
+  childrentest <- as.data.frame(adolescents %>%
+                                  rename(InSchool= !! statuscol,
+                                         IntHours = !! hourscol, IntID = !! adlidcol))
+
   # get the original variable names
 
   ChildrenIDColName <- sym(names(adolescents[adlidcol]))
@@ -75,7 +79,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
   # check if hourscol is an ordered factor or numeric
 
-  if (!(is.ordered(Children$IntHours)) == TRUE & !(is.numeric(Children$IntHours)) == TRUE) {
+  if (is.ordered(childrentest$IntHours) == FALSE &
+      is.numeric(childrentest$IntHours) == FALSE) {
 
     stop("Hours worked must be an ordered factor or numeric.")
   }
