@@ -68,9 +68,12 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   #####################################
 
   WorkingDataFrame <- people %>%
-    rename(ID = !! idcol, Age = !! agecol, Household = !! hhidcol,
+    rename(ID = !! idcol, Age = !! agecol,
+           #Household = !! hhidcol,
            Network = !! netsizecol) %>%
-    select(ID, Age, Household, Network)
+    select(ID, Age,
+           #Household,
+           Network)
 
   # check that we don't end up with one person needing a match and none to spare
 
@@ -125,7 +128,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # people:
   node_to_people <- 1:nrow(WorkingDataFrame)
   theages <- WorkingDataFrame$Age
-  thehouseholds <- WorkingDataFrame$Network
+  # thehouseholds <- WorkingDataFrame$Network
+
 
   # now we can put the ages on the network and plot it:
   # can add more than one attribute, see examples here
@@ -133,16 +137,26 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
   cat("First reference to network_clustered", "\n")
 
-  network_clustered %>%
-    igraph::set_vertex_attr("Age", value=theages[node_to_people]) %>%
-    igraph::set_vertex_attr("Household", value=thehouseholds[node_to_people])
-  plot()
+  ClusteredNetwork %>%
+    igraph::set_vertex_attr("Age", value=theages[node_to_people]) #%>%
+  #  igraph::set_vertex_attr("Household", value=thehouseholds[node_to_people])
+
+  # cat("Plot is below", "\n")
+  # plot()
+
+  # network_clustered %>%
+  #   igraph::set_vertex_attr("Age", value=theages[node_to_people]) # %>%
+  #   # igraph::set_vertex_attr("Household", value=thehouseholds[node_to_people])
+  # plot()
 
   # now, it'd be nice to work out the age differences as well
   # we do that by grabbing the edges in the graph as a matrix
   # of indices (which we'll then pass through node_to_people
   # to get to the people that each node corresponds to)
-  edges = get.edgelist(ClusteredNetwork)
+
+  cat("Now getting the edgelist", "\n")
+
+  edges = igraph::get.edgelist(ClusteredNetwork)
 
   # helper to get the age differences: The idea is that
   # we use the edges matrix (which has the vertex index of
@@ -150,7 +164,10 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # to map to the corresponding row in the people data frame
   # and then grab the age out of that. We then compute
   # the difference
-  get_Age_diff <- function(edges, node_to_people, Age) {
+
+  cat("Get the age difference function", "\n")
+
+  get_age_diff <- function(edges, node_to_people, Age) {
     # use the edges and node_to_people to lookup ages
     age1 = Age[node_to_people[edges[,1]]]
     age2 = Age[node_to_people[edges[,2]]]
@@ -158,19 +175,26 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   }
 
   # and they can't be in the same household
-  get_HHNum_diff <- function(edges, node_to_people, Household) {
-    Household1 = Household[node_to_people[edges[,1]]]
-    Household2 = Household[node_to_people[edges[,2]]]
-    Household1 - Household2
-  }
+  # get_HHNum_diff <- function(edges, node_to_people, Household) {
+  #   Household1 = Household[node_to_people[edges[,1]]]
+  #   Household2 = Household[node_to_people[edges[,2]]]
+  #   Household1 - Household2
+  # }
 
-  age_diff <- get_age_diff(edges, node_to_people, ages)
+  cat("get the age differences", "\n")
+
+  age_diff <- get_age_diff(edges, node_to_people, theages)
 
   cat("Second reference to network_clustered", "\n")
   # we could now plot that on the edges:
-  network_clustered %>%
-    set_vertex_attr("label", value=ages[node_to_people]) %>%
-    set_edge_attr("label", value=age_diff) %>%
+  # network_clustered %>%
+  #   set_vertex_attr("label", value=ages[node_to_people]) %>%
+  #   set_edge_attr("label", value=age_diff) %>%
+  #   plot()
+
+  ClusteredNetwork %>%
+    igraph::set_vertex_attr("label", value=theages[node_to_people]) %>%
+    igraph::set_edge_attr("label", value=age_diff) %>%
     plot()
 
   # right, now that we have the age difference, we could
@@ -182,6 +206,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   ss <- sum(age_diff^2)
   ss
 
+  cat("ss created", "\n")
   # now, we're going to swap which node represents which person
   # by shuffling the node_to_people vector.
 
@@ -205,6 +230,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   shift_vector <- function(x, n = 1) {
     if (n == 0) x else c(tail(x, -n), head(x, n))
   }
+
+  cat("Shift vector created", "\n")
 
   accept <- list() # this is just to store how often we accept a proposal
   for (i in 1:10000) { # lots of iterations
