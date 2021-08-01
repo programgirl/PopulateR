@@ -107,7 +107,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
                                         method="simple.no.multiple")
 
 
-  cat("Wirednetwork created", "\n")
+  # cat("Wirednetwork created", "\n")
   # now, get it so that the clustering is better
   current_clustering <- igraph::transitivity(WiredNetwork)
 
@@ -194,8 +194,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
   ClusteredNetwork %>%
     igraph::set_vertex_attr("label", value=theages[node_to_people]) %>%
-    igraph::set_edge_attr("label", value=age_diff) %>%
-    plot()
+    igraph::set_edge_attr("label", value=age_diff)
+    # plot()
 
   # right, now that we have the age difference, we could
   # optimise this through swapping. Assuming we want a
@@ -204,7 +204,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
   # we're starting with:
   ss <- sum(age_diff^2)
-  ss
+  # ss
 
   cat("ss created", "\n")
   # now, we're going to swap which node represents which person
@@ -247,7 +247,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
     proposed[swap] <- proposed[shift_vector(swap, shift)]
 
     # compute the age difference for this proposal
-    age_diff_prop <- get_age_diff(edges, proposed, ages)
+    age_diff_prop <- get_age_diff(edges, proposed, theages)
     # very crude here - just optimising sum of squares
     ss_prop <- sum(age_diff_prop^2)
     if (ss_prop < ss) {
@@ -260,18 +260,22 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
       # no swap
     }
 
-    print(i)
+    # print(i)
   }
   unlist(accept)
-  ss
+  # ss
 
   cat("Third reference to network_clustered", "\n")
 
   # plot with edge weights with differences and ages on nodes
-  network_clustered %>%
-    set_edge_attr("label", value=age_diff) %>%
-    set_vertex_attr("label", value=ages[node_to_people]) %>%
-    plot()
+  # network_clustered %>%
+  #   set_edge_attr("label", value=age_diff) %>%
+  #   set_vertex_attr("label", value=theages[node_to_people]) %>%
+  #   plot()
+
+  ClusteredNetwork %>%
+    igraph::set_edge_attr("label", value=age_diff) %>%
+    igraph::set_vertex_attr("label", value=theages[node_to_people])
 
   # TODO: from here you can dump out the data to whatever format you like.
   # key thing to note is that node_to_people is the map from vertices
@@ -279,7 +283,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
 
 
-  return(OutputDataframe)
+  return(ClusteredNetwork)
 }
 
 

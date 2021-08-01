@@ -114,8 +114,8 @@ SocialNetworks <- function(People, IDCol=NULL, AgeCol=NULL, HouseholdCol=NULL, N
   # https://rdrr.io/cran/igraph/src/R/attributes.R
 
   network_clustered %>%
-    set_vertex_attr("Age", value=theages[node_to_people]) %>%
-    set_vertex_attr("Household", value=thehouseholds[node_to_people])
+    set_vertex_attr("Age", value=theages[node_to_people])# %>%
+    # set_vertex_attr("Household", value=thehouseholds[node_to_people])
     plot()
 
   # now, it'd be nice to work out the age differences as well
