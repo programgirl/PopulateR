@@ -68,12 +68,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   #####################################
 
   WorkingDataFrame <- people %>%
-    rename(ID = !! idcol, Age = !! agecol,
-           #Household = !! hhidcol,
-           Network = !! netsizecol) %>%
-    select(ID, Age,
-           #Household,
-           Network)
+    rename(ID = !! idcol, Age = !! agecol,Network = !! netsizecol) %>%
+    select(ID, Age,Network)
 
   # check that we don't end up with one person needing a match and none to spare
 
@@ -99,7 +95,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
     WorkingDataFrame <- bind_rows(WorkingDataFrame, PersonToAdd1To)
   }
-  people <- data.frame(ID = 1:20, Age = round(rnorm(20, mean=40, sd=10)))
+  # people <- data.frame(ID = 1:20, Age = round(rnorm(20, mean=40, sd=10)))
 
 
   # construct a graph with this degree distribution
@@ -128,18 +124,17 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # people:
   node_to_people <- 1:nrow(WorkingDataFrame)
   theages <- WorkingDataFrame$Age
-  # thehouseholds <- WorkingDataFrame$Network
+  theIDs <- WorkingDataFrame$ID
 
 
   # now we can put the ages on the network and plot it:
   # can add more than one attribute, see examples here
   # https://rdrr.io/cran/igraph/src/R/attributes.R
 
-  cat("First reference to network_clustered", "\n")
+  # cat("First reference to network_clustered", "\n")
 
   ClusteredNetwork %>%
-    igraph::set_vertex_attr("Age", value=theages[node_to_people]) #%>%
-  #  igraph::set_vertex_attr("Household", value=thehouseholds[node_to_people])
+    igraph::set_vertex_attr("Age", value=theages[node_to_people])
 
   # cat("Plot is below", "\n")
   # plot()
@@ -154,7 +149,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # of indices (which we'll then pass through node_to_people
   # to get to the people that each node corresponds to)
 
-  cat("Now getting the edgelist", "\n")
+  # cat("Now getting the edgelist", "\n")
 
   edges = igraph::get.edgelist(ClusteredNetwork)
 
@@ -165,7 +160,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # and then grab the age out of that. We then compute
   # the difference
 
-  cat("Get the age difference function", "\n")
+  # cat("Get the age difference function", "\n")
 
   get_age_diff <- function(edges, node_to_people, Age) {
     # use the edges and node_to_people to lookup ages
@@ -174,18 +169,11 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
     age1 - age2
   }
 
-  # and they can't be in the same household
-  # get_HHNum_diff <- function(edges, node_to_people, Household) {
-  #   Household1 = Household[node_to_people[edges[,1]]]
-  #   Household2 = Household[node_to_people[edges[,2]]]
-  #   Household1 - Household2
-  # }
-
-  cat("get the age differences", "\n")
+  # cat("get the age differences", "\n")
 
   age_diff <- get_age_diff(edges, node_to_people, theages)
 
-  cat("Second reference to network_clustered", "\n")
+  # cat("Second reference to network_clustered", "\n")
   # we could now plot that on the edges:
   # network_clustered %>%
   #   set_vertex_attr("label", value=ages[node_to_people]) %>%
@@ -231,7 +219,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
     if (n == 0) x else c(tail(x, -n), head(x, n))
   }
 
-  cat("Shift vector created", "\n")
+  # cat("Shift vector created", "\n")
 
   accept <- list() # this is just to store how often we accept a proposal
   for (i in 1:10000) { # lots of iterations
@@ -265,7 +253,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   unlist(accept)
   # ss
 
-  cat("Third reference to network_clustered", "\n")
+  # cat("Third reference to network_clustered", "\n")
 
   # plot with edge weights with differences and ages on nodes
   # network_clustered %>%
@@ -275,12 +263,11 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
 
   ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
-    igraph::set_vertex_attr("label", value=theages[node_to_people])
+    igraph::set_vertex_attr("label", value=theIDs[node_to_people])
 
   # TODO: from here you can dump out the data to whatever format you like.
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
-
 
 
   return(ClusteredNetwork)
