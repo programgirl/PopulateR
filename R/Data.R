@@ -58,7 +58,7 @@
 #'
 #' Four person households, one parent and three children, with school status recorded
 #'
-#' A data frame of households, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
+#' A dataset of households, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
 #'
 #' @format A data frame of 3,080 rows and 8 variables
 #' \describe{
@@ -88,7 +88,7 @@
 #' "LeftSchool"
 #'
 #'
-#'#' Mock households with a network size for each person
+#' Households with a network size for each person
 #'
 #' A dataset developed from the Township dataset in the package. Contains realistic household structures.
 #'
@@ -118,11 +118,11 @@
 #' "RegionalStructure"
 #'
 #'
-#' Synthetic people in relationships in Timari District
+#' People in relationships in Timaru District
 #'
 #' A dataset produced from combining aggregate 2018 census data, using tablecodes 8277 and 8395, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A data frame with 46,293 rows and 6 variables
+#' @format A tibble with 46,293 rows and 6 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Age.group}{Age group in five-year bands}
@@ -132,6 +132,20 @@
 #'     \item{ID}{The unique identifier for the person}
 #' }
 #' "Relationships"
+#'
+#' Subset of schools and their roll counts in the Canterbury Region, 2018
+#'
+#' A subset tibble constructed from CRSchools, in order to restrict roll counts. Total school roll counts for female and male students have been removed.
+#'
+#' @format A tibble with 266 rows and 5 variables
+#' \describe{
+#'    \item{School.ID}{The numeric ID for the school}
+#'    \item{School.Name}{The name for the school}
+#'    \item{Gender}{Indicator of whether the school is (C)o-ed, (f)emale-only, or (M)ale-only}
+#'    \item{AgeInRoll}{The number of students that age in the school's roll}
+#'    \item{RollCount}{The number of students for that school and age combination, at that school. 0 if no students that age attend.}
+#' }
+#' "SchoolsToUse"
 #'
 #'
 #' Sex/age pyramid data for Timaru District
@@ -163,9 +177,26 @@
 #' "Township"
 #'
 #'
+#'People with a school indicator
+#'
+#' A modified version of "Township" data frame with a school indicator variable added. An ordered factor for hours worked per week has also been added.
+#'
+#' @format A data frame with 10,000 rows and 8 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Age.group}{The age group of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#'     \item{OrderedHours}{HoursWorked re-expressed as an ordered factor}
+#'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
+#' }
+#' "WithSchoolInd"
+#'
 #' Adolescents with a school stats and employment hours
 #'
-#' A dataset of synthetic people aged between 15 and 24, produced bycombining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
+#' A dataset of synthetic people aged between 15 and 24, produced by combining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame of 1,079 observations and 6 variables
 #' \describe{
@@ -174,6 +205,6 @@
 #'     \item{ID}{The unique identifier for the person}
 #'     \item{Age}{Age of the person}
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#'     \item{SchoolStatus}{Whether the person is attending school}
+#'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
 #' }
 #' "WorkingAdolescents"

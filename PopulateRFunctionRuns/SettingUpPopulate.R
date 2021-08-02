@@ -116,7 +116,7 @@ Ages <- read_csv("DataForPopsim/TABLECODE8277_Data_42129480-9594-4698-9413-074dc
                  col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip(),
                                   `Ethnic group` = col_skip()))
 
-SingleAges <- Ages %>%
+SingleAges <- data.frame(Ages %>%
   filter(!(`Age group` == "Median age")) %>%
   rename(Age.group = `Age group`) %>%
  # mutate(Age = as.numeric(sub("([0-9]+).*$", "\\1", `Age group`)))
@@ -130,7 +130,7 @@ SingleAges <- Ages %>%
                                                                 ifelse(Age.group=="Seven years", 7,
                                                                        ifelse(Age.group=="Eight years", 8,
                                                                               ifelse(Age.group=="Nine years", 9,
-                                                                                     as.numeric(sub("([0-9]+).*$", "\\1", Age.group)))))))))))))
+                                                                                     as.numeric(sub("([0-9]+).*$", "\\1", Age.group))))))))))))))
 
 
 DisaggregateAge <- AgeStructure(Relationships, IndividualSxCol = 1, MinimumAgeCol = 4,
@@ -333,8 +333,9 @@ CRAgePyramid <- read_csv("DataForPopsim/TABLECODE8277_Data_c73b5677-7dbe-4119-a2
                          col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip(),
                                           `Ethnic group` = col_skip()))
 
-RegionalStructure <- CRAgePyramid %>%
-  mutate(Age = as.numeric(sub("([0-9]+).*$", "\\1", `Age group`)))
+RegionalStructure <- data.frame(CRAgePyramid %>%
+  mutate(Age = as.numeric(sub("([0-9]+).*$", "\\1", `Age group`))))
+
 save(RegionalStructure, file = "data/RegionalStructure.RData")
 
 # need to save Regional Structure
