@@ -300,3 +300,5 @@ NetworksMadeO <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, netsizecol =
 library(igraph)
 
 summary(NetworksMade)
+
+

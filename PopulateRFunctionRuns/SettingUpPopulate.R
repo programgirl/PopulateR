@@ -1017,3 +1017,6 @@ Networks <- AllCompletedHH %>%
     mutate(NetworkSize = rpois(nrow(.), lambda = 4))
 
 save(Networks, file="data/NetworkSizes.RData")
+
+# so I could push the small subset to GitHub for Jonathan to see.
+save(subset, file = "data/subset.RData")
