@@ -289,13 +289,13 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
 library("dplyr")
 
 NetworksMade <- socnet(Networks, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
-                       probsame = .5, userseed=4, NumIterations=5000)
+                       probsame = .5, userseed=4, NumIterations=5000, usematrix = "Y")
 
 subset <- Networks %>%
-  slice_sample(n = 100)
+  slice_sample(n = 40)
 
-NetworksMade <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
-                       probsame = .5, userseed=4, NumIterations=5000)
+NetworksMadeO <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
+                       probsame = .5, userseed=4, NumIterations=5000, usematrix = "N")
 
 library(igraph)
 

@@ -25,6 +25,7 @@
 #' @param probsame The probability that a friend of a friend is an edge. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "Y".
 #'
 #' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
 #'
@@ -38,10 +39,8 @@
 #' ExampleOutput <- OppositeSex(Recipients, Recipientidcol=1, Recipientagecol=2, Donors, Donoridcol=1, Donoragecol=2, DirectXi=-2, DirectOmega=4,
 #'                               AlphaUsed=5, userseed=NULL, pValueToStop=.001, NumIterations=1000, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds")
 
-socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsame = .5, #NetworkVariable = NULL,
-                   userseed=NULL,
-                   #pValueToStop=NULL,
-                   NumIterations=1000000) {
+socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsame = .5, userseed=NULL,
+                   NumIterations=1000000, usematrix = "Y") {
 
   options(dplyr.summarise.inform=F)
 
@@ -261,16 +260,24 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   #   set_vertex_attr("label", value=theages[node_to_people]) %>%
   #   plot()
 
-  ClusteredNetwork %>%
+  ClusteredNetwork <- ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
-     igraph::set_vertex_attr("label", value=theages[node_to_people])
+     igraph::set_vertex_attr("label", value=theIDs[node_to_people])
 
   # TODO: from here you can dump out the data to whatever format you like.
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
 
+ if (!(usematrix) == "Y") {
 
-  return(ClusteredNetwork)
+   return(ClusteredNetwork)
+
+ } else {
+
+  return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
+ }
+
+
 }
 
 
