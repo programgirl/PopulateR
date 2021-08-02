@@ -20,20 +20,65 @@
 #' @format A data frame of 209 rows and 3 variables
 #' \describe{
 #'     \item{ANZSIC06}{The code and associated name for each industry}
-#'     \item{BusinessCount}{The random-rounded count of employers in each industry}
-#'     \item{EmployeeCount}{The random-rounded count of employees in each industry}
+#'     \item{BusinessCount}{The random-rounded count of employers in the industry}
+#'     \item{EmployeeCount}{The random-rounded count of employees in the industry}
 #'}
 #'"AllEmployers"
 #'
 #'
+#'School rolls in the Canterbury Region, 2018
 #'
+#' A dataset produced from the official statistics of school rolls produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
+#'
+#' @format A tibble of 4,046 rows and 7 columns
+#'\describe{
+#'    \item{School.ID}{The numeric ID for the school}
+#'    \item{School.Name}{The name for the school}
+#'    \item{Gender}{Indicator of whether the school is (C)o-ed, (f)emale-only, or (M)ale-only}
+#'    \item{Female}{The count of female students for the school, total. 0 if single-sex school for opposite sex}
+#'    \item{Male}{The count of male students for the school, total. 0 if single-sex school for opposite sex}
+#'    \item{AgeInRoll}{The number of students that age in the school's roll}
+#'    \item{RollCount}{The number of students for that school and age combination, at that school. 0 if no students that age attend.}
+#'}
+#'"CRSchools"
+#'
+#'
+#' Synthetic employers and their employee counts
+#'
+#' A synthetic set of employers and their associated number of employees, randomly constructed from "AllEmployers". This is a subset of all possible employers.
+#'
+#' @format A tibble of 225 rows and 3 variables
+#' \describe{
+#'     \item{ANZSIC06}{The code and associated name for the industry associated with the employer}
+#'     \item{EmployeeCount}{The count of employees for the employer}
+#'     \item{CompanyName}{The name of the employer}
+#' }
+#' "EmployerSet"
+#'
+#'
+#' Four person households, one parent and three children, with school status recorded
+#'
+#' A data frame of households, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
+#'
+#' @format A data frame of 3,080 rows and 8 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
+#'     \item{HouseholdID}{The household identifier for the person}
+#'     \item{SexCode}{Sex, limited to the first letter}
+#' }
+#' "IntoSchools"
 #'
 #'
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
 #' A dataset produced from the official statistics of school leavers produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A data frame with 120 rows and 4 variables
+#' @format A tibble with 120 rows and 4 variables
 #' \describe{
 #'     \item{YearLeft}{The year for the school leaver count}
 #'     \item{Sex}{The sex for the school leaver count}
