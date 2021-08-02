@@ -286,12 +286,17 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
 ########################################################### ##
 # social networks
 ########################################################### #
-
-# TownshipNetworks <- SocialNetworks(NetworkSizes, IDCol = 3, AgeCol = 4, HouseholdCol = 6, NetworkCol = 6,
-#                                    SDUsed = 2, UserSeed = 4)
+library("dplyr")
 
 NetworksMade <- socnet(Networks, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
-                       probsame = .5, #NetworkVariable = NULL,
-                       userseed=4,
-                       #pValueToStop=NULL,
-                       NumIterations=5000)
+                       probsame = .5, userseed=4, NumIterations=5000)
+
+subset <- Networks %>%
+  slice_sample(n = 100)
+
+NetworksMade <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, netsizecol = 7, sdused=2,
+                       probsame = .5, userseed=4, NumIterations=5000)
+
+library(igraph)
+
+summary(NetworksMade)

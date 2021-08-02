@@ -389,28 +389,32 @@ OriginalGraph <- ggplot(Original, aes(x=HoursWorked, y = freq,
                                       fill = SchoolStatus)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
-  coord_cartesian(ylim = c(0, .7)) +
+  coord_cartesian(ylim = c(0, .8)) +
   labs(x="Hours worked per week", y = "Proportion of 15-24 year olds",
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
-  theme(text = element_text(size = 20))
+  theme(text = element_text(size = 18),
+        plot.margin = unit(c(1,0,0,0), "cm"))
 
 FixedGraph <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
                                 fill = SchoolStatus)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
-  coord_cartesian(ylim = c(0, .7)) +
+  coord_cartesian(ylim = c(0, .8)) +
   labs(x="Hours worked per week", y = "Proportion of 15-24 year olds",
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
-  theme(text = element_text(size = 20))
+  theme(text = element_text(size = 18),
+        plot.margin = unit(c(1,0,0,0), "cm"))
 
 BothPlots <- cowplot::plot_grid(OriginalGraph + theme(legend.position = "none"),
                                 FixedGraph + theme(legend.position = "none"),
-                                labels = c("Original", "Fixed"),
-                                align = "h")
+                                labels = c("Original", "Adjusted"),
+                                label_size = 16,
+                                align = "h",
+                                hjust = -2)
 
 BothPlotsLegend <- cowplot::get_legend(OriginalGraph +
                                          guides(color = guide_legend(nrow = 1)) +
