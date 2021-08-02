@@ -107,7 +107,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   # now, get it so that the clustering is better
   current_clustering <- igraph::transitivity(WiredNetwork)
 
-  target_clustering <- 0.5 # P(triads | length 3 path)
+  target_clustering <- probsame # P(triads | length 3 path)
 
 
   # https://github.com/cwatson/brainGraph/pull/26
@@ -194,7 +194,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   ss <- sum(age_diff^2)
   # ss
 
-  cat("ss created", "\n")
+  # cat("ss created", "\n")
   # now, we're going to swap which node represents which person
   # by shuffling the node_to_people vector.
 
@@ -262,8 +262,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
   #   plot()
 
   ClusteredNetwork %>%
-    igraph::set_edge_attr("label", value=age_diff) %>%
-    igraph::set_vertex_attr("label", value=theIDs[node_to_people])
+    # igraph::set_edge_attr("label", value=age_diff) %>%
+    igraph::set_vertex_attr("label", value=theIDs)
 
   # TODO: from here you can dump out the data to whatever format you like.
   # key thing to note is that node_to_people is the map from vertices
