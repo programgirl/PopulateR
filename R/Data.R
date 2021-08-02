@@ -1,8 +1,37 @@
+#' Mock people with no household identifiers
+#'
+#' A subset of people from the Township data frame, age 20 years and older with a relationship status of "NonPartnered".
+#'
+#' @format A data frame of 2,213 rows and 5 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#' }
+#'"AdultsNoID"
+#'
+#'
+#' A tibble of the number of employers and employees, by industry, in the Canterbury Region, 2018
+#'
+#' A dataset produced from tablecode 7602, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#'
+#' @format A data frame of 209 rows and 3 variables
+#' \describe{
+#'     \item{ANZSIC06}{The code and associated name for each industry}
+#'     \item{BusinessCount}{The random-rounded count of employers in each industry}
+#'     \item{EmployeeCount}{The random-rounded count of employees in each industry}
+#'}
+#'"AllEmployers"
+#'
+#'
+#'
+#'
+#'
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
-#' A dataset produced from the official statistics of school leavers produced by the Ministry of Education
-#' The Ministry of Education's data are licensed by the Ministry of Education for reuse under the
-#' Creative Commons Attribution 4.0 International licence
+#' A dataset produced from the official statistics of school leavers produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 120 rows and 4 variables
 #' \describe{
@@ -28,14 +57,11 @@
 #'     \item{Household}{The household identifier for the person}
 #'     \item{NetworkSize}{The number of people in that person's social network}
 #'}
-#' "Networks"
+#' "NetworkSizes"
 #'
 #' Sex/Age pyramid for the Canterbury Region, 2018
 #'
-#' A dataset produced from combining aggregate 2018 census datasets, using tablecode 8277,
-#' from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}.
-#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
-#' 4.0 International licence.
+#' A dataset produced from combining aggregate 2018 census datasets, using tablecode 8277, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 14 observations and 4 variables
 #' \describe{
@@ -49,10 +75,7 @@
 #'
 #' Synthetic people in relationships in Timari District
 #'
-#' A dataset produced from combining aggregate 2018 census data, using tablecodes 8277 and 8395,
-#' from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}.
-#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
-#' 4.0 International licence.
+#' A dataset produced from combining aggregate 2018 census data, using tablecodes 8277 and 8395, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 46,293 rows and 6 variables
 #' \describe{
@@ -65,12 +88,10 @@
 #' }
 #' "Relationships"
 #'
+#'
 #' Sex/age pyramid data for Timaru District
 #'
-#' A dataset produced from aggregate 2018 census data, using tablecode 8277,
-#' from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}.
-#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
-#' 4.0 International licence.
+#' A dataset produced from aggregate 2018 census data, using tablecode 8277, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 190 rows and 4 variables
 #' \describe{
@@ -84,10 +105,7 @@
 #'
 #' Random selection of 10,000 synthetic people in the Timaru District from the 2018 census
 #'
-#' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460
-#' from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}.
-#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
-#' 4.0 International licence.
+#' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 10,000 rows and 5 variables
 #' \describe{
@@ -101,12 +119,8 @@
 #'
 #'
 #' Adolescents with a school stats and employment hours
-#' A dataset of synthetic people aged between 15 and 24, produced bycombining the aggregate 2018 census
-#' datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education
-#' Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution
-#' 4.0 International licence.
-#' The Ministry of Education's data are licensed by the Ministry of Education for reuse under the
-#' Creative Commons Attribution 4.0 International licence
+#'
+#' A dataset of synthetic people aged between 15 and 24, produced bycombining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame of 1,079 observations and 6 variables
 #' \describe{
