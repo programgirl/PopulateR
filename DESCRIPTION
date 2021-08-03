@@ -14,8 +14,7 @@ Description: Creates data frames for synthetic data. These are used in microsimu
 Depends: R (>= 4.0.5)
 Imports: dplyr,
          sn,
-         tidyr,
-         truncdist
+         tidyr
 Remotes: github::jmarshallnz/brainGraph
 License: GPL (>=3)
 Encoding: UTF-8
