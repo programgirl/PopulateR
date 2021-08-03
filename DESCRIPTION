@@ -16,6 +16,7 @@ Imports: dplyr,
          sn,
          truncdist,
          tidyr
+Remotes: github::jmarshallnz/brainGraph
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true

@@ -1017,7 +1017,7 @@ AllCompletedHH <- bind_rows(AllCompletedHH, TwopplHH$Matched)
 Networks <- AllCompletedHH %>%
     mutate(NetworkSize = rpois(nrow(.), lambda = 4))
 
-save(Networks, file="data/NetworkSizes.RData")
+save(Networks, file="data/Networks.RData")
 
 # so I could push the small subset to GitHub for Jonathan to see.
 save(subset, file = "data/subset.RData")
