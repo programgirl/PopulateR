@@ -8,7 +8,7 @@
 #' @param empid The column number for the employer ID.
 #' @param empcount The column number that provides the number of employees for each employer.
 #' @param workers A data frame containing the people that must be matched to employers.
-#' @wrkid The column number for the unique value that identifies unique people.
+#' @param wrkid The column number for the unique value that identifies unique people.
 #' @param hourscol The column number containing the hours worked by each person Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
 #' @param hoursmin The relevant factor level/number from hourscol representing the workers. Anything lower than this level/number will be treated as unemployed.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
