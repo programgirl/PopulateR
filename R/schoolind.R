@@ -221,7 +221,7 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
 
   WrongAged <- Children %>%
     filter(IntAge < minschage | IntAge > maxschage) %>%
-    mutate(Status = "No") %>%
+    mutate(Status = "N") %>%
     rename(!!ChildrenAgeColName := IntAge,
            !!ChildrenSexColName := IntSex)
 
