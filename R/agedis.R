@@ -21,7 +21,7 @@
 #' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
 #' pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", UserSeed = 4)
 
-agediss <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
+agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
                          pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", UserSeed = NULL)
 
 {
