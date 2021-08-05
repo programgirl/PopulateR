@@ -27,7 +27,9 @@ library(dplyr)
 
 AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
 
-
+# when a group is used
+AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
+                            UserSeed = 4)
 
 ########################################################### ##
 # same-sex couples
