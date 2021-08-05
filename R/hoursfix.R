@@ -319,11 +319,6 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       Children <- OriginalChildren %>%
         filter(TheGroups == as.character(GroupSum[g,1]))
 
-
-      return(Children)
-
-
-
     #####################################
     #####################################
     # split out the correctly assigned hours for school status
@@ -455,10 +450,19 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     }
 
 
+    if(exists("OutputDataFrame")) {
+
+      OutputDataFrame <- bind_rows(OutputDataFrame, CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
+
+    } else {
+
+      OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
+    }
+
     # closes for (g in 1:nrow(GroupSum))
     }
 
-    OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
+
 
     if (is.factor(adolescents[,statuscol]) == TRUE) {
 
@@ -488,7 +492,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     OutputDataFrame <- OutputDataFrame %>%
       rename(!!ChildrenIDColName := IntID,
              !!ChildrenStatusColName := InSchool,
-             !!ChildrenHoursColName := IntHours)
+             !!ChildrenHoursColName := IntHours,
+             !!ChildrenGroupsColName := TheGroups)
 
 
     return(OutputDataFrame)
