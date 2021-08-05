@@ -428,6 +428,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
       FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
+      cat("Length of FixedInWork is", nrow(FixedInWork), "\n")
+
       if(exists("WorkFixed") == TRUE) {
 
         #       cat("Enters this loop with", nrow(FixedInWork), "rows in the created data frame", "\n")
@@ -449,6 +451,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       # closes loop through the hours
     }
 
+    cat("Correct hours is", nrow(CorrectHours), "Fixed in school is", nrow(FixedInSchool), "work fixed is", nrow(WorkFixed),
+        "Mismatched working is", nrow(MismatchedWorking), "\n")
 
     if(exists("OutputDataFrame")) {
 

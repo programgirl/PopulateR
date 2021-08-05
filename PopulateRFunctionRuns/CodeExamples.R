@@ -31,6 +31,11 @@ AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hour
 AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
                             UserSeed = 4)
 
+# work out the problem people
+
+ProblemPpl <- AdolescentWork2 %>%
+  filter(duplicated(.[["ID"]]))
+
 ########################################################### ##
 # same-sex couples
 # females shown as example
