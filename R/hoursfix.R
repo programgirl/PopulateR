@@ -316,7 +316,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
     for (g in 1:nrow(GroupSum)) {
 
-      print(g)
+      # print(g)
       Children <- OriginalChildren %>%
         filter(TheGroups == as.character(GroupSum[g,1]))
 
@@ -429,7 +429,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
       FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
-      cat("Length of FixedInWork is", nrow(FixedInWork), "\n")
+      # cat("Length of FixedInWork is", nrow(FixedInWork), "\n")
 
       if(exists("WorkFixed") == TRUE) {
 
@@ -437,14 +437,14 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
         WorkFixed <- bind_rows(WorkFixed, FixedInWork)
 
-        cat("After being constructed earlier, Work fixed is", nrow(WorkFixed), "\n")
+        # cat("After being constructed earlier, Work fixed is", nrow(WorkFixed), "\n")
 
       } else {
 
         WorkFixed <- FixedInWork
 
 
-        cat("Work fixed is", nrow(WorkFixed), "\n")
+        # cat("Work fixed is", nrow(WorkFixed), "\n")
 
         # closes if loop for constructing adolescents with shorter hours
       }
@@ -457,8 +457,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       # closes loop through the hours
     }
 
-    cat("Correct hours is", nrow(CorrectHours), "Fixed in school is", nrow(FixedInSchool), "work fixed is", nrow(WorkFixed),
-        "Mismatched working is", nrow(MismatchedWorking), "\n")
+    # cat("Correct hours is", nrow(CorrectHours), "Fixed in school is", nrow(FixedInSchool), "work fixed is", nrow(WorkFixed),
+    #     "Mismatched working is", nrow(MismatchedWorking), "\n")
 
     if(exists("OutputDataFrame")) {
 
@@ -466,16 +466,17 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       OutputDataFrame <- OutputDataFrame %>%
         filter(!(IntID %in% c(WorkFixed$IntID)))
 
-      OutputDataFrame <- bind_rows(OutputDataFrame, CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
+      OutputDataFrame <- bind_rows(OutputDataFrame, CorrectHours, FixedInSchool, MismatchedWorking)
 
     } else {
 
-      OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
+      OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, MismatchedWorking)
     }
 
     # closes for (g in 1:nrow(GroupSum))
     }
 
+    OutputDataFrame <- bind_rows(OutputDataFrame, WorkFixed)
 
 
     if (is.factor(adolescents[,statuscol]) == TRUE) {
