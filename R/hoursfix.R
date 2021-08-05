@@ -203,6 +203,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
     FixedInWork <- bind_cols(SampleOfNotInSchool,SampledLongerHours)
 
+
       if(exists("WorkFixed") == TRUE) {
 
  #       cat("Enters this loop with", nrow(FixedInWork), "rows in the created data frame", "\n")
@@ -436,9 +437,14 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
         WorkFixed <- bind_rows(WorkFixed, FixedInWork)
 
+        cat("After being constructed earlier, Work fixed is", nrow(WorkFixed), "\n")
+
       } else {
 
         WorkFixed <- FixedInWork
+
+
+        cat("Work fixed is", nrow(WorkFixed), "\n")
 
         # closes if loop for constructing adolescents with shorter hours
       }
@@ -455,6 +461,10 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
         "Mismatched working is", nrow(MismatchedWorking), "\n")
 
     if(exists("OutputDataFrame")) {
+
+      # de-dup WorkFixed from those already in DF
+      OutputDataFrame <- OutputDataFrame %>%
+        filter(!(IntID %in% c(WorkFixed$IntID)))
 
       OutputDataFrame <- bind_rows(OutputDataFrame, CorrectHours, FixedInSchool, WorkFixed, MismatchedWorking)
 
