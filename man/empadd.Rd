@@ -40,3 +40,8 @@ This function creates a data frame of people and matching employers, if employed
 A numeric or ordered factor for working hours is required. The minimum value for being in employment must be specified. Anyone coded under this value will be treated as unemployed. Thus, pre-cleaning the population data frame is not required.
 The employer data frame can be either a summary in the form of the number of employees by employer. The other option is that each row represents a vacancy for an employee. Thus, an employer with 5 employees may be represented as either: a single row with an employee count of 5, or 5 rows with an employee count of 1 in each row.
 }
+\examples{
+library("dplyr")
+
+EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5, hoursmin = 2, userseed = 4)
+}

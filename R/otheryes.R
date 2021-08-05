@@ -20,7 +20,7 @@
 #'
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
 #'
-#' @example
+#' @examples
 #'
 #' AdultsID <- IntoSchools %>%
 #' filter(Age > 20)

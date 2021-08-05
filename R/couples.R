@@ -21,19 +21,19 @@
 #' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
 #'
 #' @examples
-# library(dplyr)
-#
-# set.seed(1)
-# PartneredFemales <- Township %>%
-#   filter(Sex == "Female", Relationship == "Partnered")
-# PartneredMales <- Township %>%
-#   filter(Sex == "Male", Relationship == "Partnered")
-#
-# partners females and males, using a normal distribution, with the females being younger by a mean of -2 and a standard deviation of 3
-# OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
-#                            PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
-#                            directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-#                            userseed = 4, ptostop=.01,  numiters=1000000)
+#' library(dplyr)
+#'
+#' set.seed(1)
+#' PartneredFemales <- Township %>%
+#'   filter(Sex == "Female", Relationship == "Partnered")
+#' PartneredMales <- Township %>%
+#'   filter(Sex == "Male", Relationship == "Partnered")
+#'
+#' # partners females and males, using a normal distribution, with the females being younger by a mean of -2 and a standard deviation of 3
+#' OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+#'                            PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+#'                            directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+#'                            userseed = 4, ptostop=.01,  numiters=1000000)
 
 
 couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NULL,

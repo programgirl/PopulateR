@@ -66,3 +66,9 @@ A numeric or ordered factor for school status is required. The smallest value/le
 The Schools data frame must be a summary in the form of counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used. School ID can be numeric or character. The function will return a data frame of the correct School ID type.
 The minimum and maximum school ages, followed by the achieved counts by sex for each school, are printed to the console.
 }
+\examples{
+library(dplyr)
+SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
+                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+                          UserSeed = 4)
+}

@@ -21,21 +21,21 @@
 #' @return A list of three data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
-# library(dplyr)
-# set.seed(1)
-# Parents <- Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 500) %>%
-#   mutate(HouseholdID = row_number()+500)
-#
-# Children <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20) %>%
-#   slice_sample(n = 200)
-#
-#
-# ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
-#                               directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                               maxparage = 54, hhidcol = 6, userseed = 4)
+#' library(dplyr)
+#' set.seed(1)
+#' Parents <- Township %>%
+#'   filter(Relationship == "Partnered", Age > 18) %>%
+#'   slice_sample(n = 500) %>%
+#'   mutate(HouseholdID = row_number()+500)
+#'
+#' Children <- Township %>%
+#'   filter(Relationship == "NonPartnered", Age < 20) %>%
+#'   slice_sample(n = 200)
+#'
+#'
+#' ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+#'                               directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#'                               maxparage = 54, hhidcol = 6, userseed = 4)
 
 childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,
                     alphaused=0, minparage = NULL, maxparage = NULL, hhidcol = NULL, userseed=NULL)

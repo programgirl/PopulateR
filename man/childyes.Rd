@@ -59,3 +59,20 @@ This function creates a data frame of child-parent/guardian pairs, based on a di
 Two data frames are required: one for children and one for potential parents.
 The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the parents data frame is not required.
 }
+\examples{
+library(dplyr)
+set.seed(1)
+Parents <- Township \%>\%
+  filter(Relationship == "Partnered", Age > 18) \%>\%
+  slice_sample(n = 500) \%>\%
+  mutate(HouseholdID = row_number()+500)
+
+Children <- Township \%>\%
+  filter(Relationship == "NonPartnered", Age < 20) \%>\%
+  slice_sample(n = 200)
+
+
+ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+                              directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+                              maxparage = 54, hhidcol = 6, userseed = 4)
+}
