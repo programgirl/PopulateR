@@ -13,6 +13,7 @@ hoursfix(
   statuscol = NULL,
   hourscol = NULL,
   hoursmax = NULL,
+  grpcol = NULL,
   UserSeed = NULL
 )
 }
@@ -26,6 +27,8 @@ hoursfix(
 \item{hourscol}{The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.}
 
 \item{hoursmax}{The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.}
+
+\item{grpcol}{The column number containing any grouping variable to be used. If this is used, the changes to the working hours will be performed using grouped data. Within-group totals for the working hours categories will be retained.}
 
 \item{UserSeed}{The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.}
 }

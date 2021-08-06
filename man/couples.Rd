@@ -62,3 +62,18 @@ This function creates a data frame of couples, based on a distribution of age di
 Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two.In this situation, a random subsample of the largedf data frame will be used.
 Both data frames must be restricted to only those people that will have a couples match performed.
 }
+\examples{
+library(dplyr)
+
+set.seed(1)
+PartneredFemales <- Township \%>\%
+  filter(Sex == "Female", Relationship == "Partnered")
+PartneredMales <- Township \%>\%
+  filter(Sex == "Male", Relationship == "Partnered")
+
+# partners females and males, using a normal distribution, with the females being younger by a mean of -2 and a standard deviation of 3
+OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+                           PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+                           directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                           userseed = 4, ptostop=.01,  numiters=1000000)
+}

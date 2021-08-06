@@ -16,10 +16,10 @@
 #' @return
 #' A data frame of the population, with an employer ID attached to each person. Unemployed people will have an employer ID of 0. All columns in the employers data frame, except for the employee counts, are included in the output data frame.
 #'
-#' @example
-#'library("dplyr")
+#' @examples
+#' library("dplyr")
 #'
-#'EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5, hoursmin = 2, userseed = 4)
+#' EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5, hoursmin = 2, userseed = 4)
 
 empadd <- function(employers, empid, empcount, workers, wrkid, hourscol, hoursmin, userseed = NULL) {
 

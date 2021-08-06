@@ -22,22 +22,22 @@
 #' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
-# library("dplyr")
-# set.seed(1)
-# # sample a combination of females and males to be parents
-# Parents <- Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 500)
-#
-# Children <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20) %>%
-#   slice_sample(n = 200)
-#
-# # match the children to the parents
-# # no ID on the parents
-# ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
-#                            directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                            maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
+#' library("dplyr")
+#' set.seed(1)
+#' # sample a combination of females and males to be parents
+#' Parents <- Township %>%
+#'   filter(Relationship == "Partnered", Age > 18) %>%
+#'   slice_sample(n = 500)
+#'
+#' Children <- Township %>%
+#'   filter(Relationship == "NonPartnered", Age < 20) %>%
+#'   slice_sample(n = 200)
+#'
+#' # match the children to the parents
+#' # no ID on the parents
+#' ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+#'                            directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#'                            maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
 
 
 childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol, directxi, directomega,

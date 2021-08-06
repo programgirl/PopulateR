@@ -20,26 +20,26 @@
 #' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
-# library(dplyr)
-# library("dplyr")
-# set.seed(1)
-# Parents <- Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 500) %>%
-#   mutate(HouseholdID = row_number()+500)
-#
-# Children <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20) %>%
-#   slice_sample(n = 400)
-#
-# # example with assigning two children to a parent
-# # the same number of children is assigned to all parents
-# # adding two children to each parent
-#
-# ChildrenMatchedID <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 5,
-#                      twinrate = .2, Parents, paridcol = 3, paragecol = 4,
-#                      minparage = 18, maxparage = 54, hhidcol = 6,
-#                      UserSeed = 4)
+#' library(dplyr)
+#' library("dplyr")
+#' set.seed(1)
+#' Parents <- Township %>%
+#'   filter(Relationship == "Partnered", Age > 18) %>%
+#'   slice_sample(n = 500) %>%
+#'   mutate(HouseholdID = row_number()+500)
+#'
+#' Children <- Township %>%
+#'   filter(Relationship == "NonPartnered", Age < 20) %>%
+#'   slice_sample(n = 400)
+#'
+#' # example with assigning two children to a parent
+#' # the same number of children is assigned to all parents
+#' # adding two children to each parent
+#'
+#' ChildrenMatchedID <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 5,
+#'                      twinrate = .2, Parents, paridcol = 3, paragecol = 4,
+#'                      minparage = 18, maxparage = 54, hhidcol = 6,
+#'                      UserSeed = 4)
 
 
 
