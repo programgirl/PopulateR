@@ -19,7 +19,7 @@
 #' @param people A data frame containing people to be matched to each other using social networks.
 #' @param idcol The column number for each person's unique ID.
 #' @param agecol The column number for the age variable.
-#' @param hhidcol The column number for each person's household.
+#' @param netmax A data frame containing the 1-dimensional matrix of network sizes. Must contain only integers and be the same length as the people data frame.
 #' @param netsizecol The column number for the network size.
 #' @param sdused The standard deviation for the age differences between two people on an edge.
 #' @param probsame The probability that a friend of a friend is an edge. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
@@ -39,7 +39,7 @@
 #' ExampleOutput <- OppositeSex(Recipients, Recipientidcol=1, Recipientagecol=2, Donors, Donoridcol=1, Donoragecol=2, DirectXi=-2, DirectOmega=4,
 #'                               AlphaUsed=5, userseed=NULL, pValueToStop=.001, NumIterations=1000, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds")
 
-socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsame = .5, userseed=NULL,
+socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = .5, userseed=NULL,
                    NumIterations=1000000, usematrix = "Y") {
 
   options(dplyr.summarise.inform=F)
@@ -52,13 +52,14 @@ socnet <- function(people, idcol, agecol, hhidcol, netsizecol, sdused=0, probsam
     stop("The age column number must be supplied.")
   }
 
-  if (!is.numeric(netsizecol)) {
-    stop("The network size column number must be supplied.")
+  if (!(netmax == nrow(people))) {
+    stop("The network matrix must be the same length as the number of rows in the people data frame.")
   }
 
-  # if(is.null(NetworkVariable)) {
-  #   stop("A name for the network variable must be supplied.")
-  # }
+  if (!(is.integer(netmax))) {
+    stop("The network matrix must only contain integers.")
+  }
+
 
   #####################################
   #####################################

@@ -1012,12 +1012,16 @@ TwoPPl <- RemainingPeople %>%
 TwopplHH <- otherno(TwoPPl, pplidcol = 3, pplagecol = 4, numppl = 2, sdused = 3, hhidstart = 2620,
                       hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
 
-AllCompletedHH <- bind_rows(AllCompletedHH, TwopplHH$Matched)
+Networks <- bind_rows(AllCompletedHH, TwopplHH$Matched)
 
 Networks <- AllCompletedHH %>%
     mutate(NetworkSize = rpois(nrow(.), lambda = 4))
 
+set.seed(4)
+NetworkMatrix <- as.vector(rpois(n = nrow(Networks), lambda = 4))
+
 save(Networks, file="data/Networks.RData")
+save(NetworkMatrix, file="data/NetworkMatrix.RData")
 
 # so I could push the small subset to GitHub for Jonathan to see.
 save(subset, file = "data/subset.RData")
