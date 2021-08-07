@@ -52,7 +52,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
     stop("The age column number must be supplied.")
   }
 
-  if (!(netmax == nrow(people))) {
+  if (!(length(netmax) == nrow(people))) {
     stop("The network matrix must be the same length as the number of rows in the people data frame.")
   }
 
@@ -68,8 +68,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
   #####################################
 
   WorkingDataFrame <- people %>%
-    rename(ID = !! idcol, Age = !! agecol,Network = !! netsizecol) %>%
-    select(ID, Age,Network)
+    rename(ID = !! idcol, Age = !! agecol) %>%
+    select(ID, Age)
 
   # check that we don't end up with one person needing a match and none to spare
 
@@ -79,27 +79,32 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
   }
 
 
-  if (!(sum(WorkingDataFrame$Network) %% 2 == 0) == TRUE){
+  if (!(sum(netmax) %% 2 == 0) == TRUE){
     cat("The number of network links must be a factor of 2.", "\n")
 
-    PersonToAdd1To <- WorkingDataFrame %>%
-      slice_sample(n = 1)
+    # random draw an index position
 
-    PersonToAdd1To <- PersonToAdd1To %>%
-      mutate(Network = Network + 1)
+    IndexToAdd1 <- sample.int(length(netmax), 1)
 
-    cat("Person", PersonToAdd1To$ID, "now has", PersonToAdd1To$Network, "network connections instead of", (PersonToAdd1To$Network)-1, "\n")
-
-    WorkingDataFrame <- WorkingDataFrame %>%
-      filter(!(ID==PersonToAdd1To$ID))
-
-    WorkingDataFrame <- bind_rows(WorkingDataFrame, PersonToAdd1To)
+    return(IndexToAdd1)
+  #
+  #   PersonToAdd1To <- WorkingDataFrame %>%
+  #     slice_sample(n = 1)
+  #
+  #   PersonToAdd1To <- PersonToAdd1To %>%
+  #     mutate(Network = Network + 1)
+  #
+  #   cat("Person", PersonToAdd1To$ID, "now has", PersonToAdd1To$Network, "network connections instead of", (PersonToAdd1To$Network)-1, "\n")
+  #
+  #   WorkingDataFrame <- WorkingDataFrame %>%
+  #     filter(!(ID==PersonToAdd1To$ID))
+  #
+  #   WorkingDataFrame <- bind_rows(WorkingDataFrame, PersonToAdd1To)
   }
-  # people <- data.frame(ID = 1:20, Age = round(rnorm(20, mean=40, sd=10)))
 
 
   # construct a graph with this degree distribution
-  WiredNetwork <- igraph::sample_degseq(out.deg = WorkingDataFrame$Network,
+  WiredNetwork <- igraph::sample_degseq(out.deg = netmax,
                                         method="simple.no.multiple")
 
 
@@ -265,7 +270,6 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
     igraph::set_edge_attr("label", value=age_diff) %>%
      igraph::set_vertex_attr("label", value=theIDs[node_to_people])
 
-  # TODO: from here you can dump out the data to whatever format you like.
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
 
