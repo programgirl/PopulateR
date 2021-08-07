@@ -86,20 +86,13 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
     IndexToAdd1 <- sample.int(length(netmax), 1)
 
-    return(IndexToAdd1)
-  #
-  #   PersonToAdd1To <- WorkingDataFrame %>%
-  #     slice_sample(n = 1)
-  #
-  #   PersonToAdd1To <- PersonToAdd1To %>%
-  #     mutate(Network = Network + 1)
-  #
-  #   cat("Person", PersonToAdd1To$ID, "now has", PersonToAdd1To$Network, "network connections instead of", (PersonToAdd1To$Network)-1, "\n")
-  #
-  #   WorkingDataFrame <- WorkingDataFrame %>%
-  #     filter(!(ID==PersonToAdd1To$ID))
-  #
-  #   WorkingDataFrame <- bind_rows(WorkingDataFrame, PersonToAdd1To)
+    OriginalValue <- netmax[IndexToAdd1]
+
+    cat("1 has been added to the network matrix at position", IndexToAdd1, "\n")
+    cat("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
+
+    netmax[IndexToAdd1] <- OriginalValue + 1
+
   }
 
 
