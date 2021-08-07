@@ -303,8 +303,18 @@ subset <- Networks %>%
 
 subsetnet <- NetworkMatrix[1:40]
 
-NetworksiGraph <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, subsetnet, sdused=2,
-                       probsame = .5, userseed=4, NumIterations=5000, usematrix = "N")
+NetworksiGraph50000 <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, subsetnet, sdused=2,
+                       probsame = .5, userseed=4, NumIterations=50000, usematrix = "N")
+
+set.seed(4)
+EvenSmaller <- Networks %>%
+  slice_sample(n = 20)
+EvenSmallerNet <- NetworkMatrix[1:20]
+
+EvenSmallerNet2 <- as.integer(c(2, 0, 1, 1, 2, 1, 3, 3, 4, 1, 3, 1, 2, 4, 1, 2, 4, 2, 4, 3))
+
+NetworkSmall <- socnet(EvenSmaller, idcol = 3, agecol = 4, hhidcol = 6, EvenSmallerNet2, sdused=2,
+                              probsame = .5, userseed=4, NumIterations=50000, usematrix = "N")
 
 library(igraph)
 
