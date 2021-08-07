@@ -261,7 +261,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
   ClusteredNetwork <- ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
-     igraph::set_vertex_attr("label", value=theIDs[node_to_people])
+    igraph::set_vertex_attr("label", value=theIDs[node_to_people])
 
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
@@ -271,6 +271,11 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
    return(ClusteredNetwork)
 
  } else {
+
+   print(igraph::vertex_attr(ClusteredNetwork))
+
+   ClusteredNetwork <- ClusteredNetwork %>%
+     igraph::set_vertex_attr("name", value=theIDs[node_to_people])
 
   return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
  }
