@@ -14,7 +14,13 @@
 #' @return A data of observations, with working hours reallocated so that an adolesent's working hours is compatible with schooling.
 #'
 #' @examples
+#' # no grouping variable
 #' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
+#'
+#' # grouping variable
+#' # when a group is used
+#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
+#'                             UserSeed = 4)
 
 
 hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NULL, hoursmax = NULL, grpcol = NULL,
