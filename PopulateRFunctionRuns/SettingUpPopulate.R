@@ -1025,3 +1025,24 @@ save(NetworkMatrix, file="data/NetworkMatrix.RData")
 
 # so I could push the small subset to GitHub for Jonathan to see.
 save(subset, file = "data/subset.RData")
+
+# some testing stuffs
+
+set.seed(4)
+subset <- Networks %>%
+  slice_sample(n = 40)
+
+subsetnet <- NetworkMatrix[1:40]
+
+NetworksiGraphSN <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, subsetnet, sdused=2,
+                           probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+
+set.seed(4)
+EvenSmaller <- Networks %>%
+  slice_sample(n = 20)
+EvenSmallerNet <- NetworkMatrix[1:20]
+
+EvenSmallerNet2 <- as.integer(c(2, 0, 1, 1, 2, 1, 3, 3, 4, 1, 3, 1, 2, 4, 1, 2, 4, 2, 4, 3))
+
+NetworkSmallN <- socnet(EvenSmaller, idcol = 3, agecol = 4, hhidcol = 6, EvenSmallerNet2, sdused=2,
+                        probsame = .5, userseed=4, numiters = 300000, usematrix = "N")
