@@ -13,8 +13,12 @@ Description: Creates data frames for synthetic data. These are used in microsimu
      so that household construction is an optional output.
 Depends: R (>= 4.0.5)
 Imports: dplyr,
+         igraph;
+         Matrix,
          sn,
          tidyr
+         
+         
 Remotes: github::jmarshallnz/brainGraph
 License: GPL (>=3)
 Encoding: UTF-8
