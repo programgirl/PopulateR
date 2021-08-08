@@ -1,20 +1,7 @@
-#
-
-
-#' Create a subset of observations containing only opposite-sex couples
+# Create a social network
+#' This function creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one count from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
 #'
-#' This function creates a data frame of couples, based on a population distribution of age differences. The distribution used is the skew normal.
-#' Two data frames are required. The recipient data frame contains the age data, of one sex, to which the distribution will be applied. The donor data frame contains the age data, of the other sex, from which the age counts to match are constructed. If the two data frames are different lengths, the recipient data frame must be the shortest of the two. In this situation, a random subsample of the donor data frame will be used.
-#' The network size variable is the number of people in that person's networks, including the person. Thus, a person with a network size of 0 has no social contacts. A person with a network size of 1 has one social contact, and so forth.
-#'
-#' Only a standard deviation is required, as the ages are centred around 0. The age of the person on a vertex is the age against which linked vertices are tested. A larger standard deviation enables the construction of networks with larger age differences. With triads, the age test is conducted comparing one person in the triad with the other two people. Thus, friends of friends will tend to be a similar age to friends.
-#' The function attempts to ensure that no people in the same household will be placed inside the same network. However, this may be difficult to achieve given the number of networks. The number of iterations specified by the user ensures that the function will not enter an endless loop.
-#'
-#'
-#' The function performs a reasonableness check for the first five variables. If any other parameters are missing, the usual error messages from the imported functions will be output.
-#'
-#' If desired, this can be used to construct same-sex couples.
-#'
+#' A normal distribution is used, using the age differences between the pairs. This is centred on 0, i.e. the people in the pair are the same age. If people B and C are in person A's network, probsame is used to determine the likelihood that people B and C know each other. The larger this proportion, the more likely that people in one person's network know each other, compared to random construction of a network between them.
 #' @export
 #' @param people A data frame containing people to be matched to each other using social networks.
 #' @param idcol The column number for each person's unique ID.
@@ -25,9 +12,9 @@
 #' @param probsame The probability that a friend of a friend is an edge. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
-#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "Y".
+#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "Y" so an n x n adjacency matrix is output. This is a dgCMatrix.
 #'
-#' @return A data frame of an even number of observations that have been allocated into opposite-sex couples.
+#' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
 #' @examples
 #' Recipients <- data.frame(cbind(PersonID = c(1:1000),

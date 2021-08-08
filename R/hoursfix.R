@@ -11,7 +11,7 @@
 #' @param grpcol The column number containing any grouping variable to be used. If this is used, the changes to the working hours will be performed using grouped data. Within-group totals for the working hours categories will be retained.
 #' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
-#' @return A data of observations, with working hours reallocated so that an adolesent's working hours is compatible with schooling.
+#' @return A data of observations, with working hours reallocated so that an adolesent's working hours is compatible with schooling
 #'
 #' @examples
 #' # no grouping variable
