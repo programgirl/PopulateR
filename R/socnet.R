@@ -11,7 +11,7 @@
 #' @param sdused The standard deviation for the age differences between two people on an edge.
 #' @param probsame The probability that a friend of a friend is an edge. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param NumIterations The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
 #' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "Y" so an n x n adjacency matrix is output. This is a dgCMatrix.
 #'
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
@@ -24,10 +24,10 @@
 #'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
 #'
 #' ExampleOutput <- OppositeSex(Recipients, Recipientidcol=1, Recipientagecol=2, Donors, Donoridcol=1, Donoragecol=2, DirectXi=-2, DirectOmega=4,
-#'                               AlphaUsed=5, userseed=NULL, pValueToStop=.001, NumIterations=1000, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds")
+#'                               AlphaUsed=5, userseed=NULL, pValueToStop=.001, numiters=1000, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds")
 
 socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = .5, userseed=NULL,
-                   NumIterations=1000000, usematrix = "Y") {
+                   numiters=1000000, usematrix = "Y") {
 
   options(dplyr.summarise.inform=F)
 
@@ -168,7 +168,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
   ClusteredNetwork %>%
     igraph::set_vertex_attr("label", value=theages[node_to_people]) %>%
     igraph::set_edge_attr("label", value=age_diff)
-    plot(ClusteredNetwork)
+    # plot(ClusteredNetwork)
 
   # right, now that we have the age difference, we could
   # optimise this through swapping. Assuming we want a
@@ -177,7 +177,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
   # we're starting with:
   ss <- sum(age_diff^2)
-  # ss
+  # print(ss)
 
   # cat("ss created", "\n")
   # now, we're going to swap which node represents which person
@@ -207,7 +207,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
   # cat("Shift vector created", "\n")
 
   accept <- list() # this is just to store how often we accept a proposal
-  for (i in 1:NumIterations) { # lots of iterations
+  for (i in 1:numiters) { # lots of iterations
 
     # do the permutation: first off, how many people do we permute?
     num_to_permute <- 2 + rpois(1, 0.5)
@@ -223,7 +223,10 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
     age_diff_prop <- get_age_diff(edges, proposed, theages)
     # very crude here - just optimising sum of squares
     ss_prop <- sum(age_diff_prop^2)
+
     if (ss_prop < ss) {
+
+      # cat("i is", i, "ss is", ss, "and proposed ss is", ss_prop, "\n")
       # swap!
       node_to_people <- proposed
       age_diff <- age_diff_prop
@@ -233,7 +236,7 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
       # no swap
     }
 
-    # print(i)
+    # closes for (i in 1:numiters)
   }
   unlist(accept)
   # ss
@@ -248,10 +251,12 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
   ClusteredNetwork <- ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
-    igraph::set_vertex_attr("label", value=theIDs[node_to_people])
+    igraph::set_vertex_attr("label", value=theIDs[node_to_people]) %>%
+    igraph::set_vertex_attr("name", value=theIDs[node_to_people])
 
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
+  end_time <- Sys.time()
 
  if (!(usematrix) == "Y") {
 
@@ -259,14 +264,8 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
  } else {
 
-   print(igraph::vertex_attr(ClusteredNetwork))
-
-   ClusteredNetwork <- ClusteredNetwork %>%
-     igraph::set_vertex_attr("name", value=theIDs[node_to_people])
-
   return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
  }
-
 
 }
 
