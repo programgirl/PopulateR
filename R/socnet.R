@@ -7,7 +7,6 @@
 #' @param idcol The column number for each person's unique ID.
 #' @param agecol The column number for the age variable.
 #' @param netmax A data frame containing the 1-dimensional matrix of network sizes. Must contain only integers and be the same length as the people data frame.
-#' @param netsizecol The column number for the network size.
 #' @param sdused The standard deviation for the age differences between two people on an edge.
 #' @param probsame The probability that a friend of a friend is an edge. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
@@ -17,16 +16,27 @@
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
 #' @examples
-#' Recipients <- data.frame(cbind(PersonID = c(1:1000),
-#'                               PersonAge = c(round(runif(200, min=18, max=23),0), round(runif(300, min=24, max=50),0), round(runif(500, min=51, max=90),0))))
+#' library("dplyr")
+#' # with the 50% sample from Township
+#' # output as igraph
+#' NetworksMadeN <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 #'
-#' Donors <- data.frame(cbind(PersonID = c(2001:4000),
-#'                               PersonAge = c(round(runif(400, min=18, max=23),0), round(runif(500, min=24, max=50),0), round(runif(1100, min=51, max=90),0))))
+#' # output as n x n matrix
+#' NetworksMadeY <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 #'
-#' ExampleOutput <- OppositeSex(Recipients, Recipientidcol=1, Recipientagecol=2, Donors, Donoridcol=1, Donoragecol=2, DirectXi=-2, DirectOmega=4,
-#'                               AlphaUsed=5, userseed=NULL, pValueToStop=.001, numiters=1000, IDStartValue = 10001, HouseholdNumVariable="TheHouseholds")
+#' # smaller sample for visualisation
+#' #
 
-socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = .5, userseed=NULL,
+
+
+
+
+
+
+
+socnet <- function(people, idcol, agecol, netmax, sdused=0, probsame = .5, userseed=NULL,
                    numiters=1000000, usematrix = "Y") {
 
   options(dplyr.summarise.inform=F)

@@ -874,6 +874,8 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 ####################################
 # Social networks
 # #####################################
+
+# JUST DO A RANDOM SAMPLE FROM TOWNSHIP
 # set.seed(4)
 # NotChildren <- Township %>%
 #   filter(Relationship == "Partnered", Age > 18) %>%
@@ -924,125 +926,112 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 #
 # TownshipNetworks <- Township %>%
 #   mutate(NetworkSize = rpois(nrow(.), lambda = 4))
-
-MaleToCouple <- Township %>%
-  filter(Relationship == "Partnered", Age > 19, Sex == "Male")
-
-FemaleToCouple <- Township %>%
-  filter(Relationship == "Partnered", Age > 19, Sex == "Female")
-
-TCouples <-couples(FemaleToCouple, smlidcol=3, smlagecol=4, MaleToCouple, lrgidcol=3,
-            lrgagecol=4, directxi=-2, directomega=3, alphaused=0, hhidstart = 1,
-            hhidvar="Household", UserSeed=4, ptostop=.01, numiters=1000000)
-
-Parents <- TCouples$Matched
-
-Children <- Township %>%
-    filter(Relationship == "NonPartnered", Age < 20)
-
-FemaleForChild <- Parents %>%
-  filter(Sex=="Female") %>%
-  slice_sample(n = 1000)
-
-MaleForChild <- Parents %>%
-  filter(Sex=="Male", !(Household %in% c(FemaleForChild$Household))) %>%
-  slice_sample(n = 110)
-
-PossibleParents <- bind_rows(FemaleForChild, MaleForChild)
-
-ParentsAndKids <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .1,
-                              PossibleParents, paridcol = 3, paragecol = 4, minparage = 22, maxparage = 56,
-                              hhidcol= 6, UserSeed=4)
-
-CompletedHH <- ParentsAndKids$Matched
-
-OtherPartToCouple <- Parents %>%
-  filter(Household %in% CompletedHH$Household,
-         !(ID %in% CompletedHH$ID))
-
-CompletedHH <- bind_rows(CompletedHH, OtherPartToCouple)
-
-RemainingAdultsInHH <- Parents %>%
-  filter(!(ID %in% CompletedHH$ID))
-
-# random extract half of them
-RemainingAinHHSample <- RemainingAdultsInHH %>%
-  group_by(Household) %>%
-  slice_sample(n = 1)
-
-RemainingKids <-  Township %>%
-  filter(ID %in% ParentsAndKids$Children$ID)
-
-ParentAndKids2 <- childyes(RemainingKids, chlidcol = 3, chlagecol = 4, RemainingAinHHSample, paridcol = 3,
-                           paragecol = 4, directxi = 30, directomega = 2, minparage = 22, maxparage = 56,
-                           hhidcol = 6, UserSeed=4)
-
-CompletedHH2 <- ParentAndKids2$Matched
-
-OtherPartToCouple2 <- Parents %>%
-  filter(Household %in% CompletedHH2$Household,
-         !(ID %in% CompletedHH2$ID))
-
-CompletedHH2 <- bind_rows(CompletedHH2, OtherPartToCouple2)
-
-AllCompletedHH <- bind_rows(CompletedHH, CompletedHH2)
-
-HHMissingPPl <- Parents %>%
-  filter(!(ID %in% AllCompletedHH$ID))
-
-AllCompletedHH <- bind_rows(AllCompletedHH, HHMissingPPl)
-
-RemainingPPl <- Township %>%
-  filter(!(ID %in% AllCompletedHH$ID))
-
-ThreePPl <- RemainingPPl %>%
-  slice_sample(n = 900)
-
-ThreepplHH <- otherno(ThreePPl, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3, hhidstart = 2320,
-                      hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
-
-RemainingPeople <- RemainingPPl %>%
-  filter(!(ID %in% ThreepplHH$Matched$ID))
-
-AllCompletedHH <- bind_rows(AllCompletedHH, ThreepplHH$Matched)
-
-TwoPPl <- RemainingPeople %>%
-  slice_sample(n = 700)
-
-TwopplHH <- otherno(TwoPPl, pplidcol = 3, pplagecol = 4, numppl = 2, sdused = 3, hhidstart = 2620,
-                      hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
-
-Networks <- bind_rows(AllCompletedHH, TwopplHH$Matched)
-
-Networks <- AllCompletedHH %>%
-    mutate(NetworkSize = rpois(nrow(.), lambda = 4))
+#
+# MaleToCouple <- Township %>%
+#   filter(Relationship == "Partnered", Age > 19, Sex == "Male")
+#
+# FemaleToCouple <- Township %>%
+#   filter(Relationship == "Partnered", Age > 19, Sex == "Female")
+#
+# TCouples <-couples(FemaleToCouple, smlidcol=3, smlagecol=4, MaleToCouple, lrgidcol=3,
+#             lrgagecol=4, directxi=-2, directomega=3, alphaused=0, hhidstart = 1,
+#             hhidvar="Household", UserSeed=4, ptostop=.01, numiters=1000000)
+#
+# Parents <- TCouples$Matched
+#
+# Children <- Township %>%
+#     filter(Relationship == "NonPartnered", Age < 20)
+#
+# FemaleForChild <- Parents %>%
+#   filter(Sex=="Female") %>%
+#   slice_sample(n = 1000)
+#
+# MaleForChild <- Parents %>%
+#   filter(Sex=="Male", !(Household %in% c(FemaleForChild$Household))) %>%
+#   slice_sample(n = 110)
+#
+# PossibleParents <- bind_rows(FemaleForChild, MaleForChild)
+#
+# ParentsAndKids <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .1,
+#                               PossibleParents, paridcol = 3, paragecol = 4, minparage = 22, maxparage = 56,
+#                               hhidcol= 6, UserSeed=4)
+#
+# CompletedHH <- ParentsAndKids$Matched
+#
+# OtherPartToCouple <- Parents %>%
+#   filter(Household %in% CompletedHH$Household,
+#          !(ID %in% CompletedHH$ID))
+#
+# CompletedHH <- bind_rows(CompletedHH, OtherPartToCouple)
+#
+# RemainingAdultsInHH <- Parents %>%
+#   filter(!(ID %in% CompletedHH$ID))
+#
+# # random extract half of them
+# RemainingAinHHSample <- RemainingAdultsInHH %>%
+#   group_by(Household) %>%
+#   slice_sample(n = 1)
+#
+# RemainingKids <-  Township %>%
+#   filter(ID %in% ParentsAndKids$Children$ID)
+#
+# ParentAndKids2 <- childyes(RemainingKids, chlidcol = 3, chlagecol = 4, RemainingAinHHSample, paridcol = 3,
+#                            paragecol = 4, directxi = 30, directomega = 2, minparage = 22, maxparage = 56,
+#                            hhidcol = 6, UserSeed=4)
+#
+# CompletedHH2 <- ParentAndKids2$Matched
+#
+# OtherPartToCouple2 <- Parents %>%
+#   filter(Household %in% CompletedHH2$Household,
+#          !(ID %in% CompletedHH2$ID))
+#
+# CompletedHH2 <- bind_rows(CompletedHH2, OtherPartToCouple2)
+#
+# AllCompletedHH <- bind_rows(CompletedHH, CompletedHH2)
+#
+# HHMissingPPl <- Parents %>%
+#   filter(!(ID %in% AllCompletedHH$ID))
+#
+# AllCompletedHH <- bind_rows(AllCompletedHH, HHMissingPPl)
+#
+# RemainingPPl <- Township %>%
+#   filter(!(ID %in% AllCompletedHH$ID))
+#
+# ThreePPl <- RemainingPPl %>%
+#   slice_sample(n = 900)
+#
+# ThreepplHH <- otherno(ThreePPl, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3, hhidstart = 2320,
+#                       hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
+#
+# RemainingPeople <- RemainingPPl %>%
+#   filter(!(ID %in% ThreepplHH$Matched$ID))
+#
+# AllCompletedHH <- bind_rows(AllCompletedHH, ThreepplHH$Matched)
+#
+# TwoPPl <- RemainingPeople %>%
+#   slice_sample(n = 700)
+#
+# TwopplHH <- otherno(TwoPPl, pplidcol = 3, pplagecol = 4, numppl = 2, sdused = 3, hhidstart = 2620,
+#                       hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
+#
+# Networks <- bind_rows(AllCompletedHH, TwopplHH$Matched)
+#
+# Networks <- AllCompletedHH %>%
+#     mutate(NetworkSize = rpois(nrow(.), lambda = 4))
+#
+# set.seed(4)
+# NetworkMatrix <- as.vector(rpois(n = nrow(Networks), lambda = 4))
 
 set.seed(4)
-NetworkMatrix <- as.vector(rpois(n = nrow(Networks), lambda = 4))
+Ppl4networks <- Township  %>%
+  slice_sample(n = 5000)
 
-save(Networks, file="data/Networks.RData")
+save(Ppl4networks, file="data/Ppl4networks.RData")
+
+set.seed(4)
+NetworkMatrix <- as.vector(rpois(n = nrow(Ppl4networks), lambda = 4))
 save(NetworkMatrix, file="data/NetworkMatrix.RData")
 
-# so I could push the small subset to GitHub for Jonathan to see.
-save(subset, file = "data/subset.RData")
-
-# some testing stuffs
-
-set.seed(4)
-subset <- Networks %>%
-  slice_sample(n = 40)
-
-subsetnet <- NetworkMatrix[1:40]
-
-NetworksiGraphSN <- socnet(subset, idcol = 3, agecol = 4, hhidcol = 6, subsetnet, sdused=2,
-                           probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
-
-set.seed(4)
-EvenSmaller <- Networks %>%
-  slice_sample(n = 20)
-EvenSmallerNet <- NetworkMatrix[1:20]
-
-EvenSmallerNet2 <- as.integer(c(2, 0, 1, 1, 2, 1, 3, 3, 4, 1, 3, 1, 2, 4, 1, 2, 4, 2, 4, 3))
-
-NetworkSmallN <- socnet(EvenSmaller, idcol = 3, agecol = 4, hhidcol = 6, EvenSmallerNet2, sdused=2,
-                        probsame = .5, userseed=4, numiters = 300000, usematrix = "N")
+# plot the igraph data
+# NEED THE SMALL EXAMPLE FROM THE PACKAGE TO DO THIS
+plot(NetworkSmallN)

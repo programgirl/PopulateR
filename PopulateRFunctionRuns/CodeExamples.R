@@ -295,15 +295,24 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
 ########################################################### #
 library("dplyr")
 
-NetworksMadeN <- socnet(Networks, idcol = 3, agecol = 4, hhidcol = 6, NetworkMatrix, sdused=2,
+NetworksMadeN <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
                        probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 
-NetworksMadeY <- socnet(Networks, idcol = 3, agecol = 4, hhidcol = 6, NetworkMatrix, sdused=2,
+NetworksMadeY <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 
+# smaller examples for the article
 
-library(igraph)
+set.seed(4)
+SmallDemo <- Township %>%
+  slice_sample(n = 20)
 
-summary(NetworksMade)
+Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
+
+NetworkSmallN <- socnet(SmallDemo, idcol = 3, agecol = 4, Smallnetwork, sdused=2,
+                        probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+
+NetworkSmallY <- socnet(SmallDemo, idcol = 3, agecol = 4, Smallnetwork, sdused=2,
+                        probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 
 
