@@ -256,7 +256,6 @@ socnet <- function(people, idcol, agecol, hhidcol, netmax, sdused=0, probsame = 
 
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
-  end_time <- Sys.time()
 
  if (!(usematrix) == "Y") {
 
