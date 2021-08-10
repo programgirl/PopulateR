@@ -97,12 +97,12 @@ ChildAgeGroupsExpanded <- ChildAgeGroups %>%
 Relationships <- bind_rows(Relationships, ChildAgeGroupsExpanded)
 
 # add unique ID
-Relationships <- Relationships %>%
+InitialDataframe <- Relationships %>%
   arrange(LowerAge, Sex)
 
-Relationships$ID <- row.names(Relationships)
+InitialDataframe$ID <- row.names(InitialDataframe)
 
-rm(OriginalRelationships, NotPartnered, Partnered, Others, CleanedRels, ChildAgeGroups, ChildAgeGroupsExpanded)
+rm(OriginalRelationships, NotPartnered, Partnered, Others, CleanedRels, ChildAgeGroups, ChildAgeGroupsExpanded, Relationships)
 
 
 
@@ -147,7 +147,7 @@ rm(Ages)
 # AS THIS IS NO LONGER THE BASE FILE FOR EXAMPLES
 ####################################
 
-save(Relationships, file = "data/Relationships.RData")
+save(InitialDataframe, file = "data/InitialDataframe.RData")
 save(SingleAges, file = "data/SingleAges.RData")
 
 
