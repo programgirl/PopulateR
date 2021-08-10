@@ -133,7 +133,7 @@ SingleAges <- data.frame(Ages %>%
                                                                                      as.numeric(sub("([0-9]+).*$", "\\1", Age.group))))))))))))))
 
 
-DisaggregateAge <- AgeStructure(Relationships, IndividualSxCol = 1, MinimumAgeCol = 4,
+DisaggregateAge <- AgeStructure(InitialDataframe, IndividualSxCol = 1, MinimumAgeCol = 4,
                                 MaximumAgeCol = 5, SingleAges, PyramidSxCol = 2,
                                 PyramidAgeCol = 4, PyramidCountCol = 3, NewAgeVariable = "TheAge",
                                 UserSeed = 4)
