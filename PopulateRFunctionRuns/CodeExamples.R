@@ -76,8 +76,8 @@ PartneredMalesSmall <- Township %>%
 
 OppSexCouples1 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
                           PartneredMalesSmall, lrgidcol=3, lrgagecol=4, directxi = -2,
-                         directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-                         UserSeed = 4, ptostop=.01, numiters=1000000)
+                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                          userseed = 4, ptostop=.01, numiters=1000000)
 
 
 # there are more partnered males than partnered females
@@ -94,9 +94,9 @@ PartneredMales <- Township %>%
   filter(Sex == "Male", Relationship == "Partnered")
 
 OppSexCouples2 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
-                         PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
-                         directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-                         UserSeed = 4, ptostop=.01, numiters=1000000)
+                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                          userseed = 4, ptostop=.01, numiters=1000000)
 
 TheMatched <- OppSexCouples2$Matched
 

@@ -472,7 +472,7 @@ detach("package:ggplot2", unload = TRUE)
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
 #####################################
 # get graph of age differences
-OppSexAgeDiffPlotValues <- OppSexCouples$Matched %>%
+OppSexAgeDiffPlotValues <- OppSexCouples1$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),

@@ -196,9 +196,9 @@
 #'
 #' Adolescents with a school stats and employment hours
 #'
-#' A dataset of synthetic people aged between 15 and 24, produced by combining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
+#' A dataset of synthetic people aged between 15 and 19, produced by combining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A data frame of 1,079 observations and 6 variables
+#' @format A data frame of 575 observations and 6 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Relationship}{Relationship status of the person}
