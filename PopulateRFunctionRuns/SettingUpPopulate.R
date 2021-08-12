@@ -358,8 +358,9 @@ save(WithSchoolInd, file = "data/WithSchoolInd.RData")
 #####################################
 
 # construct school age data frame to fix the hours
+# pretend there was a 5-year age band with the school leavers in it
 WorkingAdolescents <- WithSchoolInd %>%
-  filter(between(Age, 15, 24))
+  filter(between(Age, 15, 19))
 
 save(WorkingAdolescents, file = "data/WorkingAdolescents.RData")
 
@@ -391,7 +392,7 @@ OriginalGraph <- ggplot(Original, aes(x=HoursWorked, y = freq,
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
   coord_cartesian(ylim = c(0, .8)) +
-  labs(x="Hours worked per week", y = "Proportion of 15-24 year olds",
+  labs(x="Hours worked per week", y = "Proportion of 15-19 year olds",
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
@@ -403,7 +404,7 @@ FixedGraph <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
   coord_cartesian(ylim = c(0, .8)) +
-  labs(x="Hours worked per week", y = "Proportion of 15-24 year olds",
+  labs(x="Hours worked per week", y = "Proportion of 15-19 year olds",
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
