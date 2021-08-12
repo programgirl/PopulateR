@@ -147,8 +147,20 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
+  # this bit needs to be changed depending on the sign of the mean
+
+  if(directxi >= 0) {
+
   MaxAgeDifference <-  (max(smalldf[smlagecol]) -
                           min(largedf[lrgagecol]))-5
+
+  } else {
+
+    MaxAgeDifference <-  (max(largedf[lrgagecol]) -
+                            min(smalldf[smlagecol]))-5
+
+    # closes if(directxi >= 0)
+  }
 
   # cat("Starting the bins", "\n")
 
