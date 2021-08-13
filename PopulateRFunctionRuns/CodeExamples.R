@@ -35,30 +35,6 @@ AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hou
 
 ProblemPpl <- AdolescentWork2 %>%
   filter(duplicated(.[["ID"]]))
-
-########################################################### ##
-# same-sex couples
-# females shown as example
-
-library(dplyr)
-
-# same-sex couples
-PartneredFemales <- Township %>%
-  filter(Sex == "Female", Relationship == "Partnered")
-
-# assume 1% of partnered female couples are same-sex
-# assume that there is an equal probability of any age of partnered women being in a same-sex couple
-# household number provided
-NoUpweightGiven <- SameSex(PartneredFemales, AgeCol = 4, ProbSameSex = 0.01,
-                           IDStartValue = 10, HouseholdNumVariable = "HouseholdID", UserSeed = 4)
-
-# partnered females with upweighted ages, no starting household ID value provided
-Upweighted <- SameSex(PartneredFemales, AgeCol = 4, ProbSameSex = 0.01, UpWeightProp = 0.5,
-                      UpWeightLowerAge = 25, UpWeightUpperAge = 40,HouseholdNumVariable = "HouseholdID",
-                      UserSeed = 4)
-
-rm(PartneredFemales, NoUpweightGiven, Upweighted)
-
 ########################################################### ##
 
 ########################################################### #
@@ -79,6 +55,7 @@ OppSexCouples1 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
                           directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
                           userseed = 4, ptostop=.01, numiters=1000000)
 
+TheMatched1 <- OppSexCouples1$Matched
 
 # there are more partnered males than partnered females
 # so all partnered males will have a matched female partner
@@ -98,7 +75,7 @@ OppSexCouples2 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
                           directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
                           userseed = 4, ptostop=.01, numiters=1000000)
 
-TheMatched <- OppSexCouples2$Matched
+TheMatched2 <- OppSexCouples2$Matched
 
 # skew normal distribution (not run)
 # OppSexCouplesSN <-OppSexSN(PartneredFemales, RecipientIDCol=4, RecipientAgeCol=5,

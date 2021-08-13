@@ -447,51 +447,76 @@ detach("package:cowplot", unload = TRUE)
 detach("package:ggplot2", unload = TRUE)
 
 ####################################
-# Graph and differences between the weighted and unweighted same-sex couples
-# Cumulative sum by age
-# complete on the one plot
-# NEEDS THE TWO DATA FRAMES FROM THE CODE EXAMPLES FILE
-#####################################
-# library("ggplot2")
-#
-# ggplot(NoUpweightGiven, aes(x = Age)) +
-#   stat_ecdf(col = "#5e3c99") +
-#   stat_ecdf(data = Upweighted, col = "#fdb863")
-
-# is ugly
-# not enough points to get a good cumulative density
-# get proportion of points lying between the upweights
-
-# not upweighted:
-# sum(NoUpweightGiven$Age >= 25 & NoUpweightGiven$Age <= 40)
-# sum(Upweighted$Age >= 25 & Upweighted$Age <= 40)
-
-
-####################################
 # Graph and differences for the opposite sex
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
 #####################################
 # get graph of age differences
-OppSexAgeDiffPlotValues <- OppSexCouples1$Matched %>%
+# OppSexAgeDiffPlotValues <- OppSexCouples1$Matched %>%
+#   group_by(HouseholdID) %>%
+#   arrange(desc(Sex), .by_group = TRUE) %>%
+#   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
+#          Source = "Normal") %>%
+#   filter(Sex == "Female")
+#
+#
+# library(ggplot2)
+# AgeDiffs <- ggplot(OppSexAgeDiffPlotValues, aes (x = AgeDiff)) +
+#   geom_bar(fill = "#5e3c99") +
+#   labs(x="Age difference, years, male age - female age", y = "Number of couples") +
+#   theme(text = element_text(size = 12))
+# # ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs.pdf", width = 7, height = 4)
+#
+# rm(OppSexAgeDiffPlotValues, AgeDiffs)
+#
+# detach("package:ggplot2", unload = TRUE)
+
+# now doing a combined graph for both examples
+OppSexAgeDiffPlotValues1 <- TheMatched1 %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
          Source = "Normal") %>%
   filter(Sex == "Female")
 
+OppSexAgeDiffPlotValues2 <- TheMatched2 %>%
+  group_by(HouseholdID) %>%
+  arrange(desc(Sex), .by_group = TRUE) %>%
+  mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
+         Source = "Normal") %>%
+  filter(Sex == "Female")
 
 library(ggplot2)
-AgeDiffs <- ggplot(OppSexAgeDiffPlotValues, aes (x = AgeDiff)) +
+
+AgeDiffs1 <- ggplot(OppSexAgeDiffPlotValues1, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
+  xlim(-15, 15) +
   labs(x="Age difference, years, male age - female age", y = "Number of couples") +
   theme(text = element_text(size = 12))
-# ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs.pdf", width = 7, height = 4)
+# ggsave(AgeDiffs1, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs1.pdf", width = 7, height = 4)
 
-rm(OppSexAgeDiffPlotValues, AgeDiffs)
+AgeDiffs2 <- ggplot(OppSexAgeDiffPlotValues2, aes (x = AgeDiff)) +
+  geom_bar(fill = "#fdb863") +
+  xlim(-15,15) +
+  labs(x="Age difference, years, male age - female age", y = "Number of couples") +
+  theme(text = element_text(size = 12))
 
-detach("package:ggplot2", unload = TRUE)
+# ggsave(AgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs2.pdf", width = 7, height = 4)
 
+# look at box plot instead
 
+Diff1BP <- OppSexAgeDiffPlotValues1 %>%
+  mutate(Version = "OppSexCouples1")
+
+Diff2BP <- OppSexAgeDiffPlotValues2 %>%
+  mutate(Version = "OppSexCouples2")
+
+MergedDiff <- bind_rows(Diff1BP, Diff2BP)
+
+ggplot(MergedDiff, aes(x=Version, y=AgeDiff)) +
+  geom_boxplot()
+
+#it's not attractive
+rm(Diff1BP, Diff2BP, MergedDiff)
 
 ####################################
 # Graph and differences parents and kids

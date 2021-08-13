@@ -247,6 +247,8 @@ couples <- function(smalldf, smlidcol=NULL, smlagecol=NULL, largedf, lrgidcol=NU
 
   for (i in 1:numiters) {
 
+    # print(i)
+
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
     Pick2 <- sample(nrow(CurrentAgeMatch), 1)
