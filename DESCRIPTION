@@ -11,7 +11,7 @@ Description: Creates data frames for synthetic data. These are used in microsimu
      Typically, the package will be used when detailed population data is unavailable. The package is
      primarily aimed at the construction of synthetic households. However, the functions are implemented
      so that household construction is an optional output.
-Depends: R (>= 4.0.5)
+Depends: R (>= 4.0)
 Imports: dplyr,
          igraph,
          Matrix,

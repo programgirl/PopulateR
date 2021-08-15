@@ -1134,3 +1134,7 @@ save(NetworkMatrix, file="data/NetworkMatrix.RData")
 # plot the igraph data
 # NEED THE SMALL EXAMPLE FROM THE PACKAGE TO DO THIS
 plot(NetworkSmallN)
+
+# for compiling the package
+devtools::document()
+
