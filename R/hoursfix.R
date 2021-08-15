@@ -19,8 +19,8 @@
 #'
 #' # grouping variable
 #' # when a group is used
-#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
-#'                             userseed = 4)
+#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
+#'                             hoursmax = 3, grpcol = 1, userseed = 4)
 
 
 hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NULL, hoursmax = NULL, grpcol = NULL,

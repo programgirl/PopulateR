@@ -14,7 +14,8 @@
 #' @examples
 #' library("dplyr")
 #'
-#' TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
+#' TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2,
+#'                                 staffnumcol = 3, userseed = 4)
 
 empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = NULL) {
 

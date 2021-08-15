@@ -24,8 +24,9 @@
 #'
 #' @examples
 #' library(dplyr)
-#' SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
-#'                           SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+#' SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8,
+#'                           pplstcol = 6,  hhidcol = 7, SchoolsToUse, schidcol = 2,
+#'                           schagecol = 4, schrollcol = 5, schtypecol = 3,
 #'                           UserSeed = 4)
 
 schooladd <- function(people, pplidcol, pplagecol, pplsxcol, pplstcol = NULL, hhidcol = NULL, schools,

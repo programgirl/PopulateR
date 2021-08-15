@@ -18,8 +18,9 @@
 #' @return A data frame of an observations, with an added column that contains the age.
 
 #' @examples
-#' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
-#' pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
+#' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges,
+#'                          pyrsxcol = 2, pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge",
+#'                          userseed = 4)
 
 agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
                          pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", userseed = NULL)
