@@ -104,21 +104,27 @@
 #' "LeftSchool"
 #'
 #'
-#' Households with a network size for each person
+#' Distribution of network sizes
 #'
-#' A dataset developed from the Township dataset in the package. Contains realistic household structures.
+#' A matrix of 5,000 integers constricted using a Poisson distribution.
 #'
-#' @format  A data frame with 8,439 rows and 7 variables
+#' @format A list of 5,000 integers
+#'
+#'
+#' Random selection of 5,000 synthetic people in the Timaru District from the 2018 census
+#'
+#' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence. A 50% sample of the Township data frame.
+#'
+#' @format A data frame with 5,000 rows and 5 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Relationship}{Relationship status of the person}
 #'     \item{ID}{The unique identifier for the person}
 #'     \item{Age}{The age of the person}
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#'     \item{Household}{The household identifier for the person}
-#'     \item{NetworkSize}{The number of people in that person's social network}
-#'}
-#' "NetworkSizes"
+#' }
+#' "Ppl4networks"
+#'
 #'
 #' Sex/Age pyramid for the Canterbury Region, 2018
 #'
