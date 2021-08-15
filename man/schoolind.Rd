@@ -24,7 +24,7 @@ schoolind(
   struagecol = NULL,
   structcol = NULL,
   stvarname = "Status",
-  UserSeed = NULL
+  userseed = NULL
 )
 }
 \arguments{
@@ -60,7 +60,7 @@ schoolind(
 
 \item{stvarname}{The name of the variable to contain the status of the children/adolescents for schooling. The output is "Yes" for those still in school and "No" for those not in school. If not specified, the column name is "Status".}
 
-\item{UserSeed}{The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.}
+\item{userseed}{The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.}
 }
 \value{
 A data frame of an observations, with an added column that contains the school status of each person.
@@ -70,5 +70,5 @@ The proportion of adolescents, by age and sex, who have left school is printed t
 }
 \examples{
 WithSchoolInd <- schoolind(Township, 1, 4, 2018, 5, 18, LeftSchool, 2, 3, 4, 1,
-RegionalStructure, 1, 4, 3, "SchoolStatus", UserSeed = 4)
+RegionalStructure, 1, 4, 3, "SchoolStatus", userseed = 4)
 }

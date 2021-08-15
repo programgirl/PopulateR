@@ -18,7 +18,7 @@ agedis(
   pyragecol = NULL,
   pyrcountcol = NULL,
   agevarname = "SingleAge",
-  UserSeed = NULL
+  userseed = NULL
 )
 }
 \arguments{
@@ -40,7 +40,7 @@ agedis(
 
 \item{agevarname}{The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".}
 
-\item{UserSeed}{The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.}
+\item{userseed}{The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.}
 }
 \value{
 A data frame of an observations, with an added column that contains the age.
@@ -54,5 +54,5 @@ The variables specifying sex can be numeric, character, or factor. The sole requ
 }
 \examples{
 DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
-pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", UserSeed = 4)
+pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
 }
