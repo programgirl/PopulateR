@@ -47,6 +47,6 @@ AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hour
 
 # grouping variable
 # when a group is used
-AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
-                            userseed = 4)
+AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
+                            hoursmax = 3, grpcol = 1, userseed = 4)
 }

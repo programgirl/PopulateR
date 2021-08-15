@@ -76,7 +76,8 @@ Children <- Township \%>\%
 
 # match the children to the parents
 # no ID on the parents
-ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
-                           directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-                           maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
+ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3,
+                           paragecol = 4,  directxi = 30, directomega = 3, alphaused = 1.2,
+                           minparage = 18, maxparage = 54, hhidstart = 100,
+                           hhidvar = "HouseholdID", userseed=4)
 }

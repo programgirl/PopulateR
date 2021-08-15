@@ -43,5 +43,6 @@ The employer data frame can be either a summary in the form of the number of emp
 \examples{
 library("dplyr")
 
-EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5, hoursmin = 2, userseed = 4)
+EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3,
+                         hourscol = 5, hoursmin = 2, userseed = 4)
 }

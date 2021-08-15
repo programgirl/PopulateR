@@ -26,5 +26,6 @@ This function constructs individual employers from aggregate counts, such as num
 \examples{
 library("dplyr")
 
-TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
+TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2,
+                                staffnumcol = 3, userseed = 4)
 }

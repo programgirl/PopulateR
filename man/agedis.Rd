@@ -53,6 +53,7 @@ The individuals data frame requires two columns relating to the age band. One is
 The variables specifying sex can be numeric, character, or factor. The sole requirement is that the codes must match.  For example, if "F" and "M" are used in the individuals data frame to denote sex, then "F" and "M" are the codes required in the pyramid data frame. Any number of sex code values can be used, so long as they are unique.
 }
 \examples{
-DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
-pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
+DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges,
+                         pyrsxcol = 2, pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge",
+                         userseed = 4)
 }
