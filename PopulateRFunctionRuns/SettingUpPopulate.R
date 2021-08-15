@@ -909,95 +909,39 @@ save(AllEmployers, file = "data/AllEmployers.RData")
 
 # remember, uses the code from the CodeExamples to construct the data frame
 
-# do some sort of comparison of cumulative counts
+# by employer
+CompaniesCreated <- TownshipEmployment$Companies
+
 library("ggplot2")
-#
-# #################
-# # was by industry, do by employer
-#
-# # OriginalAveEmpl <- AllEmployers %>%
-# #   mutate(AveEmp = round(EmployeeCount/BusinessCount, 2),
-# #          Size = ifelse(AveEmp == 0, "None",
-# #                        ifelse(AveEmp > 0 & AveEmp < 1, "< 1",
-# #                        ifelse(between(AveEmp, 1, 5), "1 - 5",
-# #                        ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
-# #                        ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
-# #                               ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
-# #                                      ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
-# #                                             ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
-# #                                                    ifelse(is.infinite(AveEmp), "Other",
-# #                                                    ifelse(AveEmp > 150, "> 150",
-# #                                                                  "Other")))))))))),
-# #          Size = ifelse(is.na(Size), "Other", Size),
-# #          Source = "Input") %>%
-# #   select(-c(BusinessCount, EmployeeCount)) %>%
-# #   group_by(Source, Size) %>%
-# #   summarise(n = n()) %>%
-# #   mutate(freq = n/sum(n))
-# #
-# # ######################################
-# # # NEED THE OUTPUT FROM THE FUNCTION
-# #
-# # NewAveEmpl <- TownshipEmployment$Companies %>%
-# #   group_by(ANZSIC06) %>%
-# #   summarise(AveEmp = mean(EmployeeCount)) %>%
-# #   mutate(Size = ifelse(between(AveEmp, 1, 5), "1 - 5",
-# #          ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
-# #                 ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
-# #                        ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
-# #                               ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
-# #                                      ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
-# #                                             ifelse(AveEmp %in% c(NaN, Inf),"None",
-# #                                                    ifelse(AveEmp > 150, "> 150",
-# #                                                           "< 1")))))))),
-# #          Source = "Output") %>%
-# #   group_by(Source, Size) %>%
-# #   summarise(n = n()) %>%
-# #   mutate(freq = n/sum(n)) %>%
-# #   ungroup() %>%
-# #   add_row(Source = "Output", Size = "None", n = 0, freq = 0) %>%
-# #   add_row(Source = "Output", Size = "< 1", n = 0, freq = 0) %>%
-# #   add_row(Source = "Output", Size = "Other", n = 0, freq = 0)
-# #
-# # FullCompData <- bind_rows(OriginalAveEmpl, NewAveEmpl) %>%
-# #   mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
-# #                                       "51 - 100", "101 - 150", "> 150", "Other")))
-# #
-# # CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
-# #   geom_bar(stat = "identity", position = "dodge") +
-# #   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
-# #   labs(x="Number of employers per company", y = "Proportion of companies",
-# #        fill = "Source")
-# # # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
-#
-# #######
-# # by employer
-# library("ggplot2")
-#
-# AveEmpCount <- TownshipEmployment$Companies %>%
-#   mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
-#                 ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
-#                 ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
-#                 ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
-#                 ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
-#                 ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
-#   group_by(Size) %>%
-#   summarise(n = n()) %>%
-#     mutate(freq = n/sum(n),
-#            Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
-#                                                  "51 - 100", "101 - 150", "> 150", "Other"))) %>%
-#     ungroup()
-#
-# CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
-#   geom_bar(stat = "identity", fill = "#5e3c99") +
-#   coord_cartesian(ylim = c(0, .8)) +
-#   labs(x="Number of employees per company", y = "Proportion of companies") +
-#   theme(text = element_text(size = 18))
-#
-# # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
-#
+AveEmpCount <- CompaniesCreated %>%
+  mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
+                ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
+                ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
+                ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
+                ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
+                ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
+  group_by(Size) %>%
+  summarise(n = n()) %>%
+    mutate(freq = n/sum(n),
+           Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+                                                 "51 - 100", "101 - 150", "> 150", "Other"))) %>%
+    ungroup()
+
+CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
+  geom_bar(stat = "identity", fill = "#5e3c99") +
+  coord_cartesian(ylim = c(0, .8)) +
+  labs(x="Number of employees per company", y = "Proportion of companies") +
+  theme(text = element_text(size = 18))
+
+# ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
+
 # rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
 
+# Overcount contents
+EmpOvercount <- TownshipEmployment$Overcount
+
+# With no employees or employers
+Nope <- TownshipEmployment$NoEmps
 
 
 ####################################
