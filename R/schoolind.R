@@ -21,18 +21,18 @@
 #' @param struagecol The column number containing the individual ages.
 #' @param structcol The column number containing the counts for each sex/age combination in the data
 #' @param stvarname The name of the variable to contain the status of the children/adolescents for schooling. The output is "Yes" for those still in school and "No" for those not in school. If not specified, the column name is "Status".
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return A data frame of an observations, with an added column that contains the school status of each person.
 #'
 #' @examples
 #' WithSchoolInd <- schoolind(Township, 1, 4, 2018, 5, 18, LeftSchool, 2, 3, 4, 1,
-#' RegionalStructure, 1, 4, 3, "SchoolStatus", UserSeed = 4)
+#' RegionalStructure, 1, 4, 3, "SchoolStatus", userseed = 4)
 
 schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = NULL, minschage = NULL, maxschage = NULL,
                       leavers, lvrsxcol = NULL, lvragecol = NULL, lvrctcol = NULL, lvryearcol = NULL,
                       structure, strusxcol = NULL, struagecol = NULL, structcol = NULL, stvarname = "Status",
-                      UserSeed = NULL)
+                      userseed = NULL)
 
 {
 
@@ -237,8 +237,8 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
            Status = "None")
 
   # seed must come before first sample is cut
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   # apply the probabilities to the children

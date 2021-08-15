@@ -502,21 +502,30 @@ AgeDiffs2 <- ggplot(OppSexAgeDiffPlotValues2, aes (x = AgeDiff)) +
 
 # ggsave(AgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs2.pdf", width = 7, height = 4)
 
-# look at box plot instead
+# get quantile values
+quantile(OppSexAgeDiffPlotValues1$AgeDiff)
+quantile(OppSexAgeDiffPlotValues2$AgeDiff)
 
-Diff1BP <- OppSexAgeDiffPlotValues1 %>%
-  mutate(Version = "OppSexCouples1")
+rm(OppSexAgeDiffPlotValues1, OppSexAgeDiffPlotValues2, AgeDiffs1, AgeDiffs2, OppSexCouples1, OppSexCouples2,
+   TheMatched1, TheMatched2, PartneredFemales, PartneredMales, PartneredMalesSmall)
 
-Diff2BP <- OppSexAgeDiffPlotValues2 %>%
-  mutate(Version = "OppSexCouples2")
 
-MergedDiff <- bind_rows(Diff1BP, Diff2BP)
 
-ggplot(MergedDiff, aes(x=Version, y=AgeDiff)) +
-  geom_boxplot()
-
-#it's not attractive
-rm(Diff1BP, Diff2BP, MergedDiff)
+# # look at box plot instead
+#
+# Diff1BP <- OppSexAgeDiffPlotValues1 %>%
+#   mutate(Version = "OppSexCouples1")
+#
+# Diff2BP <- OppSexAgeDiffPlotValues2 %>%
+#   mutate(Version = "OppSexCouples2")
+#
+# MergedDiff <- bind_rows(Diff1BP, Diff2BP)
+#
+# ggplot(MergedDiff, aes(x=Version, y=AgeDiff)) +
+#   geom_boxplot()
+#
+# #it's not attractive
+# rm(Diff1BP, Diff2BP, MergedDiff)
 
 ####################################
 # Graph and differences parents and kids
@@ -529,13 +538,26 @@ ParentKidDiffs <- ChildrenMatchedID$Matched %>%
   filter(AgeDiff > 0)
 
 library(ggplot2)
+
 AgeDiffs <- ggplot(ParentKidDiffs, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
   labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
   theme(text = element_text(size = 18))
 # ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAgeDiffs.pdf")
 
-rm(ParentKidDiffs, AgeDiffs)
+# get age of parents now
+ParentsID <- ChildrenMatchedID$Matched %>%
+  filter(Relationship == "Partnered")
+
+ParentAges <-  ggplot(ParentsID, aes (x = Age)) +
+  geom_bar(fill = "#fdb863") +
+  xlim(20,70) +
+  labs(x="Current parent age", y = "Number of parents") +
+  theme(text = element_text(size = 18))
+
+# ggsave(ParentAges, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAges.pdf")
+
+rm(ParentKidDiffs, AgeDiffs, ParentsID, ParentAges)
 
 detach("package:ggplot2", unload = TRUE)
 
@@ -741,16 +763,132 @@ save(AdultsNoID, file = "data/AdultsNoID.RData")
 ####################################
 # Businesses
 #####################################
-# this data is somehow contaminated
-# TABLECODE7602 <- read_csv("DataForPopsim/TABLECODE7602_Data_a4aa8e6e-60d1-45ae-a5f0-310ec3fb5001.csv",
-#                           col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip()))
+# # this data is somehow contaminated
+# # TABLECODE7602 <- read_csv("DataForPopsim/TABLECODE7602_Data_a4aa8e6e-60d1-45ae-a5f0-310ec3fb5001.csv",
+# #                           col_types = cols(Area = col_skip(), Flags = col_skip(), Year = col_skip()))
+#
+# # replacement data is excel format, and directly downloaded
+# # csv data was via a link in email
+#
+# library("stringr")
+#
+# Tablecode7602 <- read_csv("DataForPopsim/newdownload/TABLECODE7602_Data_c80a8f15-9e6b-4dba-8f22-94d3409e4751.csv", col_types = cols(Flags = col_skip()))
+#
+# # remove rows that are totals, this will be painful
+# Tablecode7602fixed <- Tablecode7602 %>%
+#   select(-c(Year, Area)) %>%
+#   filter(str_detect(ANZSIC06, "^[a-zA-Z][0-9]{3}"))
+#
+# Tablecode7602probs <- Tablecode7602 %>%
+#   select(-c(Year, Area)) %>%
+#   filter(!(str_detect(ANZSIC06, "^[a-zA-Z][0-9]{3}")))
+#
+#
+# Tablecode7602fixed <- Tablecode7602fixed %>%
+#   mutate(Measure = ifelse(Measure == "Geographic Units", "BusinessCount", "EmployeeCount"))
+#
+# AllEmployers <-tidyr::spread(Tablecode7602fixed, Measure, Value)
+#
+# # remove all double-up counts
+#
+# save(AllEmployers, file = "data/AllEmployers.RData")
+#
+# # remember, uses the code from the CodeExamples to construct the data frame
+#
+# # do some sort of comparison of cumulative counts
+# library("ggplot2")
+# #
+# #################
+# # was by industry, do by employer
+#
+# # OriginalAveEmpl <- AllEmployers %>%
+# #   mutate(AveEmp = round(EmployeeCount/BusinessCount, 2),
+# #          Size = ifelse(AveEmp == 0, "None",
+# #                        ifelse(AveEmp > 0 & AveEmp < 1, "< 1",
+# #                        ifelse(between(AveEmp, 1, 5), "1 - 5",
+# #                        ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
+# #                        ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
+# #                               ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
+# #                                      ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
+# #                                             ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
+# #                                                    ifelse(is.infinite(AveEmp), "Other",
+# #                                                    ifelse(AveEmp > 150, "> 150",
+# #                                                                  "Other")))))))))),
+# #          Size = ifelse(is.na(Size), "Other", Size),
+# #          Source = "Input") %>%
+# #   select(-c(BusinessCount, EmployeeCount)) %>%
+# #   group_by(Source, Size) %>%
+# #   summarise(n = n()) %>%
+# #   mutate(freq = n/sum(n))
+# #
+# # ######################################
+# # # NEED THE OUTPUT FROM THE FUNCTION
+# #
+# # NewAveEmpl <- TownshipEmployment$Companies %>%
+# #   group_by(ANZSIC06) %>%
+# #   summarise(AveEmp = mean(EmployeeCount)) %>%
+# #   mutate(Size = ifelse(between(AveEmp, 1, 5), "1 - 5",
+# #          ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
+# #                 ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
+# #                        ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
+# #                               ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
+# #                                      ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
+# #                                             ifelse(AveEmp %in% c(NaN, Inf),"None",
+# #                                                    ifelse(AveEmp > 150, "> 150",
+# #                                                           "< 1")))))))),
+# #          Source = "Output") %>%
+# #   group_by(Source, Size) %>%
+# #   summarise(n = n()) %>%
+# #   mutate(freq = n/sum(n)) %>%
+# #   ungroup() %>%
+# #   add_row(Source = "Output", Size = "None", n = 0, freq = 0) %>%
+# #   add_row(Source = "Output", Size = "< 1", n = 0, freq = 0) %>%
+# #   add_row(Source = "Output", Size = "Other", n = 0, freq = 0)
+# #
+# # FullCompData <- bind_rows(OriginalAveEmpl, NewAveEmpl) %>%
+# #   mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+# #                                       "51 - 100", "101 - 150", "> 150", "Other")))
+# #
+# # CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
+# #   geom_bar(stat = "identity", position = "dodge") +
+# #   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
+# #   labs(x="Number of employers per company", y = "Proportion of companies",
+# #        fill = "Source")
+# # # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
+#
+# #######
+# # by employer
+# library("ggplot2")
+#
+# AveEmpCount <- TownshipEmployment$Companies %>%
+#   mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
+#                 ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
+#                 ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
+#                 ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
+#                 ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
+#                 ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
+#   group_by(Size) %>%
+#   summarise(n = n()) %>%
+#     mutate(freq = n/sum(n),
+#            Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+#                                                  "51 - 100", "101 - 150", "> 150", "Other"))) %>%
+#     ungroup()
+#
+# CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
+#   geom_bar(stat = "identity", fill = "#5e3c99") +
+#   coord_cartesian(ylim = c(0, .8)) +
+#   labs(x="Number of employees per company", y = "Proportion of companies") +
+#   theme(text = element_text(size = 18))
+#
+# # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
+#
+# rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
 
-# replacement data is excel format, and directly downloaded
-# csv data was via a link in email
 
-library("stringr")
-
-Tablecode7602 <- read_csv("DataForPopsim/newdownload/TABLECODE7602_Data_c80a8f15-9e6b-4dba-8f22-94d3409e4751.csv", col_types = cols(Flags = col_skip()))
+###############################
+# that was Canterbury data, use Timaru
+Tablecode7602 <- read_csv("DataForPopsim/TABLECODE7602_Data_d5d2c02c-3326-4be7-bdcc-194bb676d5c1.csv",
+                          col_types = cols(Flags = col_skip()))
 
 # remove rows that are totals, this will be painful
 Tablecode7602fixed <- Tablecode7602 %>%
@@ -767,8 +905,6 @@ Tablecode7602fixed <- Tablecode7602fixed %>%
 
 AllEmployers <-tidyr::spread(Tablecode7602fixed, Measure, Value)
 
-# remove all double-up counts
-
 save(AllEmployers, file = "data/AllEmployers.RData")
 
 # remember, uses the code from the CodeExamples to construct the data frame
@@ -776,98 +912,91 @@ save(AllEmployers, file = "data/AllEmployers.RData")
 # do some sort of comparison of cumulative counts
 library("ggplot2")
 #
-#################
-# was by industry, do by employer
-
-# OriginalAveEmpl <- AllEmployers %>%
-#   mutate(AveEmp = round(EmployeeCount/BusinessCount, 2),
-#          Size = ifelse(AveEmp == 0, "None",
-#                        ifelse(AveEmp > 0 & AveEmp < 1, "< 1",
-#                        ifelse(between(AveEmp, 1, 5), "1 - 5",
-#                        ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
-#                        ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
-#                               ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
-#                                      ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
-#                                             ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
-#                                                    ifelse(is.infinite(AveEmp), "Other",
-#                                                    ifelse(AveEmp > 150, "> 150",
-#                                                                  "Other")))))))))),
-#          Size = ifelse(is.na(Size), "Other", Size),
-#          Source = "Input") %>%
-#   select(-c(BusinessCount, EmployeeCount)) %>%
-#   group_by(Source, Size) %>%
+# #################
+# # was by industry, do by employer
+#
+# # OriginalAveEmpl <- AllEmployers %>%
+# #   mutate(AveEmp = round(EmployeeCount/BusinessCount, 2),
+# #          Size = ifelse(AveEmp == 0, "None",
+# #                        ifelse(AveEmp > 0 & AveEmp < 1, "< 1",
+# #                        ifelse(between(AveEmp, 1, 5), "1 - 5",
+# #                        ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
+# #                        ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
+# #                               ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
+# #                                      ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
+# #                                             ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
+# #                                                    ifelse(is.infinite(AveEmp), "Other",
+# #                                                    ifelse(AveEmp > 150, "> 150",
+# #                                                                  "Other")))))))))),
+# #          Size = ifelse(is.na(Size), "Other", Size),
+# #          Source = "Input") %>%
+# #   select(-c(BusinessCount, EmployeeCount)) %>%
+# #   group_by(Source, Size) %>%
+# #   summarise(n = n()) %>%
+# #   mutate(freq = n/sum(n))
+# #
+# # ######################################
+# # # NEED THE OUTPUT FROM THE FUNCTION
+# #
+# # NewAveEmpl <- TownshipEmployment$Companies %>%
+# #   group_by(ANZSIC06) %>%
+# #   summarise(AveEmp = mean(EmployeeCount)) %>%
+# #   mutate(Size = ifelse(between(AveEmp, 1, 5), "1 - 5",
+# #          ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
+# #                 ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
+# #                        ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
+# #                               ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
+# #                                      ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
+# #                                             ifelse(AveEmp %in% c(NaN, Inf),"None",
+# #                                                    ifelse(AveEmp > 150, "> 150",
+# #                                                           "< 1")))))))),
+# #          Source = "Output") %>%
+# #   group_by(Source, Size) %>%
+# #   summarise(n = n()) %>%
+# #   mutate(freq = n/sum(n)) %>%
+# #   ungroup() %>%
+# #   add_row(Source = "Output", Size = "None", n = 0, freq = 0) %>%
+# #   add_row(Source = "Output", Size = "< 1", n = 0, freq = 0) %>%
+# #   add_row(Source = "Output", Size = "Other", n = 0, freq = 0)
+# #
+# # FullCompData <- bind_rows(OriginalAveEmpl, NewAveEmpl) %>%
+# #   mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+# #                                       "51 - 100", "101 - 150", "> 150", "Other")))
+# #
+# # CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
+# #   geom_bar(stat = "identity", position = "dodge") +
+# #   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
+# #   labs(x="Number of employers per company", y = "Proportion of companies",
+# #        fill = "Source")
+# # # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
+#
+# #######
+# # by employer
+# library("ggplot2")
+#
+# AveEmpCount <- TownshipEmployment$Companies %>%
+#   mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
+#                 ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
+#                 ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
+#                 ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
+#                 ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
+#                 ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
+#   group_by(Size) %>%
 #   summarise(n = n()) %>%
-#   mutate(freq = n/sum(n))
+#     mutate(freq = n/sum(n),
+#            Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+#                                                  "51 - 100", "101 - 150", "> 150", "Other"))) %>%
+#     ungroup()
 #
-# ######################################
-# # NEED THE OUTPUT FROM THE FUNCTION
+# CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
+#   geom_bar(stat = "identity", fill = "#5e3c99") +
+#   coord_cartesian(ylim = c(0, .8)) +
+#   labs(x="Number of employees per company", y = "Proportion of companies") +
+#   theme(text = element_text(size = 18))
 #
-# NewAveEmpl <- TownshipEmployment$Companies %>%
-#   group_by(ANZSIC06) %>%
-#   summarise(AveEmp = mean(EmployeeCount)) %>%
-#   mutate(Size = ifelse(between(AveEmp, 1, 5), "1 - 5",
-#          ifelse(AveEmp > 5 & AveEmp <= 10, "6 - 10",
-#                 ifelse(AveEmp > 10 & AveEmp <= 20, "11 - 20",
-#                        ifelse(AveEmp > 20 & AveEmp <= 50, "21 - 50",
-#                               ifelse(AveEmp > 50 & AveEmp <= 100, "51 - 100",
-#                                      ifelse(AveEmp > 100 & AveEmp <= 150, "101 - 150",
-#                                             ifelse(AveEmp %in% c(NaN, Inf),"None",
-#                                                    ifelse(AveEmp > 150, "> 150",
-#                                                           "< 1")))))))),
-#          Source = "Output") %>%
-#   group_by(Source, Size) %>%
-#   summarise(n = n()) %>%
-#   mutate(freq = n/sum(n)) %>%
-#   ungroup() %>%
-#   add_row(Source = "Output", Size = "None", n = 0, freq = 0) %>%
-#   add_row(Source = "Output", Size = "< 1", n = 0, freq = 0) %>%
-#   add_row(Source = "Output", Size = "Other", n = 0, freq = 0)
-#
-# FullCompData <- bind_rows(OriginalAveEmpl, NewAveEmpl) %>%
-#   mutate(Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
-#                                       "51 - 100", "101 - 150", "> 150", "Other")))
-#
-# CompanyPropComps <- ggplot(FullCompData, aes(x=Size, y = freq, fill = Source)) +
-#   geom_bar(stat = "identity", position = "dodge") +
-#   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
-#   labs(x="Number of employers per company", y = "Proportion of companies",
-#        fill = "Source")
 # # ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
-
-#######
-# by employer
-library("ggplot2")
-
-AveEmpCount <- TownshipEmployment$Companies %>%
-  mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
-                ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
-                ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
-                ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
-                ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
-                ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
-  group_by(Size) %>%
-  summarise(n = n()) %>%
-    mutate(freq = n/sum(n),
-           Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
-                                                 "51 - 100", "101 - 150", "> 150", "Other"))) %>%
-    ungroup()
-
-CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
-  geom_bar(stat = "identity", fill = "#5e3c99") +
-  coord_cartesian(ylim = c(0, .8)) +
-  labs(x="Number of employees per company", y = "Proportion of companies") +
-  theme(text = element_text(size = 18))
-
-# ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
-
-rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
-
-# write out data frame examples below
-# saveRDS(Parents, "Parents.rds")
-# saveRDS(KidsForSchools, "KidsForSchools.rds")
 #
-# Parents <- readRDS("Parents.rds")
-# KidsForSchools <- readRDS("KidsForSchools.rds")
+# rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
 
 
 

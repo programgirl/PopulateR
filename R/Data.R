@@ -13,11 +13,11 @@
 #'"AdultsNoID"
 #'
 #'
-#' A tibble of the number of employers and employees, by industry, in the Canterbury Region, 2018
+#' A tibble of the number of employers and employees, by industry, in the Timaru District, 2018
 #'
 #' A dataset produced from tablecode 7602, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A data frame of 209 rows and 3 variables
+#' @format A data frame of 183 rows and 3 variables
 #' \describe{
 #'     \item{ANZSIC06}{The code and associated name for each industry}
 #'     \item{BusinessCount}{The random-rounded count of employers in the industry}

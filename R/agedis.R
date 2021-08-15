@@ -13,16 +13,16 @@
 #' @param pyragecol The column number containing the individual ages.
 #' @param pyrcountcol The column number containing the counts for each sex/age combination in the data
 #' @param agevarname The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 #' @return A data frame of an observations, with an added column that contains the age.
 
 #' @examples
 #' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges, pyrsxcol = 2,
-#' pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", UserSeed = 4)
+#' pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
 
 agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
-                         pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", UserSeed = NULL)
+                         pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", userseed = NULL)
 
 {
 
@@ -105,8 +105,8 @@ agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = N
   #####################################
 
   # seed must come before first sample is cut
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   # !!!!!!!!!!!!!!!!! note testing restriction

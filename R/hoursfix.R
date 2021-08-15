@@ -9,22 +9,22 @@
 #' @param hourscol The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
 #' @param hoursmax The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
 #' @param grpcol The column number containing any grouping variable to be used. If this is used, the changes to the working hours will be performed using grouped data. Within-group totals for the working hours categories will be retained.
-#' @param UserSeed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return A data of observations, with working hours reallocated so that an adolesent's working hours is compatible with schooling
 #'
 #' @examples
 #' # no grouping variable
-#' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, UserSeed = 4)
+#' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, userseed = 4)
 #'
 #' # grouping variable
 #' # when a group is used
 #' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
-#'                             UserSeed = 4)
+#'                             userseed = 4)
 
 
 hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NULL, hoursmax = NULL, grpcol = NULL,
-                     UserSeed = NULL) {
+                     userseed = NULL) {
 
   options(dplyr.summarise.inform=F)
 
@@ -160,8 +160,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
   }
 
   # seed must come before first sample is cut
-  if (!is.null(UserSeed)) {
-    set.seed(UserSeed)
+  if (!is.null(userseed)) {
+    set.seed(userseed)
   }
 
   # assign the shorter hours to the children in school
@@ -386,8 +386,8 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     }
 
     # seed must come before first sample is cut
-    if (!is.null(UserSeed)) {
-      set.seed(UserSeed)
+    if (!is.null(userseed)) {
+      set.seed(userseed)
     }
 
     # assign the shorter hours to the children in school
