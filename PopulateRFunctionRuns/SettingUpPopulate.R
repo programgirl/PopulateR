@@ -342,12 +342,10 @@ save(RegionalStructure, file = "data/RegionalStructure.RData")
 save(RegionalStructure, file = "data/RegionalStructure.RData")
 
 # run function
-WithSchoolInd <- SchoolLeavers(Township, AdolescentSxCol = 1, AdolescentAgeCol = 4,
-                             AdolescentsYear = 2018, MinSchoolAge = 5, MaxSchoolAge = 18,
-                             LeftSchool, LeaversSxCol = 2, LeaversAgeCol = 3, LeaversCountCol = 4,
-                             LeaversYearCol = 1,
-                             RegionalStructure, PyramidSxCol = 1, PyramidAgeCol = 4, PyramidCountCol = 3,
-                             SchoolStatus = "SchoolStatus", UserSeed = 4)
+WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
+                           LeftSchool, lvrsxcol = 2, lvragecol = 3, lvrctcol = 4, lvryearcol = 1,
+                           RegionalStructure, strusxcol = 1, struagecol = 4, structcol = 3, stvarname = "SchoolStatus",
+                           userseed = 4)
 
 save(WithSchoolInd, file = "data/WithSchoolInd.RData")
 
@@ -360,7 +358,7 @@ save(WithSchoolInd, file = "data/WithSchoolInd.RData")
 # construct school age data frame to fix the hours
 # pretend there was a 5-year age band with the school leavers in it
 WorkingAdolescents <- WithSchoolInd %>%
-  filter(between(Age, 15, 19))
+  filter(between(Age, 16, 20))
 
 save(WorkingAdolescents, file = "data/WorkingAdolescents.RData")
 
@@ -1135,6 +1133,10 @@ save(NetworkMatrix, file="data/NetworkMatrix.RData")
 # NEED THE SMALL EXAMPLE FROM THE PACKAGE TO DO THIS
 plot(NetworkSmallN)
 
+# keep running this until no more warnings or errors
+devtools::check()
+
+# after all checks passed
 # for compiling the package
 devtools::document()
 

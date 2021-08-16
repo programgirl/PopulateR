@@ -112,7 +112,7 @@ empadd <- function(employers, empid, empcount, workers, wrkid, hourscol, hoursmi
      HoursLabels <- levels(workers[,hourscol])
 
      OutputDataframe <- OutputDataframe %>%
-       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
+       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), ordered =  TRUE))
 
      #close factor test for hours worked variable
    }

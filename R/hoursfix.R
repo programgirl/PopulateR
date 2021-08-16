@@ -5,7 +5,7 @@
 #' @export
 #' @param adolescents A data frame containing all adolescents who have working hours.
 #' @param adlidcol The column number for the unique value that identifies unique adolescents.
-#' @param statuscol The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 1 must be in-school. If it is a numeric variable, the lowest number must be the in-school value. This is output as an ordered factor.
+#' @param statuscol The column number containing the indicator of whether an adolescent is in school or has left school. Can be either an ordered factor or numeric. If this is a factor, factor level 2 must be in-school. If it is a numeric variable, the lowest number must be the in-school value. This is output as an ordered factor.
 #' @param hourscol The column number containing the hours worked by each adolescent. Must be an ordered factor or numeric. The levels/values must be ascending for hours worked. This is output as an ordered factor.
 #' @param hoursmax The maximum hours worked by adolescents in-school. Must be the relevant factor level/number from HoursWorked.
 #' @param grpcol The column number containing any grouping variable to be used. If this is used, the changes to the working hours will be performed using grouped data. Within-group totals for the working hours categories will be retained.
@@ -108,13 +108,13 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
   CorrectShorterHours <- Children %>%
     filter(as.integer(IntHours) <= hoursmax,
-           InSchool == 1
+           InSchool == 2
           # as.integer(InSchool) == 1)
     )
 
   CorrectLongerHours <- Children %>%
     filter(as.integer(IntHours) > hoursmax,
-           InSchool == 2
+           InSchool == 1
           # as.integer(InSchool) == 2)
     )
 
@@ -135,7 +135,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
   # split out the two school statuses
 
   MismatchedInSchool <- MismatchedHours %>%
-    filter(InSchool == 1) %>%
+    filter(InSchool == 2) %>%
     dplyr::select(-IntHours)
 
   LongerHoursUnused <- MismatchedHours %>%
@@ -143,7 +143,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     dplyr::select(IntHours)
 
   MismatchedWorking <- MismatchedHours %>%
-    filter(InSchool == 2)
+    filter(InSchool == 1)
 
  # cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
 
@@ -240,7 +240,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
    InSchoolLabels <- levels(adolescents[,statuscol])
 
    OutputDataFrame <- OutputDataFrame %>%
-     mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
+     mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), ordered = TRUE))
 
    #close factor test for school variable
  }
@@ -252,7 +252,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     HoursLabels <- levels(adolescents[,hourscol])
 
     OutputDataFrame <- OutputDataFrame %>%
-      mutate(IntHours = factor(IntHours, labels = c(HoursLabels), order = TRUE))
+      mutate(IntHours = factor(IntHours, labels = c(HoursLabels), ordered = TRUE))
 
     #close factor test for hours worked variable
   }
@@ -334,13 +334,13 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
 
     CorrectShorterHours <- Children %>%
       filter(as.integer(IntHours) <= hoursmax,
-             InSchool == 1
+             InSchool == 2
              # as.integer(InSchool) == 1)
       )
 
     CorrectLongerHours <- Children %>%
       filter(as.integer(IntHours) > hoursmax,
-             InSchool == 2
+             InSchool == 1
              # as.integer(InSchool) == 2)
       )
 
@@ -361,7 +361,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     # split out the two school statuses
 
     MismatchedInSchool <- MismatchedHours %>%
-      filter(InSchool == 1) %>%
+      filter(InSchool == 2) %>%
       dplyr::select(-IntHours)
 
     LongerHoursUnused <- MismatchedHours %>%
@@ -369,7 +369,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       dplyr::select(IntHours)
 
     MismatchedWorking <- MismatchedHours %>%
-      filter(InSchool == 2)
+      filter(InSchool == 1)
 
     # cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
 
