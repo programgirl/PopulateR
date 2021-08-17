@@ -363,7 +363,10 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     MismatchedInSchool <- MismatchedHours %>%
       filter(InSchool == 2) %>%
       dplyr::select(-IntHours)
-
+    
+    if(nrow(MismatchedInSchool) > 0) {
+      
+    
     LongerHoursUnused <- MismatchedHours %>%
       filter(IntID %in% MismatchedInSchool$IntID) %>%
       dplyr::select(IntHours)
@@ -372,6 +375,7 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
       filter(InSchool == 1)
 
     # cat("There are", nrow(MismatchedWorking), "out of school adolescents with shorter hours", "\n")
+    # cat("There are", nrow(MismatchedInSchool), "school adolescents with longer hours", "\n")
 
 
     # just use the damn counts
@@ -477,6 +481,25 @@ hoursfix <- function(adolescents, adlidcol = NULL, statuscol= NULL, hourscol= NU
     } else {
 
       OutputDataFrame <- bind_rows(CorrectHours, FixedInSchool, MismatchedWorking)
+    }
+    
+    # closes if(nrow(MismatchedInSchool) > 0)
+    } else {
+      
+      if(exists("OutputDataFrame")) {
+        
+        # de-dup WorkFixed from those already in DF
+        OutputDataFrame <- OutputDataFrame %>%
+          filter(!(IntID %in% c(WorkFixed$IntID)))
+        
+        OutputDataFrame <- bind_rows(OutputDataFrame, Children)
+        
+      } else {
+        
+        OutputDataFrame <- Children
+      }
+      
+      # closes else to if(nrow(MismatchedInSchool) > 0)
     }
 
     # closes for (g in 1:nrow(GroupSum))
