@@ -215,6 +215,10 @@ childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol
 
   childrenRenamed <- childrenRenamed %>%
     filter(is.na(ParentAge))
+  
+  # cat("The number of rows in childrenRenamed is", nrow(childrenRenamed), "\n")
+  
+  if(nrow(childrenRenamed) > 0) {
 
   for (j in 1:nrow(childrenRenamed)) {
 
@@ -325,7 +329,10 @@ childyes <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol
     # bind in the last dataframe if there were children missing parents
     Matchedchildren <- rbind(Matchedchildren, LastSet)
 
-    # closes test if there is any unmatched children
+    # closes if(nrow(childrenRenamed) > 0) AFTER SECOND GO
+  }
+  
+  # closes if(nrow(childrenRenamed) > 0) if all children are matched in first pass
   }
 
   #####################################

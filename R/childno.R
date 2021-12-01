@@ -216,6 +216,10 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   childrenRenamed <- childrenRenamed %>%
     filter(is.na(ParentAge))
+  
+  # cat("The number of rows in childrenRenamed is", nrow(childrenRenamed), "\n")
+  
+  if(nrow(childrenRenamed) > 0) {
 
   for (j in 1:nrow(childrenRenamed)) {
 
@@ -247,7 +251,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
 
   Matchedchildren <- rbind(Matchedchildren, MatchedSecondGo)
 
- #  cat("First rbind here", "\n")
+  # cat("First rbind here", "\n")
 
   childrenRenamed <- childrenRenamed %>%
     filter(is.na(ParentAge))
@@ -326,7 +330,10 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     # bind in the last dataframe if there were children missing parents
     Matchedchildren <- rbind(Matchedchildren, LastSet)
 
-    # closes test if there is any unmatched children
+    # closes if(nrow(childrenRenamed) > 0) AFTER SECOND GO
+  }
+  
+  # closes if(nrow(childrenRenamed) > 0) if all children are matched in first pass
   }
 
   #####################################
@@ -375,7 +382,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
   # separate child and parent in data frames
   Maxhhidstart <- (nrow(FullMatchedDataFrame)-1) + hhidstart
 
-#  cat("Dyad value constructed", "\n")
+ # cat("Dyad value constructed", "\n")
 
   childrenFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
@@ -383,7 +390,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     rename_all(list(~gsub("\\.x$", "", .))) %>%
     mutate({{hhidvar}} := seq(hhidstart, Maxhhidstart))
 
-#   cat("childrenFinal data frame constructed", "\n")
+  # cat("childrenFinal data frame constructed", "\n")
 
   parentsFinal <- FullMatchedDataFrame %>%
     ungroup() %>%
@@ -391,7 +398,7 @@ childno <- function(children, chlidcol, chlagecol, parents, paridcol, paragecol,
     rename_all(list(~gsub("\\.y$", "", .))) %>%
     mutate({{hhidvar}} := seq(hhidstart, Maxhhidstart))
 
-#   cat("parentsFinal data frame constructed", "\n")
+  # cat("parentsFinal data frame constructed", "\n")
 
   childrenFinal <- childrenFinal %>%
     rename(!!chlidcolName := ChildID, !!chlagecolName := ChildAge)
