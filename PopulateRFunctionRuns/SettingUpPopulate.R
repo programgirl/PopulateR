@@ -2,6 +2,7 @@
 
 library(dplyr)
 library(readr)
+library(ggplot2)
 
 
 library(DiagrammeR)
@@ -299,6 +300,81 @@ rm(WorkDF, WorkingHoursSummary, WorkingHoursSummary2, UnderCounts, TotalsFromPop
 
 
 
+
+
+
+####################################
+# Fixing relationship status
+#####################################
+
+BadRels <- Township %>%
+  filter(Age > 19 & Age < 91) %>%
+  mutate(AgeBand = case_when(between(Age, 20, 29) ~ "20-29 Years",
+                             between(Age, 30, 39) ~ "30-39 Years",
+                             between(Age, 40, 49) ~ "40-49 Years",
+                             between(Age, 50, 59) ~ "50-59 Years",
+                             between(Age, 60, 69) ~ "60-69 Years",
+                             between(Age, 70, 79) ~ "70-79 Years",
+                             Age > 79 ~ "80-90 Years"),
+         MinAge = case_when(between(Age, 20, 29) ~ 20,
+                            between(Age, 30, 39) ~ 30,
+                            between(Age, 40, 49) ~ 40,
+                            between(Age, 50, 59) ~ 50,
+                            between(Age, 60, 69) ~ 60,
+                            between(Age, 70, 79) ~ 70,
+                            Age > 79 ~ 80),
+         MaxAge = case_when(between(Age, 20, 29) ~ 29,
+                            between(Age, 30, 39) ~ 39,
+                            between(Age, 40, 49) ~ 49,
+                            between(Age, 50, 59) ~ 59,
+                            between(Age, 60, 69) ~ 69,
+                            between(Age, 70, 79) ~ 79,
+                            Age > 79 ~ 90))
+
+save(BadRels, file = "data/BadRels.RData")
+
+
+table(BadRels$AgeBand, BadRels$Relationship)
+
+PropPart <- BadRels %>%
+  group_by(Sex, AgeBand, MinAge, MaxAge, Relationship) %>%
+  summarise(NuminRel = n()) %>%
+  mutate(RelProps = NuminRel/sum(NuminRel)) %>%
+  filter(Relationship == "Partnered") %>%
+  select(-NuminRel) %>%
+  ungroup()
+
+PropRelAge <- BadRels %>%
+  group_by(Sex, Age, Relationship) %>%
+  summarise(NuminRel = n()) %>%
+  mutate(RelProps = NuminRel/sum(NuminRel)) %>%
+  filter(Relationship == "Partnered") %>%
+  select(-NuminRel) %>%
+  ungroup()
+
+OrigRels <- ggplot() +
+  geom_segment(data = PropPart, aes(x = MinAge, y = RelProps, xend = MaxAge, yend = RelProps, colour = Sex,
+                                    ), size = 1) +
+  geom_point(data = PropRelAge, aes(x = Age, y = RelProps, colour = Sex)) +
+  scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100), limits = c(0,100)) +
+  scale_y_continuous(breaks = c(0, .2, .4, .6, .8, 1), limits = c(0,1)) +
+  labs(x = "Age (years)", y = "Proportion partnered") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+#    ggsave(OrigRels, file="~/Sync/PhD/Thesis2020/PopSimArticle/OrigRels.pdf", width = 12.25, height = 7.15, units = "in")
+
+
+# create data frame for interdiff example
+GroupInfo <- PropPart %>%
+  select(-c(MinAge, MaxAge))
+
+GroupInfo$MidPoints <- c(rep(c(25.5, 35.5, 45.5, 55.5, 65.5, 75.5, 86),2))
+
+save(GroupInfo, file = "data/GroupInfo.RData")
 
 ####################################
 # School leavers

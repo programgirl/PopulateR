@@ -52,13 +52,21 @@ interdiff <- function(people, pplagecol = NULL, pplpropcol = NULL, ageranges, en
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
     
-    CurrentDef <- PeopleUnique[i,]
+    # below returns a vector if there is only one grouping variable
+    # CurrentDef <- PeopleUnique[i,]
+    # str(CurrentDef)
+    
+    # fix for one grouping variable
+    # see https://stackoverflow.com/a/69116009/1030648
+    CurrentDef = PeopleUnique[i, , drop=FALSE]
+    
+    # str(CurrentDef)
 
-    WorkingAgeMin <- as.numeric(left_join(CurrentDef, ageranges, by = c(grpdef)) %>%
+    WorkingAgeMin <- as.numeric(left_join(CurrentDef, WorkingAges, by = c(grpdef)) %>%
                                   select(MinAge) %>%
                                   pull())
     
-    WorkingAgeMax <- as.numeric(left_join(CurrentDef, ageranges, by = c(grpdef)) %>%
+    WorkingAgeMax <- as.numeric(left_join(CurrentDef, WorkingAges, by = c(grpdef)) %>%
                                   select(MaxAge) %>%
                                   pull())
     
@@ -120,7 +128,7 @@ interdiff <- function(people, pplagecol = NULL, pplpropcol = NULL, ageranges, en
       
       # cat("3 mininflex is", mininflex, "and maxinflex is", maxinflex, "\n")
 
-      cat("4 Inflexion points are", mininflex, "and", maxinflex, "\n")
+      # cat("4 Inflexion points are", mininflex, "and", maxinflex, "\n")
 
       #do the next bit by whole numbers
       minintval <- ceiling(mininflex)

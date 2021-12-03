@@ -6,6 +6,25 @@ DisaggregateAge <- agedis(InitialDataframe, indsxcol = 1, minagecol = 4, maxagec
                                 pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
 
 # Township is the file to use for the other functions
+
+
+
+
+
+
+###########################################################
+# 2 functions to fix the proportion of partnered people
+###########################################################
+
+# 1st function:
+
+thegroups <- as.vector("Sex")
+
+GroupAges <- data.frame(Sex = c("Female", "Male"), GrpMinAge = c(20,20), GrpMaxAge = c(90,90))
+
+RelProps <- interdiff(GroupInfo, 5, 4, GroupAges, 2, 3, thegroups)
+
+
 ###########################################################
 # School leavers function
 ###########################################################
