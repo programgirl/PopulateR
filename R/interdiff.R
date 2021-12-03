@@ -13,17 +13,16 @@
 #' @param endmincol The ageranges column number that contains the minimum age for each group.
 #' @param endmaxcol The ageranges column number that contains the maximum age for each group.
 #' @param groupdef The character vector containing the names the grouping variables.
-#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
 #' @return A data frame containing the estimated value for each relevant age within each group. There are four columns: the age, one column for each grouping variable, and the fitted values.
 #' 
 #' @examples
 #' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
-#'                             hoursmax = 3, grpcol = 1, userseed = 4)
+#'                             hoursmax = 3, grpcol = 1)
 
 
 interdiff <- function(people, pplagecol = NULL, pplpropcol = NULL, ageranges, endmincol = NULL, endmaxcol = NULL,
-                      grpdef = NULL, userseed = NULL) {
+                      grpdef = NULL) {
   
   options(dplyr.summarise.inform=F)
   
@@ -49,21 +48,17 @@ interdiff <- function(people, pplagecol = NULL, pplpropcol = NULL, ageranges, en
   WorkingAges <- as.data.frame(ageranges %>%
     rename(MinAge = !! endmincol,
            MaxAge = !! endmaxcol))
-  
-   if (!is.null(userseed)) {
-    set.seed(userseed)
-  }
-  
+
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
     
     CurrentDef <- PeopleUnique[i,]
 
-    WorkingAgeMin <- as.numeric(left_join(CurrentDef, ageranges, by = c(SubsetDef)) %>%
+    WorkingAgeMin <- as.numeric(left_join(CurrentDef, ageranges, by = c(grpdef)) %>%
                                   select(MinAge) %>%
                                   pull())
     
-    WorkingAgeMax <- as.numeric(left_join(CurrentDef, ageranges, by = c(SubsetDef)) %>%
+    WorkingAgeMax <- as.numeric(left_join(CurrentDef, ageranges, by = c(grpdef)) %>%
                                   select(MaxAge) %>%
                                   pull())
     
