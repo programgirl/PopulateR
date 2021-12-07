@@ -376,6 +376,43 @@ GroupInfo$MidPoints <- c(rep(c(25.5, 35.5, 45.5, 55.5, 65.5, 75.5, 86),2))
 
 save(GroupInfo, file = "data/GroupInfo.RData")
 
+
+
+
+
+
+# plot the data for the fixed output for relationships
+
+FinalRelAge <- FinalRels %>%
+  group_by(Sex, Age, Relationship) %>%
+  summarise(NuminRel = n()) %>%
+  mutate(RelProps = NuminRel/sum(NuminRel)) %>%
+  filter(Relationship == "Partnered") %>%
+  select(-NuminRel) %>%
+  ungroup()
+
+FinalRelPlot <- ggplot() +
+  geom_segment(data = PropPart, aes(x = MinAge, y = RelProps, xend = MaxAge, yend = RelProps, colour = Sex,
+  ), size = 1) +
+  geom_point(data = FinalRelAge, aes(x = Age, y = RelProps, colour = Sex)) +
+  scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100), limits = c(0,100)) +
+  scale_y_continuous(breaks = c(0, .2, .4, .6, .8, 1), limits = c(0,1)) +
+  labs(x = "Age (years)", y = "Proportion partnered") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+#    ggsave(FinalRelPlot, file="~/Sync/PhD/Thesis2020/PopSimArticle/FinalRelPlot.pdf", width = 12.25, height = 7.15, units = "in")
+
+# show the problem re the counts in the ages
+FemaleProbCounts <- FinalRels %>%
+  filter(Sex == "Female", between(Age, 35, 46)) %>%
+  group_by(Sex, Age) %>%
+  summarise(AgeCount = n())
+
+
 ####################################
 # School leavers
 #####################################

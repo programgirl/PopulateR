@@ -22,6 +22,18 @@ thegroups <- as.vector("Sex")
 GroupAges <- data.frame(Sex = c("Female", "Male"), GrpMinAge = c(20,20), GrpMaxAge = c(90,90))
 RelProps <- interdiff(GroupInfo, 5, 4, GroupAges, 2, 3, thegroups)
 
+# 2nd function
+
+joinwith <- c("Age", "Sex")
+thegroups <- c("Sex", "AgeBand")
+
+FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4, pplstatcol = 2,
+                        stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
+
+
+
+
+
 
 ###########################################################
 # School leavers function

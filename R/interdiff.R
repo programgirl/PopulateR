@@ -235,7 +235,6 @@ interdiff <- function(people, pplagecol = NULL, pplpropcol = NULL, ageranges, en
     # closes for(i in 1:nrow(PeopleUnique))
   }
 
-
   return(AllResults)
 #
 #   # fix any results < 0 or > 1
