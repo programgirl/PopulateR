@@ -7,7 +7,7 @@ DisaggregateAge <- agedis(InitialDataframe, indsxcol = 1, minagecol = 4, maxagec
 
 # Township is the file to use for the other functions
 
-
+rm(SingleAges)
 
 
 
@@ -31,7 +31,9 @@ FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4
                         stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
 
 
+# go to SettingUpPopulateR at this point to draw the graph for the fixed variables
 
+rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
@@ -39,26 +41,26 @@ FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4
 # School leavers function
 ###########################################################
 
-library(dplyr)
-
 WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
                            LeftSchool, lvrsxcol = 2, lvragecol = 3, lvrctcol = 4, lvryearcol = 1,
                            RegionalStructure, strusxcol = 1, struagecol = 4, structcol = 3,
                            stvarname = "SchoolStatus", userseed = 4)
 
-rm(WithSchoolInd)
+rm(WithSchoolInd, LeftSchool, RegionalStructure)
 
 ########################################################### ##
 # Fix hours function
 ########################################################### #
-
-library(dplyr)
 
 AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, userseed = 4)
 
 # when a group is used
 AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
                             userseed = 4)
+
+# go to SettingUpPopulateR to do the graphs
+
+rm(AdolescentWork, AdolescentWork2)
 
 ########################################################### ##
 

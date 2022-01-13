@@ -5,31 +5,32 @@ library(readr)
 library(ggplot2)
 
 
-library(DiagrammeR)
 
-# flowchart construction
-grViz("
-digraph flowchart {
-node [overlap = true, fontsize = 20, shape = box, fontname = Helvetica]
 
-tab1 [label = 'Create age structure']
-tab2 [label = 'Identify school leavers']
-tab3 [label = 'Restrict working hours of children in school']
-tab4 [label = 'Construct couples living in the same household']
-tab5 [label = 'Identify children living in family homes']
-tab6 [label = 'Add children to family homes']
-tab7 [label = 'Add other people to households']
-tab8 [label = 'Assign schools to children']
-tab9 [label = 'Assign employers to working people']
-tab10 [label = 'Create non-school and non-employer social networks']
-tab11 [label = 'Completed synthetic population']
-
-tab1 -> tab2 -> tab3 -> tab4 -> tab5 -> tab6 -> tab7 -> tab8 -> tab9 -> tab10 -> tab11
-
-}
- ")
-
-detach("package:DiagrammeR", unload = TRUE)
+# # flowchart construction
+# library(DiagrammeR)
+# grViz("
+# digraph flowchart {
+# node [overlap = true, fontsize = 20, shape = box, fontname = Helvetica]
+#
+# tab1 [label = 'Create age structure']
+# tab2 [label = 'Identify school leavers']
+# tab3 [label = 'Restrict working hours of children in school']
+# tab4 [label = 'Construct couples living in the same household']
+# tab5 [label = 'Identify children living in family homes']
+# tab6 [label = 'Add children to family homes']
+# tab7 [label = 'Add other people to households']
+# tab8 [label = 'Assign schools to children']
+# tab9 [label = 'Assign employers to working people']
+# tab10 [label = 'Create non-school and non-employer social networks']
+# tab11 [label = 'Completed synthetic population']
+#
+# tab1 -> tab2 -> tab3 -> tab4 -> tab5 -> tab6 -> tab7 -> tab8 -> tab9 -> tab10 -> tab11
+#
+# }
+#  ")
+#
+# detach("package:DiagrammeR", unload = TRUE)
 
 # can't save the chart to an external file as constructs an html object
 # manually export from viewer
@@ -133,11 +134,10 @@ SingleAges <- data.frame(Ages %>%
                                                                               ifelse(Age.group=="Nine years", 9,
                                                                                      as.numeric(sub("([0-9]+).*$", "\\1", Age.group))))))))))))))
 
-
-DisaggregateAge <- AgeStructure(InitialDataframe, IndividualSxCol = 1, MinimumAgeCol = 4,
-                                MaximumAgeCol = 5, SingleAges, PyramidSxCol = 2,
-                                PyramidAgeCol = 4, PyramidCountCol = 3, NewAgeVariable = "TheAge",
-                                UserSeed = 4)
+set.seed(2)
+DisaggregateAge <- agedis(InitialDataframe, indsxcol = 1, minagecol = 4,
+                          maxagecol = 5, SingleAges, pyrsxcol = 2, pyragecol = 4,
+                          pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
 
 rm(Ages)
 
@@ -227,7 +227,7 @@ HoursNeeded <- WorkDF %>%
 
 
 # get the sample
-set.seed(4)
+set.seed(2)
 for(i in 1:nrow(HoursNeeded)) {
   AgeNeeded <- HoursNeeded$Age.group[i]
   SexNeeded <- HoursNeeded$Sex[i]
@@ -295,7 +295,7 @@ Township <- Township %>%
 
 save(Township, file = "data/Township.RData")
 rm(WorkDF, WorkingHoursSummary, WorkingHoursSummary2, UnderCounts, TotalsFromPopulation, MissingHoursToRowBind,
-   WorkingHoursExpanded, HoursNeeded, SampleFromHours, OutputHours, HoursOfWorkToMatch, NonWorkingKids)
+   WorkingHoursExpanded, HoursNeeded, SampleFromHours, OutputHours, HoursOfWorkToMatch, NonWorkingKids, CurrentWorkSubset)
 
 
 
@@ -344,10 +344,10 @@ PropPart <- BadRels %>%
   select(-NuminRel) %>%
   ungroup()
 
-PropRelAge <- BadRels %>%
+PropRelAgeR2 <- BadRels %>%
   group_by(Sex, Age, Relationship) %>%
   summarise(NuminRel = n()) %>%
-  mutate(RelProps = NuminRel/sum(NuminRel)) %>%
+  mutate(RelProps = round(NuminRel/sum(NuminRel), 2)) %>%
   filter(Relationship == "Partnered") %>%
   select(-NuminRel) %>%
   ungroup()
@@ -355,7 +355,7 @@ PropRelAge <- BadRels %>%
 OrigRels <- ggplot() +
   geom_segment(data = PropPart, aes(x = MinAge, y = RelProps, xend = MaxAge, yend = RelProps, colour = Sex,
                                     ), size = 1) +
-  geom_point(data = PropRelAge, aes(x = Age, y = RelProps, colour = Sex)) +
+  geom_point(data = PropRelAgeR2, aes(x = Age, y = RelProps, colour = Sex)) +
   scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100), limits = c(0,100)) +
   scale_y_continuous(breaks = c(0, .2, .4, .6, .8, 1), limits = c(0,1)) +
   labs(x = "Age (years)", y = "Proportion partnered") +
@@ -386,7 +386,7 @@ save(GroupInfo, file = "data/GroupInfo.RData")
 FinalRelAge <- FinalRels %>%
   group_by(Sex, Age, Relationship) %>%
   summarise(NuminRel = n()) %>%
-  mutate(RelProps = NuminRel/sum(NuminRel)) %>%
+  mutate(RelProps = round(NuminRel/sum(NuminRel), 2)) %>%
   filter(Relationship == "Partnered") %>%
   select(-NuminRel) %>%
   ungroup()
@@ -412,6 +412,9 @@ FemaleProbCounts <- FinalRels %>%
   group_by(Sex, Age) %>%
   summarise(AgeCount = n())
 
+# remove the objects constructed
+
+rm(BadRels, PropPart, PropRelAgeR2, OrigRels, GroupInfo, FinalRelAge, FinalRelPlot, FemaleProbCounts)
 
 ####################################
 # School leavers
@@ -455,6 +458,7 @@ save(RegionalStructure, file = "data/RegionalStructure.RData")
 save(RegionalStructure, file = "data/RegionalStructure.RData")
 
 # run function
+set.seed(2)
 WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
                            LeftSchool, lvrsxcol = 2, lvragecol = 3, lvrctcol = 4, lvryearcol = 1,
                            RegionalStructure, strusxcol = 1, struagecol = 4, structcol = 3, stvarname = "SchoolStatus",
@@ -462,7 +466,7 @@ WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018
 
 save(WithSchoolInd, file = "data/WithSchoolInd.RData")
 
-
+rm(CRAgePyramid, AllSchoolLeavers, MinEdSchool_Leavers)
 
 ####################################
 # Fix school leaver hours
@@ -475,11 +479,8 @@ WorkingAdolescents <- WithSchoolInd %>%
 
 save(WorkingAdolescents, file = "data/WorkingAdolescents.RData")
 
-
 # comparisons of before and after fix
 # graph
-library(cowplot)
-library(ggplot2)
 
 Original <- WorkingAdolescents %>%
   group_by(SchoolStatus, HoursWorked) %>%
@@ -498,7 +499,71 @@ Fixed <- Fixed %>%
   right_join(AllHoursValues) %>%
   mutate(across(where(is.numeric), ~tidyr::replace_na(., 0)))
 
-OriginalGraph <- ggplot(Original, aes(x=HoursWorked, y = freq,
+FixedGroup <- AdolescentWork2 %>%
+  group_by(SchoolStatus, HoursWorked) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+
+FixedGroup <- FixedGroup %>%
+  right_join(AllHoursValues) %>%
+  mutate(across(where(is.numeric), ~tidyr::replace_na(., 0)))
+
+
+##########################
+# graphs now placed inside the article
+# this is the previous version that did the placement inside the R code
+# also now have 3 graphs
+##########################
+# library(cowplot)
+# library(ggplot2)
+#
+# OriginalGraph <- ggplot(Original, aes(x=HoursWorked, y = freq,
+#                                       fill = SchoolStatus)) +
+#   geom_bar(stat = "identity", position = "dodge") +
+#   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
+#   coord_cartesian(ylim = c(0, .8)) +
+#   labs(x="Hours worked per week", y = "Proportion of 15-19 year olds",
+#        fill = "Person in school?") +
+#   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
+#                    guide = guide_axis(angle = 90)) +
+#   theme(text = element_text(size = 18),
+#         plot.margin = unit(c(1,0,0,0), "cm"))
+#
+# FixedGraph <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
+#                                 fill = SchoolStatus)) +
+#   geom_bar(stat = "identity", position = "dodge") +
+#   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
+#   coord_cartesian(ylim = c(0, .8)) +
+#   labs(x="Hours worked per week", y = "Proportion of 15-19 year olds",
+#        fill = "Person in school?") +
+#   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
+#                    guide = guide_axis(angle = 90)) +
+#   theme(text = element_text(size = 18),
+#         plot.margin = unit(c(1,0,0,0), "cm"))
+#
+# BothPlots <- cowplot::plot_grid(OriginalGraph + theme(legend.position = "none"),
+#                                 FixedGraph + theme(legend.position = "none"),
+#                                 labels = c("Original", "Adjusted"),
+#                                 label_size = 16,
+#                                 align = "h",
+#                                 hjust = -2)
+#
+# BothPlotsLegend <- cowplot::get_legend(OriginalGraph +
+#                                          guides(color = guide_legend(nrow = 1)) +
+#                                          theme(legend.position = "bottom"))
+#
+# BothPlotsFinal <- cowplot::plot_grid(BothPlots, BothPlotsLegend,
+#                                      ncol = 1, rel_heights = c(1, .1))
+
+# ggsave(BothPlotsFinal, file="~/Sync/PhD/Thesis2020/PopSimArticle/SchoolWorkHours.pdf")
+# detach packages
+# detach("package:cowplot", unload = TRUE)
+# detach("package:ggplot2", unload = TRUE)
+######################
+
+# new graph approach
+
+OriginalHours <- ggplot(Original, aes(x=HoursWorked, y = freq,
                                       fill = SchoolStatus)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
@@ -507,11 +572,14 @@ OriginalGraph <- ggplot(Original, aes(x=HoursWorked, y = freq,
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
-  theme(text = element_text(size = 18),
-        plot.margin = unit(c(1,0,0,0), "cm"))
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
 
-FixedGraph <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
-                                fill = SchoolStatus)) +
+FixedHours1 <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
+                                      fill = SchoolStatus)) +
   geom_bar(stat = "identity", position = "dodge") +
   scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
   coord_cartesian(ylim = c(0, .8)) +
@@ -519,24 +587,31 @@ FixedGraph <- ggplot(Fixed, aes(x=HoursWorked, y = freq,
        fill = "Person in school?") +
   scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
                    guide = guide_axis(angle = 90)) +
-  theme(text = element_text(size = 18),
-        plot.margin = unit(c(1,0,0,0), "cm"))
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
 
-BothPlots <- cowplot::plot_grid(OriginalGraph + theme(legend.position = "none"),
-                                FixedGraph + theme(legend.position = "none"),
-                                labels = c("Original", "Adjusted"),
-                                label_size = 16,
-                                align = "h",
-                                hjust = -2)
+FixedHours2 <- ggplot(FixedGroup, aes(x=HoursWorked, y = freq,
+                            fill = SchoolStatus)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values=c("#5e3c99", "#fdb863")) +
+  coord_cartesian(ylim = c(0, .8)) +
+  labs(x="Hours worked per week", y = "Proportion of 15-19 year olds",
+       fill = "Person in school?") +
+  scale_x_discrete(labels= c("0", "1-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"),
+                   guide = guide_axis(angle = 90)) +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
 
-BothPlotsLegend <- cowplot::get_legend(OriginalGraph +
-                                         guides(color = guide_legend(nrow = 1)) +
-                                         theme(legend.position = "bottom"))
-
-BothPlotsFinal <- cowplot::plot_grid(BothPlots, BothPlotsLegend,
-                                     ncol = 1, rel_heights = c(1, .1))
-
-# ggsave(BothPlotsFinal, file="~/Sync/PhD/Thesis2020/PopSimArticle/SchoolWorkHours.pdf")
+# save the graphs
+#    ggsave(OriginalHours, file="~/Sync/PhD/Thesis2020/PopSimArticle/OriginalHours.pdf", width = 12.25, height = 7.15, units = "in")
+#    ggsave(FixedHours1, file="~/Sync/PhD/Thesis2020/PopSimArticle/FixedHours1.pdf", width = 12.25, height = 7.15, units = "in")
+#    ggsave(FixedHours2, file="~/Sync/PhD/Thesis2020/PopSimArticle/FixedHours2.pdf", width = 12.25, height = 7.15, units = "in")
 
 # compare the non-parametric ordinal variation assocations.
 # demonstrate lack of link between school, work, age
@@ -549,13 +624,13 @@ cor.test(as.numeric(AdolescentWork$HoursWorked), as.numeric(AdolescentWork$Schoo
          method = "kendall",
          exact=FALSE)
 
-# remove all extra files
-rm(Original, Fixed, AllHoursValues, OriginalGraph, FixedGraph, BothPlots, BothPlotsLegend,
-   BothPlotsFinal)
+cor.test(as.numeric(AdolescentWork2$HoursWorked), as.numeric(AdolescentWork2$SchoolStatus),
+         method = "kendall",
+         exact=FALSE)
 
-# detach packages
-detach("package:cowplot", unload = TRUE)
-detach("package:ggplot2", unload = TRUE)
+# remove all extra files
+rm(Original, Fixed, FixedGroup, AllHoursValues, OriginalGraph, OriginalHours, FixedHours1,
+   FixedHours2)
 
 ####################################
 # Graph and differences for the opposite sex
@@ -744,7 +819,7 @@ Probs15to18 <- KidsCounts %>%
 
 library(splitstackshape)
 # https://stackoverflow.com/questions/62603942/how-do-i-sample-specific-sizes-within-groups
-set.seed(4)
+set.seed(2)
 SampledKids <- stratified(KidsOlderTemp, "Age", c("15" = Probs15to18[1], "16" = Probs15to18[2],
                                                "17" = Probs15to18[3], "18" = Probs15to18[4]))
 
@@ -764,7 +839,7 @@ KidsForSchools <- bind_rows(KidsYoung, SampledKids, NotSampledKids) %>%
 rm(KidsYoung, KidsOlderTemp, KidsCounts, SampledKids, NotSampledKids, Probs15to18, Schools2018MOEData)
 
 # construct parents
-set.seed(4)
+set.seed(2)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 19) %>%
   slice_sample(n = 2000) %>%
@@ -848,6 +923,7 @@ rm(Schools2018MOEData, InterimSchools, AgeSums, SelectedPrimarySchoolAgeSums, Co
    SelectedCollegeSchoolAgeSums, BothCounts, OriginalSchoolsToUse, CRSchools)
 
 # add in some extra mock children as singletons to test the amended code
+set.seed(2)
 ExtraKids <- KidsIntoSchools %>%
   filter(Age < 16) %>%
   slice_sample(n = 50) %>%
@@ -1059,8 +1135,6 @@ Nope <- TownshipEmployment$NoEmps
 # Add employers
 #####################################
 
-library("dplyr")
-
 # extract a subset of employers
 
 # how many employed in Township?
@@ -1073,7 +1147,7 @@ table(Township$HoursWorked)
 # A014 <- TheCompanies %>%
 #   filter(ANZSIC06 == "A014 Sheep, Beef Cattle and Grain Farming")
 
-set.seed(4)
+set.seed(2)
 EmployerSet <- TownshipEmployment$Companies %>%
   slice_sample(weight_by = EmployeeCount, n = 225)
 
@@ -1086,7 +1160,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # #####################################
 
 # JUST DO A RANDOM SAMPLE FROM TOWNSHIP
-# set.seed(4)
+# set.seed(2)
 # NotChildren <- Township %>%
 #   filter(Relationship == "Partnered", Age > 18) %>%
 #   group_by(Sex) %>%
@@ -1099,7 +1173,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 #
 #
 #
-#
+# set.seed(2)
 # ParentHouseholds <- childrenyes(AllChildren, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .2,
 #                               NotChildren, paridcol = 3, paragecol = 4, minparage = 18,
 #                               maxparage = 54, hhidcol = 6, UserSeed = 4)
@@ -1119,10 +1193,12 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # ParentMWithChildren <- ParentsMatched %>%
 #   filter(Sex== "Male" & Relationship == "Partnered" & Age > 18)
 #
+# set.seed(2)
 # CouplesFbase <- otheryes(ParentFWithChildren, exsidcol = 3, exsagecol = 4, hhidcol = 6,
 #                          LeftOverPartneredM, addidcol = 3, addagecol = 4, numppl = 1, sdused = 3,
 #                          userseed=4, ptostop = .01, numiters = 5000)
 #
+# set.seed(2)
 # CouplesMbase <- otheryes(ParentMWithChildren, exsidcol = 3, exsagecol = 4, hhidcol = 6,
 #                          LeftOverPartneredF, addidcol = 3, addagecol = 4, numppl = 1, sdused = 3,
 #                          userseed=4, ptostop = .01, numiters = 5000)
@@ -1143,6 +1219,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # FemaleToCouple <- Township %>%
 #   filter(Relationship == "Partnered", Age > 19, Sex == "Female")
 #
+# set.seed(2)
 # TCouples <-couples(FemaleToCouple, smlidcol=3, smlagecol=4, MaleToCouple, lrgidcol=3,
 #             lrgagecol=4, directxi=-2, directomega=3, alphaused=0, hhidstart = 1,
 #             hhidvar="Household", UserSeed=4, ptostop=.01, numiters=1000000)
@@ -1152,16 +1229,19 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # Children <- Township %>%
 #     filter(Relationship == "NonPartnered", Age < 20)
 #
+# set.seed(2)
 # FemaleForChild <- Parents %>%
 #   filter(Sex=="Female") %>%
 #   slice_sample(n = 1000)
 #
+# set.seed(2)
 # MaleForChild <- Parents %>%
 #   filter(Sex=="Male", !(Household %in% c(FemaleForChild$Household))) %>%
 #   slice_sample(n = 110)
 #
 # PossibleParents <- bind_rows(FemaleForChild, MaleForChild)
 #
+# set.seed(2)
 # ParentsAndKids <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .1,
 #                               PossibleParents, paridcol = 3, paragecol = 4, minparage = 22, maxparage = 56,
 #                               hhidcol= 6, UserSeed=4)
@@ -1178,6 +1258,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 #   filter(!(ID %in% CompletedHH$ID))
 #
 # # random extract half of them
+# set.seed(2)
 # RemainingAinHHSample <- RemainingAdultsInHH %>%
 #   group_by(Household) %>%
 #   slice_sample(n = 1)
@@ -1185,6 +1266,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # RemainingKids <-  Township %>%
 #   filter(ID %in% ParentsAndKids$Children$ID)
 #
+# set.seed(2)
 # ParentAndKids2 <- childyes(RemainingKids, chlidcol = 3, chlagecol = 4, RemainingAinHHSample, paridcol = 3,
 #                            paragecol = 4, directxi = 30, directomega = 2, minparage = 22, maxparage = 56,
 #                            hhidcol = 6, UserSeed=4)
@@ -1207,9 +1289,11 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # RemainingPPl <- Township %>%
 #   filter(!(ID %in% AllCompletedHH$ID))
 #
+# set.seed(2)
 # ThreePPl <- RemainingPPl %>%
 #   slice_sample(n = 900)
 #
+# set.seed(2)
 # ThreepplHH <- otherno(ThreePPl, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3, hhidstart = 2320,
 #                       hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
 #
@@ -1221,6 +1305,7 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # TwoPPl <- RemainingPeople %>%
 #   slice_sample(n = 700)
 #
+# set.seed(2)
 # TwopplHH <- otherno(TwoPPl, pplidcol = 3, pplagecol = 4, numppl = 2, sdused = 3, hhidstart = 2620,
 #                       hhidvar= "Household", userseed=4, ptostop = .01, numiters = 5000)
 #
@@ -1229,16 +1314,16 @@ save(EmployerSet, file = "data/EmployerSet.RData")
 # Networks <- AllCompletedHH %>%
 #     mutate(NetworkSize = rpois(nrow(.), lambda = 4))
 #
-# set.seed(4)
+# set.seed(2)
 # NetworkMatrix <- as.vector(rpois(n = nrow(Networks), lambda = 4))
 
-set.seed(4)
+set.seed(2)
 Ppl4networks <- Township  %>%
   slice_sample(n = 5000)
 
 save(Ppl4networks, file="data/Ppl4networks.RData")
 
-set.seed(4)
+set.seed(2)
 NetworkMatrix <- as.vector(rpois(n = nrow(Ppl4networks), lambda = 4))
 save(NetworkMatrix, file="data/NetworkMatrix.RData")
 
