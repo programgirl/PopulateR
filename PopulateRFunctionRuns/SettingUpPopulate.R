@@ -632,98 +632,127 @@ cor.test(as.numeric(AdolescentWork2$HoursWorked), as.numeric(AdolescentWork2$Sch
 rm(Original, Fixed, FixedGroup, AllHoursValues, OriginalGraph, OriginalHours, FixedHours1,
    FixedHours2)
 
+
+
+
+
+
 ####################################
 # Graph and differences for the opposite sex
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
 #####################################
-# get graph of age differences
-# OppSexAgeDiffPlotValues <- OppSexCouples1$Matched %>%
-#   group_by(HouseholdID) %>%
-#   arrange(desc(Sex), .by_group = TRUE) %>%
-#   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
-#          Source = "Normal") %>%
-#   filter(Sex == "Female")
-#
-#
-# library(ggplot2)
-# AgeDiffs <- ggplot(OppSexAgeDiffPlotValues, aes (x = AgeDiff)) +
-#   geom_bar(fill = "#5e3c99") +
-#   labs(x="Age difference, years, male age - female age", y = "Number of couples") +
-#   theme(text = element_text(size = 12))
-# # ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs.pdf", width = 7, height = 4)
-#
-# rm(OppSexAgeDiffPlotValues, AgeDiffs)
-#
-# detach("package:ggplot2", unload = TRUE)
 
 # now doing a combined graph for both examples
-OppSexAgeDiffPlotValues1 <- TheMatched1 %>%
+OppSexAgeDiffPlotValues1 <- OppSexCouples1$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
          Source = "Normal") %>%
   filter(Sex == "Female")
 
-OppSexAgeDiffPlotValues2 <- TheMatched2 %>%
+OppSexAgeDiffPlotValues2 <- OppSexCouples2$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
          Source = "Normal") %>%
   filter(Sex == "Female")
-
-library(ggplot2)
 
 AgeDiffs1 <- ggplot(OppSexAgeDiffPlotValues1, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
   xlim(-15, 15) +
   labs(x="Age difference, years, male age - female age", y = "Number of couples") +
-  theme(text = element_text(size = 12))
-# ggsave(AgeDiffs1, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs1.pdf", width = 7, height = 4)
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+# ggsave(AgeDiffs1, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs1.pdf", width = 12.25, height = 7.15, units = "in")
 
 AgeDiffs2 <- ggplot(OppSexAgeDiffPlotValues2, aes (x = AgeDiff)) +
   geom_bar(fill = "#fdb863") +
   xlim(-15,15) +
   labs(x="Age difference, years, male age - female age", y = "Number of couples") +
-  theme(text = element_text(size = 12))
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
 
-# ggsave(AgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs2.pdf", width = 7, height = 4)
+# ggsave(AgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/OppSexAgeDiffs2.pdf", width = 12.25, height = 7.15, units = "in")
 
 # get quantile values
 quantile(OppSexAgeDiffPlotValues1$AgeDiff)
 quantile(OppSexAgeDiffPlotValues2$AgeDiff)
 
-rm(OppSexAgeDiffPlotValues1, OppSexAgeDiffPlotValues2, AgeDiffs1, AgeDiffs2, OppSexCouples1, OppSexCouples2,
-   TheMatched1, TheMatched2, PartneredFemales, PartneredMales, PartneredMalesSmall)
+rm(OppSexAgeDiffPlotValues1, OppSexAgeDiffPlotValues2, AgeDiffs1, AgeDiffs2, OppSexCouples1, OppSexCouples2, PartneredFemales, PartneredMales, PartneredMalesSmall)
 
-
-
-# # look at box plot instead
-#
-# Diff1BP <- OppSexAgeDiffPlotValues1 %>%
-#   mutate(Version = "OppSexCouples1")
-#
-# Diff2BP <- OppSexAgeDiffPlotValues2 %>%
-#   mutate(Version = "OppSexCouples2")
-#
-# MergedDiff <- bind_rows(Diff1BP, Diff2BP)
-#
-# ggplot(MergedDiff, aes(x=Version, y=AgeDiff)) +
-#   geom_boxplot()
-#
-# #it's not attractive
-# rm(Diff1BP, Diff2BP, MergedDiff)
 
 ####################################
 # Graph and differences parents and kids
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
 #####################################
+# graph the single child, skew normal age difference
+
+# more parents
+ParentKidDiffsCh1 <- ChildAllMatched$Matched %>%
+  group_by(HouseholdID) %>%
+  arrange(desc(Age), .by_group = TRUE) %>%
+  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
+  filter(AgeDiff > 0)
+
+
+AgeDiffs1 <- ggplot(ParentKidDiffsCh1, aes (x = AgeDiff)) +
+  geom_bar(fill = "#5e3c99") +
+  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+# more kids
+ParentKidDiffsCh2 <- ChildWithNonMatches$Matched %>%
+  group_by(HouseholdID) %>%
+  arrange(desc(Age), .by_group = TRUE) %>%
+  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
+  filter(AgeDiff > 0)
+
+
+AgeDiffs2 <- ggplot(ParentKidDiffsCh2, aes (x = AgeDiff)) +
+  geom_bar(fill = "#5e3c99") +
+  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+# larger sample
+ParentKidDiffsCh3 <- MoreMatches$Matched %>%
+  group_by(HouseholdID) %>%
+  arrange(desc(Age), .by_group = TRUE) %>%
+  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
+  filter(AgeDiff > 0)
+
+
+AgeDiffs3 <- ggplot(ParentKidDiffsCh3, aes (x = AgeDiff)) +
+  geom_bar(fill = "#5e3c99") +
+  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+
+
+
 ParentKidDiffs <- ChildrenMatchedID$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Age), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
   filter(AgeDiff > 0)
 
-library(ggplot2)
 
 AgeDiffs <- ggplot(ParentKidDiffs, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
