@@ -94,90 +94,81 @@ agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyra
            MaxAge = {{maxage}}) %>%
     mutate(Sex = as.character(Sex)))
 
-  # Agepyramid <- as.data.frame(pyramid %>%
-  #   rename(Sex = !! pyrsx, Age = !! pyrage,
-  #          Prob = deparse(substitute(pyrcountcol))) %>%
-  #   mutate(Sex = as.character(Sex)))
+  Agepyramid <- as.data.frame(pyramid %>%
+    rename(Sex = {{pyrsx}}, Age = {{pyrage}},
+           Prob = {{pyrcount}})  %>%
+    mutate(Sex = as.character(Sex)))
 
-  return(BaseDataFrame)
+  #####################################
+  # check alignment of the two sex variables codes
+  #####################################
 
-#
-#
-#
-#
-#
-#
-#
-#   #####################################
-#   # check alignment of the two sex variables codes
-#   #####################################
-#
-#   BaseSexCodes <- BaseDataFrame %>%
-#     select(Sex) %>%
-#     distinct(Sex) %>%
-#     arrange(Sex)
-#
-#   pyramidSexCodes <- Agepyramid %>%
-#     select(Sex) %>%
-#     distinct(Sex) %>%
-#     arrange(Sex)
-#
-#
-#   if (isFALSE(identical(BaseSexCodes, pyramidSexCodes))) {
-#
-#     stop("The sex variable values are not the same for both data frames.")
-#
-#   }
-#
-#
-#   #####################################
-#   #####################################
-#   # perform the age allocation
-#   #####################################
-#   #####################################
-#
-#   # seed must come before first sample is cut
-#   if (!is.null(userseed)) {
-#     set.seed(userseed)
-#   }
-#
-#   # !!!!!!!!!!!!!!!!! note testing restriction
-#  for (x in 1:nrow(BaseDataFrame)) {
-#   # for (x in 1:10) {
-#
-#     CurrentIndividual <- BaseDataFrame[x,]
-#
-#     AgeRestricted <- Agepyramid %>%
-#       filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
-#              Sex == CurrentIndividual$Sex) %>%
-#       select(Age, Prob)
-#
-#     OutputAge <- AgeRestricted %>%
-#       slice_sample(n=1, weight_by = Prob) %>%
-#       select(Age) %>%
-#       pull(Age)
-#
-#     CurrentIndividual <- CurrentIndividual %>%
-#       mutate(!!agevarname := OutputAge)
-#
-#
-#     if (exists("DataFrameWithAges") == TRUE) {
-#
-#       DataFrameWithAges <- bind_rows(DataFrameWithAges, CurrentIndividual)
-#
-#     } else {
-#
-#       DataFrameWithAges <- CurrentIndividual
-#
-#       # close evaluation for creating the output data frame
-#     }
-#
-#     # closes age assignment loop
-#
-#   }
-#
-#   #
-#   return(DataFrameWithAges)
-#
-#   #closes function
+  BaseSexCodes <- BaseDataFrame %>%
+    select(Sex) %>%
+    distinct(Sex) %>%
+    arrange(Sex)
+
+  pyramidSexCodes <- Agepyramid %>%
+    select(Sex) %>%
+    distinct(Sex) %>%
+    arrange(Sex)
+
+
+  if (isFALSE(identical(BaseSexCodes, pyramidSexCodes))) {
+
+    stop("The sex variable values are not the same for both data frames.")
+
+  }
+
+
+  #####################################
+  #####################################
+  # perform the age allocation
+  #####################################
+  #####################################
+
+  # seed must come before first sample is cut
+  if (!is.null(userseed)) {
+    set.seed(userseed)
+  }
+
+  # !!!!!!!!!!!!!!!!! note testing restriction
+ for (x in 1:nrow(BaseDataFrame)) {
+  # for (x in 1:10) {
+
+    CurrentIndividual <- BaseDataFrame[x,]
+
+    AgeRestricted <- Agepyramid %>%
+      filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
+             Sex == CurrentIndividual$Sex) %>%
+      select(Age, Prob)
+
+    OutputAge <- AgeRestricted %>%
+      slice_sample(n=1, weight_by = Prob) %>%
+      select(Age) %>%
+      pull(Age)
+
+    CurrentIndividual <- CurrentIndividual %>%
+      mutate(!!agevarname := OutputAge)
+
+
+    if (exists("DataFrameWithAges") == TRUE) {
+
+      DataFrameWithAges <- bind_rows(DataFrameWithAges, CurrentIndividual)
+
+    } else {
+
+      DataFrameWithAges <- CurrentIndividual
+
+      # close evaluation for creating the output data frame
+    }
+
+    # closes age assignment loop
+
+  }
+
+  #
+  return(DataFrameWithAges)
+
+  #closes function
 }
