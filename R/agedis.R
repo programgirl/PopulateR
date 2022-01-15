@@ -5,25 +5,25 @@
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the codes must match.  For example, if "F" and "M" are used in the individuals data frame to denote sex, then "F" and "M" are the codes required in the pyramid data frame. Any number of sex code values can be used, so long as they are unique.
 #' @export
 #' @param individuals A data frame containing observations with grouped ages. These are the observations to which the sex/age pyramid is applied.
-#' @param indsxcol The column number for the variable that contain the codes specifying females and males.
-#' @param minagecol The column number for the variable that contains the minimum age for the age band.
-#' @param maxagecol The column number for the variable that contains the maximum age for the age band.
+#' @param indsx The variable containing the codes specifying females and males.
+#' @param minage The variable containing the minimum age for the age band.
+#' @param maxage The variable that contains the maximum age for the age band.
 #' @param pyramid A data frame containing the sex/age pyramid to be used.
-#' @param pyrsxcol The column number for the variable that contain the codes specifying females and males.
-#' @param pyragecol The column number containing the individual ages.
-#' @param pyrcountcol The column number containing the counts for each sex/age combination in the data
+#' @param pyrsx The variable containing the codes specifying females and males.
+#' @param pyrage The variable containing the individual ages.
+#' @param pyrcount The variable containing the counts for each sex/age combination in the data
 #' @param agevarname The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 #' @return A data frame of an observations, with an added column that contains the age.
 
 #' @examples
-#' DisaggregateAge <- agedis(Relationships, indsxcol = 1, minagecol = 4, maxagecol = 5, SingleAges,
-#'                          pyrsxcol = 2, pyragecol = 4, pyrcountcol = 3, agevarname = "TheAge",
+#' DisaggregateAge <- agedis(Relationships, indsx = 1, minage = 4, maxage = 5, SingleAges,
+#'                          pyrsx = 2, pyrage = 4, pyrcount = 3, agevarname = "TheAge",
 #'                          userseed = 4)
 
-agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = NULL, pyramid, pyrsxcol = NULL,
-                         pyragecol = NULL, pyrcountcol = NULL, agevarname = "SingleAge", userseed = NULL)
+agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyramid, pyrsx = NULL,
+                         pyrage = NULL, pyrcount = NULL, agevarname = "SingleAge", userseed = NULL)
 
 {
 
@@ -33,49 +33,73 @@ agedis <- function(individuals, indsxcol = NULL, minagecol = NULL, maxagecol = N
   # quick reasonableness checks
   #####################################
 
-  if (is.null(indsxcol)) {
-    stop("The column number containing the sex information in the individuals data frame must be supplied.")
+  if (is.null(indsx)) {
+    stop("The variable containing the sex information in the individuals data frame must be supplied.")
   }
 
-  if (is.null(minagecol)) {
-    stop("The column number for the minimum age band value must be supplied.")
+  if (is.null(minage)) {
+    stop("The variable for the minimum age band value must be supplied.")
   }
 
-  if (is.null(maxagecol)) {
-    stop("The column number for the maximum age band value must be supplied.")
+  if (is.null(maxage)) {
+    stop("The variable for the maximum age band value must be supplied.")
   }
 
-  if (is.null(pyrsxcol)) {
-    stop("The column number containing the sex information in the pyramid data frame must be supplied.")
+  if (is.null(pyrsx)) {
+    stop("The variable containing the sex information in the pyramid data frame must be supplied.")
   }
 
-  if (is.null(pyragecol)) {
-    stop("The column number containing the age information in the pyramid data frame must be supplied.")
+  if (is.null(pyrage)) {
+    stop("The variable containing the age information in the pyramid data frame must be supplied.")
   }
 
-  if (is.null(pyrcountcol)) {
-    stop("The column number for the sex/age counts must be supplied.")
+  if (is.null(pyrcount)) {
+    stop("The variable for the sex/age counts must be supplied.")
   }
 
-  #####################################
-  #####################################
-  # rename variables so don't need to use quosures inside code
-  #####################################
-  #####################################
-
-  BaseDataFrame <- as.data.frame(individuals %>%
-    rename(Sex = !! indsxcol, MinAge = !! minagecol, MaxAge = !! maxagecol) %>%
-    mutate(Sex = as.character(Sex)))
-
-  Agepyramid <- as.data.frame(pyramid %>%
-    rename(Sex = !! pyrsxcol, Age = !! pyragecol, Prob = !! pyrcountcol) %>%
-    mutate(Sex = as.character(Sex)))
+  # #####################################
+  # #####################################
+  # # rename variables so don't need to use quosures inside code
+  # #####################################
+  # #####################################
+  #
+  # BaseDataFrame <- as.data.frame(individuals %>%
+  #   rename(Sex = !! indsxcol, MinAge = !! minagecol, MaxAge = !! maxagecol) %>%
+  #   mutate(Sex = as.character(Sex)))
+  #
+  # Agepyramid <- as.data.frame(pyramid %>%
+  #   rename(Sex = !! pyrsxcol, Age = !! pyragecol, Prob = !! pyrcountcol) %>%
+  #   mutate(Sex = as.character(Sex)))
 
   #####################################
   #####################################
   # end column names
   #####################################
   #####################################
+
+  # #####################################
+  # #####################################
+  # # rename variables so don't need to use quosures inside code
+  # #####################################
+  # #####################################
+
+
+  BaseDataFrame <- as.data.frame(individuals %>%
+    rename(Sex = deparse(substitute(indsx)), MinAge = deparse(substitute(minage)),
+           MaxAge = deparse(substitute(maxage))) %>%
+    mutate(Sex = as.character(Sex)))
+
+  Agepyramid <- as.data.frame(pyramid %>%
+    rename(Sex = deparse(substitute(pyrsx)), Age = deparse(substitute(pyrage)),
+           Prob = deparse(substitute(pyrcountcol))) %>%
+    mutate(Sex = as.character(Sex)))
+
+
+
+
+
+
+
 
   #####################################
   # check alignment of the two sex variables codes

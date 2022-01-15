@@ -690,10 +690,10 @@ rm(OppSexAgeDiffPlotValues1, OppSexAgeDiffPlotValues2, AgeDiffs1, AgeDiffs2, Opp
 ####################################
 # Graph and differences parents and kids
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
+# first, from child no
 #####################################
 # graph the single child, skew normal age difference
 
-# more parents
 ParentKidDiffsCh1 <- ChildAllMatched$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Age), .by_group = TRUE) %>%
@@ -701,7 +701,7 @@ ParentKidDiffsCh1 <- ChildAllMatched$Matched %>%
   filter(AgeDiff > 0)
 
 
-AgeDiffs1 <- ggplot(ParentKidDiffsCh1, aes (x = AgeDiff)) +
+PKAgeDiffs1 <- ggplot(ParentKidDiffsCh1, aes (x = AgeDiff)) +
   geom_bar(fill = "#5e3c99") +
   labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
   theme(axis.text = element_text(size = 18),
@@ -710,71 +710,81 @@ AgeDiffs1 <- ggplot(ParentKidDiffsCh1, aes (x = AgeDiff)) +
         legend.text = element_text(size = 18),
         legend.position = "bottom")
 
-# more kids
-ParentKidDiffsCh2 <- ChildWithNonMatches$Matched %>%
+#   ggsave(PKAgeDiffs1, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgeDiffs1.pdf", width = 12.25, height = 7.15, units = "in")
+
+
+# plot the parent ages
+ParentAges1 <- ChildAllMatched$Matched %>%
   group_by(HouseholdID) %>%
-  arrange(desc(Age), .by_group = TRUE) %>%
-  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
-  filter(AgeDiff > 0)
+  filter(Age == max(Age))
 
-
-AgeDiffs2 <- ggplot(ParentKidDiffsCh2, aes (x = AgeDiff)) +
-  geom_bar(fill = "#5e3c99") +
-  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+PKAgesG1 <- ggplot(ParentAges1, aes (x = Age)) +
+  geom_bar(fill = "#fdb863") +
+  xlim(10, 70) +
+  labs(x="Current age of parent", y = "Number of parents") +
   theme(axis.text = element_text(size = 18),
         axis.title = element_text(size = 20),
         legend.title = element_blank(),
         legend.text = element_text(size = 18),
         legend.position = "bottom")
 
-# larger sample
-ParentKidDiffsCh3 <- MoreMatches$Matched %>%
+#   ggsave(PKAgesG1, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgesG1.pdf", width = 12.25, height = 7.15, units = "in")
+
+# get numbers for the article
+# age at childbirth
+min(ParentKidDiffsCh1$AgeDiff)
+max(ParentKidDiffsCh1$AgeDiff)
+median(ParentKidDiffsCh1$AgeDiff)
+
+#current age of parent
+min(ParentAges1$Age)
+max(ParentAges1$Age)
+median(ParentAges1$Age)
+
+# table of parent ages
+table(ParentAges1$Age)
+
+# second, from child yes
+#####################################
+# graph the single child, skew normal age difference
+
+ParentKidDiffsCh2 <- ChildMatchedID$Matched %>%
   group_by(HouseholdID) %>%
   arrange(desc(Age), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
   filter(AgeDiff > 0)
 
 
-AgeDiffs3 <- ggplot(ParentKidDiffsCh3, aes (x = AgeDiff)) +
-  geom_bar(fill = "#5e3c99") +
-  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+PKAgeDiffs2 <- ggplot(ParentKidDiffsCh2, aes (x = AgeDiff)) +
+  geom_bar(fill = "#fdb863") +
+  xlim(10, 70) +
+  labs(x="Current age of parent", y = "Number of parents") +
   theme(axis.text = element_text(size = 18),
         axis.title = element_text(size = 20),
         legend.title = element_blank(),
         legend.text = element_text(size = 18),
         legend.position = "bottom")
 
-
-
-
-ParentKidDiffs <- ChildrenMatchedID$Matched %>%
-  group_by(HouseholdID) %>%
-  arrange(desc(Age), .by_group = TRUE) %>%
-  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
-  filter(AgeDiff > 0)
-
-
-AgeDiffs <- ggplot(ParentKidDiffs, aes (x = AgeDiff)) +
-  geom_bar(fill = "#5e3c99") +
-  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
-  theme(text = element_text(size = 18))
-# ggsave(AgeDiffs, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAgeDiffs.pdf")
+#   ggsave(PKAgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgeDiffs2.pdf", width = 12.25, height = 7.15, units = "in")
 
 # get age of parents now
-ParentsID <- ChildrenMatchedID$Matched %>%
+ParentsID2 <- ChildMatchedID$Matched %>%
   filter(Relationship == "Partnered")
 
-ParentAges <-  ggplot(ParentsID, aes (x = Age)) +
+PKAgesG2 <-  ggplot(ParentsID2, aes (x = Age)) +
   geom_bar(fill = "#fdb863") +
-  xlim(20,70) +
-  labs(x="Current parent age", y = "Number of parents") +
-  theme(text = element_text(size = 18))
+  xlim(10,70) +
+  labs(x="Current age of parent", y = "Number of parents") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
 
-# ggsave(ParentAges, file="~/Sync/PhD/Thesis2020/PopSimArticle/ParentAges.pdf")
+#   ggsave(PKAgesG2, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgesG2.pdf", width = 12.25, height = 7.15, units = "in")
 
 rm(ParentKidDiffs, AgeDiffs, ParentsID, ParentAges)
 
-detach("package:ggplot2", unload = TRUE)
 
 
 

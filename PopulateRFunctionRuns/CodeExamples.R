@@ -128,6 +128,8 @@ ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, parid
                                    directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
                                    maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
 
+# go to SettingUpPopulateR for graphs
+
 # NOT USED
 # set.seed(1)
 # ShorterParents <- Township %>%
@@ -177,8 +179,6 @@ rm(Parents, Children, ChildAllMatched, ShorterParents, ChildWithNonMatches)
 
 ########################################################### #
 # assign child, parent has household ID
-
-library("dplyr")
 set.seed(1)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 18) %>%
@@ -190,9 +190,12 @@ Children <- Township %>%
   slice_sample(n = 200)
 
 
-ChildrenMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
+ChildMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
                          directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
                          maxparage = 54, hhidcol = 6, userseed = 4)
+
+# go to SettingUpPopulateR for graphs
+
 
 rm(Parents, Children, OutputWithID, ParentKidDiffs, AgeDiffs)
 
