@@ -33,27 +33,27 @@ agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyra
   # quick reasonableness checks
   #####################################
 
-  if (is.null(indsx)) {
+  if (is.null(deparse(substitute(indsx)))) {
     stop("The variable containing the sex information in the individuals data frame must be supplied.")
   }
 
-  if (is.null(minage)) {
+  if (is.null(deparse(substitute(minage)))) {
     stop("The variable for the minimum age band value must be supplied.")
   }
 
-  if (is.null(maxage)) {
+  if (is.null(deparse(substitute(maxage)))) {
     stop("The variable for the maximum age band value must be supplied.")
   }
 
-  if (is.null(pyrsx)) {
+  if (is.null(deparse(substitute(pyrsx)))) {
     stop("The variable containing the sex information in the pyramid data frame must be supplied.")
   }
 
-  if (is.null(pyrage)) {
+  if (is.null(deparse(substitute(pyrage)))) {
     stop("The variable containing the age information in the pyramid data frame must be supplied.")
   }
 
-  if (is.null(pyrcount)) {
+  if (is.null(deparse(substitute(pyrcount)))) {
     stop("The variable for the sex/age counts must be supplied.")
   }
 
@@ -83,94 +83,101 @@ agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyra
   # #####################################
   # #####################################
 
+  # print(substitute(indsx))
+  # print(quote(indsx))
+  # print(indsx)
+  #
+  # return(individuals)
 
   BaseDataFrame <- as.data.frame(individuals %>%
-    rename(Sex = deparse(substitute(indsx)), MinAge = deparse(substitute(minage)),
-           MaxAge = deparse(substitute(maxage))) %>%
+    rename(Sex = {{indsx}}, MinAge = {{minage}},
+           MaxAge = {{maxage}}) %>%
     mutate(Sex = as.character(Sex)))
 
-  Agepyramid <- as.data.frame(pyramid %>%
-    rename(Sex = deparse(substitute(pyrsx)), Age = deparse(substitute(pyrage)),
-           Prob = deparse(substitute(pyrcountcol))) %>%
-    mutate(Sex = as.character(Sex)))
+  # Agepyramid <- as.data.frame(pyramid %>%
+  #   rename(Sex = !! pyrsx, Age = !! pyrage,
+  #          Prob = deparse(substitute(pyrcountcol))) %>%
+  #   mutate(Sex = as.character(Sex)))
 
+  return(BaseDataFrame)
 
-
-
-
-
-
-
-  #####################################
-  # check alignment of the two sex variables codes
-  #####################################
-
-  BaseSexCodes <- BaseDataFrame %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
-
-  pyramidSexCodes <- Agepyramid %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
-
-
-  if (isFALSE(identical(BaseSexCodes, pyramidSexCodes))) {
-
-    stop("The sex variable values are not the same for both data frames.")
-
-  }
-
-
-  #####################################
-  #####################################
-  # perform the age allocation
-  #####################################
-  #####################################
-
-  # seed must come before first sample is cut
-  if (!is.null(userseed)) {
-    set.seed(userseed)
-  }
-
-  # !!!!!!!!!!!!!!!!! note testing restriction
- for (x in 1:nrow(BaseDataFrame)) {
-  # for (x in 1:10) {
-
-    CurrentIndividual <- BaseDataFrame[x,]
-
-    AgeRestricted <- Agepyramid %>%
-      filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
-             Sex == CurrentIndividual$Sex) %>%
-      select(Age, Prob)
-
-    OutputAge <- AgeRestricted %>%
-      slice_sample(n=1, weight_by = Prob) %>%
-      select(Age) %>%
-      pull(Age)
-
-    CurrentIndividual <- CurrentIndividual %>%
-      mutate(!!agevarname := OutputAge)
-
-
-    if (exists("DataFrameWithAges") == TRUE) {
-
-      DataFrameWithAges <- bind_rows(DataFrameWithAges, CurrentIndividual)
-
-    } else {
-
-      DataFrameWithAges <- CurrentIndividual
-
-      # close evaluation for creating the output data frame
-    }
-
-    # closes age assignment loop
-
-  }
-
-  #
-  return(DataFrameWithAges)
-
-  #closes function
+#
+#
+#
+#
+#
+#
+#
+#   #####################################
+#   # check alignment of the two sex variables codes
+#   #####################################
+#
+#   BaseSexCodes <- BaseDataFrame %>%
+#     select(Sex) %>%
+#     distinct(Sex) %>%
+#     arrange(Sex)
+#
+#   pyramidSexCodes <- Agepyramid %>%
+#     select(Sex) %>%
+#     distinct(Sex) %>%
+#     arrange(Sex)
+#
+#
+#   if (isFALSE(identical(BaseSexCodes, pyramidSexCodes))) {
+#
+#     stop("The sex variable values are not the same for both data frames.")
+#
+#   }
+#
+#
+#   #####################################
+#   #####################################
+#   # perform the age allocation
+#   #####################################
+#   #####################################
+#
+#   # seed must come before first sample is cut
+#   if (!is.null(userseed)) {
+#     set.seed(userseed)
+#   }
+#
+#   # !!!!!!!!!!!!!!!!! note testing restriction
+#  for (x in 1:nrow(BaseDataFrame)) {
+#   # for (x in 1:10) {
+#
+#     CurrentIndividual <- BaseDataFrame[x,]
+#
+#     AgeRestricted <- Agepyramid %>%
+#       filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
+#              Sex == CurrentIndividual$Sex) %>%
+#       select(Age, Prob)
+#
+#     OutputAge <- AgeRestricted %>%
+#       slice_sample(n=1, weight_by = Prob) %>%
+#       select(Age) %>%
+#       pull(Age)
+#
+#     CurrentIndividual <- CurrentIndividual %>%
+#       mutate(!!agevarname := OutputAge)
+#
+#
+#     if (exists("DataFrameWithAges") == TRUE) {
+#
+#       DataFrameWithAges <- bind_rows(DataFrameWithAges, CurrentIndividual)
+#
+#     } else {
+#
+#       DataFrameWithAges <- CurrentIndividual
+#
+#       # close evaluation for creating the output data frame
+#     }
+#
+#     # closes age assignment loop
+#
+#   }
+#
+#   #
+#   return(DataFrameWithAges)
+#
+#   #closes function
 }
