@@ -22,18 +22,21 @@
 #' library("dplyr")
 #' # with the 50% sample from Township
 #' # output as igraph
-#' NetworksMadeN <- addnetwork(Ppl4networks, pplid = 3, pplage = 4, NetworkMatrix, sdused=2,
+#' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 #'
 #' # output as n x n adjacency matrix
-#' NetworksMadeY <- addnetwork(Ppl4networks, pplid = 3, pplage = 4, NetworkMatrix, sdused=2,
+#' NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' #
-
-
-
+#' # set.seed(4)
+#' SmallDemo <- Township %>%
+#'   slice_sample(n = 20)
+#'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
+#'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+#'                               probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+#'  plot(NetworkSmallN)
 
 
 
