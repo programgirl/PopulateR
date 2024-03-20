@@ -5,21 +5,21 @@
 #'
 #' The proportion of adolescents, by age and sex, who have left school is printed to the Console.
 #' @export
-#' @param adolescents A data frame containing all adolescents who potentially have left school due to their age.
-#' @param adlsxcol The column number for the variable that contain the codes specifying females and males.
-#' @param adlagecol The column number for the variable that contains the ages of the adolescents. This must be integer format.
-#' @param adlyear The year of the adolescents data.
+#' @param people A data frame containing individual people.
+#' @param pplsx The variable that contains the codes specifying females and males, in the people data.
+#' @param pplage The variable that contains the ages of the adolescents, in the people data. This must be integer format.
+#' @param pplyear The year of the adolescents data.
 #' @param minschage The minimum age of a person, normally a child, can enter school, excluding higher education.
 #' @param maxschage The maximum age of a person, normally an adolescent, can leave school, excluding higher education.
 #' @param leavers A data frame containing the counts of the school leavers for each year.
-#' @param lvrsxcol The column number for the variable that contain the codes specifying females and males.
-#' @param lvragecol The column number containing the ages for school leavers.
-#' @param lvrctcol The column number containing the counts for each sex/age combination in the data. This must be in numeric or integer format.
-#' @param lvryearcol The column number containing the year data for each count.
-#' @param structure A data frame containing the sex/age pyramid to be used.
-#' @param strusxcol The column number for the variable that contain the codes specifying females and males.
-#' @param struagecol The column number containing the individual ages.
-#' @param structcol The column number containing the counts for each sex/age combination in the data
+#' @param lvrsx The variable that contain the codes specifying females and males, in the leavers data.
+#' @param lvrage The variable the ages for school leavers, in the leavers data.
+#' @param lvrcount The variable containing the counts for each sex/age combination in the leavers data. This must be in numeric or integer format.
+#' @param lvryear The variable containing the year data for each count.
+#' @param pyramid A data frame containing the sex/age pyramid to be used.
+#' @param pyrsx The variable containing the codes specifying females and males, in the pyramid data.
+#' @param pyrage The variable containing the ages, in the pyramid data.
+#' @param pyrcount The variable containing the counts for each sex/age combination, in the pyramid data
 #' @param stvarname The name of the variable to contain the status of the children/adolescents for schooling. The output is "Yes" for those still in school and "No" for those not in school. If not specified, the column name is "Status".
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #'
@@ -29,9 +29,10 @@
 #' WithSchoolInd <- schoolind(Township, 1, 4, 2018, 5, 18, LeftSchool, 2, 3, 4, 1,
 #' RegionalStructure, 1, 4, 3, "SchoolStatus", userseed = 4)
 
-schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = NULL, minschage = NULL, maxschage = NULL,
-                      leavers, lvrsxcol = NULL, lvragecol = NULL, lvrctcol = NULL, lvryearcol = NULL,
-                      structure, strusxcol = NULL, struagecol = NULL, structcol = NULL, stvarname = "Status",
+schoolind <- function(people, pplsx, pplage, pplyear, minschage = NULL, maxschage = NULL,
+                      leavers, lvrsx, lvrage, lvrcount, lvryear,
+                      pyramid, pyrsx, pyrage, pyrcount, stvarname = "Status",
+                    #  structure, strusxcol = NULL, struagecol = NULL, structcol = NULL, stvarname = "Status",
                       userseed = NULL)
 
 {
@@ -42,44 +43,36 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   # quick reasonableness checks
   #####################################
 
-  if (is.null(adlsxcol)) {
-    stop("The column number containing the sex information in the adolescents data frame must be supplied.")
+  if (!pplsx %in% names(people)) {
+    stop("The sex variable name in the people data frame is incorrect.")
   }
-
-  if (is.null(adlagecol)) {
-    stop("The column number containing the age information in the adolescents data frame must be supplied.")
+  
+  if (!pplage %in% names(people)) {
+    stop("The age variable name in the people data frame is incorrect.")
   }
-
-  if (is.null(adlyear)) {
-    stop("The year in which the adolescents data was collected.")
+  
+  if (!lvrsx %in% names(leavers)) {
+    stop("The sex variable name in the leavers data frame is incorrect.")
   }
-
-  if (is.null(lvrsxcol)) {
-    stop("The column number containing the sex information in the leavers data frame must be supplied.")
+  
+  if (!lvrage %in% names(leavers)) {
+    stop("The count variable name in the leavers data frame is incorrect.")
   }
-
-  if (is.null(lvragecol)) {
-    stop("The column number containing the age information in the leavers data frame must be supplied.")
+  
+  if (!lvrcount %in% names(leavers)) {
+    stop("The leaver count variable name in the leavers data frame is incorrect.")
   }
-
-  if (is.null(lvrctcol)) {
-    stop("The column number for the sex/age school leaver counts must be supplied.")
+  
+  if (!pyrsx %in% names(pyramid)) {
+    stop("The sex variable name in the pyramid data frame is incorrect.")
   }
-
-  if (is.null(lvryearcol)) {
-    stop("The column number containing the year information in the leaversData data frame must be supplied.")
+  
+  if (!pyrage %in% names(pyramid)) {
+    stop("The age variable name in the pyramid data frame is incorrect.")
   }
-
-  if (is.null(strusxcol)) {
-    stop("The column number containing the sex information in the structure data frame must be supplied.")
-  }
-
-  if (is.null(struagecol)) {
-    stop("The column number containing the age information in the structure data frame must be supplied.")
-  }
-
-  if (is.null(structcol)) {
-    stop("The column number for the sex/age information in the structure data counts must be supplied.")
+  
+  if (!pyrcount %in% names(pyramid)) {
+    stop("The count variable name in the pyramid data frame is incorrect.")
   }
 
   #####################################
@@ -91,16 +84,16 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   # dataset names
  # cat("The children data frame is called", deparse(substitute(adolescents)), "\n")
 
-  Children <- as.data.frame(adolescents %>%
-                                   rename(IntSex = !! adlsxcol, IntAge = !! adlagecol) %>%
-                                   mutate(IntSex = as.character(IntSex),
-                                          IntAge = as.integer(IntAge)))
+  PeopleDataframe <- as.data.frame(people %>%
+                                     rename(IntSex = !! pplsx, IntAge = !!pplage) %>%
+                                     mutate(IntSex = as.character(IntSex),
+                                            IntAge = as.integer(IntAge)))
 
-  # cat("Children dataframe generated", "\n")
+  # cat("PeopleDataframe generated", "\n")
 
   Schooling <- as.data.frame(leavers %>%
-                              rename(IntSex = !! lvrsxcol, IntAge = !! lvragecol,
-                                     Year = !! lvryearcol, NumLeftSchool = !! lvrctcol) %>%
+                              rename(IntSex = !! lvrsx, IntAge = !! lvrage,
+                                     Year = !! lvryear, NumLeftSchool = !! lvrcount) %>%
                               mutate(IntSex = as.character(IntSex),
                                      IntAge = as.integer(IntAge),
                                      Year = as.integer(Year),
@@ -110,19 +103,21 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   # cat("Schooling dataframe generated", "\n")
 
 
-  AgePyramid <- as.data.frame(structure %>%
-                                rename(IntSex = !! strusxcol, IntAge = !! struagecol,
-                                       AllPeople = !! structcol) %>%
+  AgePyramid <- as.data.frame(pyramid %>%
+                                rename(IntSex = !! pyrsx, IntAge = !! pyrage,
+                                       AllPeople = !! pyrcount) %>%
                                 mutate(IntSex = as.character(IntSex),
                                        IntAge = as.integer(IntAge)) %>%
                                 select(IntSex, IntAge, AllPeople))
 
- # print(str(AgePyramid))
+  # print(str(AgePyramid))
 
   # get the original variable names
 
-  ChildrenAgeColName <- sym(names(adolescents[adlagecol]))
-  ChildrenSexColName <- sym(names(adolescents[adlsxcol]))
+  PeopleSexColName <- sym(names(people[pplsx]))
+  PeopleAgeColName <- sym(names(people[pplage]))
+  StatusName <- sym(stvarname)
+
 
   #####################################
   #####################################
@@ -134,7 +129,7 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   # check alignment of the three sex variables codes
   #####################################
 
-  ChildrenSexCodes <- Children %>%
+  PeopleSexCodes <- PeopleDataframe %>%
     select(IntSex) %>%
     distinct(IntSex) %>%
     arrange(IntSex)
@@ -150,15 +145,15 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
     arrange(IntSex)
 
 
-  if (isFALSE(identical(ChildrenSexCodes, PyramidSexCodes))) {
+  if (isFALSE(identical(PeopleSexCodes, PyramidSexCodes))) {
 
-    stop("The sex variable values are not the same for the ", deparse(substitute(adolescents)), " and ", deparse(substitute(structure)), " data frames.", "\n")
+    stop("The sex variable values are not the same for the people and pyramid data frame", "\n")
 
   }
 
-  if (isFALSE(identical(ChildrenSexCodes, SchoolingSexCodes))) {
+  if (isFALSE(identical(PeopleSexCodes, SchoolingSexCodes))) {
 
-    stop("The sex variable values for ", deparse(substitute(leavers)), " differ from the other two data frames.", "\n")
+    stop("The sex variable values for leavers data frame differs from the other two data frames.", "\n")
 
   }
 
@@ -187,8 +182,8 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
   #####################################
 
   Schooling <- Schooling %>%
-    filter(Year <= adlyear) %>%
-    mutate(Deduction = adlyear - Year,
+    filter(Year <= pplyear) %>%
+    mutate(Deduction = pplyear - Year,
            CurrentAge = IntAge + Deduction) %>%
     group_by(IntSex, CurrentAge) %>%
     summarise(TotalLeaverCount = sum(NumLeftSchool)) %>%
@@ -209,32 +204,30 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
 
   # remove any NAs as these will cause problems with the maths
   CombinedData <- CombinedData %>%
-    filter(!(is.na(structcol)))
+    filter(!(is.na(pyrcount)))
 
-  cat("The proportion of adolescents who have left school are shown in the table below, by sex and age.", "\n")
-
-  print(CombinedData)
-
+ 
   ####################################
   ####################################
   # assume that out-of-age people may be in the data frame and remove
 
-  WrongAged <- Children %>%
+  WrongAged <- PeopleDataframe %>%
     filter(IntAge < minschage | IntAge > maxschage) %>%
     mutate(Status = "N") %>%
-    rename(!!ChildrenAgeColName := IntAge,
-           !!ChildrenSexColName := IntSex)
+    rename(!!PeopleAgeColName := IntAge,
+           !!PeopleSexColName := IntSex)
 
-  Children <- Children %>%
+  PeopleDataframe <- PeopleDataframe %>%
     filter(between(IntAge, minschage, maxschage))
   ####################################
   ####################################
 
   # join the probabilities to the children and calculate the probability of leaving school
-  Children <- Children %>%
+  PeopleDataframe <- PeopleDataframe %>%
     left_join(CombinedData, by = c("IntAge", "IntSex")) %>%
     mutate(PropLeft = ifelse(is.na(PropLeft), 0, PropLeft),
-           Status = "None")
+           Status = "N")
+
 
   # seed must come before first sample is cut
   if (!is.null(userseed)) {
@@ -243,38 +236,49 @@ schoolind <- function(adolescents, adlsxcol = NULL, adlagecol = NULL, adlyear = 
 
   # apply the probabilities to the children
 
-  for (x in 1:nrow(Children)) {
+  for (x in 1:nrow(PeopleDataframe)) {
 
     RandomRoll <- runif(1, 0, 1)
 
- #   cat("Random roll is ", RandomRoll, " for the line ", Children$PropLeft[x], "\n")
-
-    if (isTRUE(RandomRoll <= Children$PropLeft[x])) {
+  
+    if (isTRUE(RandomRoll <= PeopleDataframe$PropLeft[x])) {
 
    #   print("Entered loop")
 
-      Children$Status[x] <- "N"
+      PeopleDataframe$Status[x] <- "N"
 
     } else {
-      Children$Status[x] <- "Y"
+      PeopleDataframe$Status[x] <- "Y"
 
-      # closes random assignment to school statust
+      # closes random assignment to school status
     }
 
     # closes loop through children data frame
   }
 
-  Children <- Children %>%
-    rename(!!ChildrenAgeColName := IntAge,
-           !!ChildrenSexColName := IntSex) %>%
+  PeopleDataframe <- PeopleDataframe %>%
+    rename(!!PeopleAgeColName := IntAge,
+           !!PeopleSexColName := IntSex) %>%
   select(-c(PropLeft))
 
 
   # print(str(Children))
 
-  CompleteDF <- bind_rows(Children, WrongAged) %>%
+  CompleteDF <- bind_rows(PeopleDataframe, WrongAged) %>%
     mutate(Status = factor(Status, levels = c("N", "Y"))) %>%
     rename(!!stvarname := Status)
+  
+  ReportedProps <- CompleteDF %>%
+    filter(between(!!PeopleAgeColName, min(AgePyramid$IntAge), max(AgePyramid$IntAge))) %>%
+    group_by(!!PeopleAgeColName, !!PeopleSexColName, !!StatusName)  %>%
+    summarise(n = n()) %>%
+    mutate(PropLeavers = n / sum(n)) %>%
+    filter(!!StatusName == "N") %>%
+    select(-n)
+  
+  cat("The proportion of adolescents who have left school are shown in the table below, by sex and age.", "\n")
+  
+  print(ReportedProps)
 
   return(CompleteDF)
 

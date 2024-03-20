@@ -83,8 +83,6 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
     Numberemployers <- as.numeric(CurrentCompany$CompanyCts)
     NumberStaff <- as.numeric(CurrentCompany$StaffCts)
 
-    # cat("Company", CurrentCompany$CompanyCode, "number employers", Numberemployers, "number employees", NumberStaff, "\n")
-
 
     # fix problem if there are more employers than there are employees
     # can happen, e.g. sole enterprises, partnerships with no employees
@@ -146,6 +144,8 @@ empcreate <- function(employers, emptypecol, empnumcol, staffnumcol, userseed = 
 
       # cat("The number of employers is", Numberemployers, "and the number of staff is", NumberStaff, "\n")
 
+      # note this stackoverflow answer
+      # https://stackoverflow.com/a/52559775/1030648
 
       AchievedCompSize <- as.integer(rmultinom(n = 1, size = NumberStaff, prob = rep(1/Numberemployers, Numberemployers)))
 

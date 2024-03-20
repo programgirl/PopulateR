@@ -21,82 +21,61 @@
 #' DisaggregateAge <- agedis(InitialDataframe, Sex, LowerAge, UpperAge, SingleAges, Sex, Age, Value,
 #'                           agevarname = "TheAge", userseed = 4)
 
-agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyramid, pyrsx = NULL,
-                         pyrage = NULL, pyrcount = NULL, agevarname = "SingleAge", userseed = NULL)
+agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, pyrcount, agevarname,
+                   userseed = NULL)
 
 {
 
   options(dplyr.summarise.inform=F)
 
   #####################################
-  # quick reasonableness checks
+  # check for missing input information
   #####################################
-
-  if (is.null(deparse(substitute(indsx)))) {
-    stop("The variable containing the sex information in the individuals data frame must be supplied.")
+  
+  if (!indsx %in% names(individuals)) {
+    stop("Sex variable name in the individuals data frame is incorrect.")
+  }
+  
+  if (!minage %in% names(individuals)) {
+    stop("Minimum age variable name in the individuals data frame is incorrect.")
+  }
+  
+  if (!maxage %in% names(individuals)) {
+    stop("Maximum age variable name in the individuals data frame is incorrect.")
+  }
+  
+  if (!pyrsx %in% names(pyramid)) {
+    stop("Sex variable name in the pyramid data frame is incorrect.")
+  }
+  
+  if (!pyrage %in% names(pyramid)) {
+    stop("Age variable name in the pyramid data frame is incorrect.")
+  }
+  
+  if (!pyrcount %in% names(pyramid)) {
+    stop("Variable name for the age counts in the pyramid data frame is incorrect.")
   }
 
-  if (is.null(deparse(substitute(minage)))) {
-    stop("The variable for the minimum age band value must be supplied.")
-  }
-
-  if (is.null(deparse(substitute(maxage)))) {
-    stop("The variable for the maximum age band value must be supplied.")
-  }
-
-  if (is.null(deparse(substitute(pyrsx)))) {
-    stop("The variable containing the sex information in the pyramid data frame must be supplied.")
-  }
-
-  if (is.null(deparse(substitute(pyrage)))) {
-    stop("The variable containing the age information in the pyramid data frame must be supplied.")
-  }
-
-  if (is.null(deparse(substitute(pyrcount)))) {
-    stop("The variable for the sex/age counts must be supplied.")
-  }
-
+ 
   # #####################################
   # #####################################
   # # rename variables so don't need to use quosures inside code
   # #####################################
   # #####################################
-  #
-  # BaseDataFrame <- as.data.frame(individuals %>%
-  #   rename(Sex = !! indsxcol, MinAge = !! minagecol, MaxAge = !! maxagecol) %>%
-  #   mutate(Sex = as.character(Sex)))
-  #
-  # Agepyramid <- as.data.frame(pyramid %>%
-  #   rename(Sex = !! pyrsxcol, Age = !! pyragecol, Prob = !! pyrcountcol) %>%
-  #   mutate(Sex = as.character(Sex)))
 
+  BaseDataFrame <- as.data.frame(individuals %>%
+    rename(Sex = !! indsx, MinAge = !! minage, MaxAge = !! maxage) %>%
+    mutate(Sex = as.character(Sex)))
+
+  Agepyramid <- as.data.frame(pyramid %>%
+    rename(Sex = !! pyrsx, Age = !! pyrage, Prob = !! pyrcount) %>%
+    mutate(Sex = as.character(Sex)))
+  
   #####################################
   #####################################
   # end column names
   #####################################
   #####################################
-
-  # #####################################
-  # #####################################
-  # # rename variables so don't need to use quosures inside code
-  # #####################################
-  # #####################################
-
-  # print(substitute(indsx))
-  # print(quote(indsx))
-  # print(indsx)
-  #
-  # return(individuals)
-
-  BaseDataFrame <- as.data.frame(individuals %>%
-    rename(Sex = {{indsx}}, MinAge = {{minage}},
-           MaxAge = {{maxage}}) %>%
-    mutate(Sex = as.character(Sex)))
-
-  Agepyramid <- as.data.frame(pyramid %>%
-    rename(Sex = {{pyrsx}}, Age = {{pyrage}},
-           Prob = {{pyrcount}})  %>%
-    mutate(Sex = as.character(Sex)))
 
   #####################################
   # check alignment of the two sex variables codes
@@ -118,7 +97,7 @@ agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyra
     stop("The sex variable values are not the same for both data frames.")
 
   }
-
+  
 
   #####################################
   #####################################
@@ -136,20 +115,27 @@ agedis <- function(individuals, indsx = NULL, minage = NULL, maxage = NULL, pyra
   # for (x in 1:10) {
 
     CurrentIndividual <- BaseDataFrame[x,]
+    
+ #   print("Selected current individual")
 
     AgeRestricted <- Agepyramid %>%
       filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
              Sex == CurrentIndividual$Sex) %>%
       select(Age, Prob)
+    
+ #  print("Constructed age pyramid of correct ages")
 
     OutputAge <- AgeRestricted %>%
       slice_sample(n=1, weight_by = Prob) %>%
       select(Age) %>%
       pull(Age)
+    
+#    print("Probabilistic age selected")
 
     CurrentIndividual <- CurrentIndividual %>%
-      mutate(!!agevarname := OutputAge)
+      mutate(!!quo_name(agevarname) := OutputAge)
 
+ #   print("Age column has been added")
 
     if (exists("DataFrameWithAges") == TRUE) {
 
