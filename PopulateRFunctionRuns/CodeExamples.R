@@ -322,15 +322,15 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
 
 
 ########################################################### ##
-# social networks
+# network of contacts
 ########################################################### #
 library("dplyr")
 
-NetworksMadeN <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
-                       probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+                       probsame = .5, userseed=4, numiters = 10)
 
-NetworksMadeY <- socnet(Ppl4networks, idcol = 3, agecol = 4, NetworkMatrix, sdused=2,
-                        probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
+NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+                        probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 
 # smaller examples for the article
 
@@ -340,10 +340,12 @@ SmallDemo <- Township %>%
 
 Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 
-NetworkSmallN <- socnet(SmallDemo, idcol = 3, agecol = 4, Smallnetwork, sdused=2,
-                        probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+                        probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 
-NetworkSmallY <- socnet(SmallDemo, idcol = 3, agecol = 4, Smallnetwork, sdused=2,
-                        probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
+plot(NetworkSmallN)
+
+# NetworkSmallY <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+#                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 
 
