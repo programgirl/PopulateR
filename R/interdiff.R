@@ -1,7 +1,11 @@
-#' Estimates values for ages when only age--band level data is available.
-#' This function uses values provided for age-band data to interpolate the relevant values for ages.
+#' Estimates values for ages when only age group data is available.
+#' This function uses values provided for age group to interpolate the relevant values for ages.
 #' 
-#' The node ages for each age--band are defined by the user, along with the age--band values. The function will then impute the values within the age--band edges. If ages requiring estimates are less than the minimum node age, or greater than the maximum node age, the formula for the neighbouring edge will be extrapolated to construct the values. Zero values at both extremes must be included. For example, if the first non-zero relationship probability is for the age-group 18-24 years, a zero probability must be entered as the node value for node age 17. If there is no zero for older ages, as the final node value occurs inside the age-group, the function assumes that the last node-to-node should be used to extrapolate for the ages older than the oldest node value. For example, if the last node value is for 90 years of age, but the oldest age is 95 years, the function will assume the same slope for ages 91 through 95 years. Where the probabilities must be extrapolated, the function prints the group definition, the last known node age, and the oldest age. This shows the extrapolation range for the group.
+#' The node ages for each age--band are defined by the user, along with the age--band values. The function will then impute the values within the age--band edges. 
+#' Zero values at both extremes must be included. For example, for the age group 20-24 years, the pplprop value is for pplage. if the first non-zero relationship probability is for the age group 20-24 years, and the previous age group is 15-19 years, pplprop==0 for pplage==19. 
+#'For each age group, there must be a minimum and maximum age specified. This provides the interpolation range for each age group. For the anchoring 0 values, the minimum and maximum ages are the same. In this example, for pplage==19, endmin==19, and endmax==19.
+#' If there is no zero for older ages, as the final node value occurs inside the age group, the function assumes that the last node-to-node should be used to extrapolate for the ages older than the oldest node value. For example, if the last node value is for 90 years of age, but the oldest age is 95 years, the function will assume the same slope for ages 91 through 95 years. 
+#' The function can perform a separate interpolation for groups, for example, a separate interpolation can be performed for each sex. The function is flexible for the number of variables that can be used to define groups. If only one interpolation is required, the same grpdef value should be used for each row in the data frame.
 #' 
 #' While the function is designed to interpolate proportions, in practice it can interpolate any values. The limitation is that the function performs no rounding. Integer node values may produce non-integer estimates.
 #' 
@@ -11,9 +15,9 @@
 #' @param pplprop The variable containing the node values.
 #' @param endmin The variable that contains the minimum age for each group.
 #' @param endmax The variable that contains the maximum age for each group.
-#' @param groupdef The character vector containing the names of the grouping variables.
+#' @param groupdef A character vector containing the names of the grouping variables.
 #'
-#' @return A data frame containing the estimated value for each relevant age within each group. There are four columns: the age, one column for each grouping variable, and the fitted values.
+#' @return A data frame containing the fitted values, by age within group.
 #' 
 #' @examples
 #' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
@@ -74,6 +78,7 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
     
+
     # below returns a vector if there is only one grouping variable
     # CurrentDef <- PeopleUnique[i,]
     
@@ -81,6 +86,7 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
     # fix for one grouping variable
     # see https://stackoverflow.com/a/69116009/1030648
     CurrentDef = PeopleUnique[i, , drop=FALSE]
+    
 
     WorkingAgeMin <- min(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
                                       select(MinAge) %>%
@@ -279,14 +285,16 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
   }
   
   # remove any duplicates that occur due to ages, rather than half ages, being used as edges
-  cat("De-duplicates started, data frame size is ", nrow(GroupDF), "\n")
+  # cat("De-duplicates started, data frame size is ", nrow(GroupDF), "\n")
 
   # removal of mid-points not working
+
   GroupDF <- GroupDF %>%
-    group_by(Age) %>%
+    group_by(Age,across(all_of(grpdef))) %>%
     filter(row_number() == 1) %>%
     ungroup()
   
+  cat("Fitted values were interpolated for", i, "groups \n")
  
   # closes function
 
