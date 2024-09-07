@@ -23,10 +23,10 @@
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 #'
 #' # transform to a data frame
-#' NetworksMadeDF <- as.data.frame(NetworksMadeN)
+#' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
 #'
 #' # output as n x n matrix
-#' NetworksMadeY <- addnetwork(Ppl4networks, pplid = 3, pplage = 4, NetworkMatrix, sdused=2,
+#' NetworksMadeY <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
