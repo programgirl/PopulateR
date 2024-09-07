@@ -1,15 +1,15 @@
-#' Create a sample of multiple ages
+#' Sample from groups, when the sample size for each group is different.
 #'
-#' This function creates a sample of people using a count variable as the number to sample.
-#' Sampling without replacement is used
+#' This function produces samples by group, enabling different sample sizes to be specified for each group. Sampling without replacement is used. While the function example is based on sampling by age, in practice sampling can be performed using any variable of choice. Only one grouping variable is used.
+#' 
 #'
 #' @export
-#' @param people A data frame containing observations
-#' @param pplage The column of the data frame that contains the ages.
-#' @param sampledf A data frame containing the age and sample size values
-#' @param smplage The column containing the ages in the sample information data frame
-#' @param smplcounts The column containing the sample size in the sample information data frame
-#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param people A data frame containing individual people.
+#' @param pplage The variable containing the ages, in the people data frame. 
+#' @param sampledf A data frame containing ages and sample size counts.
+#' @param smplage The variable containing the ages, in the sampledf data frame.
+#' @param smplcounts The variable containing the sample size counts, in the sampledf data frame.
+#' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 
 #' @return A data frame of people sampled according to the age sample sizes required.
 #' 
