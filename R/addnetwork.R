@@ -1,20 +1,17 @@
 # Create a social network
-#' This function creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one person's social network size from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
+#' This function creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one count from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
 #'
-#' A normal distribution is used, using the age differences between the pairs. This is centred on 0, i.e. the people in the pair are the same age. If people B and C are in person A's network, the value of probsame is used to determine the likelihood that people B and C know each other. The larger this probability, the more likely that people in one person's network know each other, compared to random construction of a network between them.
-#'
-#' The two options for output are a dgCMatrix or an igraph. The dgCMatrix is output as n x n. For a large data frame of people, this will be a large and sparse matrix, which may not be completed due to RAM limitations. The igraph output only contains the pairs, and should be a smaller object compared to the dgCMatrix.
-#'
+#' A normal distribution is used, using the age differences between the pairs. This is centred on 0, i.e. the people in the pair are the same age. If people B and C are in person A's network, probsame is used to determine the likelihood that people B and C know each other. The larger this proportion, the more likely that people in one person's network know each other, compared to random construction of a network between them.
 #' @export
 #' @param people A data frame containing people to be matched to each other using social networks.
 #' @param pplid The variable for each person's unique ID.
 #' @param pplage The variable for each person's age.
-#' @param netmax A data frame containing the 1-dimensional matrix of network sizes. Must contain only integers and be the same length as the people data frame.
+#' @param netmax A matrix containing the 1-dimensional matrix of network sizes. Must contain only integers and be the same length as the people data frame.
 #' @param sdused The standard deviation for the age differences between two people.
 #' @param probsame The probability that a friend of a friend is also a friend. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
-#' @param userseed The user-defined seed for reproducibility. If left blank, the normal set.seed() function will be used.
-#' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 100, and is the stopping rule if the algorithm does not converge.
-#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "N" so an igraph object is output. If "Y" is used, the n x n dgCMatrix is output.
+#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "Y" so an n x n adjacency matrix is output. This is a dgCMatrix.
 #'
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
@@ -22,28 +19,31 @@
 #' library("dplyr")
 #' # with the 50% sample from Township
 #' # output as igraph
-#' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+#' NetworksMadeN <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 #'
-#' # output as n x n adjacency matrix
-#' NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+#' # transform to a data frame
+#' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
+#'
+#' # output as n x n matrix
+#' NetworksMadeY <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' # set.seed(4)
-#' SmallDemo <- Township %>%
-#'   slice_sample(n = 20)
-#'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
-#'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-#'                               probsame = .5, userseed=4, numiters = 10, usematrix = "N")
-#'  plot(NetworkSmallN)
+#' # set.seed(2024)
+#' # ShortenedDF <- Ppl4networks %>%
+#' #    slice_sample(n=50, replace = FALSE)
+#' # ShortenedMatrix <- NetworkMatrix[1:50]
+#'
+#' # Smalligraph <- addnetwork(ShortenedDF, pplid = "ID", pplage = "Age", ShortenedMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 
 
 
 
 
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
-                   numiters=1000000, usematrix = "N") {
+                   numiters=1000000, usematrix = "Y") {
 
   options(dplyr.summarise.inform=F)
 
