@@ -279,11 +279,14 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
 
-  if (!(usematrix) == "Y") {
+  if (usematrix == "N") {
+
+    cat("returning igraph object \n")
 
     return(ClusteredNetwork)
 
   } else {
+
 
     return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
   }
