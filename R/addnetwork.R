@@ -30,12 +30,12 @@
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' # set.seed(2024)
-#' # ShortenedDF <- Ppl4networks %>%
-#' #    slice_sample(n=50, replace = FALSE)
-#' # ShortenedMatrix <- NetworkMatrix[1:50]
+#' set.seed(2024)
+#' ShortenedDF <- Ppl4networks %>%
+#'    slice_sample(n=50, replace = FALSE)
+#' ShortenedMatrix <- NetworkMatrix[1:50]
 #'
-#' # Smalligraph <- addnetwork(ShortenedDF, pplid = "ID", pplage = "Age", ShortenedMatrix, sdused=2,
+#' Smalligraph <- addnetwork(ShortenedDF, pplid = "ID", pplage = "Age", ShortenedMatrix, sdused=20,
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 
 
@@ -143,6 +143,8 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   ClusteredNetwork %>%
     igraph::set_vertex_attr("Age", value=theages[node_to_people])
 
+  # is a list at this point
+
   # cat("Plot is below", "\n")
   # plot()
 
@@ -159,6 +161,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # cat("Now getting the edgelist", "\n")
 
   edges = igraph::get.edgelist(ClusteredNetwork)
+
 
   # helper to get the age differences: The idea is that
   # we use the edges matrix (which has the vertex index of
@@ -190,6 +193,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   ClusteredNetwork %>%
     igraph::set_vertex_attr("label", value=theages[node_to_people]) %>%
     igraph::set_edge_attr("label", value=age_diff)
+
   # plot(ClusteredNetwork)
 
   # right, now that we have the age difference, we could
@@ -229,6 +233,8 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # cat("Shift vector created", "\n")
 
   accept <- list() # this is just to store how often we accept a proposal
+
+
   for (i in 1:numiters) { # lots of iterations
 
     # do the permutation: first off, how many people do we permute?
@@ -261,6 +267,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
     # closes for (i in 1:numiters)
   }
   unlist(accept)
+
   # ss
 
   # cat("Third reference to network_clustered", "\n")
@@ -271,17 +278,18 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   #   set_vertex_attr("label", value=theages[node_to_people]) %>%
   #   plot()
 
+
   ClusteredNetwork <- ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
     igraph::set_vertex_attr("label", value=theIDs[node_to_people]) %>%
     igraph::set_vertex_attr("name", value=theIDs[node_to_people])
+
 
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
 
   if (usematrix == "N") {
 
-    cat("returning igraph object \n")
 
     return(ClusteredNetwork)
 
