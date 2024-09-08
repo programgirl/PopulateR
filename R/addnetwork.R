@@ -22,7 +22,7 @@
 #' NetworksMadeN <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 #'
-#' # transform to a data frame
+#' # make a data frame
 #' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
 #'
 #' # output as n x n matrix
@@ -30,10 +30,13 @@
 #'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' #
-
-
-
+#' # set.seed(2024)
+#' # ShortenedDF <- Ppl4networks %>%
+#' #    slice_sample(n=50, replace = FALSE)
+#' # ShortenedMatrix <- NetworkMatrix[1:50]
+#'
+#' # Smalligraph <- addnetwork(ShortenedDF, pplid = "ID", pplage = "Age", ShortenedMatrix, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
 
 
 
