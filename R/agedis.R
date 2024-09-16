@@ -1,18 +1,19 @@
 #' Add a sex/age structure to a data frame of grouped ages.
-#' This function creates a data frame that adds an age structure to a data frame that contains age bands.
-#' Two data frames are required: the data frame that contains individuals with age bands ("individuals"), and a data frame used as the basis for constructing a sex/age pyramid ("pyramid"). The pyramid data frame must contain counts by sex/age in the population of interest.
-#' The individuals data frame requires two columns relating to the age band. One is the minimum age in the age band. The second is the maximum age in the age band. For example, the age band 0 - 4 years would have 0 as the minimum age band value and 4 as the maximum age band value. Each person in the individuals data frame must have both the minimum and maximum age variables populated.
+#' This function creates a data frame that adds an age structure to a data frame that contains age groups.
+#' Two data frames are required: the data frame that contains individuals with age bands ("individuals"), and a data frame used as the basis for constructing a sex/age pyramid ("pyramid"). 
+#' The individuals data frame requires two columns relating to the age groups. One is the minimum age in the age group The second is the maximum age in the age group For example, the age group 0 - 4 years would have 0 as the minimum age value and 4 as the maximum age value. Each person in the individuals data frame must have both the minimum and maximum age variables populated.
+#' The pyramid data frame must contain counts by sex/age in the population of interest.
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the codes must match.  For example, if "F" and "M" are used in the individuals data frame to denote sex, then "F" and "M" are the codes required in the pyramid data frame. Any number of sex code values can be used, so long as they are unique.
 #' @export
 #' @param individuals A data frame containing observations with grouped ages. These are the observations to which the sex/age pyramid is applied.
-#' @param indsx The variable containing the codes specifying females and males.
-#' @param minage The variable containing the minimum age for the age band.
-#' @param maxage The variable that contains the maximum age for the age band.
+#' @param indsx The variable containing the codes for sex, in the individuals data frame.
+#' @param minage The variable containing the minimum age for the age group, in the individuals data frame.
+#' @param maxage The variable containing the maximum age for the age group, in the individuals data frame.
 #' @param pyramid A data frame containing the sex/age pyramid to be used.
-#' @param pyrsx The variable containing the codes specifying females and males.
-#' @param pyrage The variable containing the individual ages.
-#' @param pyrcount The variable containing the counts for each sex/age combination in the data
-#' @param agevarname The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer. If not specified, the column name is "SingleAge".
+#' @param pyrsx The variable containing the codes for sex, in the pyramid data frame. 
+#' @param pyrage The variable containing the ages, in the pyramid data frame.
+#' @param pyrcount The variable containing the counts for each sex/age combination, in the pyramid data frame.
+#' @param agevarname The name to use for the constructed age variable in the output data frame. For each row, this will contain one integer.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 
 #' @return A data frame of an observations, with an added column that contains the age.
