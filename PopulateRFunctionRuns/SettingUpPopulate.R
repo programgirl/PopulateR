@@ -1,4 +1,4 @@
-#construct data files for the PopSim package
+#construct data files for the PopulateR package
 
 library(dplyr)
 library(readr)
