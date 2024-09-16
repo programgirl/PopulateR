@@ -20,23 +20,25 @@
 #' # with the 50% sample from Township
 #' # output as igraph
 #' NetworksMadeN <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 #'
 #' # transform to a data frame
 #' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
 #'
 #' # output as n x n matrix
 #' NetworksMadeY <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "Y")
+#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' set.seed(2024)
-#' ShortenedDF <- Ppl4networks %>%
-#'    slice_sample(n=50, replace = FALSE)
-#' ShortenedMatrix <- NetworkMatrix[1:50]
+#' set.seed(4)
+#' SmallDemo <- Township %>%
+#'   slice_sample(n = 20)
+#' Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #'
-#' Smalligraph <- addnetwork(ShortenedDF, pplid = "ID", pplage = "Age", ShortenedMatrix, sdused=20,
-#'                         probsame = .5, userseed=4, numiters = 100000, usematrix = "N")
+#' NetworkSmallN <- addnetwork(SmallDemo, pplid = "ID", pplage = "Age", Smallnetwork, sdused=2,
+#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+#'
+#' plot(NetworkSmallN)
 
 
 
@@ -267,6 +269,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
     # closes for (i in 1:numiters)
   }
   unlist(accept)
+
 
   # ss
 
