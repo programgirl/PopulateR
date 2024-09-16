@@ -19,15 +19,11 @@
 #' library("dplyr")
 #' # with the 50% sample from Township
 #' # output as igraph
-#' NetworksMadeN <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+#' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+#'                             probsame = .5, userseed=4, numiters = 10)
 #'
-#' # transform to a data frame
-#' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
-#'
-#' # output as n x n matrix
-#' NetworksMadeY <- addnetwork(Ppl4networks, pplid = "ID", pplage = "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+#' NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+#'                             probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
 #' set.seed(4)
@@ -39,7 +35,6 @@
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 #'
 #' plot(NetworkSmallN)
-
 
 
 
