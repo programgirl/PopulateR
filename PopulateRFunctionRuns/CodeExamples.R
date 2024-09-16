@@ -326,9 +326,14 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
 ########################################################### #
 library("dplyr")
 
+# output as igraph
 NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
                        probsame = .5, userseed=4, numiters = 10)
 
+# transform to a data frame
+NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
+
+# output as n x n adjacency matrix
 NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 
