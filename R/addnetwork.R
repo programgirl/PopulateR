@@ -25,6 +25,9 @@
 #' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 #'
+#' # transform to a data frame
+#' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
+#'
 #' # output as n x n adjacency matrix
 #' NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
