@@ -147,6 +147,169 @@ table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
 
 
 
+###########################################################
+# other example
+###########################################################
+library("dplyr")
+
+# creating three-person households
+NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
+                       HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+
+PeopleInHouseholds <- NewHouseholds$Matched
+PeopleNot <- NewHouseholds$Unmatched
+
+
+
+
+
+
+###########################################################
+# otherNum example
+###########################################################
+# people into existing households
+# the people to add data frame is smaller than required, by 40 people
+AdultsID <- IntoSchools %>%
+  filter(Age > 20)
+
+NoHousehold <- Township %>%
+  filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
+  slice_sample(n = 1500)
+
+OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
+                          NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
+                          userseed=4, ptostop = .01, numiters = 5000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ###########################################################
@@ -371,28 +534,7 @@ KidsMatched <- childrenno(Children, chlidcol = 3, chlagecol = 4, numchild = 2,
 
 
 
-###########################################################
-# Add people to households
-###########################################################
-library("dplyr")
 
-# people into new households
-NewHouseholds <- otherno(AdultsNoID, pplidcol = 3, pplagecol = 4, numppl = 3, sdused = 3,
-                         hhidstart = 1, hhidvar= "TheHousehold", userseed=4, ptostop = .01,
-                         numiters = 5000)
-
-# people into existing households
-# the people to add data frame is smaller than required, by 40 people
-AdultsID <- IntoSchools %>%
-  filter(Age > 20)
-
-NoHousehold <- Township %>%
-  filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
-  slice_sample(n = 1500)
-
-OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
-                          NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
-                          userseed=4, ptostop = .01, numiters = 5000)
 
 
 ########################################################### ##

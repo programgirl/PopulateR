@@ -19,16 +19,19 @@
 #'
 #' @examples
 # library(dplyr)
-#' NewHouseholds <- otherno(AdultsNoID, pplid = 3, pplage = 4, numppl = 3, sdused = 3,
-#'                        HHStartNum = 1, HHNumVar= "TheHousehold", userseed=4, ptostop = .01,
-#'                         numiters = 50000)
+#' NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
+#'                        HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+#'
+#' PeopleInHouseholds <- NewHouseholds$Matched
+#' PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 
-other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL, 
+
+other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL,
                     ptostop = NULL, numiters = 1000000) {
 
   options(dplyr.summarise.inform=F)
 
-  
+
   #####################################
   # check for missing input information
   #####################################
@@ -36,11 +39,11 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   if (!pplid %in% names(people)) {
     stop("The ID variable does not exist.")
   }
-  
+
   if (!pplage %in% names(people)) {
     stop("The age variable does not exist.")
   }
-  
+
   if(is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
@@ -52,32 +55,32 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   if (is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
-  
+
   if (!any(duplicated(people[[pplid]])) == FALSE) {
     stop("The ID variable has duplicated values.")
   }
 
-  
+
   #####################################
   #####################################
   # get column names as symbols to use inside data frame subfunctions
   #####################################
   #####################################
-  
+
   # smalldf ID variable
   pplidcolName <- sym(names(people[pplid]))
   # smalldf age variable
   pplagecolName <- sym(names(people[pplage]))
-  
+
  # also need number of columns later for putting back together
   # need column count for turning wide dataframe into long
   # the +1 is there because this happens after the household ID is added
   NumberColspplPlusOne <- as.numeric(ncol(people))+1
-  
+
 
   peopleRenamed <- people %>%
     rename(RenamedID = !! pplid, RenamedAge = !! pplage)
-  
+
 
   #####################################
   #####################################
@@ -152,11 +155,11 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   ####################################
   ####################################
 
-  
+
   ####################################
   # user seed
   ####################################
-  
+
   if (!is.null(userseed)) {
     set.seed(userseed)
   }
@@ -182,7 +185,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
     }
 
 
-  
+
 
 
   #####################################
@@ -319,17 +322,17 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
                  # cat("log chi-square is", log_chisq, "\n")
 
         if (log_chisq <= Critical_log_chisq) {
-          
+
           cat("Break due to critical p-value reached", "\n")
           break
 
-         
+
         }
 
         # closes iterations through the age matching
       }
-      
-      
+
+
       if(exists("TheMatched")) {
 
         InterimDataFrame <- BasePeople %>%
@@ -347,7 +350,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
           select(all_of(NumberColspplPlusOne:ncol(.)))
 
       }
-      
+
       cat(i, "iterations were used, and the final chi-squared value was", round(log_chisq,6), "\n")
 
       # closes the loop through the number of sets of people to match,
@@ -370,7 +373,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   # }
 
   # cat("Got to row 372 \n")
- 
+
   # correct the names of the variables in the interim and base data frames
   # row bind these and output
 
@@ -378,11 +381,11 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
     rename_all(list(~gsub("\\.y$", "", .))) %>%
     select(-RenamedAge) %>%
     rename(!!pplidcolName := MatchedID,
-           !!pplagecolName := MatchedAge) 
+           !!pplagecolName := MatchedAge)
 
   TheBase <- AppendedBase %>%
     rename(!!pplidcolName := RenamedID,
-           !!pplagecolName := RenamedAge) 
+           !!pplagecolName := RenamedAge)
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
 
