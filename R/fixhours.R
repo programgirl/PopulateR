@@ -126,7 +126,6 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
       # cat("Group is", "\n")
       # print(CurrentDef)
 
-      # NEED TO FIX FROM THIS BIT
       CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef))
 
         HoursTooHigh <- CurrentGroup %>%
