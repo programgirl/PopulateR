@@ -176,12 +176,9 @@ NoHousehold <- Township %>%
   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
   slice_sample(n = 1500)
 
-OldHouseholds <- otheryes(AdultsID, exsidcol = 3, exsagecol = 4, hhidcol = 7,
-                          NoHousehold, addidcol = 3, addagecol = 4, numppl = 2, sdused = 3,
-                          userseed=4, ptostop = .01, numiters = 5000)
-
-
-
+OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
+                          NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
+                          userseed=4, attempts= 10, numiters = 10000)
 
 
 
