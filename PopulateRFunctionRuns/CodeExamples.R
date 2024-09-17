@@ -157,7 +157,7 @@ NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdu
                        HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
 
 PeopleInHouseholds <- NewHouseholds$Matched
-PeopleNot <- NewHouseholds$Unmatched
+PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 
 
 
