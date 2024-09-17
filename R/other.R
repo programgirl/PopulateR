@@ -5,25 +5,25 @@
 #'
 #' @export
 #' @param people A data frame containing the people to be matched into households.
-#' @param pplid The column number for the ID variable.
-#' @param pplage The column number for the Age variable.
-#' @param numppl The household size to be constructed.
+#' @param pplid The variable containing the unique ID for each person.
+#' @param pplage The age variable.
+#' @param numppl The number of people in the households.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
-#' @param IDStartValue The starting number for generating the household identifier value for showing unique households. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied, and in quotes.
-#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param ptostop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param HHStartNum The starting value for HHNumVar. Must be numeric.
+#' @param HHNumVar The name for the household variable.
+#' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
+#' @param ptostop = The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the household inhabitants. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 #'
 #' @examples
 # library(dplyr)
 #' NewHouseholds <- otherno(AdultsNoID, pplid = 3, pplage = 4, numppl = 3, sdused = 3,
-#'                        IDStartValue = 1, HouseholdNumVariable= "TheHousehold", userseed=4, ptostop = .01,
+#'                        HHStartNum = 1, HHNumVar= "TheHousehold", userseed=4, ptostop = .01,
 #'                         numiters = 50000)
 
-other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, HouseholdNumVariable, userseed=NULL, 
+other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL, 
                     ptostop = NULL, numiters = 1000000) {
 
   options(dplyr.summarise.inform=F)
@@ -41,7 +41,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
     stop("The age variable does not exist.")
   }
   
-  if(is.null(HouseholdNumVariable)) {
+  if(is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
 
@@ -49,7 +49,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
     stop("The household size must be supplied.")
   }
 
-  if (is.null(HouseholdNumVariable)) {
+  if (is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
   
@@ -193,7 +193,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
 
   BasePeople <- peopleRenamed %>%
     slice_sample(n = BaseSize) %>%
-    mutate({{HouseholdNumVariable}} := seq(IDStartValue, (IDStartValue + BaseSize - 1)))
+    mutate({{HHNumVar}} := seq(HHStartNum, (HHStartNum + BaseSize - 1)))
 
   RemainingPeople <- peopleRenamed %>%
     filter(!(RenamedID %in% c(BasePeople$RenamedID)))
@@ -209,12 +209,12 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
       MatchingSample <- RemainingPeople %>%
         slice_sample(n = BaseSize)
 
-      #    cat("MatchingSample size is", nrow(MatchingSample), "\n")
+         # cat("MatchingSample size is", nrow(MatchingSample), "\n")
 
       RemainingPeople <- RemainingPeople %>%
         filter(!(RenamedID %in% MatchingSample$RenamedID))
 
-      # cat("workingsexdataframe is", nrow(WorkingSexDataFrame), "rows", "\n")
+      # cat("RemainingPeople is", nrow(RemainingPeople), "rows \n")
 
       # get age differences
 
@@ -229,7 +229,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
       CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
       # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-      #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+          # nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
 
       ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
       logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
@@ -320,7 +320,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
 
         if (log_chisq <= Critical_log_chisq) {
           
-          # cat("Break due to critical p-value reached", "\n")
+          cat("Break due to critical p-value reached", "\n")
           break
 
          
@@ -369,6 +369,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, IDStartValue, Ho
   #   # closes loop for matching people if sex IS NOT correlated
   # }
 
+  # cat("Got to row 372 \n")
  
   # correct the names of the variables in the interim and base data frames
   # row bind these and output
