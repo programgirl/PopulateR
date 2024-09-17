@@ -12,13 +12,22 @@
 #' @return A data of observations, with working hours reallocated so that people's working hours are compatible with their education status.
 #'
 #' @examples
-#' # no grouping variable
-#' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, userseed = 4)
 #'
-#' # grouping variable
-#' # when a group is used
-#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
-#'                             hoursmax = 3, grpcol = 1, userseed = 4)
+#' # table of hours by schoolstatus
+#' table(WorkingAdolescents$HoursWorked, WorkingAdolescents$SchoolStatus)
+#'
+#' # one grouping variable
+#' Group1 <- "Sex"
+#' OneGroup <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus", pplhours = "HoursWorked",
+#'                      hoursmax = 3, grpdef = Group1, userseed = 4)
+#' table(OneGroup$HoursWorked, OneGroup$SchoolStatus)
+#'
+#' # two grouping variables
+#' Group2 <- c("Sex", "Relationship")
+#' TwoGroups <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus", pplhours = "HoursWorked",
+#'                       hoursmax = 3, grpdef = Group2, userseed = 4)
+#' table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
+
 
 
 fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, userseed = NULL) {
