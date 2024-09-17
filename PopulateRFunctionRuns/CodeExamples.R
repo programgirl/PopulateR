@@ -1,5 +1,34 @@
+########################################################### ##
+# addnetwork examples
+########################################################### #
+library("dplyr")
+
+NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+                            probsame = .5, userseed=4, numiters = 10)
+
+NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+                            probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+
+# smaller examples for the article
+
+set.seed(4)
+SmallDemo <- Township %>%
+  slice_sample(n = 20)
+
+Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
+
+NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+                            probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+
+plot(NetworkSmallN)
+
+
+
+
 #############################################################
-# only use this once to demonstrate how to disaggregate age
+# agedis example
+#############################################################
+
 library(dplyr)
 
 DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
@@ -12,6 +41,14 @@ DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", 
 rm(SingleAges)
 
 
+########################################################### ##
+# createemp example
+########################################################### #
+library("dplyr")
+
+TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo", indsmax = "maxCo",
+                                pplmin = "minStaff", pplmax = "maxStaff", stffname="Employees",
+                                cpyname="Employer", userseed = 4)
 
 
 ###########################################################
@@ -302,12 +339,7 @@ table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
 
 
 
-########################################################### ##
-# create employers
-########################################################### #
-library("dplyr")
 
-TownshipEmployment <- empcreate(AllEmployers, emptypecol = 1, empnumcol = 2, staffnumcol = 3, userseed = 4)
 
 ########################################################### ##
 # allocate employers to employees
@@ -319,31 +351,7 @@ EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid =
                          hoursmin = 2, userseed = 4)
 
 
-########################################################### ##
-# network of contacts
-########################################################### #
-library("dplyr")
 
-NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-                       probsame = .5, userseed=4, numiters = 10)
 
-NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-                        probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
-
-# smaller examples for the article
-
-set.seed(4)
-SmallDemo <- Township %>%
-  slice_sample(n = 20)
-
-Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
-
-NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-                        probsame = .5, userseed=4, numiters = 10, usematrix = "N")
-
-plot(NetworkSmallN)
-
-# NetworkSmallY <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-#                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 
 
