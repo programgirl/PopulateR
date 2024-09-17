@@ -3,7 +3,7 @@
 library(dplyr)
 library(readr)
 library(ggplot2)
-
+library(stringr)
 
 
 
@@ -1130,6 +1130,15 @@ Tablecode7602fixed <- Tablecode7602fixed %>%
   mutate(Measure = ifelse(Measure == "Geographic Units", "BusinessCount", "EmployeeCount"))
 
 AllEmployers <-tidyr::spread(Tablecode7602fixed, Measure, Value)
+
+# add in min and max values
+AllEmployers <- AllEmployers %>%
+  mutate(minCo = BusinessCount - 3,
+         maxCo = BusinessCount + 3,
+         minStaff = EmployeeCount - 3,
+         maxStaff = EmployeeCount + 3,
+         minCo = ifelse(minCo < 1, 1, minCo),
+         minStaff = ifelse(minStaff < 1, 1, minStaff))
 
 save(AllEmployers, file = "data/AllEmployers.RData")
 
