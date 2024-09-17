@@ -1,3 +1,18 @@
+
+
+###########################################################
+# addind example
+###########################################################
+
+WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018, minedage = 5,
+                  maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age", lvryear = "YearLeft",
+                  lvrcount = "Total", RegionalStructure, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
+                  stvarname = "Status", userseed = 4)
+
+
+
+
+
 ########################################################### ##
 # addnetwork examples
 ########################################################### #
@@ -76,16 +91,13 @@ rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
-###########################################################
-# School leavers function
-###########################################################
 
-WithSchoolInd <- schoolind(Township, adlsxcol = 1, adlagecol = 4, adlyear = 2018, minschage = 5, maxschage = 18,
-                           LeftSchool, lvrsxcol = 2, lvragecol = 3, lvrctcol = 4, lvryearcol = 1,
-                           RegionalStructure, strusxcol = 1, struagecol = 4, structcol = 3,
-                           stvarname = "SchoolStatus", userseed = 4)
 
-rm(WithSchoolInd, LeftSchool, RegionalStructure)
+
+
+
+
+
 
 ########################################################### ##
 # Fix hours function
