@@ -3,11 +3,16 @@
 ###########################################################
 # addind example
 ###########################################################
+library("dplyr")
 
 WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018, minedage = 5,
                   maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age", lvryear = "YearLeft",
                   lvrcount = "Total", RegionalStructure, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
                   stvarname = "Status", userseed = 4)
+
+
+
+
 
 
 
@@ -81,6 +86,8 @@ TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "
 # fastmatch example
 ############################################################
 
+library("dplyr")
+
 PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
                                     PersonAge = c(round(runif(200, min=18, max=23),0),
                                                   round(runif(300, min=24, max=50),0),
@@ -107,6 +114,35 @@ NumWeighted <- Weighted %>%
 
 # prop is
 nrow(NumWeighted)/nrow(Weighted)
+
+
+
+
+
+
+
+
+############################################################
+# fixhours examples
+############################################################
+
+library("dplyr")
+
+# table of hours by schoolstatus
+table(WorkingAdolescents$HoursWorked, WorkingAdolescents$SchoolStatus)
+
+# one grouping variable
+Group1 <- "Sex"
+OneGroup <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus", pplhours = "HoursWorked",
+                     hoursmax = 3, grpdef = Group1, userseed = 4)
+table(OneGroup$HoursWorked, OneGroup$SchoolStatus)
+
+# two grouping variables
+Group2 <- c("Sex", "Relationship")
+TwoGroups <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus", pplhours = "HoursWorked",
+                      hoursmax = 3, grpdef = Group2, userseed = 4)
+table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
+
 
 
 
@@ -146,19 +182,7 @@ rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
-########################################################### ##
-# Fix hours function
-########################################################### #
 
-AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, userseed = 4)
-
-# when a group is used
-AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, grpcol = 1,
-                            userseed = 4)
-
-# go to SettingUpPopulateR to do the graphs
-
-rm(AdolescentWork, AdolescentWork2, WorkingAdolescents)
 
 ########################################################### ##
 
