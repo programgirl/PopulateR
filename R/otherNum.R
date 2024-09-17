@@ -1,20 +1,20 @@
 #' Create a match of people into existing households
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
-#' Two data frames are required. The 'existing' data frame contains the people already in households. The 'additions' data frame contains the people who are not in households. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
+#' Two data frames are required. The 'existing' data frame contains the people already in households. The 'additions' data frame contains the people. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
 #' The output data frame of matches will only contain households of the required size.
 #'
 #' @export
 #' @param existing A data frame containing the people already in households.
-#' @param exsid The ID variable for people in the existing data frame.
-#' @param exsage The age variable, for people in the existing data frame.
-#' @param HouseholdNumVariable The name of the household variable in the data frame containing the people already in households.
+#' @param exsid The variable containing the unique ID for each person, in the existing data frame.
+#' @param exsage The age variable, in the existing data frame.
+#' @param HHNumVar The household identifier variable. This must exist in only one data frame.
 #' @param additions A data frame containing the people to be added to the existing households.
-#' @param addid The ID variable for people to be added to the existing households.
-#' @param addage The ag variable, for people in the existing data frame.
+#' @param addid The variable containing the unique ID for each person, in the additions data frame.
+#' @param addage The age variable, in the additions data frame.
 #' @param numadd The number of people to be added to the household.
-#' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household. If no standard deviation is specified, the function will output all initial matches.
+#' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param ptostop = The primary stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param ptostop  The critical p-value stopping rule for the function.
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 10000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
@@ -28,12 +28,12 @@
 #'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
 #'   slice_sample(n = 1500)
 #'
-#' OldHouseholds <- otheryes(AdultsID, exsid = 3, exsage = 4, HouseholdNumVariable = 7,
-#'                           NoHousehold, addid = 3, addage = 4, numadd = 2, sdused = 3,
-#'                           userseed=4, ptostop = .01, numiters = 5000)
+#' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
+#'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
+#'                           userseed=4, attempts= 10, numiters = 10000)
 #'
 
-otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, additions, addid, addage,
+otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
                      numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000)
 {
 
@@ -63,7 +63,7 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
 
 
 
-  if (!any(duplicated(existing[HouseholdNumVariable])) == FALSE) {
+  if (!any(duplicated(existing[HHNumVar])) == FALSE) {
     stop("The column number for the household ID variable in the 'existing' data frame must be supplied, and the household number must be unique to each person")
   }
 
@@ -107,8 +107,16 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  MaxAgeDifference <-  (max(existing[exsage]) -
-                          min(existing[exsage]))-5
+  MaxAgeDifference1 <-  (max(existing[exsage]) -
+                          min(additions[addage]))-5
+
+  MaxAgeDifference2 <-  abs((min(existing[exsage]) -
+                           max(additions[addage]))-5)
+
+  # MaxAgeDifference2 <-  (max(additions[addage]) -
+  #                          min(existing[exsage]))-5
+
+  MaxAgeDifference <- max(MaxAgeDifference1, MaxAgeDifference2)
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
@@ -180,7 +188,7 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
   existingRenamed <- as.data.frame(existing %>%
     rename(existID = !! exsidcolName,
            existAge = !! exsagecolName,
-           internalHHID = !! HouseholdNumVariable) %>%
+           internalHHID = !! HHNumVar) %>%
     ungroup())
 
 
@@ -278,8 +286,9 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
-    # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-    #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+    cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
+        nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+
 
     # ONLY ITERATE MATCHES IF THERE IS A SD
     if(!is.null(sdused) == TRUE) {
@@ -287,12 +296,12 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
     ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+    ObservedAgeDifferences <- hist(CurrentAgeMatch$existAge - CurrentAgeMatch$addAge,
                                    breaks = bins, plot=FALSE)$counts
 
 
     # set up for chi-squared
-    log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+    log0ObservedAges <- hist(CurrentAgeMatch$existAge - CurrentAgeMatch$addAge,
                              breaks = logBins, plot=FALSE)$counts
     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
@@ -314,7 +323,7 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
 
     # str(CurrentAgeMatch)
 
-    # cat("Gets to matching age iterations", "\n")
+    cat("Gets to matching age iterations", "\n")
 
     if(log_chisq > Critical_log_chisq) {
 
@@ -338,10 +347,11 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
         filter(!(existID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
         bind_rows(., PropPair1,PropPair2)
 
+
       # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
 
       # do chi-squared
-      Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+      Proplog0 <- hist(PropAgeMatch$existAge - PropAgeMatch$addAge, breaks = logBins, plot=FALSE)$counts
       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
                         log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
@@ -424,7 +434,7 @@ otherNum <- function(existing, exsid, exsage, HouseholdNumVariable = NULL, addit
   #####################################
   #####################################
 
-  HHIDcolName <- sym(names(existing[HouseholdNumVariable]))
+  HHIDcolName <- sym(names(existing[HHNumVar]))
 
   # the data frame that already had a household ID
 
