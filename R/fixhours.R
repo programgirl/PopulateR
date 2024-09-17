@@ -22,26 +22,26 @@
 
 
 fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, userseed = NULL) {
-  
+
   options(dplyr.summarise.inform=F)
-  
+
   #####################################
   # check for missing input information
   #####################################
-  
-  
+
+
   if (!pplid %in% names(people)) {
     stop("The ID variable in the people data frame does not exist.")
   }
-  
+
   if (!pplstat %in% names(people)) {
     stop("The school status variable in the people data frame does not exist.")
   }
- 
+
   if (!(all((grpdef) %in% names(people)))) {
     stop("All names in grpdef must exist in the people data frame.")
   }
-  
+
   # check if pplhours is an ordered factor or numeric
 
   if (is.ordered(people[[pplhours]]) == FALSE &
@@ -50,54 +50,62 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     stop("Hours worked must be an ordered factor or numeric.")
   }
 
-  
+
   # get column names as symbols to use inside data frame subfunctions
 
   IDColName <- sym(names(people[pplid]))
   StatusColName <- sym(names(people[pplstat]))
   HoursColName <- sym(names(people[pplhours]))
-  
+
 
   # need to do the name change here
-  
+
   peopleRenamed <- people %>%
     rename(InSchool= !! pplstat,
            IntHours = !! pplhours,
            IntID = !! pplid) %>%
     mutate(IntHours = as.integer(IntHours),
            InSchool = as.integer(InSchool))
-  
+
   # get the min and max values for the InSchool variable
-  
+
   minInSchool = min(peopleRenamed$InSchool)
   maxInSchool = max(peopleRenamed$InSchool)
-  
+
   # cat("The minimum in school value is", minInSchool, "and the maximum in school value is", maxInSchool, "\n")
 
     #####################################
     #####################################
-    
-    
+
+
     # get the unique set of grouping factors
+
+  if(length(grpdef) > 1) {
     PeopleUnique <- as.data.frame(people[,grpdef] %>%
                                     unique())
-    
+
+  } else {
+    PeopleUnique <- as.data.frame(people[,grpdef] %>%
+                                    unique()) %>%
+      setNames(grpdef)
+  }
+
 
   if (!is.null(userseed)) {
     set.seed(userseed)
   }
-  
-  
+
+
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
-    
+
     # delete previous versions of working data frame
     if(exists("WorkingDF")) {
       rm(WorkingDF)
     }
-    
+
     CurrentDef = PeopleUnique[i, , drop=FALSE]
-    
+
     suppressMessages(CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef)))
 
     # get the number in each status in the variable of interest
@@ -107,31 +115,31 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
     #need to skip the bit below if there is ONLY the "not in school" status
     if(nrow(NumInEachStatus) == 1) {
-      
+
       # cat("Group with only one status is", "\n")
       # print(CurrentDef)
-      
+
       NumToFix <- 0
-      
+
     } else {
-      
-      cat("Group is", "\n")
-      print(CurrentDef)
-      
+
+      # cat("Group is", "\n")
+      # print(CurrentDef)
+
       # NEED TO FIX FROM THIS BIT
       CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef))
-      
+
         HoursTooHigh <- CurrentGroup %>%
           filter(IntHours > hoursmax & InSchool == maxInSchool)
 
         HoursCanSub <- CurrentGroup %>%
           filter(IntHours <= hoursmax & InSchool == minInSchool)
-        
+
         # cat("HoursTooHigh has", nrow(HoursTooHigh), "and HoursCanSub has", nrow(HoursCanSub), "rows", "\n")
-        
+
 
         if(nrow(HoursTooHigh) > 0 & nrow(HoursCanSub) > 0) {
-        
+
           if(nrow(HoursTooHigh) > nrow(HoursCanSub)) {
 
             HoursTooHigh <- HoursTooHigh %>%
@@ -145,7 +153,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
           }
 
           # length of both DFs is now the same
-        
+
           # swap the school status
 
           # literally swap the hours worked in HoursTooHigh and HoursCanSub by row
@@ -165,7 +173,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
             bind_cols(HoursCanSubStatus)
 
           Fixed <- bind_rows(HoursCanSubFixed, HoursTooHighFixed)
-          
+
             # get the people in the group that weren't amended
 
             UnAmended <- CurrentGroup %>%
@@ -182,44 +190,44 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
                 # closes  if(exists("OutputDataFrame"))
               }
-            
+
             # closes if(nrow(HoursTooHigh) > 0 & nrow(HoursCanSub) > 0)
-            
+
         } else {
-          
+
           if(exists("OutputDataFrame")) {
-            
+
             OutputDataFrame <- bind_rows(OutputDataFrame, CurrentGroup)
           } else {
-            
+
             OutputDataFrame <- CurrentGroup
-           
+
             # closes else to  if(exists("OutputDataFrame"))
           }
-   
+
           # closes else to if(nrow(HoursTooHigh) > 0 & nrow(HoursCanSub) > 0)
         }
       # closes else to  if(nrow(NumInEachStatus) == 1)
     }
-    
+
     # closes else to if(nrow(NumInEachStatus) == 1)
   }
-  
+
   # add in people who are omitted from the fix cycle
 
   missingPeople <- peopleRenamed %>%
     filter(!IntID %in% c(OutputDataFrame$IntID))
 
   missingPeopleRowCount <- nrow(missingPeople)
-  
+
   if(missingPeopleRowCount > 0) {
 
     OutputDataFrame <- bind_rows(OutputDataFrame, missingPeople)
   }
-  
+
 
   # fix output data frame factors
-  # 
+  #
   if (is.factor(people[[pplstat]]) == TRUE) {
 
     #   cat("School identifier is a factor")
