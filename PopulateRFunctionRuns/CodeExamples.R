@@ -12,7 +12,6 @@ WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear
 
 
 
-
 ########################################################### ##
 # addnetwork examples
 ########################################################### #
@@ -40,6 +39,9 @@ plot(NetworkSmallN)
 
 
 
+
+
+
 #############################################################
 # agedis example
 #############################################################
@@ -56,14 +58,59 @@ DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", 
 rm(SingleAges)
 
 
-########################################################### ##
+
+
+
+
+############################################################
 # createemp example
-########################################################### #
+############################################################
 library("dplyr")
 
 TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo", indsmax = "maxCo",
                                 pplmin = "minStaff", pplmax = "maxStaff", stffname="Employees",
                                 cpyname="Employer", userseed = 4)
+
+
+
+
+
+
+
+############################################################
+# fastmatch example
+############################################################
+
+PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
+                                    PersonAge = c(round(runif(200, min=18, max=23),0),
+                                                  round(runif(300, min=24, max=50),0),
+                                                  round(runif(500, min=51, max=90),0))))
+
+# unweighted example, probability of being in a same-sex couple is 0.03
+
+Unweighted <- fastmatch(PersonDataframe, pplage = "PersonAge", probSS = 0.03, HHStartNum = 1,
+                        HHNumVar = "Household", userseed = 4)
+
+NumUnweighted <- Unweighted %>%
+  filter(between(PersonAge, 25, 54))
+
+# prop is
+nrow(NumUnweighted)/nrow(Unweighted)
+
+# weighted example, same probability, 66% of people in a same-sex relationship are aged betwene 25 and 54
+
+Weighted <- fastmatch(PersonDataframe, pplage = "PersonAge", probSS = 0.03, uwProp = .66, uwLA = 25,
+                      uwUA = 54, HHStartNum = 1, HHNumVar = "Household", userseed = 4)
+
+NumWeighted <- Weighted %>%
+  filter(between(PersonAge, 25, 54))
+
+# prop is
+nrow(NumWeighted)/nrow(Weighted)
+
+
+
+
 
 
 ###########################################################
