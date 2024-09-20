@@ -286,8 +286,8 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
-    cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-        nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
+    # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
+    #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
 
 
     # ONLY ITERATE MATCHES IF THERE IS A SD
@@ -323,7 +323,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
     # str(CurrentAgeMatch)
 
-    cat("Gets to matching age iterations", "\n")
+    # cat("Gets to matching age iterations", "\n")
 
     if(log_chisq > Critical_log_chisq) {
 
@@ -369,7 +369,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
 
-        cat("log chi-square is", log_chisq, "\n")
+        # cat("log chi-square is", log_chisq, "\n")
 
         # closes pair swqp
 
