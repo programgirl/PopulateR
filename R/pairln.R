@@ -30,7 +30,7 @@
 #'   filter(Sex == "Male", Relationship == "Partnered")
 #'
 #' # partners females and males, using a normal distribution, with the females
-#' being younger by a mean of -2 and a standard deviation of 3
+#' being younger by a log mean of -2 and a log standard deviation of 3
 #' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
 #'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
 #'                            userseed = 4, ptostop=.01)
@@ -55,8 +55,8 @@
 #' Couples3 <- OppSexCouples3$Matched
 
 
-pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
-                     alphaused=0, HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, numiters=1000000) {
+pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, lnsd=NULL,
+                     HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, numiters=1000000) {
 
 
 
@@ -90,9 +90,6 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
     stop("A name for the household count variable must be supplied.")
   }
 
-  if(is.null(directomega) | directomega < 0) {
-    stop("The mean age difference must be greater than zero.")
-  }
 
   #####################################
   #####################################
@@ -178,7 +175,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   #####################################
   #####################################
 
-
+ # cat("subfunctions ended \n")
 
   #####################################
   #####################################
@@ -202,7 +199,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
   # this bit needs to be changed depending on the sign of the mean
 
-  if(directxi >= 0) {
+  if(lnmean >= 0) {
 
     MaxAgeDifference <-  (max(smalldf[[smlagecolName]]) -
                             min(largedf[[lrgagecolName]]))-5
@@ -219,68 +216,32 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   # cat("Starting the bins", "\n")
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
-  # need to do the bins etc separately for the sn and normal distributions
 
-  if (alphaused==0) {
-
-    cat("Normal distribution was used", "\n")
-
-    min_bin <- round(qnorm(1/100000, mean=directxi, sd=directomega))-0.5
-    max_bin <- round(qnorm(1-(1/100000), mean=directxi, sd=directomega))+0.5
+    min_bin <- exp(dlnorm(1/100000, meanlog=lnmean, sdlog=lnsd))+0.5
+    max_bin <- exp(dlnorm(1-(1/100000), meanlog=lnmean, sdlog=lnsd))-0.5
 
     # cat("Error when trying to bin", "\n")
 
-    bins <- c(-9999, min_bin:max_bin, 9999)
+    bins <- c(min_bin:max_bin)
+
+    return(min_bin)
 
     # cat("Error after making the bins", "\n")
 
     # construct the probabilities for each bin, gives n(bins)-1
-    Probabilities <- pnorm(bins[-1], mean=directxi, sd=directomega) -
-      pnorm(bins[-length(bins)], mean=directxi, sd=directomega)
+    Probabilities <- plnorm(bins[-1], meanlog=lnmean, sdlog=lnsd) -
+      plnorm(bins[-length(bins)], meanlog=lnmean, sdlog=lnsd)
 
     # cat("Error after making the probabilities", "\n")
 
     # assign realistic expected probabilities in the bins outside the bins constructed earlier
     # use minAge and maxAge for this, only need range for included ages
     # Uses midpoint rule.
-    logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean=directxi, sd=directomega, log=TRUE)
-    logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean=directxi, sd=directomega, log=TRUE)
 
-    logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
+    logProb <- c(log(Probabilities))
+    logBins <- c(min_bin:max_bin)
 
-  } else {
 
-    cat("Skew-normal distribution has been used", "\n")
-
-    min_bin <- round(sn::qsn(1/100000,xi=directxi, omega=directomega, alpha=alphaused))-0.5
-    max_bin <- round(sn::qsn(1-(1/100000),xi=directxi, omega=directomega, alpha=alphaused))+0.5
-
-    # cat("Error when trying to bin", "\n")
-
-    bins <- c(-9999, min_bin:max_bin, 9999)
-
-    # cat("Error after making the bins", "\n")
-
-    # construct the probabilities for each bin, gives n(bins)-1
-    Probabilities <- sn::psn(bins[-1], xi=directxi, omega=directomega, alpha=alphaused) -
-      sn::psn(bins[-length(bins)], xi=directxi, omega=directomega, alpha=alphaused)
-
-    # cat("Error after making the probabilities", "\n")
-
-    # assign realistic expected probabilities in the bins outside the bins constructed earlier
-    # use minAge and maxAge for this, only need range for included ages
-    # Uses midpoint rule.
-    logProbLow <- sn::dsn(-MaxAgeDifference:(min_bin-0.5), xi=directxi, omega=directomega, alpha=alphaused, log=TRUE)
-    logProbHigh <- sn::dsn((max_bin+0.5):MaxAgeDifference, xi=directxi, omega=directomega, alpha=alphaused, log=TRUE)
-
-    logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
-    logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
-
-    # cat("Error after making the logProb and logBins", "\n")
-
-    # closes else for if (alphaused==0)
-  }
 
 
 
@@ -303,12 +264,6 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
     set.seed(userseed)
   }
 
-
-  # CurrentAgeMatch <- data.frame(!!smlidcolName,
-  #                               !!smlagecolName,
-  #                               largedfAge = sample(rep(largedfAges, largedfAgeCounts),
-  #                                                   size=nrow(smalldf),
-  #                                                   replace = FALSE))
   CurrentAgeMatch <- smalldf %>%
     select(!!smlidcolName, !!smlagecolName) %>%
     mutate(largedfAge = sample(rep(largedfAges, largedfAgeCounts),
@@ -369,6 +324,8 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
     prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
+    return(logEAgeProbs)
+
     if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
       CurrentAgeMatch[Pick1,] <- PropPair1
@@ -423,12 +380,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
 
   # reduce pool of potentially partnered largedfs to only those matched to smalldfs
-  # largedfsMatched <- left_join(MatchedlargedfAges,
-  #                              rename_at(largedfsToMatch, {{lrgagecolName}}, ~ names(MatchedlargedfAges)[1]),
-  #                              by = c(names(MatchedlargedfAges)[1], "largedfAgeCount")) %>%
-  #   mutate(!!lrgagecolName := largedfAge)
 
-  # rename_at no longer working
   # do the rename first and then join
   largedfsToMatch <- largedfsToMatch %>%
     rename(largedfAge = {{lrgagecolName}})
