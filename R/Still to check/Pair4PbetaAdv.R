@@ -1,26 +1,26 @@
-#' Construct pairs of people into couples with a household identifier.
-#' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("locationP") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
+#' Pairs people from smalldf with people from largedf, creating couples in households.
+#' This function creates a data frame of paired people, based on a distribution of age differences. The function uses a four-parameter beta distribution to create the pairs.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
-#' Both data frames must be restricted to only those people that will have a couples match performed.
+#' Both data frames must be restricted to only those people that will be paired.
 #' @export
-#' @param smalldf A data frame containing one set of observations to be paired.
-#' @param smlid The ID variable in the smalldf data frame.
-#' @param smlage The age variable in the smalldf data frame.
-#' @param largedf A data frame containing the second set of observations to be paired.
-#' @param lrgid The ID variable in the largedf data frame.
-#' @param lrgage The age variable in the largedf data frame.
-#' @param shapeA This is the first shape parameter of the four-parameter beta distribution If this value is negative, the smaller data frame holds the oldest ages. If this value is positive, the smaller data frame holds the youngest ages.
+#' @param smalldf The data frame containing one set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the smallest number.
+#' @param smlid The variable containing the unique ID for each person, in the smalldf data frame.
+#' @param smlage The age variable, in the smalldf data frame.
+#' @param largedf A data frame containing the second set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the largest number.
+#' @param lrgid The variable containing the unique ID for each person, in the largedf data frame.
+#' @param lrgage The age variable, in the largedf data frame.
+#' @param shapeA This is the first shape parameter of the four-parameter beta distribution If this value is negative, smalldf has the oldest ages. If this value is positive, smalldf has the youngest ages.
 #' @param shapeB This is the second shape parameter of the four-parameter beta distribution This value must be positive.
-#' @param locationP The location parameter of the four-parameter beta distribution
-#' @param scaleP The scale parameter of the four-parameter beta distribution
-#' @param IDStartValue The starting number for generating the household identifier value that identifies a couple. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable.
-#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param locationP The location parameter of the four-parameter beta distribution.
+#' @param scaleP The scale parameter of the four-parameter beta distribution.
+#' @param HHStartNum The starting value for HHNumVar. Must be numeric.
+#' @param HHNumVar The column name for the household variable.
+#' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param attempts The maximum number of times the large data frame will be sampled to draw an age match from the correct distribution, for each observation in the small data frame. The default number of attempts is 10.
-#' @param numiters If the required age match distribution is not met for the set of matched data, the maximum number of iterations used to attempt to match the distribution across all pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param attempts The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.
+#' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
+#' @return A list of three data frames. $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
 #' @examples
 #' library(dplyr)
@@ -35,12 +35,12 @@
 #' being younger by a mean of -2 and a standard deviation of 3
 #' OppSexCouples <- couples(PartneredFemales, smlid=3, smlage=4,
 #'                          PartneredMales, lrgid=3, lrgage=4, shapeA = -2,
-#'                          directomega = 3, IDStartValue = 100, HouseholdNumVariable="Househlrgid",
+#'                          directomega = 3, HHStartNum = 100, HHNumVar="Househlrgid",
 #'                          userseed = 4, ptostop=.01,  numiters=1000000)
 
 
 pair4PbetaAdv <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL, locationP=NULL, 
-                        scaleP = NULL, IDStartValue, HouseholdNumVariable, userseed=NULL, ptostop=NULL, attempts=10,
+                        scaleP = NULL, HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, attempts=10,
                         numiters=1000000) {
   
   
@@ -71,7 +71,7 @@ pair4PbetaAdv <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA
   }
   
   
-  if(is.null(HouseholdNumVariable)) {
+  if(is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
   
@@ -152,7 +152,7 @@ pair4PbetaAdv <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA
   
   # perform the matching
   
-  currentHHID <- IDStartValue
+  currentHHID <- HHStartNum
   
   #####################################
   #####################################
@@ -540,10 +540,10 @@ pair4PbetaAdv <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA
   #####################################
   
   # add the household ID
-  MaxIDStartValue <- (nrow(CurrentAgeMatch)-1) + IDStartValue
+  MaxHHStartNum <- (nrow(CurrentAgeMatch)-1) + HHStartNum
   
   CurrentAgeMatch <- CurrentAgeMatch %>%
-    mutate(internalHHID = seq(IDStartValue, MaxIDStartValue))
+    mutate(internalHHID = seq(HHStartNum, MaxHHStartNum))
 
 
   # prep the two data frames for output
@@ -553,14 +553,14 @@ pair4PbetaAdv <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA
     select(smallID, smallAge, internalHHID) %>%
     rename(!! smlidcolName := smallID,
            !! smlagecolName := smallAge,
-           {{HouseholdNumVariable}} := internalHHID) %>%
+           {{HHNumVar}} := internalHHID) %>%
     left_join(smalldf)
   
   FullMatchedLrg <- CurrentAgeMatch %>%
     select(largeID, largeAge, internalHHID) %>%
     rename(!! lrgidcolName := largeID,
            !! lrgagecolName := largeAge,
-           {{HouseholdNumVariable}} := internalHHID) %>%
+           {{HHNumVar}} := internalHHID) %>%
     left_join(largedf)
 
   OutputDataframe <- rbind(FullMatchedSml, FullMatchedLrg)
