@@ -643,14 +643,14 @@ rm(Original, Fixed, FixedGroup, AllHoursValues, OriginalGraph, OriginalHours, Fi
 #####################################
 
 # now doing a combined graph for both examples
-OppSexAgeDiffPlotValues1 <- OppSexCouples1$Matched %>%
+OppSexAgeDiffPlotValues1 <- Couples1 %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
          Source = "Normal") %>%
   filter(Sex == "Female")
 
-OppSexAgeDiffPlotValues2 <- OppSexCouples2$Matched %>%
+OppSexAgeDiffPlotValues2 <- Couples2 %>%
   group_by(HouseholdID) %>%
   arrange(desc(Sex), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age))),
@@ -684,7 +684,6 @@ AgeDiffs2 <- ggplot(OppSexAgeDiffPlotValues2, aes (x = AgeDiff)) +
 quantile(OppSexAgeDiffPlotValues1$AgeDiff)
 quantile(OppSexAgeDiffPlotValues2$AgeDiff)
 
-rm(OppSexAgeDiffPlotValues1, OppSexAgeDiffPlotValues2, AgeDiffs1, AgeDiffs2, OppSexCouples1, OppSexCouples2, PartneredFemales, PartneredMales, PartneredMalesSmall)
 
 
 ####################################
