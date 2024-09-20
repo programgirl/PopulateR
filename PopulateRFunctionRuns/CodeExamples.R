@@ -182,7 +182,47 @@ OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "Ho
 
 
 
+########################################################### ##
+# pairnorm
+########################################################### #
 
+
+library(dplyr)
+
+# demonstrate matched dataframe sizes first
+set.seed(1)
+PartneredFemales <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered")
+PartneredMalesSmall <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered") %>%
+  slice_sample(n = nrow(PartneredFemales))
+
+OppSexCouples1 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+                          PartneredMalesSmall, lrgidcol=3, lrgagecol=4, directxi = -2,
+                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                          userseed = 4, ptostop=.01, numiters=1000000)
+
+# there are more partnered males than partnered females
+# so all partnered males will have a matched female partner
+# but not all females will be matched
+# being the smallest data frame, the female one must be the first
+
+# different size dataframes
+set.seed(1)
+PartneredFemales <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered")
+
+PartneredMales <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered")
+
+OppSexCouples2 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
+                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
+                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
+                          userseed = 4, ptostop=.01, numiters=1000000)
+
+# go to the graphs in SettingUpPopulate.R
+
+rm(PartneredFemales, PartneredMales, OppSexCouples, PartneredMalesSmall, OppSexCouples2, TheMatched)
 
 
 
@@ -344,47 +384,7 @@ rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
-########################################################### ##
 
-########################################################### #
-# opposite sex couples
-
-library(dplyr)
-
-# demonstrate matched dataframe sizes first
-set.seed(1)
-PartneredFemales <- Township %>%
-  filter(Sex == "Female", Relationship == "Partnered")
-PartneredMalesSmall <- Township %>%
-  filter(Sex == "Male", Relationship == "Partnered") %>%
-  slice_sample(n = nrow(PartneredFemales))
-
-OppSexCouples1 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
-                          PartneredMalesSmall, lrgidcol=3, lrgagecol=4, directxi = -2,
-                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-                          userseed = 4, ptostop=.01, numiters=1000000)
-
-# there are more partnered males than partnered females
-# so all partnered males will have a matched female partner
-# but not all females will be matched
-# being the smallest data frame, the female one must be the first
-
-# different size dataframes
-set.seed(1)
-PartneredFemales <- Township %>%
-  filter(Sex == "Female", Relationship == "Partnered")
-
-PartneredMales <- Township %>%
-  filter(Sex == "Male", Relationship == "Partnered")
-
-OppSexCouples2 <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
-                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
-                          directomega = 3, hhidstart = 100, hhidvar="HouseholdID",
-                          userseed = 4, ptostop=.01, numiters=1000000)
-
-# go to the graphs in SettingUpPopulate.R
-
-rm(PartneredFemales, PartneredMales, OppSexCouples, PartneredMalesSmall, OppSexCouples2, TheMatched)
 
 
 
