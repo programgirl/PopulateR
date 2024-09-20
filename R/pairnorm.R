@@ -347,7 +347,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
   for (i in 1:numiters) {
 
-    print(i)
+    # print(i)
 
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
