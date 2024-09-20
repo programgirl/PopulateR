@@ -23,6 +23,7 @@
 #' @examples
 #' library(dplyr)
 #'
+#'matched dataframe sizes first, using a normal distribution
 #' set.seed(1)
 #' PartneredFemales <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered")
@@ -31,10 +32,28 @@
 #'
 #' # partners females and males, using a normal distribution, with the females
 #' being younger by a mean of -2 and a standard deviation of 3
-#' OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
-#'                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
-#'                          directomega = 3, HHStartNum = 100, HHNumVar="HouseholdID",
-#'                          userseed = 4, ptostop=.01,  numiters=1000000)
+#' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
+#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
+#'                            userseed = 4, ptostop=.01)
+#' Couples1 <- OppSexCouples1$Matched
+#'
+#' different size dataframes
+#'
+#' PartneredFemales <- Township %>%
+#'   filter(Sex == "Female", Relationship == "Partnered")
+#' PartneredMales <- Township %>%
+#'   filter(Sex == "Male", Relationship == "Partnered")
+#'
+#' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales, lrgid = "ID",
+#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar="HouseholdID",
+#'                            userseed = 4, ptostop=.01)
+#' Couples2 <- OppSexCouples2$Matched
+#'
+#' # skew normal example, does not converge
+#' OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
+#'                            lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
+#'                            HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+#' Couples3 <- OppSexCouples3$Matched
 
 
 pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
