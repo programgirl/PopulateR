@@ -1,24 +1,24 @@
-#' Construct pairs of people into couples with a household identifier.
+#' Pairs people from smalldf with people from largedf, creating couples in households.
 #' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
-#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two.In this situation, a random subsample of the largedf data frame will be used.
+#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
 #' Both data frames must be restricted to only those people that will have a couples match performed.
 #' @export
-#' @param smalldf A data frame containing one set of observations to be paired.
-#' @param smlidcol The column number for the ID variable in the smalldf data frame.
-#' @param smlagecol The column number for the age variable in the smalldf data frame.
-#' @param largedf A data frame containing the second set of observations to be paired.
-#' @param lrgidcol The column number for the ID variable in the largedf data frame.
-#' @param lrgagecol The column number for the age variable in the largedf data frame.
+#' @param smalldf A data frame containing one set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the smallest number.
+#' @param smlid The variable containing the unique ID for each person, in the smalldf data frame.
+#' @param smlage The age variable, in the smalldf data frame.
+#' @param largedf A data frame containing the second set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the largest number.
+#' @param lrgid The variable containing the unique ID for each person, in the largedf data frame.
+#' @param lrgage The age variable, in the largedf data frame.
 #' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the normal distribution.
 #' @param directomega If a skew-normal distribution is used, this is the scale value. If the default alphaused value of 0 is used, this defaults to the standard deviation value for the normal distribution.
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
-#' @param IDStartValue The starting number for generating the household identifier value that identifies a couple. Must be numeric.
-#' @param HouseholdNumVariable The column name for the household variable. This must be supplied in quotes.
-#' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
+#' @param HHStartNum The starting value for HHNumVar Must be numeric.
+#' @param HHNumVar The name for the household variable.
+#' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
-#' @param numiters The maximum number of iterations used to construct the coupled data frame. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the couples. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#' @return A list of two data frames $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
+#' @return A list of two data frames. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
 #'
 #' @examples
 #' library(dplyr)
@@ -33,12 +33,12 @@
 #' being younger by a mean of -2 and a standard deviation of 3
 #' OppSexCouples <- couples(PartneredFemales, smlidcol=3, smlagecol=4,
 #'                          PartneredMales, lrgidcol=3, lrgagecol=4, directxi = -2,
-#'                          directomega = 3, IDStartValue = 100, HouseholdNumVariable="HouseholdID",
+#'                          directomega = 3, HHStartNum = 100, HHNumVar="HouseholdID",
 #'                          userseed = 4, ptostop=.01,  numiters=1000000)
 
 
 pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL, 
-                    alphaused=0, IDStartValue, HouseholdNumVariable, userseed=NULL, ptostop=NULL, numiters=1000000) {
+                    alphaused=0, HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, numiters=1000000) {
   
   
   
@@ -68,7 +68,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   }
   
 
-  if(is.null(HouseholdNumVariable)) {
+  if(is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
   }
   
@@ -440,23 +440,23 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   # also add the household numbers at this point
   
 
-  MaxIDStartValue <- (nrow(smalldfsReadyToMatch)-1) + IDStartValue
+  MaxHHStartNum <- (nrow(smalldfsReadyToMatch)-1) + HHStartNum
   
   
 
   FullMatchedDataFrame <- left_join(smalldfsReadyToMatch, largedfsMatched, by=c("largedfAge", "largedfAgeCount")) %>%
     dplyr::select(-largedfAge, -largedfAgeCount) %>%
     ungroup() %>%
-    mutate({{HouseholdNumVariable}} := seq(IDStartValue, MaxIDStartValue))
+    mutate({{HHNumVar}} := seq(HHStartNum, MaxHHStartNum))
   
   # convert from wide to long, use .x and .y to do the split
 
   FirstDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".x"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".x"), {{HHNumVar}}) %>%
     rename_all(list(~gsub("\\.x$", "", .)))
   
   SecondDataframeSplit <- FullMatchedDataFrame %>%
-    dplyr::select(ends_with(".y"), {{HouseholdNumVariable}}) %>%
+    dplyr::select(ends_with(".y"), {{HHNumVar}}) %>%
     rename_all(list(~gsub("\\.y$", "", .)))
   
    OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
@@ -470,7 +470,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   
   # use for checking number of iterations used, the p-value to stop, and the p-value reached
   #
-  cat("The number of iterations used was", i, "\n")
+  # cat("The number of iterations used was", i, "\n")
   # print(Critical_log_chisq)
   # print(log_chisq)
   
@@ -485,7 +485,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   
   UnmatchedDataframe <- largedf %>%
     filter(!({{lrgidcolName}} %in% MatchedIDs)) #%>%
-  # mutate({{HouseholdNumVariable}} = NA)
+  # mutate({{HHNumVar}} = NA)
   
   MergedList <- list()
   
