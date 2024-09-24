@@ -694,7 +694,7 @@ quantile(OppSexAgeDiffPlotValues2$AgeDiff)
 # graph the single child, skew normal age difference
 
 ParentKidDiffsCh1 <- ChildAllMatched$Matched %>%
-  group_by(HouseholdID) %>%
+  group_by(Household) %>%
   arrange(desc(Age), .by_group = TRUE) %>%
   mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
   filter(AgeDiff > 0)
