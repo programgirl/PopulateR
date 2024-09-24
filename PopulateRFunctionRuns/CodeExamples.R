@@ -182,9 +182,9 @@ OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "Ho
 
 
 
-########################################################### ##
+#############################################################
 # pairnorm
-########################################################### #
+#############################################################
 
 library(dplyr)
 
@@ -237,9 +237,27 @@ Couples3 <- OppSexCouples3$Matched
 
 
 
+#############################################################
+# pairln
+#############################################################
 
+library(dplyr)
 
+library(dplyr)
 
+# demonstrate matched dataframe sizes first, using a normal distribution
+set.seed(1)
+PartneredFemales <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered")
+PartneredMalesSmall <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered") %>%
+  slice_sample(n = nrow(PartneredFemales))
+
+OppSexCouples1 <- pairln(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
+                           lrgage = "Age", lnmean = -0.693, lnsd = 1.386, HHStartNum = 1, HHNumVar = "HouseholdID",
+                           userseed = 4, ptostop=.01)
+
+Couples1 <- OppSexCouples1$Matched
 
 
 
