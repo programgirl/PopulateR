@@ -689,9 +689,9 @@ quantile(OppSexAgeDiffPlotValues2$AgeDiff)
 ####################################
 # Graph and differences parents and kids
 # NEEDS THE OUTPUT FROM THE CODE EXAMPLES FILE
-# first, from child no
+# from pairbeta4
 #####################################
-# graph the single child, skew normal age difference
+# graph the single child, 4 parameter beta age difference, children smaller
 
 ParentKidDiffsCh1 <- ChildAllMatched$Matched %>%
   group_by(Household) %>%
@@ -714,7 +714,7 @@ PKAgeDiffs1 <- ggplot(ParentKidDiffsCh1, aes (x = AgeDiff)) +
 
 # plot the parent ages
 ParentAges1 <- ChildAllMatched$Matched %>%
-  group_by(HouseholdID) %>%
+  group_by(Household) %>%
   filter(Age == max(Age))
 
 PKAgesG1 <- ggplot(ParentAges1, aes (x = Age)) +
@@ -742,6 +742,71 @@ median(ParentAges1$Age)
 
 # table of parent ages
 table(ParentAges1$Age)
+
+
+# graph the single child, 4 parameter beta age difference, children larger
+
+ParentKidDiffsCh2 <- ChildAllMatched2$Matched %>%
+  group_by(Household) %>%
+  arrange(desc(Age), .by_group = TRUE) %>%
+  mutate(AgeDiff = -(Age - lag(Age, default = first(Age)))) %>%
+  filter(AgeDiff > 0)
+
+
+PKAgeDiffs2 <- ggplot(ParentKidDiffsCh2, aes (x = AgeDiff)) +
+  geom_bar(fill = "#5e3c99") +
+  labs(x="Age difference, parent age - child age", y = "Number of parent-child pairs") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+#   ggsave(PKAgeDiffs2, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgeDiffs2.pdf", width = 12.25, height = 7.15, units = "in")
+
+
+# plot the parent ages
+ParentAges2 <- ChildAllMatched2$Matched %>%
+  group_by(Household) %>%
+  filter(Age == max(Age))
+
+PKAgesG2 <- ggplot(ParentAges2, aes (x = Age)) +
+  geom_bar(fill = "#fdb863") +
+  xlim(10, 80) +
+  labs(x="Current age of parent", y = "Number of parents") +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 18),
+        legend.position = "bottom")
+
+#   ggsave(PKAgesG2, file="~/Sync/PhD/Thesis2020/PopSimArticle/PKAgesG2.pdf", width = 12.25, height = 7.15, units = "in")
+
+# get numbers for the article
+# age at childbirth
+min(ParentKidDiffsCh2$AgeDiff)
+max(ParentKidDiffsCh2$AgeDiff)
+median(ParentKidDiffsCh2$AgeDiff)
+
+#current age of parent
+min(ParentAges2$Age)
+max(ParentAges2$Age)
+median(ParentAges2$Age)
+
+# table of parent ages
+table(ParentAges2$Age)
+
+
+
+
+
+
+
+
+
+
+
+
 
 # second, from child yes
 #####################################
