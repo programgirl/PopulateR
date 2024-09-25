@@ -154,7 +154,7 @@ library("dplyr")
 
 # creating three-person households
 NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
-                       HHNumVar = "HouseholdID", userseed=4, ptostop = .01, numiters = 1000000)
+                       HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
 
 PeopleInHouseholds <- NewHouseholds$Matched
 PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
@@ -180,6 +180,59 @@ OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "Ho
                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
                           userseed=4, attempts= 10, numiters = 10000)
 
+
+
+###########################################################
+# pairbeta4 example
+###########################################################
+
+library(dplyr)
+
+# demonstrate matched dataframe sizes first
+
+# assign child, no parental household
+set.seed(1)
+# sample a combination of females and males to be parents
+Parents <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 500)
+
+Children <- Township %>%
+  filter(Relationship == "NonPartnered", Age < 20) %>%
+  slice_sample(n = 200)
+
+# match the children to the parents
+# no ID on the parents
+
+ChildAllMatched <- pairbeta4(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
+                           shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1, HHStartNum = 1,
+                           HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+
+
+MatchedPairs <- ChildAllMatched$Matched
+UnmatchedChildren <- ChildAllMatched$Smaller
+UnmatchedAdults <- ChildAllMatched$Larger
+
+# children data frame is larger, the locationP and scaleP values are negative
+
+Parents2 <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 200)
+Children2 <- Township %>%
+  filter(Relationship == "NonPartnered", Age < 20) %>%
+  slice_sample(n = 500)
+
+# test to see if distribution can occur
+test1 <- PearsonDS::rpearsonI(n = 10000, a = 2.2, b = 3.7, location = 16.5, scale = 40.1)
+test2 <- PearsonDS::rpearsonI(n = 10000, a = 2.2, b = 3.7, location = -16.5, scale = -40.1)
+
+ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID", lrgage = "Age",
+                             shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1, HHStartNum = 1,
+                             HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+
+MatchedPairs2 <- ChildMatched$Matched
+UnmatchedChildren2 <- ChildMatched$Smaller
+UnmatchedAdults2 <- ChildMatched$Larger
 
 
 #############################################################
