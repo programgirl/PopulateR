@@ -19,32 +19,53 @@
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param attempts The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.
 #'  @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
-
+#'
 #' @return A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
 #' @examples
 #' library(dplyr)
-#'
+#' # demonstrate matched dataframe sizes first
 #' set.seed(1)
-#' PartneredFemales <- Township %>%
-#'   filter(Sex == "Female", Relationship == "Partnered")
-#' PartneredMales <- Township %>%
-#'   filter(Sex == "Male", Relationship == "Partnered")
+#' # sample a combination of females and males to be parents
+#' Parents <- Township %>%
+#'   filter(Relationship == "Partnered", Age > 18) %>%
+#'   slice_sample(n = 500) %>%
+#'   mutate(Household = row_number())
+#' Children <- Township %>%
+#'   filter(Relationship == "NonPartnered", Age < 20) %>%
+#'   slice_sample(n = 200)
 #'
-#' # partners females and males, using a normal distribution, with the females
-#' being younger by a mean of -2 and a standard deviation of 3
-#' OppSexCouples <- couples(PartneredFemales, smlid=3, smlage=4,
-#'                          PartneredMales, lrgid=3, lrgage=4, shapeA = -2,
-#'                          directomega = 3, IDStartValue = 100, HHNumVar="Househlrgid",
-#'                          userseed = 4, ptostop=.01,  attempts=1000000)
+#' # match the children to the parents
+#' ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
+#'                                 shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1,
+#'                                 HHNumVar = "Household", userseed=4, attempts = 10, numiters = 10000)
+#'
+#' MatchedPairs <- ChildAllMatched$Matched
+#' UnmatchedChildren <- ChildAllMatched$Smaller
+#' UnmatchedAdults <- ChildAllMatched$Larger
+#'
+#' # children data frame is larger, the locationP and scaleP values are negative
+#'
+#' Parents2 <- Township %>%
+#'   filter(Relationship == "Partnered", Age > 18) %>%
+#'   slice_sample(n = 200) %>%
+#'   mutate(Household = row_number())
+#' Children2 <- Township %>%
+#'   filter(Relationship == "NonPartnered", Age < 20) %>%
+#'   slice_sample(n = 500)
+#'
+#' ChildMatched <- pairbeta4Num(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID", lrgage = "Age",
+#'                              shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1,
+#'                              HHNumVar = "Household", userseed=4, attempts = 10, numiters = 10000)
+
+#' MatchedPairs2 <- ChildMatched$Matched
+#' UnmatchedChildren2 <- ChildMatched$Smaller
+#' UnmatchedAdults2 <- ChildMatched$Larger
 
 
 pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL,
                              locationP=NULL, scaleP = NULL, HHNumVar, userseed=NULL, attempts=10,
                              numiters=1000000) {
-
-
-
 
 
   #####################################
