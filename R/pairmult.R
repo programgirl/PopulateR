@@ -27,9 +27,7 @@
 #' set.seed(1)
 #' Parents <- Township %>%
 #'   filter(Relationship == "Partnered", Age > 18) %>%
-#'   slice_sample(n = 500) %>%
-#'   mutate(HouseholdID = row_number()+500)
-#'
+#'   slice_sample(n = 500)
 #' Children <- Township %>%
 #'   filter(Relationship == "NonPartnered", Age < 20) %>%
 #'   slice_sample(n = 400)
@@ -37,10 +35,18 @@
 #' # example with assigning two children to a parent
 #' # the same number of children is assigned to all parents
 #' # adding two children to each parent
+#' ChildMatched <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+#'                          Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#'                          HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 3)
+#' MatchedFamilies <- ChildMatched$Matched
 #'
-#' ChildrenMatchedID <- childrenyes(Children, chlid = 3, chlage = 4, numchild = 5,
-#'                      twinprob = .2, Parents, parid = 3, parage = 4,
-#'                      minparage = 18, maxparage = 54,userseed = 4)
+#' # affected by maximum age difference permitted between children
+#' ChildMatched2 <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+#'                           Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#'                           HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 4)
+#' MatchedFamilies2 <- ChildMatched2$Matched
+#' UnmatchedChildren2 <- ChildMatched2$Children
+#' UnmatchedAdults2 <- ChildMatched2$Adults
 #'
 pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage,
                       minparage = NULL, maxparage = NULL, HHStartNum = NULL, HHNumVar= NULL,

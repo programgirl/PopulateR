@@ -293,6 +293,98 @@ UnmatchedAdults2 <- ChildMatched$Larger
 
 
 #############################################################
+# pairmult
+#############################################################
+
+library(dplyr)
+
+# no parental household
+set.seed(1)
+# sample a combination of females and males to be parents
+Parents <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 500)
+
+Children <- Township %>%
+  filter(Relationship == "NonPartnered", Age < 20) %>%
+  slice_sample(n = 200)
+
+# example with assigning two children to a parent
+# the same number of children is assigned to all parents
+# adding two children to each parent
+
+ChildMatched <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+                         Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+                         HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 3)
+MatchedFamilies <- ChildMatched$Matched
+UnmatchedChildren <- ChildMatched$Children
+UnmatchedAdults <- ChildMatched$Adults
+
+# affected by the permitted age difference between children
+ChildMatched2 <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+                          Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+                          HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 4)
+MatchedFamilies2 <- ChildMatched2$Matched
+UnmatchedChildren2 <- ChildMatched2$Children
+UnmatchedAdults2 <- ChildMatched2$Adults
+
+
+
+
+
+
+
+# go to SettingUpPopulateR for graphs
+
+# NOT USED
+# set.seed(1)
+# ShorterParents <- Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 200)
+#
+# ChildWithNonMatches<- childno(Children, chlidcol = 3, chlagecol = 4, ShorterParents, paridcol = 3, paragecol = 4,
+#                    directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                    maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
+#
+# LookAtLast <- ChildWithNonMatches$Matched
+# LookAtFirst <- ChildAllMatched$Matched
+#
+# # get larger samples
+# set.seed(1)
+# ChildrenBigger <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20) %>%
+#   slice_sample(n = 1000)
+#
+# LargerParents <-  Township %>%
+#   filter(Relationship == "Partnered", Age > 18) %>%
+#   slice_sample(n = 1000)
+#
+# MoreMatches <- childno(ChildrenBigger, chlidcol = 3, chlagecol = 4, LargerParents, paridcol = 3, paragecol = 4,
+#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
+#
+# # get everyone
+# ChildrenAll <- Township %>%
+#   filter(Relationship == "NonPartnered", Age < 20)
+#
+# ParentsAll <-  Township %>%
+#   filter(Relationship == "Partnered", Age > 18)
+#
+# MatchesAll <- childno(ChildrenAll, chlidcol = 3, chlagecol = 4, ParentsAll, paridcol = 3, paragecol = 4,
+#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
+#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
+# rm(ShorterParents, ChildWithNonMatches, LookAtLast, LookAtFirst, ChildrenBigger, LargerParents,
+# MoreMatches, ChildrenAll, ParentsAll, MatchesAll)
+
+# go to graphs in SettingUpPopulate.R
+
+
+rm(Parents, Children, ChildAllMatched, ShorterParents, ChildWithNonMatches)
+
+
+
+
+#############################################################
 # pairnorm
 #############################################################
 
@@ -528,73 +620,7 @@ rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
-########################################################### ##
-# Assign children
-########################################################### #
-# assign child, no parental household
-set.seed(1)
-# sample a combination of females and males to be parents
-Parents <- Township %>%
-  filter(Relationship == "Partnered", Age > 18) %>%
-  slice_sample(n = 500)
 
-Children <- Township %>%
-  filter(Relationship == "NonPartnered", Age < 20) %>%
-  slice_sample(n = 200)
-
-# match the children to the parents
-# no ID on the parents
-
-ChildAllMatched <- childno(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
-                                   directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-                                   maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed=4)
-
-# go to SettingUpPopulateR for graphs
-
-# NOT USED
-# set.seed(1)
-# ShorterParents <- Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 200)
-#
-# ChildWithNonMatches<- childno(Children, chlidcol = 3, chlagecol = 4, ShorterParents, paridcol = 3, paragecol = 4,
-#                    directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                    maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-#
-# LookAtLast <- ChildWithNonMatches$Matched
-# LookAtFirst <- ChildAllMatched$Matched
-#
-# # get larger samples
-# set.seed(1)
-# ChildrenBigger <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20) %>%
-#   slice_sample(n = 1000)
-#
-# LargerParents <-  Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 1000)
-#
-# MoreMatches <- childno(ChildrenBigger, chlidcol = 3, chlagecol = 4, LargerParents, paridcol = 3, paragecol = 4,
-#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-#
-# # get everyone
-# ChildrenAll <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20)
-#
-# ParentsAll <-  Township %>%
-#   filter(Relationship == "Partnered", Age > 18)
-#
-# MatchesAll <- childno(ChildrenAll, chlidcol = 3, chlagecol = 4, ParentsAll, paridcol = 3, paragecol = 4,
-#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-# rm(ShorterParents, ChildWithNonMatches, LookAtLast, LookAtFirst, ChildrenBigger, LargerParents,
-# MoreMatches, ChildrenAll, ParentsAll, MatchesAll)
-
-# go to graphs in SettingUpPopulate.R
-
-
-rm(Parents, Children, ChildAllMatched, ShorterParents, ChildWithNonMatches)
 
 ########################################################### ##
 
