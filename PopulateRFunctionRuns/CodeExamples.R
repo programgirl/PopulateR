@@ -243,7 +243,7 @@ UnmatchedAdults2 <- ChildMatched$Larger
 
 
 ###########################################################
-# pairbeta4N example
+# pairbeta4Num example
 ###########################################################
 
 library(dplyr)
@@ -330,6 +330,43 @@ UnmatchedAdults2 <- ChildMatched2$Adults
 
 
 
+
+
+###########################################################
+# pairmultNum example
+###########################################################
+
+library(dplyr)
+
+set.seed(1)
+# sample a combination of females and males to be parents
+Parents <- Township %>%
+  filter(Relationship == "Partnered", Age > 18) %>%
+  slice_sample(n = 500) %>%
+  mutate(Household = row_number())
+
+Children <- Township %>%
+  filter(Relationship == "NonPartnered", Age < 20) %>%
+  slice_sample(n = 200)
+
+# example with assigning two children to a parent
+# the same number of children is assigned to all parents
+# adding two children to each parent
+
+ChildMatched <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
+                            parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+                            HHNumVar = "Household", userseed =4, maxdiff = 3)
+MatchedFamilies <- ChildMatched$Matched
+UnmatchedChildren <- ChildMatched$Children
+UnmatchedAdults <- ChildMatched$Adults
+
+# affected by the permitted age difference between children
+ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
+                             parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+                             HHNumVar = "Household", userseed =4, maxdiff = 4)
+MatchedFamilies2 <- ChildMatched2$Matched
+UnmatchedChildren2 <- ChildMatched2$Children
+UnmatchedAdults2 <- ChildMatched2$Adults
 
 
 

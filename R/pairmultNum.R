@@ -27,8 +27,7 @@
 #' Parents <- Township %>%
 #'   filter(Relationship == "Partnered", Age > 18) %>%
 #'   slice_sample(n = 500) %>%
-#'   mutate(HouseholdID = row_number()+500)
-#'
+#'   mutate(Household = row_number())
 #' Children <- Township %>%
 #'   filter(Relationship == "NonPartnered", Age < 20) %>%
 #'   slice_sample(n = 400)
@@ -37,10 +36,21 @@
 #' # the same number of children is assigned to all parents
 #' # adding two children to each parent
 #'
-#' ChildrenMatchedID <- childrenyes(Children, chlid = 3, chlage = 4, numchild = 5,
-#'                      twinprob = .2, Parents, parid = 3, parage = 4,
-#'                      minparage = 18, maxparage = 54, hhidcol = 6,
-#'                      userseed = 4)
+#' ChildMatched <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
+#'                             parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#'                             HHNumVar = "Household", userseed =4, maxdiff = 3)
+#' MatchedFamilies <- ChildMatched$Matched
+#' UnmatchedChildren <- ChildMatched$Children
+#' UnmatchedAdults <- ChildMatched$Adults
+#'
+#' # affected by the permitted age difference between children
+#'
+#' ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
+#'                             parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#'                             HHNumVar = "Household", userseed =4, maxdiff = 4)
+#' MatchedFamilies2 <- ChildMatched2$Matched
+#' UnmatchedChildren2 <- ChildMatched2$Children
+#' UnmatchedAdults2 <- ChildMatched2$Adults
 
 
 
