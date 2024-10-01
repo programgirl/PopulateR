@@ -183,6 +183,13 @@ OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "Ho
 
 
 ###########################################################
+###########################################################
+# adding children examples
+###########################################################
+###########################################################
+
+
+###########################################################
 # pairbeta4 example
 ###########################################################
 
@@ -367,6 +374,28 @@ ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 
 MatchedFamilies2 <- ChildMatched2$Matched
 UnmatchedChildren2 <- ChildMatched2$Children
 UnmatchedAdults2 <- ChildMatched2$Adults
+
+
+
+###########################################################
+###########################################################
+# adding children examples finished
+###########################################################
+###########################################################
+
+
+###########################################################
+# pairemp example
+###########################################################
+
+library(dplyr)
+
+set.seed(1)
+EmployedPeople <- pairemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
+                          pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA", userseed = 4)
+
+
+
 
 
 

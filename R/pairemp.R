@@ -5,7 +5,7 @@
 #' The employer data frame can be either a summary in the form of the number of employees by employer. The other option is that each row represents a vacancy for an employee. Thus, an employer with 5 employees may be represented as either: a single row with an employee count of 5, or 5 rows with an employee count of 1 in each row.
 #' @export
 #' @param employers The data frame containing employer data.
-#' @param empid The variable containing the unique identifier for each employer. 
+#' @param empid The variable containing the unique identifier for each employer.
 #' @param empcount The variable containing the count of employees for each employer.
 #' @param people The data frame containing the people that require employers.
 #' @param pplid The variable containing the unique ID for each person, in the people data frame.
@@ -19,9 +19,9 @@
 #'
 #' @examples
 #' library("dplyr")
-#'
-#' EmployedPeople <- pairemp(EmployerSet, empid = 3, empcount = 2, Township, pplid = 3,
-#'                          wrkhrs = 5, hoursmin = 2, userseed = 4)
+#' set.seed(1)
+#' EmployedPeople <- pairemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
+#'                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA", userseed = 4)
 
 pairemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, missval = NA, userseed = NULL) {
 
@@ -71,10 +71,10 @@ pairemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin,
        workersUnemployed <- workersUnemployed %>%
        mutate(EmployerID = missval)
 
-     } 
-     
+     }
+
    } else {
-     
+
      if(is.na(missval) == FALSE) {
      workersUnemployed <- workersUnemployed %>%
        mutate(EmployerID = as.character(missval))
@@ -86,7 +86,7 @@ pairemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin,
    # check if the employer list can take all the workers
   if (nrow(employersRenamed) < nrow(workersWorking)) {
 
-    stop("The number of employed people in the people data frame exceeds the number of staff in the employer population by", 
+    stop("The number of employed people in the people data frame exceeds the number of staff in the employer population by",
          nrow(employersRenamed) - nrow(workingsWorking), "people \n")
 
   }
