@@ -249,6 +249,9 @@ UnmatchedAdults2 <- ChildMatched$Larger
 
 
 
+
+
+
 ###########################################################
 # pairbeta4Num example
 ###########################################################
@@ -294,6 +297,11 @@ ChildMatched <- pairbeta4Num(Parents2, smlid = "ID", smlage = "Age", Children2, 
 MatchedPairs2 <- ChildMatched$Matched
 UnmatchedChildren2 <- ChildMatched$Smaller
 UnmatchedAdults2 <- ChildMatched$Larger
+
+
+
+
+
 
 
 
@@ -377,11 +385,16 @@ UnmatchedAdults2 <- ChildMatched2$Adults
 
 
 
+
+
 ###########################################################
 ###########################################################
 # adding children examples finished
 ###########################################################
 ###########################################################
+
+
+
 
 
 ###########################################################
@@ -395,57 +408,6 @@ EmployedPeople <- pairemp(EmployerSet, empid = "CompanyName", empcount = "Employ
                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA", userseed = 4)
 
 
-
-
-
-
-
-# go to SettingUpPopulateR for graphs
-
-# NOT USED
-# set.seed(1)
-# ShorterParents <- Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 200)
-#
-# ChildWithNonMatches<- childno(Children, chlidcol = 3, chlagecol = 4, ShorterParents, paridcol = 3, paragecol = 4,
-#                    directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                    maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-#
-# LookAtLast <- ChildWithNonMatches$Matched
-# LookAtFirst <- ChildAllMatched$Matched
-#
-# # get larger samples
-# set.seed(1)
-# ChildrenBigger <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20) %>%
-#   slice_sample(n = 1000)
-#
-# LargerParents <-  Township %>%
-#   filter(Relationship == "Partnered", Age > 18) %>%
-#   slice_sample(n = 1000)
-#
-# MoreMatches <- childno(ChildrenBigger, chlidcol = 3, chlagecol = 4, LargerParents, paridcol = 3, paragecol = 4,
-#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-#
-# # get everyone
-# ChildrenAll <- Township %>%
-#   filter(Relationship == "NonPartnered", Age < 20)
-#
-# ParentsAll <-  Township %>%
-#   filter(Relationship == "Partnered", Age > 18)
-#
-# MatchesAll <- childno(ChildrenAll, chlidcol = 3, chlagecol = 4, ParentsAll, paridcol = 3, paragecol = 4,
-#                        directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-#                        maxparage = 54, hhidstart = 100, hhidvar = "HouseholdID", userseed = 4)
-# rm(ShorterParents, ChildWithNonMatches, LookAtLast, LookAtFirst, ChildrenBigger, LargerParents,
-# MoreMatches, ChildrenAll, ParentsAll, MatchesAll)
-
-# go to graphs in SettingUpPopulate.R
-
-
-rm(Parents, Children, ChildAllMatched, ShorterParents, ChildWithNonMatches)
 
 
 
@@ -502,6 +464,44 @@ Couples3 <- OppSexCouples3$Matched
 
 # go to the graphs in SettingUpPopulate.R
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################
+#############################################################
+# not working
+#############################################################
+#############################################################
 
 
 
@@ -665,9 +665,6 @@ FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4
                         stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
 
 
-# go to SettingUpPopulateR at this point to draw the graph for the fixed variables
-
-rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
@@ -688,77 +685,8 @@ rm(thegroups, GroupAges, RelProps, joinwith, thegroups, FinalRels)
 
 
 
-########################################################### ##
-
-########################################################### #
-# assign child, parent has household ID
-set.seed(1)
-Parents <- Township %>%
-  filter(Relationship == "Partnered", Age > 18) %>%
-  slice_sample(n = 500) %>%
-  mutate(HouseholdID = row_number()+500)
-
-Children <- Township %>%
-  filter(Relationship == "NonPartnered", Age < 20) %>%
-  slice_sample(n = 200)
 
 
-ChildMatchedID <- childyes(Children, chlidcol = 3, chlagecol = 4, Parents, paridcol = 3, paragecol = 4,
-                         directxi = 30, directomega = 3, alphaused = 1.2, minparage = 18,
-                         maxparage = 54, hhidcol = 6, userseed = 4)
-
-# go to SettingUpPopulateR for graphs
-
-
-rm(Parents, Children, OutputWithID, ParentKidDiffs, AgeDiffs)
-
-########################################################### ##
-
-########################################################### #
-# assign multiple children, no parental household
-
-library("dplyr")
-set.seed(1)
-Parents <- Township %>%
-  filter(Relationship == "Partnered", Age > 18) %>%
- slice_sample(n = 500) %>%
-  mutate(HouseholdID = row_number()+500)
-
-Children <- Township %>%
-  filter(Relationship == "NonPartnered", Age < 20) %>%
-  slice_sample(n = 400)
-
-# example with assigning two children to a parent
-# the same number of children is assigned to all parents
-# adding two children to each parent
-
-KidsMatched <- childrenyes(Children, chlidcol = 3, chlagecol = 4, numchild = 2, twinrate = .2,
-                           Parents, paridcol = 3, paragecol = 4, minparage = 18, maxparage = 54,
-                           hhidcol = 6, UserSeed = 4)
-
-
-
-rm(Parents, Children, ParentsAndKids)
-
-# with no household ID
-library("dplyr")
-set.seed(1)
-Parents <- Township %>%
-  filter(Relationship == "Partnered", Age > 18) %>%
-  slice_sample(n = 200)
-
-Children <- Township %>%
-  filter(Relationship == "NonPartnered", Age < 20) %>%
-  slice_sample(n = 400)
-
-# example with assigning two children to a parent
-# the same number of children is assigned to all parents
-# adding two children to each parent
-
-KidsMatched <- childrenno(Children, chlidcol = 3, chlagecol = 4, numchild = 2,
-                     twinrate = .2, Parents, paridcol = 3, paragecol = 4,
-                     minparage = 18, maxparage = 54, hhidstart = 501, hhidvar= "TheHousehold",
-                     UserSeed = 4)
 
 
 
@@ -786,23 +714,6 @@ SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8
 
 
 table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
-
-
-
-
-
-
-
-
-########################################################### ##
-# allocate employers to employees
-########################################################### #
-
-library("dplyr")
-
-EmployedPeople <- empadd(EmployerSet, empid = 3, empcount = 2, Township, wrkid = 3, hourscol = 5,
-                         hoursmin = 2, userseed = 4)
-
 
 
 
