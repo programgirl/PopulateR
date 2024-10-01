@@ -462,10 +462,23 @@ OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", Partn
 Couples3 <- OppSexCouples3$Matched
 
 
-# go to the graphs in SettingUpPopulate.R
 
 
 
+
+
+#############################################################
+# pairschool example
+#############################################################
+
+library(dplyr)
+
+SchoolsAdded <- pairschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode", pplst = "SchoolStatus",
+                           hhid = "HouseholdID", SchoolsToUse, schid = "School.ID", schage = "AgeInRoll",
+                           schroll = "RollCount", schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
+
+pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, schools, schid, schage, schroll, schtype,
+                       schmiss = 0, sameprob = 1, userseed=NULL)
 
 
 

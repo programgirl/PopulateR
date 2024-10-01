@@ -302,6 +302,9 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
       # igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personAge)
       igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personID)
 
+    cat("Household is ", CurrentHousehold, "\n")
+
+
     # max bipartite match
     maxbm <- na.omit(igraph::max_bipartite_match(theGraph)$matching)
 
@@ -482,6 +485,7 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
         mutate(remainingPeople = personCounts - 1) %>%
         filter(remainingPeople > -1)
 
+
       # need to split the allocation based on sameprob
 
       if(sameprob > 0 & sameprob < 1) {
@@ -505,7 +509,6 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
 
         probUsed <- 0
       }
-
 
       # cat("Probability used is", probUsed, "\n")
 
@@ -1031,9 +1034,16 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
           filter(remainingPeople > -1) %>%
           select(personID, schoolID, remainingPeople)
 
+        if(CurrentHousehold == 1163) {
+
+          return(schoolsubset)
+        }
+
         # add a unique school to each child ID
 
         matchedSchools <- kidsAdd(schoolsubset)
+
+
 
         # add the schools to the kids
 
