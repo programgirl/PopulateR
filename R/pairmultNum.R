@@ -44,8 +44,8 @@
 
 
 
-pairchildNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage, minparage = NULL,
-                       maxparage = NULL, HHNumVar = NULL, userseed=NULL, maxdiff=1000)
+pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage, minparage = NULL,
+                        maxparage = NULL, HHNumVar = NULL, userseed=NULL, maxdiff=1000)
 
 {
 
