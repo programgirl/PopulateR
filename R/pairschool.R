@@ -115,6 +115,26 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
 
   OriginalschoolsCounts <- schoolsRenamed
 
+  # test if there is a matching school ID to a person ID - may cause non-bipartite graphs
+  peopleIDOnly <- peopleRenamed %>%
+    select(personID) %>%
+    rename(ID = personID)
+
+  schoolsIDOnly <- schoolsRenamed %>%
+    select(schoolID) %>%
+    rename(ID = schoolID) %>%
+    distinct()
+
+  combinedIDs <- bind_rows(peopleIDOnly, schoolsIDOnly) %>%
+    group_by(ID) %>%
+    summarise(numID = n()) %>%
+    filter(numID > 1)
+
+
+  if(nrow(combinedIDs) > 1) {
+
+    stop("The same ID exists in both the people data frame and the schools data frame. IDs must be unique across both data frames.")
+  }
 
 
   #####################################################################
@@ -302,7 +322,7 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
       # igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personAge)
       igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personID)
 
-    cat("Household is ", CurrentHousehold, "\n")
+    # cat("Household is ", CurrentHousehold, "\n")
 
 
     # max bipartite match
@@ -1034,10 +1054,6 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
           filter(remainingPeople > -1) %>%
           select(personID, schoolID, remainingPeople)
 
-        if(CurrentHousehold == 1163) {
-
-          return(schoolsubset)
-        }
 
         # add a unique school to each child ID
 
