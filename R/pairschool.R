@@ -1097,19 +1097,13 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
           # closes else to if(exists("ChildSchoolMatches")) {
         }
 
-
-        # remainingAges <- remainingAges %>%
-        #   filter(!personID %in% InitialMatches$personID)
-
         remainingAges <- peopleInHousehold %>%
           filter(!personID %in% ChildSchoolMatches$personID)
 
-        if(CurrentHousehold == 524) {
-          return(remainingAges)
-        }
-
         if(nrow(remainingAges) > 0) {
 
+
+          cat("Current household is", CurrentHousehold, "\n")
           stop("There are children who should not be in the same school who must be in the same school")
         }
 
