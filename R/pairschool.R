@@ -1119,6 +1119,9 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
           finalKids <- left_join(finalMatches, peopleInHousehold, by = "personID") %>%
            select(-remainingPeople)
 
+          # add kids to output person data frame
+          ChildSchoolMatches <- bind_rows(ChildSchoolMatches, finalKids)
+
           # get counts of children by age within school
 
           summarySchoolCounts <- finalKids %>%
