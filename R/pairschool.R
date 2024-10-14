@@ -1127,13 +1127,14 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
             group_by(schoolID, personAge) %>%
             summarise(KidsPerAge = n())
 
-          return(summarySchoolCounts)
           # decrement the school(s) roll counts
 
-          schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
+          schoolsSelected <- left_join(summarySchoolCounts, schoolsRenamed, by = c("schoolID", "personAge")) %>%
             mutate(personCounts = personCounts - KidsPerAge,
                    personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
             select(-KidsPerAge)
+
+          return(schoolsSelected)
 
           schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
             select(schoolID, personAge, personCounts, schoolType, originalCounts)
