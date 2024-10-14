@@ -1143,8 +1143,6 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
 
           schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
-          return(schoolsRenamed)
-
         }
 
         # closes else to if(probUsed == 1) {
