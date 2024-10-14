@@ -1097,8 +1097,16 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
           # closes else to if(exists("ChildSchoolMatches")) {
         }
 
-        remainingAges <- remainingAges %>%
-          filter(!personID %in% InitialMatches$personID)
+
+        # remainingAges <- remainingAges %>%
+        #   filter(!personID %in% InitialMatches$personID)
+
+        remainingAges <- peopleInHousehold %>%
+          filter(!personID %in% ChildSchoolMatches$personID)
+
+        if(CurrentHousehold == 524) {
+          return(remainingAges)
+        }
 
         if(nrow(remainingAges) > 0) {
 
