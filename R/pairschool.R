@@ -1100,11 +1100,48 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
         remainingAges <- peopleInHousehold %>%
           filter(!personID %in% ChildSchoolMatches$personID)
 
+        # if there aren't enough different schools
         if(nrow(remainingAges) > 0) {
 
+          schoolsubset <- left_join(remainingAges, schoolsRenamed, by = "personAge",
+                                    relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
+            mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
+            filter(personCounts > 0,
+                   isMatch == "Y") %>%
+            mutate(remainingPeople = personCounts - 1) %>%
+            filter(remainingPeople > -1) %>%
+            select(personID, schoolID, remainingPeople)
 
-          cat("Current household is", CurrentHousehold, "\n")
-          stop("There are children who should not be in the same school who must be in the same school")
+          finalMatches <- schoolsubset %>%
+            group_by(personID) %>%
+            slice_max(remainingPeople, with_ties = FALSE)
+
+          finalKids <- left_join(finalMatches, peopleInHousehold, by = "personID") %>%
+           select(-remainingPeople)
+
+          # get counts of children by age within school
+
+          summarySchoolCounts <- finalKids %>%
+            ungroup() %>%
+            select(schoolID, personAge) %>%
+            group_by(schoolID, personAge) %>%
+            summarise(KidsPerAge = n())
+
+          return(summarySchoolCounts)
+          # decrement the school(s) roll counts
+
+          schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
+            mutate(personCounts = personCounts - KidsPerAge,
+                   personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
+            select(-KidsPerAge)
+
+          schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
+            select(schoolID, personAge, personCounts, schoolType, originalCounts)
+
+          schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
+
+          return(finalKids)
+
         }
 
         # closes else to if(probUsed == 1) {
