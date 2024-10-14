@@ -1134,14 +1134,13 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
                    personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
             select(-KidsPerAge)
 
-          return(schoolsSelected)
 
-          schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
+          schoolsNotSelected <- anti_join(schoolsRenamed, summarySchoolCounts, by = c("schoolID", "personAge")) %>%
             select(schoolID, personAge, personCounts, schoolType, originalCounts)
 
           schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
-          return(finalKids)
+          return(schoolsRenamed)
 
         }
 
