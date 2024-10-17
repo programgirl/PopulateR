@@ -1207,18 +1207,25 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
 
   schoolsRenamed <- schoolsRenamed %>%
     rename(spacesRemaining = personCounts) %>%
-    mutate(spacesUsed = originalCounts - spacesRemaining) %>%
     rename(!!schidcolName := schoolID,
            !!schagecolName := personAge,
            !!schrollcolName := originalCounts,
            !!schtypecolName := schoolType)
 
+  usedSpots <- ChildSchoolMatches %>%
+    group_by(schoolID, personAge) %>%
+    summarise(spacesUsed = n()) %>%
+    rename(!!schidcolName := schoolID,
+           !!schagecolName := personAge)
+
   schoolsOutput <- suppressMessages(left_join(schools, schoolsRenamed))
+
+  schoolsOutput <- left_join(schoolsOutput,usedSpots) %>%
+    mutate(spacesUsed = ifelse(is.na(spacesUsed), 0, spacesUsed))
 
   cat("The dataframes are $Population and $Schools", "\n")
   cat("$Population contains everyone in the people data frame, with school IDs added", "\n")
   cat("$Schools contains updated count data for the schools", "\n")
-
 
   Output <- list()
   Output$Population <- allPeople
