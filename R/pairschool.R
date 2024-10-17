@@ -1202,7 +1202,8 @@ pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, 
            !!pplagecolName := personAge,
            !!pplsexcolName := personType,
            !!hhidcolName := HouseholdID,
-           !!statcolName := schStat)
+           !!statcolName := schStat,
+           !!schidcolName := schoolID)
 
   schoolsRenamed <- schoolsRenamed %>%
     rename(spacesRemaining = personCounts) %>%
