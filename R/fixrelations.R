@@ -1,8 +1,8 @@
 #' Provides an age structure to relationship status, when a relationship status has been previously defined using age groups rather than ages.
-#' Redistributes a user-defined relationship status value between ages, using age groups and other variables (if specified). Within the group definition provided, the marginal totals of the relationship status values are retained. 
+#' Redistributes a user-defined relationship status value between ages, using age groups and other variables (if specified). Within the group definition provided, the marginal totals of the relationship status values are retained.
 #' The data frame can include groups where all people have the same relationship status. In this situation, there is no need to restrict the data frame to only those whose relationship status must be redistributed.
 #' @export
-#' @param people A data frame containing individual people. 
+#' @param people A data frame containing individual people.
 #' @param pplid The variable containing the unique identifier for each person.
 #' @param pplage The variable containing the ages.
 #' @param pplstat The relationship status variable in the people data frame.
@@ -25,13 +25,13 @@
 #'                             hoursmax = 3, grpcol = 1, userseed = 4)
 
 
-relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
+fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
 
   options(dplyr.summarise.inform=F)
-  
+
   # print(names(people))
-  
-  
+
+
   #####################################
   # check for missing input information
   #####################################
@@ -40,15 +40,15 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
   if (!pplage %in% names(people)) {
     stop("The age variable in the people data frame does not exist.")
   }
-  
+
   if (!pplstat %in% names(people)) {
     stop("The relationship variable in the people data frame does not exist.")
   }
-  
+
   if (!propcol %in% names(props)) {
     stop("The proportions variable in the props data frame does not exist.")
-  } 
-  
+  }
+
   if (!(all((grpdef) %in% names(people)))) {
     stop("All names in grpdef must exist in the people data frame.")
   }
@@ -56,10 +56,10 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
   if (!(all((matchdef) %in% names(people))) | !(all((matchdef) %in% names(props)))) {
     stop("All names in matchdef must exist in the people and props data frames.")
   }
-  
+
 
   # need to do the name change here
-  
+
   peopleRenamed <- people %>%
     rename(StatusID = !! pplstat,
            PersonID = !! pplid)
@@ -70,48 +70,49 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
     unique()
 
   # get column names as symbols to use inside data frame subfunctions
-  
+
   AgeColName <- sym(names(people[pplage]))
-  
+
   IDColName <- sym(names(people[pplid]))
 
   StatuscolName <- sym(names(people[pplstat]))
-  
+
   PropscolName <- sym(names(props[propcol]))
-  
+
   if (is.factor(people[[pplstat]]) == TRUE) {
-    
+
     RelationshipLevels <- levels(people[[pplstat]])
     NeededRelLevel <- labels(people[[pplstat]])[match(stfixval, levels(people[[pplstat]]))]
 
    # cat("Relationship levels are", RelationshipLevels, ", and the extracted relationship level is ", NeededRelLevel, "\n")
    # cat("The information about the input dataframe is",  "\n")
-   # 
+   #
    # str(people)
-  
+
   }
 
-  
-  
+
+
   # print(class(stfixval))
-  
+
   if (!is.null(userseed)) {
     set.seed(userseed)
   }
 
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
-    
+
+    # cat("i is", i, "\n")
 
     # delete previous versions of these data frames
     if(exists("UnderSample")) {
       rm(UnderSample)
     }
-    
+
     if(exists("OverSample")) {
       rm(OverSample)
       }
-    
+
     # fix for one grouping variable
     # see https://stackoverflow.com/a/69116009/1030648
     CurrentDef = PeopleUnique[i, , drop=FALSE]
@@ -119,9 +120,9 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
     suppressMessages(CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef)))
     # cat("Group is", "\n")
     # print(CurrentDef)
-
+    #
     # cat("Number of people in the group is", nrow(CurrentGroup), "\n")
-    
+
     # get everyone in the group
     TotalGroup <- CurrentGroup
 
@@ -129,19 +130,19 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
     NumInEachStatus <- CurrentGroup %>%
       group_by(StatusID) %>%
       summarise(NumPerLevel = n())
-    
+
     # cat("The number of people in each relationship status is ", "\n")
     # print(NumInEachStatus)
-    
-    
+
+
     #need to skip the bit below if there is ONLY the partnered status OR there is no partnered status
     if(nrow(NumInEachStatus) == 1 | !(stfixval %in% NumInEachStatus$StatusID)) {
-      
-      # cat("Group with only one status is", "\n")
-      # print(CurrentDef)
-      
+
+      cat("Group with only one status is", "\n")
+      print(CurrentDef)
+
       NumToFix <- 0
-      
+
     } else {
 
    # extract the number of people in the status that needs fixing
@@ -151,33 +152,33 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
     }
 
     if(length(NumToFix) == 0 & is.integer(NumToFix)) {
-      
+
       NumToFix <- 0
     }
-    
-     # cat("Number of rows in current group is", nrow(CurrentGroup), "and Num in category is", NumToFix, "\n")
-    
 
-    
+     # cat("Number of rows in current group is", nrow(CurrentGroup), "and Num in category is", NumToFix, "\n")
+
+
+
     # skip over the groups when the number in the status is the same as the number in the group
     # there is no-one to swap
 
     if(NumToFix > 0) {
-      
-      # cat("The number of rows in the current group is ", nrow(CurrentGroup), "and the number to fix is ", NumToFix, "\n")
 
+      # cat("The number of rows in the current group is ", nrow(CurrentGroup), "and the number to fix is ", NumToFix, "\n")
+      #
       # cat("The num to fix is ", NumToFix, "\n")
-      
-      
+
+
     # get the people that are in this subgroup
 
     MatchingValues <- CurrentGroup %>%
       select(all_of(matchdef)) %>%
       unique()
-    
+
     suppressMessages(RelevantProps <- left_join(MatchingValues, props, by = c(matchdef)) %>%
       replace(is.na(.), 0))
-    
+
     # cat("The information about RelevantProps is", "\n")
     # str(RelevantProps)
 
@@ -186,27 +187,27 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
       # group_by(!!AgeColName, StatusID) %>%
       # filter(StatusID == stfixval) %>%
       summarise(TotalinStatus = n())
-    
+
     # cat("The first version of InitialCounts is", "\n")
     # str(InitialCounts)
-    
+
     StatOnlyCounts <- CurrentGroup %>%
       group_by(!!AgeColName, StatusID) %>%
       filter(StatusID == stfixval) %>%
       summarise(NuminDesStatus = n())
-    
+
     # cat("StatusID is", StatOnlyCounts$StatusID, "\n")
-    
+
     # cat("Initial counts construction below", "\n")
-    
+
     suppressMessages(InitialCounts <- left_join(InitialCounts, StatOnlyCounts))
-    
+
     # cat("After the left join, the InitialCounts is", "\n")
     # str(InitialCounts)
-    
+
          # cat("Initial counts constructed", "\n")
 
-    
+
   #  if(is.factor(expr(`$`(InitialCounts, !!StatuscolName))) == TRUE) {
     if (is.factor(people[[pplstat]]) == TRUE) {
 
@@ -233,7 +234,7 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
                NuminDesStatus = ifelse(is.na(NuminDesStatus), 0, NuminDesStatus)))
 
     }
-    
+
 
        # cat("Join RelevantProps and InitialCounts complete", "\n")
 
@@ -241,115 +242,115 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
     CalculatedCounts <- sum(CountComp$ExpectedCount)
 
     if(is.na(CalculatedCounts)) {
-      
-      cat("Group is", "\n")
-      print(CurrentDef)
-      
+
+      # cat("Group is", "\n")
+      # print(CurrentDef)
+
       stop("Current group contains missing values", "\n")
     }
+#
+#     cat("Actual counts are", ActualCounts, "and the calculated counts are", CalculatedCounts, "\n")
+#
+#     cat("Calculated counts must be multiplied by ", ActualCounts/CalculatedCounts, "\n")
 
-    # cat("Actual counts are", ActualCounts, "and the calculated counts are", CalculatedCounts, "\n")
-    # 
-    # cat("Calculated counts must be multiplied by ", ActualCounts/CalculatedCounts, "\n")
-    
     TheMultiplier <- ActualCounts/CalculatedCounts
-    
+
     suppressMessages(CountComp <- CountComp %>%
       mutate(OldExpected = round(TotalinStatus * !!PropscolName, 0),
              ExpectedCount = floor(TotalinStatus * !!PropscolName * TheMultiplier),
              Remainder = (TotalinStatus * !!PropscolName * TheMultiplier) %% 1))
-    
+
     CountsDiff <- sum(CountComp$NuminDesStatus) - sum(CountComp$ExpectedCount)
-    
+
     # using this method to ensure that the counts line up
    #  https://stackoverflow.com/a/3956184/1030648
-    
+
     CountComp <- CountComp %>%
       arrange(desc(Remainder))
-    
+
 
 
     # add 1 to the counts for n == CountsDiff
     # note that this could, theoretically, create an expected count > available people that age
     # need to test
-    
+
     for(l in 1:nrow(CountComp)) {
-      
+
       if(CountsDiff > 0) {
-      
+
       if(CountComp$TotalinStatus[l] >= CountComp$ExpectedCount[l]+ 1) {
-        
+
         CountComp$ExpectedCount[l] <- CountComp$ExpectedCount[l] + 1
       }
-        
+
         CountsDiff <- CountsDiff - 1
-        
+
         # closes if(CountsDiff > 0)
       }
-      
-      # closes for(l in 1:nrow(CountComp))
-    } 
 
-    
+      # closes for(l in 1:nrow(CountComp))
+    }
+
+
 
     # TODO need to create a fix if there are not enough values to increase by 1?
     # not sure that this can occur
 
     # problem is there are no people in the group, so skip over these
-    
+
     if(ActualCounts > 0) {
 
     ###########################
-   
+
     CountComp <- CountComp %>%
-      mutate(DiffsNeeded = ExpectedCount - NuminDesStatus) 
-    
+      mutate(DiffsNeeded = ExpectedCount - NuminDesStatus)
+
     ##########################################################################
     # ONLY HERE TO PRODUCE TABLE FOR DISSERTATION
     # LEAVE COMMENTED OUT
     # return(CountComp)
     ##########################################################################
-    
-    
+
+
 
     UndersCount <- CountComp %>%
       filter(DiffsNeeded < 0) %>%
       summarise(Rows = n()) %>%
       pull(Rows)
-    
+
     OversCount <- CountComp %>%
       filter(DiffsNeeded > 0) %>%
       summarise(Rows = n()) %>%
-      pull(Rows) 
+      pull(Rows)
 
-    
+
     # these are the number of ages for each type of mis-count
     # cat("Unders is", UndersCount, "and overs is", OversCount, "\n")
-    # 
- 
-    CheckNoZeros <- sum(abs(CountComp$DiffsNeeded)) 
+    #
 
-    
+    CheckNoZeros <- sum(abs(CountComp$DiffsNeeded))
+
+
     # skip process if there are no differences between desired and actual counts
     # in all ages
-    # OR there are no records to sub for the problem ones 
+    # OR there are no records to sub for the problem ones
 
     if(CheckNoZeros > 0 & !(UndersCount == 0) & !(OversCount == 0)) {
 
     CountUnders <- CountComp %>%
       filter(DiffsNeeded < 0)
-    
+
     # cat("CountComp is", "\n")
     # str(CountComp)
 
     # get the people to swap
-    
+
     for(j in 1:nrow(CountUnders)) {
-      
+
       CurrentTooMany <- CountUnders[j,]
-      
+
       # cat("Current too many is", CurrentTooMany$DiffsNeeded, "\n")
-      # 
+      #
       # str("CurrentGroup is", "\n")
       # str(CurrentGroup)
 
@@ -361,23 +362,23 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
       )
 
       if(nrow(CurrentSample) > 0) {
-        
+
         # cat("The number of CurrentSample rows is", nrow(CurrentSample), "\n")
         # cat("The number of people needed for undercounts is", abs(CurrentTooMany$DiffsNeeded), "\n")
-        
+
         if(nrow(CurrentSample) < abs(CurrentTooMany$DiffsNeeded)) {
           CurrentSample <- CurrentSample
-          
+
         } else {
-        
+
         CurrentSample <- CurrentSample %>%
           slice_sample(n = abs(CurrentTooMany$DiffsNeeded), replace = FALSE)
-        
+
         # closes else for if(nrow(CurrentSample) < abs(CurrentTooMany$DiffsNeeded)) {
         }
-        
+
       }
-     
+
 
       if(exists("UnderSample")) {
         UnderSample <- bind_rows(UnderSample, CurrentSample)
@@ -385,29 +386,29 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
       } else {
         UnderSample <- CurrentSample
       }
-      
+
       # delete the already sampled people
       CurrentGroup <- CurrentGroup %>%
         filter(!(PersonID %in% c(UnderSample$PersonID)))
-      
-      
+
+
     # closes  for(j in 1:nrow(CountUnders))
     }
-    
+
     # cat("After undersample, current group size is", nrow(CurrentGroup), "and undersample is", nrow(UnderSample), "\n")
-    
+
 
 
     CountOvers <- CountComp %>%
       filter(DiffsNeeded  > 0)
 
-    
+
     for(k in 1:nrow(CountOvers)) {
-      
+
       CurrentTooFew <- CountOvers[k,]
-      
+
       # cat("Current too few is", CurrentTooFew$DiffsNeeded, "\n")
-      
+
       suppressMessages(CurrentSample <- left_join(CurrentTooFew, CurrentGroup, by = c(matchdef)) %>%
         filter(!StatusID.y == !!quo_name(stfixval)) %>%
         mutate(StatusID = StatusID.y) %>%
@@ -418,28 +419,28 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
 
       # only sample from dataframes that have observations
       if(nrow(CurrentSample) > 0) {
-        
+
         # cat("The number of people needed for overcounts is", abs(CurrentTooMany$DiffsNeeded), "\n")
-        
+
         # sample if the number needed is less than the number of observations
         if(abs(CurrentTooFew$DiffsNeeded) < nrow(CurrentSample)) {
-          
+
           CurrentSample <- CurrentSample %>%
             slice_sample(n = abs(CurrentTooFew$DiffsNeeded), replace = FALSE)
-          
+
         } else {
-          
+
           # if the number needed equals the number of observations in the data frame or is more
           CurrentSample <- CurrentSample
-          
+
           # closes if(abs(CurrentTooFew$DiffsNeeded) < nrow(CurrentSample)) {
         }
 
         # closes if(nrow(CurrentSample) > 0) {
       }
-      
+
       # cat("Before oversample, current group size is", nrow(CurrentGroup), "\n")
-      
+
 
       if(exists("OverSample")) {
         OverSample <- bind_rows(OverSample, CurrentSample)
@@ -447,21 +448,21 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
 
       } else {
         OverSample <- CurrentSample
-        
+
       }
-      
+
       # delete the already sampled people
       CurrentGroup <- CurrentGroup %>%
         filter(!(PersonID %in% c(OverSample$PersonID)))
-      
+
       # cat("Oversample is ", nrow(OverSample), "\n")
-     
-      
+
+
       # closes  for(k in 1:nrow(CountOvers))
     }
-    
+
     # cat("After oversample, current group size is", nrow(CurrentGroup), "and oversample is", nrow(OverSample), "\n")
-    
+
     ##################################################
     # unders and overs may not be the same,
     # force them to be the same length - make the larger one the length of the smaller one if so
@@ -479,9 +480,9 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
       OverSample <- OverSample %>%
         slice_sample(n = nrow(UnderSample), replace = FALSE)
     }
-    
+
     # cat("Final undersample size is", nrow(UnderSample), "and final oversample size is", nrow(OverSample), "\n")
-  
+
     # now swapping the ages
     # only need to link age to ID, will wash out in the original data
     # should just be a straight join and then swap
@@ -489,175 +490,175 @@ relfix <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grp
 
     UnderSample <- UnderSample %>%
       slice_sample(n = nrow(UnderSample), replace = FALSE)
-    
+
     # cat("Undercount is", (nrow(UnderSample)), "\n")
-    
+
     OverSample <- OverSample %>%
       slice_sample(n = nrow(OverSample), replace = FALSE)
-    
+
     # cat("Overcount is", nrow(OverSample), "\n")
 
     # literally swap the ages in UnderDF and OverDF by row
 
     UnderSampleAges <- UnderSample %>%
-      select(!!AgeColName) 
-    
+      select(!!AgeColName)
+
     OverSampleFixed <- OverSample %>%
       select(-!!AgeColName) %>%
       bind_cols(UnderSampleAges)
 
     OverSampleAges <- OverSample %>%
-      select(!!AgeColName) 
-    
+      select(!!AgeColName)
+
     UnderSampleFixed <- UnderSample %>%
       select(-!!AgeColName) %>%
       bind_cols(OverSampleAges)
-    
+
 
     Fixed <- bind_rows(OverSampleFixed, UnderSampleFixed) %>%
       select(-(c(NuminDesStatus, ExpectedCount, DiffsNeeded))) %>%
       rename_all(list(~gsub("\\.x$", "", .)))
-    
+
 
   # add them to the others that haven't been amended
-    
+
     UnAmended <- CurrentGroup %>%
       filter(!(PersonID %in% c(Fixed$PersonID)))
 
 
     # cat("The number fixed is", nrow(Fixed), "and the number unamended is", nrow(UnAmended), "\n")
-    
+
     # this needs to be a file that takes all the groups
-    
+
     if(exists("GroupFixed")) {
 
       GroupFixed <- bind_rows(GroupFixed, UnAmended, Fixed)
-      
-     
+
+
     } else {
 
       GroupFixed <- bind_rows(UnAmended, Fixed)
-      
-      
+
+
     # closes  if(exists("GroupFixed"))
     }
-    
+
     # closes if(CheckNoZeros > 0 & !(UndersCount == 0) & !(OversCount == 0))
     } else {
-      
+
       if(exists("GroupFixed")) {
-        
+
         GroupFixed <- bind_rows(GroupFixed, CurrentGroup)
-        
+
       } else {
-        
+
         GroupFixed <- CurrentGroup
-        
- 
+
+
         # closes  if(exists("GroupFixed"))
       }
-      
+
       # closes else to  if(CheckNoZeros > 0 & !(UndersCount == 0) & !(OversCount == 0))
     }
-    
+
     # closes if(ActualCounts > 0)
     }
-    
+
     # closes if(nrow(CurrentGroup) > NumToFix)
 
     } else {
-      
+
       if(exists("GroupFixed")) {
 
         GroupFixed <- bind_rows(GroupFixed, CurrentGroup)
-        
-  
+
+
       } else {
 
         GroupFixed <- CurrentGroup
-        
+
        # closes  if(exists("GroupFixed"))
       }
-      
+
       # closes if(nrow(CurrentGroup) > NumToFix)
     }
-    
+
     # cat("Size of output group is", nrow(GroupFixed), "\n")
-    
+
         # closes for(i in 1:nrow(PeopleUnique))
-  } 
-  
+  }
+
   # people are omitted if the overcount sample and the undercount sample don't have the same number of people
   # and so the larger sample must, itself, be sampled
   # add all these people back in
-  
+
   MissingPeople <- peopleRenamed %>%
     filter((!(PersonID %in% c(GroupFixed$PersonID))))
-  
+
   FinalDF <- bind_rows(GroupFixed, MissingPeople) %>%
     arrange(PersonID)
-  
+
 
   # fix the col names and remove the extra rows
-  
+
   # cat("Now outputting the data frame", "\n")
-  
-  # cat("The relationship variable name is", sym(names(people[pplstat])), "\n" )
-  
+
+  cat("The relationship variable name is", sym(names(people[pplstat])), "\n" )
+
   # NOTE: outputs correct relationship variable name in the input data frame
 
     if (is.factor(people[[pplstat]]) == TRUE) {
-    
-    # cat("Factor loop entered", "\n")
-    
+
+    cat("Factor loop entered", "\n")
+
 
     OutputDataFrame <- FinalDF %>%
-      select(-c(TotalinStatus, {{PropscolName}}, {{StatuscolName}}, OldExpected, Remainder, 
+      select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
                 contains(c(".y", ".x")))) %>%
       rename(!!quo_name(pplstat) := StatusID,
              !!quo_name(pplid) := PersonID)
 
-    
+
 
   for(m in 1:length(grpdef)) {
-    
-    # cat("The vector index is", m, "and the string is", grpdef[m], "\n")
-    # 
-    # print(is.factor(people[,grpdef[m]]))
-    
+
+    cat("The vector index is", m, "and the string is", grpdef[m], "\n")
+
+    print(is.factor(people[,grpdef[m]]))
+
     if(is.factor(people[,grpdef[m]]) == TRUE) {
-      
-      # cat("This is a factor", "\n")
-      # 
-      # FactorName <- grpdef[m]
-      # cat("The factor name is", FactorName, "\n")
-      # 
-      # LevelsToUse <- levels(people[,grpdef[m]])
-      # 
-      # cat("The levels are", "\n")
-      # 
-      # print(LevelsToUse)
-      
+
+      cat("This is a factor", "\n")
+
+      FactorName <- grpdef[m]
+      cat("The factor name is", FactorName, "\n")
+
+      LevelsToUse <- levels(people[,grpdef[m]])
+
+      cat("The levels are", "\n")
+
+      print(LevelsToUse)
+
       OutputDataFrame[,grpdef[m]] <- factor(OutputDataFrame[,grpdef[m]], levels = c(levels(people[,grpdef[m]])))
 
     }
-    
-    # close for(m in 1:length(grpdef)) {
-  } 
 
-    #close factor test 
+    # close for(m in 1:length(grpdef)) {
+  }
+
+    #close factor test
     } else {
-    
+
   OutputDataFrame <- FinalDF %>%
-    select(-c(TotalinStatus, {{PropscolName}}, {{StatuscolName}}, OldExpected, Remainder, 
+    select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
               contains(c(".y", ".x")))) %>%
     rename(!!quo_name(pplstat) := StatusID,
            !!quo_name(pplid) := PersonID)
-  
+
   # closes else to factor test
    }
 
   return(OutputDataFrame)
-  
+
   #closes function
 }
