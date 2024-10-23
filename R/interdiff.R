@@ -20,8 +20,12 @@
 #' @return A data frame containing the fitted values, by age within group.
 #'
 #' @examples
-#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
-#'                             hoursmax = 3, grpcol = 1)
+#'
+#' # create the expected proportion of people in relationships, by age within sex
+#' library("dplyr")
+#' thegroups <- as.vector("Sex")
+#' RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
+#'                       endmax = "MaxAge", grpdef = thegroups)
 
 
 interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {

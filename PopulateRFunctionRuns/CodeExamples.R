@@ -148,8 +148,49 @@ table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
 
 
 ###########################################################
+# fixrelations
+###########################################################
+
+# 1st function:
+
+thegroups <- as.vector("Sex")
+GroupAges <- data.frame(Sex = c("Female", "Male"), GrpMinAge = c(20,20), GrpMaxAge = c(90,90))
+RelProps <- interdiff(GroupInfo, 5, 4, GroupAges, 2, 3, thegroups)
+
+# 2nd function
+
+joinwith <- c("Age", "Sex")
+thegroups <- c("Sex", "AgeBand")
+
+FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4, pplstatcol = 2,
+                        stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
+
+
+
+
+
+
+
+
+###########################################################
+# interdiff
+###########################################################
+
+library("dplyr")
+
+thegroups <- as.vector("Sex")
+RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
+                      endmax = "MaxAge", grpdef = thegroups)
+
+
+
+
+
+
+###########################################################
 # other example
 ###########################################################
+
 library("dplyr")
 
 # creating three-person households
@@ -158,6 +199,10 @@ NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdu
 
 PeopleInHouseholds <- NewHouseholds$Matched
 PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
+
+
+
+
 
 
 
@@ -347,6 +392,11 @@ UnmatchedAdults2 <- ChildMatched2$Adults
 
 
 
+
+
+
+
+
 ###########################################################
 # pairmultNum example
 ###########################################################
@@ -412,6 +462,11 @@ EmployedPeople <- pairemp(EmployerSet, empid = "CompanyName", empcount = "Employ
 
 
 
+
+
+
+
+
 #############################################################
 # pairnorm
 #############################################################
@@ -467,6 +522,11 @@ Couples3 <- OppSexCouples3$Matched
 
 
 
+
+
+
+
+
 #############################################################
 # pairschool example
 #############################################################
@@ -474,22 +534,16 @@ Couples3 <- OppSexCouples3$Matched
 library(dplyr)
 
 SchoolsAdded <- pairschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode", pplst = "SchoolStatus",
-                           hhid = "HouseholdID", SchoolsToUse, schid = "School.ID", schage = "AgeInRoll",
+                           hhid = "HouseholdID", SchoolsToUse, schid = "School.Name", schage = "AgeInRoll",
                            schroll = "RollCount", schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
 
+Population <- SchoolsAdded$Population
+Schools <- SchoolsAdded$Schools
 
+KidsInSchool <- Population %>%
+  filter(SchoolStatus == "Y")
 
-
-
-
-
-
-
-
-
-
-
-
+table(KidsInSchool$School.Name)
 
 
 
@@ -658,23 +712,7 @@ Couples1 <- OppSexCouples1$Matched
 
 
 
-###########################################################
-# 2 functions to fix the proportion of partnered people
-###########################################################
 
-# 1st function:
-
-thegroups <- as.vector("Sex")
-GroupAges <- data.frame(Sex = c("Female", "Male"), GrpMinAge = c(20,20), GrpMaxAge = c(90,90))
-RelProps <- interdiff(GroupInfo, 5, 4, GroupAges, 2, 3, thegroups)
-
-# 2nd function
-
-joinwith <- c("Age", "Sex")
-thegroups <- c("Sex", "AgeBand")
-
-FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4, pplstatcol = 2,
-                        stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
 
 
 
