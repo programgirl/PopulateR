@@ -16,13 +16,25 @@
 #' @return A data frame of observations, with one relationship status redistributed so that an age, rather than age group, structure is created.
 #'
 #' @examples
-#' # no grouping variable
-#' AdolescentWork <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5, hoursmax = 3, userseed = 4)
+#' library("dplyr")
+#' thegroups <- as.vector("Sex")
+#' RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
+#'                       endmax = "MaxAge", grpdef = thegroups)
+#' # add in the age groups
+#' RelProps <- RelProps %>%
+#'   mutate(AgeBand = ifelse(between(Age, 20, 29), "20-29 Years",
+#'                           ifelse(between(Age, 30, 39), "30-39 Years",
+#'                                  ifelse(between(Age, 40, 49), "40-49 Years",
+#'                                         ifelse(between(Age, 50, 59), "50-59 Years",
+#'                                                ifelse(between(Age, 60, 69), "60-69 Years",
+#'                                                       ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
 #'
-#' # grouping variable
-#' # when a group is used
-#' AdolescentWork2 <- hoursfix(WorkingAdolescents, adlidcol = 3, statuscol = 6, hourscol = 5,
-#'                             hoursmax = 3, grpcol = 1, userseed = 4)
+#' # perform separately by sex
+#' joinwith <- c("Age", "Sex")
+#' thegroups <- c("Sex", "AgeBand")
+#' FinalRels <- fixrelations(BadRels, pplid = "ID", pplage = "Age", pplstat = "Relationship",
+#'                           stfixval = "Partnered", props = RelProps, propcol = "Fits", grpdef = thegroups,
+#'                           matchdef = joinwith, userseed = 4)
 
 
 fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
@@ -179,6 +191,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     suppressMessages(RelevantProps <- left_join(MatchingValues, props, by = c(matchdef)) %>%
       replace(is.na(.), 0))
 
+
     # cat("The information about RelevantProps is", "\n")
     # str(RelevantProps)
 
@@ -269,7 +282,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       arrange(desc(Remainder))
 
 
-
     # add 1 to the counts for n == CountsDiff
     # note that this could, theoretically, create an expected count > available people that age
     # need to test
@@ -324,6 +336,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       pull(Rows)
 
 
+
     # these are the number of ages for each type of mis-count
     # cat("Unders is", UndersCount, "and overs is", OversCount, "\n")
     #
@@ -348,6 +361,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     for(j in 1:nrow(CountUnders)) {
 
       CurrentTooMany <- CountUnders[j,]
+
+
 
       # cat("Current too many is", CurrentTooMany$DiffsNeeded, "\n")
       #
@@ -491,6 +506,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     UnderSample <- UnderSample %>%
       slice_sample(n = nrow(UnderSample), replace = FALSE)
 
+
     # cat("Undercount is", (nrow(UnderSample)), "\n")
 
     OverSample <- OverSample %>%
@@ -517,7 +533,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
     Fixed <- bind_rows(OverSampleFixed, UnderSampleFixed) %>%
       select(-(c(NuminDesStatus, ExpectedCount, DiffsNeeded))) %>%
-      rename_all(list(~gsub("\\.x$", "", .)))
+      rename_all(list(~gsub("\\.y$", "", .)))
 
 
   # add them to the others that haven't been amended
@@ -594,6 +610,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
   MissingPeople <- peopleRenamed %>%
     filter((!(PersonID %in% c(GroupFixed$PersonID))))
+
 
   FinalDF <- bind_rows(GroupFixed, MissingPeople) %>%
     arrange(PersonID)
