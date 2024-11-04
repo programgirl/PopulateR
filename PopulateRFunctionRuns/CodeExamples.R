@@ -151,19 +151,28 @@ table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
 # fixrelations
 ###########################################################
 
-# 1st function:
-
+# create the expected proportion of people in relationships, by age within sex
+library("dplyr")
 thegroups <- as.vector("Sex")
-GroupAges <- data.frame(Sex = c("Female", "Male"), GrpMinAge = c(20,20), GrpMaxAge = c(90,90))
-RelProps <- interdiff(GroupInfo, 5, 4, GroupAges, 2, 3, thegroups)
+RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
+                      endmax = "MaxAge", grpdef = thegroups)
+# add in the age groups
+RelProps <- RelProps %>%
+  mutate(AgeBand = ifelse(between(Age, 20, 29), "20-29 Years",
+                          ifelse(between(Age, 30, 39), "30-39 Years",
+                                 ifelse(between(Age, 40, 49), "40-49 Years",
+                                        ifelse(between(Age, 50, 59), "50-59 Years",
+                                               ifelse(between(Age, 60, 69), "60-69 Years",
+                                                      ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
 
-# 2nd function
+# use this to amend the proportion of people within relationships, by age within sex
 
 joinwith <- c("Age", "Sex")
 thegroups <- c("Sex", "AgeBand")
 
-FinalRels <- relstatfix(BadRels, grpdef = thegroups, pplidcol = 3, pplagecol = 4, pplstatcol = 2,
-                        stfixval = "Partnered", RelProps, matchdef = joinwith, fitscol = 2, userseed = 4)
+FinalRels <- fixrelations(BadRels, pplid = "ID", pplage = "Age", pplstat = "Relationship",
+                          stfixval = "Partnered", props = RelProps, propcol = "Fits", grpdef = thegroups,
+                          matchdef = joinwith, userseed = 4)
 
 
 

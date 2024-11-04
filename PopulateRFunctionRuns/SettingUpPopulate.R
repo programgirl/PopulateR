@@ -354,7 +354,7 @@ PropRelAgeR2 <- BadRels %>%
 
 OrigRels <- ggplot() +
   geom_segment(data = PropPart, aes(x = MinAge, y = RelProps, xend = MaxAge, yend = RelProps, colour = Sex,
-                                    ), size = 1) +
+                                    ), linewidth = 1) +
   geom_point(data = PropRelAgeR2, aes(x = Age, y = RelProps, colour = Sex)) +
   scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100), limits = c(0,100)) +
   scale_y_continuous(breaks = c(0, .2, .4, .6, .8, 1), limits = c(0,1)) +
