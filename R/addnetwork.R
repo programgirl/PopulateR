@@ -48,7 +48,7 @@
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
                    numiters=1000000, usematrix = "N") {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   if(!pplid %in% names(people)) {
     stop("The ID variable in the people data frame does not exist.")
