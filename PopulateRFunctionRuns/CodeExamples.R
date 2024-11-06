@@ -48,6 +48,28 @@ plot(NetworkSmallN)
 
 
 #############################################################
+# addschool example
+#############################################################
+
+library(dplyr)
+
+SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode", pplst = "SchoolStatus",
+                          hhid = "HouseholdID", SchoolsToUse, schid = "School.Name", schage = "AgeInRoll",
+                          schroll = "RollCount", schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
+
+Population <- SchoolsAdded$Population
+Schools <- SchoolsAdded$Schools
+
+KidsInSchool <- Population %>%
+  filter(SchoolStatus == "Y")
+
+table(KidsInSchool$School.Name)
+
+
+
+
+
+#############################################################
 # agedis example
 #############################################################
 
@@ -536,23 +558,6 @@ Couples3 <- OppSexCouples3$Matched
 
 
 
-#############################################################
-# pairschool example
-#############################################################
-
-library(dplyr)
-
-SchoolsAdded <- pairschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode", pplst = "SchoolStatus",
-                           hhid = "HouseholdID", SchoolsToUse, schid = "School.Name", schage = "AgeInRoll",
-                           schroll = "RollCount", schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
-
-Population <- SchoolsAdded$Population
-Schools <- SchoolsAdded$Schools
-
-KidsInSchool <- Population %>%
-  filter(SchoolStatus == "Y")
-
-table(KidsInSchool$School.Name)
 
 
 
