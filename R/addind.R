@@ -39,7 +39,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
 
 {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   #####################################
   # quick reasonableness checks
