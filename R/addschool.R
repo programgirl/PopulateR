@@ -37,8 +37,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
                        schmiss = 0, sameprob = 1, userseed=NULL)
 {
 
-  options(dplyr.summarise.inform=F)
-  options(warn=1)
+  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(warn=1)
 
   statcolName <- sym(names(people[pplst]))
   schidcolName <- sym(names(schools[schid]))
