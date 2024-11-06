@@ -80,9 +80,7 @@ DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", 
                           agevarname = "TheAge", userseed = 4)
 
 
-# Township is the file to use for the other functions
 
-rm(SingleAges)
 
 
 
@@ -383,6 +381,7 @@ UnmatchedAdults2 <- ChildMatched$Larger
 
 
 
+
 #############################################################
 # pairmult
 #############################################################
@@ -554,6 +553,28 @@ Couples3 <- OppSexCouples3$Matched
 
 
 
+########################################################### ##
+# add children to schools
+########################################################### #
+
+library("dplyr")
+
+SchoolsAdded <- schooladd(IntoSchools, indidcol = 3, indagecol = 4, indsxcol = 8, indstcol = 6, hhidcol = 7,
+                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+                          UserSeed = 4)
+
+# uses a character school ID
+SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
+                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
+                          UserSeed = 4)
+# # test with numeric school ID
+# SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
+#                           SchoolsToUse, schidcol = 1, schagecol = 4, schrollcol = 5, schtypecol = 3,
+#                           UserSeed = 4)
+
+
+table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
+
 
 
 
@@ -602,184 +623,7 @@ PartneredMalesSmall <- Township %>%
   slice_sample(n = nrow(PartneredFemales))
 
 OppSexCouples1 <- pairln(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-                           lrgage = "Age", lnmean = -0.693, lnsd = 1.386, HHStartNum = 1, HHNumVar = "HouseholdID",
-                           userseed = 4, ptostop=.01)
+                         lrgage = "Age", lnmean = -0.693, lnsd = 1.386, HHStartNum = 1, HHNumVar = "HouseholdID",
+                         userseed = 4, ptostop=.01)
 
 Couples1 <- OppSexCouples1$Matched
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-########################################################### ##
-# add children to schools
-########################################################### #
-
-library("dplyr")
-
-SchoolsAdded <- schooladd(IntoSchools, indidcol = 3, indagecol = 4, indsxcol = 8, indstcol = 6, hhidcol = 7,
-                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
-                          UserSeed = 4)
-
-# uses a character school ID
-SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
-                          SchoolsToUse, schidcol = 2, schagecol = 4, schrollcol = 5, schtypecol = 3,
-                          UserSeed = 4)
-# # test with numeric school ID
-# SchoolsAdded <- schooladd(IntoSchools, pplidcol = 3, pplagecol = 4, pplsxcol = 8, pplstcol = 6,  hhidcol = 7,
-#                           SchoolsToUse, schidcol = 1, schagecol = 4, schrollcol = 5, schtypecol = 3,
-#                           UserSeed = 4)
-
-
-table(SchoolsAdded$SchoolID, SchoolsAdded$Sex)
-
-
-
-
-
