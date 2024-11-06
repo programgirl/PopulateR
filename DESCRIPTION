@@ -21,5 +21,5 @@ Remotes: github::jmarshallnz/brainGraph
 License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1
 BugReports: https://github.com/programgirl/PopulateR/issues
