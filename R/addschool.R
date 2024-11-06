@@ -25,12 +25,15 @@
 #'
 #' @examples
 #' library(dplyr)
-#' SchoolsAdded <- schooladd(IntoSchools, pplid = 3, pplage = 4, pplsx = 8,
-#'                           pplst = 6,  hhid = 7, SchoolsToUse, schid = 2,
-#'                           schage = 4, schroll = 5, schtype = 3,
-#'                           userseed = 4)
+#' # children in the same household will be added to the same school, if possible with a .8 probability
+#' SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode", pplst = "SchoolStatus",
+#'                           hhid = "HouseholdID", SchoolsToUse, schid = "School.Name", schage = "AgeInRoll",
+#'                           schroll = "RollCount", schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
+#'
+#' Population <- SchoolsAdded$Population
+#' Schools <- SchoolsAdded$Schools
 
-pairschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, schools, schid, schage, schroll, schtype,
+addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, schools, schid, schage, schroll, schtype,
                        schmiss = 0, sameprob = 1, userseed=NULL)
 {
 
