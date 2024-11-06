@@ -32,7 +32,7 @@
 
 fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, userseed = NULL) {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   #####################################
   # check for missing input information

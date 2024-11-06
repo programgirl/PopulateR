@@ -54,7 +54,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
 {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   # check if the maximum difference between the child ages fits with the number of children
   if(maxdiff < (0.5*numchild)) {

@@ -30,7 +30,7 @@
 
 interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   # print(names(people))
 

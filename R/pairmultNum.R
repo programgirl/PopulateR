@@ -59,7 +59,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
 {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   # content check
   # child dataframe

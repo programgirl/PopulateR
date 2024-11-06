@@ -39,7 +39,7 @@
 
 fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   # print(names(people))
 

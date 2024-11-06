@@ -37,7 +37,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
                      numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000)
 {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
   # content check
   if (is.null(numadd)) {
