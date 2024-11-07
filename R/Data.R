@@ -17,11 +17,15 @@
 #'
 #' A dataset produced from tablecode 7602, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A data frame of 183 rows and 3 variables
+#' @format A data frame of 183 rows and 7 variables
 #' \describe{
 #'     \item{ANZSIC06}{The code and associated name for each industry}
 #'     \item{BusinessCount}{The random-rounded count of employers in the industry}
 #'     \item{EmployeeCount}{The random-rounded count of employees in the industry}
+#'     \item{nimCo}{The minimum number of employers in the industry}
+#'     \item(maxCo){The maximum number of employers in the industry}
+#'     \item{minStaff}{The minimum number of people employed in the industry}
+#'     \item{maxStaff}{The maximum number of people employed in the industry}
 #'}
 #'"AllEmployers"
 #'
