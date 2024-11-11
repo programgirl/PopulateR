@@ -99,8 +99,8 @@ ChildAgeGroupsExpanded <- ChildAgeGroups %>%
 Relationships <- bind_rows(Relationships, ChildAgeGroupsExpanded)
 
 # add unique ID
-InitialDataframe <- Relationships %>%
-  arrange(LowerAge, Sex)
+InitialDataframe <- as.data.frame(Relationships %>%
+  arrange(LowerAge, Sex))
 
 InitialDataframe$ID <- row.names(InitialDataframe)
 
@@ -135,9 +135,9 @@ SingleAges <- data.frame(Ages %>%
                                                                                      as.numeric(sub("([0-9]+).*$", "\\1", Age.group))))))))))))))
 
 set.seed(2)
-DisaggregateAge <- agedis(InitialDataframe, indsxcol = 1, minagecol = 4,
-                          maxagecol = 5, SingleAges, pyrsxcol = 2, pyragecol = 4,
-                          pyrcountcol = 3, agevarname = "TheAge", userseed = 4)
+DisaggregateAge <- agedis(InitialDataframe, "Sex", "LowerAge", "UpperAge", SingleAges, "Sex", "Age", "Value",
+                          agevarname = "TheAge", userseed = 4)
+
 
 rm(Ages)
 
