@@ -51,7 +51,7 @@
 #' Synthetic employers and their employee counts
 #'
 #' @description
-#' A synthetic data frame of employers and their associated number of employees, randomly constructed using the "AllEmployers" data frame.
+#' Synthetic employers and their associated number of employees, randomly constructed using the "AllEmployers" data frame.
 #'
 #' @format A data frame of 225 rows and 3 variables
 #' \describe{
@@ -82,7 +82,7 @@
 
 #' People in age groups, in the Timaru District
 #'
-#' A dataset produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277 and 8395, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' Synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277 and 8395, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 46,293 rows and 6 variables
 #' \describe{
@@ -96,9 +96,9 @@
 #' "InitialDataframe"
 
 #'
-#' Four person households, one parent and three children, with school status recorded
+#' Four person households, with a school status for each person
 #'
-#' A dataset of households, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
+#' Four-person households, consisting of one parent and three children, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
 #'
 #' @format A data frame of 3,080 rows and 8 variables
 #' \describe{
@@ -109,11 +109,10 @@
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
 #'     \item{HouseholdID}{The household identifier for the person}
-#'     \item{SexCode}{Sex, limited to the first letter}
+#'     \item{SexCode}{Sex, (F)emale or (M)ale}
 #' }
 #' "IntoSchools"
-#'
-#'
+
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
 #' A dataset produced from the official statistics of school leavers produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
