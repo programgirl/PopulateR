@@ -115,9 +115,9 @@
 
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
-#' A dataset produced from the official statistics of school leavers produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
+#' School leavers in the Canterbury Region, counts by age and sex, for the period 2009 to 2018, sourced from the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A tibble with 120 rows and 4 variables
+#' @format A data frame with 120 rows and 4 variables
 #' \describe{
 #'     \item{YearLeft}{The year for the school leaver count}
 #'     \item{Sex}{The sex for the school leaver count}
@@ -125,7 +125,7 @@
 #'     \item{Total}{The count of adolescents who left school in that year, of that age and sex}
 #' }
 #' "LeftSchool"
-#'
+
 #'
 #' Distribution of network sizes
 #'
