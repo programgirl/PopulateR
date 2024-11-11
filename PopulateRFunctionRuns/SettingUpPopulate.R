@@ -880,7 +880,7 @@ rm(Adultsnotmatched, Kidsnotmatched, TheMatched, Inboth, TestIDSize, TestHHSize)
 #####################################
 # get a subsample of schools for adding schools for the kids
 
-Schools2018MOEData <- read.csv("~/Sync/PhD/PopSim/DataForPopsim/Student-rolls-by-School2018.csv", na.strings=".")
+Schools2018MOEData <- read.csv("~/Sync/PhD/PopulateR/DataForPopsim/Student-rolls-by-School2018.csv", na.strings=".")
 
 # delete irrelevant columns for function use
 InterimSchools <- Schools2018MOEData %>%
