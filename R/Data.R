@@ -82,6 +82,7 @@
 
 #' People in age groups, in the Timaru District
 #'
+#' @description
 #' Synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277 and 8395, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 46,293 rows and 6 variables
@@ -98,6 +99,7 @@
 #'
 #' Four person households, with a school status for each person
 #'
+#' @description
 #' Four-person households, consisting of one parent and three children, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
 #'
 #' @format A data frame of 3,080 rows and 8 variables
@@ -115,6 +117,7 @@
 
 #' School leavers in the Canterbury Region, 2009 to 2018
 #'
+#' @description
 #' School leavers in the Canterbury Region, counts by age and sex, for the period 2009 to 2018, sourced from the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 120 rows and 4 variables
@@ -127,16 +130,18 @@
 #' "LeftSchool"
 
 #'
-#' Distribution of network sizes
+#' The number of contacts for each person
 #'
-#' A matrix of 5,000 integers constricted using a Poisson distribution.
+#' @description
+#' A matrix of 5,000 integers constricted using a Poisson distribution. Each value is the number of contacts for a person.
 #'
 #' @format A list of 5,000 integers
+#' "NetworkMatrix
+
+#' Synthetic people living in the Timaru District
 #'
-#'
-#' Random selection of 5,000 synthetic people in the Timaru District from the 2018 census
-#'
-#' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence. A 50% sample of the Township data frame.
+#' @description
+#' 5000 synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460, ourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 5,000 rows and 5 variables
 #' \describe{
