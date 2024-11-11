@@ -369,7 +369,7 @@ OrigRels <- ggplot() +
 
 
 # create data frame for interdiff example
-GroupInfo <- PropPart
+GroupInfo <- as.data.frame(PropPart)
 GroupInfo$MidPoints <- c(rep(c(25.5, 35.5, 45.5, 55.5, 65.5, 75.5, 86),2))
 
 save(GroupInfo, file = "data/GroupInfo.RData")
