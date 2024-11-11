@@ -82,19 +82,19 @@
 
 #' People in age groups, in the Timaru District
 #'
-#' A dataset produced from combining aggregate 2018 census data, using tablecodes 8277 and 8395, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' A dataset produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277 and 8395, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' @format A tibble with 46,293 rows and 6 variables
+#' @format A data frame with 46,293 rows and 6 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
-#'     \item{Age.group}{Age group in five-year bands}
+#'     \item{Age.group}{Age group in five-year age bands}
 #'     \item{Relationship}{Relationship status of the person}
 #'     \item{LowerAge}{The youngest age in the Age.group}
 #'     \item{UpperAge}{The oldest age in the Age.group}
 #'     \item{ID}{The unique identifier for the person}
 #' }
 #' "InitialDataframe"
-#'
+
 #'
 #' Four person households, one parent and three children, with school status recorded
 #'
