@@ -156,7 +156,7 @@
 #' Sex/Age pyramid for the Canterbury Region
 #'
 #' @description
-#' The number of people, by age and sex, living in the Canterbury region, restricted to ages 13 to 19 years. The data was produced by combining aggregate Canterbury region 2018 census datasets, using tablecode 8277, fsourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' The number of people, by age and sex, living in the Canterbury region, restricted to ages 13 to 19 years. The data was produced by combining aggregate Canterbury region 2018 census datasets, using tablecode 8277, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 14 observations and 4 variables
 #' \describe{
@@ -182,17 +182,17 @@
 #' }
 #' "SchoolsToUse"
 
+#' Sex/Age pyramid data for Timaru District
 #'
-#' Sex/age pyramid data for Timaru District
-#'
-#' A dataset produced from aggregate 2018 census data, using tablecode 8277, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @description
+#' The number of people, by age and sex, living in the Timaru District. The data is based on tablecode 8277, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 190 rows and 4 variables
 #' \describe{
-#'     \item{Age.group}{Age group in five-year bands}
-#'     \item{Sex}{Sex relating to the count}
+#'     \item{Age.group}{Age group, in five-year age bands}
+#'     \item{Sex}{Sex, either Male or Female}
 #'     \item{Value}{The number of people that age and sex}
-#'     \item{Age}{Age relating to the count}
+#'     \item{Age}{Age at last birthday}
 #' }
 #' "SingleAges"
 #'
