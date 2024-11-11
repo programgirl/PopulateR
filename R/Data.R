@@ -141,7 +141,7 @@
 #' Synthetic people living in the Timaru District
 #'
 #' @description
-#' 5000 synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460, ourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' 5000 synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 5,000 rows and 5 variables
 #' \describe{
@@ -152,17 +152,17 @@
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #' }
 #' "Ppl4networks"
+
+#' Sex/Age pyramid for the Canterbury Region
 #'
-#'
-#' Sex/Age pyramid for the Canterbury Region, 2018
-#'
-#' A dataset produced from combining aggregate 2018 census datasets, using tablecode 8277, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ’s data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @description
+#' The number of people, by age and sex, living in the Canterbury region, restricted to ages 13 to 19 years. The data was produced by combining aggregate Canterbury region 2018 census datasets, using tablecode 8277, fsourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 14 observations and 4 variables
 #' \describe{
 #'     \item{Sex}{The sex relating to the count}
 #'     \item{Age group}{String variable of age plus the text " years"}
-#'     \item{Value}{The count of adolescents of that age and sex}
+#'     \item{Value}{The count of adolescents}
 #'     \item{Age}{The age relating to that count}
 #' }
 #' "RegionalStructure"
