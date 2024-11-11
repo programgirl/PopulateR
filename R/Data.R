@@ -212,26 +212,26 @@
 #' }
 #' "Township"
 
-#'People with a school indicator
+#' People with a school indicator
 #'
-#' A modified version of "Township" data frame with a school indicator variable added. An ordered factor for hours worked per week has also been added.
+#' @description
+#' A modified version of "Township" data frame with a school indicator variable added.
 #'
-#' @format A data frame with 10,000 rows and 8 variables
+#' @format A data frame with 10,000 rows and 6 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
-#'     \item{Age.group}{The age group of the person}
 #'     \item{Relationship}{Relationship status of the person}
 #'     \item{ID}{The unique identifier for the person}
 #'     \item{Age}{The age of the person}
-#'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#'     \item{OrderedHours}{HoursWorked re-expressed as an ordered factor}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week. This is an ordered factor.}
 #'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
 #' }
 #' "WithSchoolInd"
+
+#' Adolescents with a school status and employment hours
 #'
-#' Adolescents with a school stats and employment hours
-#'
-#' A dataset of synthetic people aged between 16 and 20, produced by combining the aggregate 2018 census datasets 8277, 8395, and 8460, with school leavers data produced by the Ministry of Education. Stats NZ and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @description
+#' Synthetic adolescents aged between 16 and 20, produced from aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460. School status was added using school leavers data produced by the Ministry of Education. Statistics New Zealand and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame of 546 observations and 6 variables
 #' \describe{
