@@ -432,11 +432,11 @@ CRSchoolLeavers <- AllSchoolLeavers %>%
          Count = `Students (∑ Values)`) %>%
   select(YearLeft, Sex, Age, Count)
 
-LeftSchool <- CRSchoolLeavers %>%
+LeftSchool <- as.data.frame(CRSchoolLeavers %>%
   group_by(YearLeft, Sex, Age) %>%
   summarise(Total = sum(Count)) %>%
   ungroup() %>%
-  mutate(Age = as.numeric(Age))
+  mutate(Age = as.numeric(Age)))
 
 rm(CRSchoolLeavers)
 save(LeftSchool, file = "data/LeftSchool.RData")
