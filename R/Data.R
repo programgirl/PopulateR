@@ -1,4 +1,4 @@
-#' Synthetic people with no household identifiers
+#' Non-partnered synthetic people
 #'
 #' @description
 #' A subset of people from the Township data frame, aged 20 years and older with a relationship status of "NonPartnered".
@@ -30,7 +30,7 @@
 #'}
 #'"AllEmployers"
 
-#' Synthetic people with no household identifiers, restricted to an age range
+#' Synthetic people restricted to an age range
 #'
 #' @description
 #' A subset of people from the Township data frame, aged between 20 and 91 years. Age bands, and the associated minimum and maximum ages, have been added.
@@ -48,28 +48,10 @@
 #'     }
 #' "BadRels"
 
-#'School rolls in the Canterbury Region, 2018
-#'
-#' @description
-#' A dataset produced from the official statistics of school rolls produced by the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
-#'
-#' @format A data frame of 4,046 rows and 7 columns
-#'\describe{
-#'    \item{School.ID}{The numeric ID for the school}
-#'    \item{School.Name}{The name for the school}
-#'    \item{Gender}{Indicator of whether the school is (C)o-ed, (F)emale-only, or (M)ale-only}
-#'    \item{Female}{The count of female students for the school, total. 0 if single-sex school for opposite sex}
-#'    \item{Male}{The count of male students for the school, total. 0 if single-sex school for opposite sex}
-#'    \item{AgeInRoll}{The number of students that age in the school's roll}
-#'    \item{RollCount}{The number of students for that school and age combination, at that school. 0 if no students that age attend.}
-#'}
-#'
-#'"CRSchools"
-
 #' Synthetic employers and their employee counts
 #'
 #' @description
-#' A synthetic set of employers and their associated number of employees, randomly constructed from "AllEmployers". This is a subset of all possible employers.
+#' A synthetic data frame of employers and their associated number of employees, randomly constructed using the "AllEmployers" data frame.
 #'
 #' @format A data frame of 225 rows and 3 variables
 #' \describe{
@@ -79,6 +61,24 @@
 #' }
 #'
 #' "EmployerSet"
+
+#' The proportion of people in a relationship, by age band within sex
+#'
+#' @description
+#' The estimated proportion of people in a relationship, by age band within sex, for people aged between 20 and 90 years.
+#'
+#' @format A data frame of 14 rows and 7 variables
+#' \describe{
+#'     \item{Sex}{Either Male or Female}
+#'     \item{AgeBand}{The 10-year age band}
+#'     \item{MinAge}{The minimum age of the age band}
+#'     \item{MaxAge}{The maximum age of the age band}
+#'     \item{Relationship}{All people are Partnered}
+#'     \item{RelProps}{The proportion of people who have a relationship status of "Partnered"}
+#'     \item{MidPoints}{The median age in the age band}
+#' }
+#'
+#' "GroupInfo
 
 #' People in age groups, in the Timaru District
 #'
