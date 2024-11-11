@@ -980,9 +980,9 @@ rm(ParentsAndKids, Parents)
 
 
 # get subset of schools as the kids data frame is smaller relative to the kids count in the Township file
-SchoolsToUse <- CRSchools %>%
+SchoolsToUse <- as.data.frame(CRSchools %>%
   filter(School.ID %in% c(352, 357, 360, 2110, 3348, 3354, 3368, 3432, 3441, 3519, 3529, 3535, 3539, 3540,
-                          3565, 3566, 3567, 3574, 3597))
+                          3565, 3566, 3567, 3574, 3597)))
 
 # check short by
 OriginalSchoolsToUse <- SchoolsToUse %>%
