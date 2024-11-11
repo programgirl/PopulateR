@@ -185,7 +185,7 @@
 #' Sex/Age pyramid data for Timaru District
 #'
 #' @description
-#' The number of people, by age and sex, living in the Timaru District. The data is based on tablecode 8277, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' The number of people, by age and sex, living in the Timaru District. The data is based on 2018 census data in tablecode 8277, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 190 rows and 4 variables
 #' \describe{
@@ -197,9 +197,10 @@
 #' "SingleAges"
 #'
 #'
-#' Random selection of 10,000 synthetic people in the Timaru District from the 2018 census
+#' Simulated township
 #'
-#' A dataset produced from combining aggregate 2018 census datasets, using tablecodes 8277, 8395, and 8460, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @description
+#' 10,000 simulated people produced from aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame with 10,000 rows and 5 variables
 #' \describe{
@@ -210,8 +211,7 @@
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #' }
 #' "Township"
-#'
-#'
+
 #'People with a school indicator
 #'
 #' A modified version of "Township" data frame with a school indicator variable added. An ordered factor for hours worked per week has also been added.
