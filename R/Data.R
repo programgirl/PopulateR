@@ -115,7 +115,7 @@
 #' }
 #' "IntoSchools"
 
-#' School leavers in the Canterbury Region, 2009 to 2018
+#' School leavers
 #'
 #' @description
 #' School leavers in the Canterbury Region, counts by age and sex, for the period 2009 to 2018, sourced from the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
@@ -166,21 +166,22 @@
 #'     \item{Age}{The age relating to that count}
 #' }
 #' "RegionalStructure"
+
+#' Schools and their roll counts
 #'
-#' Subset of schools and their roll counts in the Canterbury Region, 2018
+#' @description
+#' Nineteen schools in the Canterbury region, with their 2018 roll counts, sourced from the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
-#' A subset tibble constructed from CRSchools, in order to restrict roll counts. Total school roll counts for female and male students have been removed.
-#'
-#' @format A tibble with 266 rows and 5 variables
+#' @format A data frame with 266 rows and 5 variables
 #' \describe{
 #'    \item{School.ID}{The numeric ID for the school}
 #'    \item{School.Name}{The name for the school}
-#'    \item{Gender}{Indicator of whether the school is (C)o-ed, (f)emale-only, or (M)ale-only}
-#'    \item{AgeInRoll}{The number of students that age in the school's roll}
-#'    \item{RollCount}{The number of students for that school and age combination, at that school. 0 if no students that age attend.}
+#'    \item{Gender}{Indicator of whether the school is (C)o-ed, (F)emale-only, or (M)ale-only}
+#'    \item{AgeInRoll}{The age of possible students}
+#'    \item{RollCount}{The number of students. The value is 0 if no students that age attend.}
 #' }
 #' "SchoolsToUse"
-#'
+
 #'
 #' Sex/age pyramid data for Timaru District
 #'
