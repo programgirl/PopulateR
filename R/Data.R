@@ -1,4 +1,4 @@
-#' Mock people with no household identifiers
+#' Synthetic people with no household identifiers
 #'
 #' @description
 #' A subset of people from the Township data frame, aged 20 years and older with a relationship status of "NonPartnered".
@@ -16,9 +16,9 @@
 #' The number of employers and employees, by industry, in the Timaru District, 2018
 #'
 #' @description
-#' A dataset produced from tablecode 7602, from the official Stats NZ table builder website \url{http://nzdotstat.stats.govt.nz/wbos/Index.aspx}. Stats NZ data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' The number of businesses and employees by industry, Timaru District, for 2018, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence. The data has been modified by adding in four additional variables, representing the estimated minimum and maximum counts of businesses and employees.
 #'
-#' @format A tibble of 183 rows and 7 variables
+#' @format A data frame of 183 rows and 7 variables
 #' \describe{
 #'     \item{ANZSIC06}{The code and associated name for each industry}
 #'     \item{BusinessCount}{The random-rounded count of employers in the industry}
@@ -30,10 +30,10 @@
 #'}
 #'"AllEmployers"
 
-#' Mock people with no household identifiers
+#' Synthetic people with no household identifiers, restricted to an age range
 #'
 #' @description
-#' A subset of people from the Township data frame, aged between 20 and 91 years. Age bands, and the associated minimum and maximum ages have been added.
+#' A subset of people from the Township data frame, aged between 20 and 91 years. Age bands, and the associated minimum and maximum ages, have been added.
 #'
 #' @format A data frame of 7,568 rows and 8 variables
 #' \describe{
