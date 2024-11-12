@@ -1,4 +1,5 @@
-#' @importFrom dplyr filter mutate pull summarise
+#' @importFrom data.table :=
+#' @importFrom dplyr arrange filter mutate pull summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym
 #'
