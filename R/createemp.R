@@ -1,5 +1,6 @@
 #' @importFrom data.table :=
-#' @importFrom bind_rows dplyr mutate pull rename slice slice_tail
+#' @importFrom dplyr bind_rows mutate pull rename slice slice_tail
+#' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 #'
 #' Create a data frame of individual employers, each with aggregate employee counts.
