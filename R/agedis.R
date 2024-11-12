@@ -143,7 +143,6 @@ agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, p
 #    print("Probabilistic age selected")
 
     CurrentIndividual <- CurrentIndividual %>%
-      # mutate(!!quo_name(agevarname) := OutputAge)
       mutate({{agevarname}} := OutputAge)
 
  #   print("Age column has been added")
