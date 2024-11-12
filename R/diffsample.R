@@ -1,5 +1,6 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr bind_rows filter rename slice_sample
+#' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 #'
 #' Sample from groups, when the sample size for each group is different.
