@@ -16,6 +16,13 @@
 
 #' @return A data frame of people sampled according to the age sample sizes required.
 #'
+#' @examples
+#' SampleNeeded <- data.frame(Age = c(16, 17, 18, 19, 20),
+#'                            NumNeeded = c(5, 10, 15, 10, 5))
+#' SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded,
+#'                                  smplage = "Age", smplcounts = "NumNeeded", userseed = 4)
+#'
+#' table(SampledAdolescents$Age)
 #'
 diffsample <- function(people, pplage, sampledf, smplage, smplcounts, userseed = NULL) {
 
