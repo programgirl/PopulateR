@@ -1,3 +1,8 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr distinct filter full_join group_by mutate rename select slice ungroup
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+#'
 #' Creates a data frame of weighted contact pairs.
 #'
 #' This function creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn dataframe of ages is also created.
