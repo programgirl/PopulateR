@@ -1,5 +1,6 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr arrange between bind_rows distinct filter mutate pull rename select slice_sample
+#' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 #'
 #' Add a sex/age structure to a data frame of grouped ages.
