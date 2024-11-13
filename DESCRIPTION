@@ -13,19 +13,18 @@ Description: Creates data frames for synthetic data. These are used in microsimu
      so that household construction is an optional output.
 Depends: R (>= 4.0)
 Imports: brainGraph (>= 3.0.0),
-         data.table (>= 1.14.10)
+         data.table (>= 1.14.10),
          dplyr (>= 1.1.3),
          igraph (>= 1.5.1),
          magrittr (>= 2.0.3),
-         Matrix (>= 1.5-4.1),
          PearsonDS (>= 1.3.0),
          plyr (>= 1.8.8),
-         rlang( >= 1.1.2),
+         rlang (>= 1.1.2),
          sn (>= 2.1.1),
          tidyr (>= 1.3.0),
          withr (>= 2.5.0)
 Remotes: github::jmarshallnz/brainGraph
-License: `use_gpl3_license()`
+License: use_gpl3_license()
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
