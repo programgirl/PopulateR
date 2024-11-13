@@ -103,6 +103,26 @@ TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "
 
 
 ############################################################
+# diffsample examples
+############################################################
+
+library("dplyr")
+
+SampleNeeded <- data.frame(Age = c(16, 17, 18, 19, 20),
+                           NumNeeded = c(5, 10, 15, 10, 5))
+
+SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded, smplage = "Age",
+                                 smplcounts = "NumNeeded", userseed = 4)
+
+table(SampledAdolescents$Age)
+
+
+
+
+
+
+
+############################################################
 # fastmatch example
 ############################################################
 
@@ -135,26 +155,6 @@ NumWeighted <- Weighted %>%
 # prop is
 nrow(NumWeighted)/nrow(Weighted)
 
-
-
-
-
-
-
-
-############################################################
-# diffsample examples
-############################################################
-
-library("dplyr")
-
-SampleNeeded <- data.frame(Age = c(16, 17, 18, 19, 20),
-                           NumNeeded = c(5, 10, 15, 10, 5))
-
-SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded, smplage = "Age",
-                                 smplcounts = "NumNeeded", userseed = 4)
-
-table(SampledAdolescents$Age)
 
 
 
@@ -213,6 +213,7 @@ thegroups <- c("Sex", "AgeBand")
 FinalRels <- fixrelations(BadRels, pplid = "ID", pplage = "Age", pplstat = "Relationship",
                           stfixval = "Partnered", props = RelProps, propcol = "Fits", grpdef = thegroups,
                           matchdef = joinwith, userseed = 4)
+
 
 
 
