@@ -1,6 +1,11 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr bind_cols bind_rows filter group_by left_join mutate rename select slice_sample summarise
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+NULL
+
 #' Reallocates the working hours between people in education and people not in education.
 #'
-#' @description
 #' This function reallocates working hours so that people in education work fewer hours than people not in education. Pre-cleaning so that only people inside the student age range is not required. The hours of work are reallocated so that shorter hours worked are prioritised to those in education. The variables provided in the grpdef vector define the marginal totals that must be retained.
 #' @export
 #' @param people A data frame containing individual people.
@@ -266,9 +271,9 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
 
   OutputDataFrame <- OutputDataFrame %>%
-    rename(!!quo_name(pplstat) := InSchool,
-           !!quo_name(pplid) := IntID,
-           !!quo_name(pplhours) := IntHours)
+    rename(!!StatusColName := InSchool,
+           !!IDColName := IntID,
+           !!HoursColName := IntHours)
 
 
   return(OutputDataFrame)
