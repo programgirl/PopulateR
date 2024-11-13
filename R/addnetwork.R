@@ -1,5 +1,6 @@
 #' @importFrom dplyr rename select
 #' @importFrom rlang sym !!
+#' @importFrom utils head tail
 NULL
 
 #' Create a social network
