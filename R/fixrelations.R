@@ -1,5 +1,5 @@
 #' @importFrom data.table :=
-#' @importFrom dplyr arrange bind_cols bind_rows filter group_by left_join mutate pull rename rename_all replace select slice_sample summarise
+#' @importFrom dplyr arrange bind_cols bind_rows filter group_by left_join mutate pull rename rename_all select slice_sample summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 #' @importFrom tidyr contains
