@@ -1,6 +1,11 @@
+#' @importFrom dplyr across arrange bind_rows filter group_by left_join mutate pull rename select slice_sample ungroup
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym
+NULL
+
 #' Estimates values for ages when only age group data is available.
-#' This function uses values provided for age group to interpolate the relevant values for ages.
 #'
+#' This function uses values provided for age group to interpolate the relevant values for ages.
 #' The node ages for each age group are defined by the user, along with the age group values. The function will then impute the values within the age group edges.
 #' Zero values at both extremes must be included. For example, for the age group 20-24 years, the pplprop value is for pplage. if the first non-zero relationship probability is for the age group 20-24 years, and the previous age group is 15-19 years, pplprop==0 for pplage==19.
 #'For each age group, there must be a minimum and maximum age specified. This provides the interpolation range for each age group. For the anchoring 0 values, the minimum and maximum ages are the same. In this example, for pplage==19, endmin==19, and endmax==19.
@@ -35,9 +40,14 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
   # print(names(people))
 
 
-  # Subset the node dataframe
-  PeopleUnique <- as.data.frame(nodes[,grpdef] %>%
-    unique())
+  # Subset the node dataframe NOTE this method no longer works, does not put in the column name
+  # PeopleUnique <- as.data.frame(nodes[,grpdef] %>%
+  #   unique())
+
+  PeopleUnique <- nodes %>%
+    select(matches(grpdef)) %>%
+    unique()
+
 
   #####################################
   # check for missing input information
@@ -90,7 +100,6 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
     # fix for one grouping variable
     # see https://stackoverflow.com/a/69116009/1030648
     CurrentDef = PeopleUnique[i, , drop=FALSE]
-
 
     WorkingAgeMin <- min(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
                                       select(MinAge) %>%
