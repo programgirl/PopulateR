@@ -1,3 +1,10 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr arrange bind_cols bind_rows filter group_by left_join mutate pull rename rename_all replace select slice_sample summarise
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+#' @importFrom tidyr contains
+NULL
+
 #' Provides an age structure to relationship status, when a relationship status has been previously defined using age groups rather than ages.
 #' Redistributes a user-defined relationship status value between ages, using age groups and other variables (if specified). Within the group definition provided, the marginal totals of the relationship status values are retained.
 #' The data frame can include groups where all people have the same relationship status. In this situation, there is no need to restrict the data frame to only those whose relationship status must be redistributed.
@@ -84,14 +91,13 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
   # get column names as symbols to use inside data frame subfunctions
 
   AgeColName <- sym(names(people[pplage]))
-
   IDColName <- sym(names(people[pplid]))
-
   StatuscolName <- sym(names(people[pplstat]))
-
   PropscolName <- sym(names(props[propcol]))
 
-  if (is.factor(people[[pplstat]]) == TRUE) {
+
+
+    if (is.factor(people[[pplstat]]) == TRUE) {
 
     RelationshipLevels <- levels(people[[pplstat]])
     NeededRelLevel <- labels(people[[pplstat]])[match(stfixval, levels(people[[pplstat]]))]
@@ -632,9 +638,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     OutputDataFrame <- FinalDF %>%
       select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
                 contains(c(".y", ".x")))) %>%
-      rename(!!quo_name(pplstat) := StatusID,
-             !!quo_name(pplid) := PersonID)
-
+      rename(!!StatuscolName := StatusID,
+             !!IDColName := PersonID)
 
 
   for(m in 1:length(grpdef)) {
@@ -669,8 +674,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
   OutputDataFrame <- FinalDF %>%
     select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
               contains(c(".y", ".x")))) %>%
-    rename(!!quo_name(pplstat) := StatusID,
-           !!quo_name(pplid) := PersonID)
+    rename(!!StatuscolName := StatusID,
+           !!IDColName := PersonID)
+
 
   # closes else to factor test
    }
