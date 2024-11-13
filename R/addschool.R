@@ -1,6 +1,7 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr anti_join arrange between bind_rows distinct filter full_join group_by left_join mutate n_distinct rename select slice_max slice_sample summarise ungroup
 #' @importFrom rlang sym !!
+#' @importFrom stats na.omit
 NULL
 
 #' Create a data frame of people matched to schools
