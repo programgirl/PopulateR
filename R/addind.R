@@ -34,10 +34,11 @@ NULL
 #' @return A data frame of an observations, with an added column that contains the education status of each person.
 #'
 #' @examples
-#' WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018, minedage = 5,
-#'                   maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age", lvryear = "YearLeft",
-#'                   lvrcount = "Total", RegionalStructure, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
-#'                   stvarname = "Status", userseed = 4)
+#' WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018,
+#'                   minedage = 5, maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age",
+#'                   lvryear = "YearLeft", lvrcount = "Total", RegionalStructure,
+#'                   pyrsx = "Sex", pyrage = "Age", pyrcount = "Value", stvarname = "Status",
+#'                   userseed = 4)
 
 addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxedage = NULL,
                    leavers, lvrsx, lvrage, lvryear, lvrcount,
