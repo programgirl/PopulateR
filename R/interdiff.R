@@ -21,7 +21,7 @@ NULL
 #' @param pplprop The variable containing the node values.
 #' @param endmin The variable that contains the minimum age for each group.
 #' @param endmax The variable that contains the maximum age for each group.
-#' @param groupdef A character vector containing the names of the grouping variables.
+#' @param grpdef A character vector containing the names of the grouping variables.
 #'
 #' @return A data frame containing the fitted values, by age within group.
 #'
