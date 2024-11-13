@@ -2,19 +2,20 @@
 #' @importFrom dplyr distinct filter full_join group_by mutate rename select slice ungroup
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Creates a data frame of weighted contact pairs.
 #'
-#' This function creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn dataframe of ages is also created.
+#' This function creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
 #'
 #' There are two restrictions for use. First, the codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "Y" as Covasim requires a school layer.
 #'
 #'
 #' @export
-#' @param ABMPop The agent-based modelling dataframe.
+#' @param ABMPop The agent-based modelling data frame.
 #' @param ABMID The variable containing the unique identifier for each person, in the ABMPop data frame.
 #' @param ABMAge The variable containing the ages, in the in the ABMPop data frame.
-#' @param place1 TThe variable containing the Household ID.
+#' @param place1 The variable containing the Household ID.
 #' @param place2 The variable containing the school and workplace IDs.
 #' @param ECE Are ECE centres open? Default is "Y", change to "N" if ECEs are to close.
 #' @param PSchool Are primary schools open? Default is "Y", change to "N" if primary schools are to close.
