@@ -36,7 +36,7 @@ NULL
 #' nrow(NumUnweighted)/nrow(Unweighted)
 #'
 #' # weighted example, same probability, 66% of people in a same-sex relationship are aged between 25
-#' and 54
+#' # and 54
 #' Weighted <- fastmatch(PersonDataframe, pplage = "PersonAge", probSS = 0.03, uwProp = .66,
 #'                       uwLA = 25, uwUA = 54, HHStartNum = 1, HHNumVar = "Household", userseed = 4)
 #' NumWeighted <- Weighted %>%
