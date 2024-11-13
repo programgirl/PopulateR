@@ -2,6 +2,7 @@
 #' @importFrom dplyr bind_cols bind_rows filter group_by left_join mutate rename select slice_sample summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
+#' @importFrom stats setNames
 NULL
 
 #' Reallocates the working hours between people in education and people not in education.
