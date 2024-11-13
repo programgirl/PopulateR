@@ -1,5 +1,5 @@
 #' @importFrom data.table :=
-#' @importFrom dplyr arrange between bind_rows distinct filter group_by left_join mutate rename select summarise
+#' @importFrom dplyr arrange between bind_rows distinct filter group_by left_join mutate n rename select summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 NULL
