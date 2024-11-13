@@ -1,6 +1,7 @@
 #' @importFrom dplyr rename select
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Create a social network
 #'
 #' This function creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one person's social network size from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.

@@ -2,7 +2,8 @@
 #' @importFrom dplyr arrange between bind_rows distinct filter mutate pull rename select slice_sample
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Add a sex/age structure to a data frame of grouped ages.
 #'
 #' This function creates a data frame that adds an age structure to a data frame that contains age groups.

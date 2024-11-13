@@ -2,7 +2,8 @@
 #' @importFrom dplyr bind_rows filter rename slice_sample
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Sample from groups, when the sample size for each group is different.
 #'
 #' This function produces samples by group, enabling different sample sizes to be specified for each group. Sampling without replacement is used. While the function example is based on sampling by age, in practice sampling can be performed using any variable of choice. Only one grouping variable is used.

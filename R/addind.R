@@ -2,7 +2,8 @@
 #' @importFrom dplyr arrange between bind_rows distinct filter group_by left_join mutate rename select summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Add a variable indicating whether the person is in education, or has left education
 #'
 #' This function creates a data frame with a variable indicating whether the person is a student, or is not in education. This is an factor with two levels. Pre-cleaning so that only people inside the student age range is not required.

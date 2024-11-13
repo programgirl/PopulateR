@@ -1,7 +1,8 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr anti_join arrange between bind_rows distinct filter full_join group_by left_join mutate rename select slice_max slice_sample summarise ungroup
 #' @importFrom rlang sym !!
-#'
+NULL
+
 #' Create a data frame of people matched to schools
 #'
 #' This function creates a data frame of people and matching schools. By default, all similarly-aged students in the same household will be matched to the same school. If one student is matched to a same-sex school, then all similarly aged students will also be matched to a same-sex school. This includes opposite-sex children.

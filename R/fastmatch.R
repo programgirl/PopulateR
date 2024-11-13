@@ -2,7 +2,8 @@
 #' @importFrom dplyr arrange filter mutate pull summarise
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym
-#'
+NULL
+
 #' reate couples using a weighted age group structure.
 #'
 #' Creates couples when the only information is the proportions of people in couples, by age group. If there is an age range that should be up-sampled compared to other ages, this can be specified using the uwProp, uwLA, and uwUA variables. If uwProp is not provided, a simple random sampling without replacement is used. The number of couples that are output is determined by probSS. At least one same-sex couple will be output.
