@@ -1,5 +1,6 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr bind_rows filter left_join rename select slice_sample ungroup
+#' @importFrom graphics hist
 #' @importFrom magrittr %>%
 #' @importFrom stats pnorm qchisq qnorm dnorm
 #' @importFrom rlang sym !!
