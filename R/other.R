@@ -27,8 +27,9 @@ NULL
 #'
 #' @examples
 # library(dplyr)
-#' NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
-#'                        HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+#' NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
+#'                        HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .01,
+#'                        numiters = 1000000)
 #'
 #' PeopleInHouseholds <- NewHouseholds$Matched
 #' PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
