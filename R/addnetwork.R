@@ -1,5 +1,6 @@
 #' @importFrom dplyr rename select
 #' @importFrom rlang sym !!
+#' @importFrom stats rpois
 #' @importFrom utils head tail
 NULL
 
