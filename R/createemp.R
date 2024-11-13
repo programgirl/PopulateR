@@ -24,9 +24,9 @@ NULL
 #' @examples
 #' library("dplyr")
 #'
-#' TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo", indsmax = "maxCo",
-#'                                 pplmin = "minStaff", pplmax = "maxStaff", stffname="Employees",
-#'                                 cpyname="Employer", userseed = 4)
+#' TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
+#'                                 indsmax = "maxCo", pplmin = "minStaff", pplmax = "maxStaff",
+#'                                 stffname="Employees", cpyname="Employer", userseed = 4)
 
 createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stffname=NULL, cpyname=NULL, userseed = NULL) {
 
