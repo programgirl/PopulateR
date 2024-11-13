@@ -2,7 +2,7 @@
 #' @importFrom dplyr bind_rows mutate pull rename slice slice_tail
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
-#' @importFrom stats rmultinorm runif
+#' @importFrom stats rmultinom runif
 NULL
 
 #' Create a data frame of individual employers, each with aggregate employee counts.
