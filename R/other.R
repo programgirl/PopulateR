@@ -1,4 +1,11 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr bind_rows filter left_join mutate pull rename rename_with select slice_sample
+#' @importFrom stats dnorm qchisq qnorm pnorm
+#' @importFrom rlang sym !!
+NULL
+
 #' Create a match of people into households
+#'
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
 #' One data frame, containing the people to match, is required. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
 #' The output data frame of matches will only contain households of the required size. If the number of rows in the people data frame is not divisible by household size, the overcount will be output to a separate data frame.
@@ -29,7 +36,7 @@
 other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL,
                     ptostop = NULL, numiters = 1000000) {
 
-  options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform=F)
 
 
   #####################################
@@ -377,8 +384,10 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   # correct the names of the variables in the interim and base data frames
   # row bind these and output
 
+  drop_dot_y <- function(x) { gsub("\\.y$", "", x) }
+
   TheMatched <- TheMatched %>%
-    rename_all(list(~gsub("\\.y$", "", .))) %>%
+    rename_with(drop_dot_y) %>%
     select(-RenamedAge) %>%
     rename(!!pplidcolName := MatchedID,
            !!pplagecolName := MatchedAge)
