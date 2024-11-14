@@ -178,6 +178,56 @@ cor.test(as.numeric(OneGroup$HoursWorked), as.numeric(OneGroup$SchoolStatus),
 
 
 #####################################
+# employer graphs need to be redone
+#####################################
+
+
+# by employer
+CompaniesCreated <- AllEmployers$Companies
+
+library("ggplot2")
+AveEmpCount <- CompaniesCreated %>%
+  mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
+                       ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
+                              ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
+                                     ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
+                                            ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
+                                                   ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
+  group_by(Size) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n/sum(n),
+         Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
+                                      "51 - 100", "101 - 150", "> 150", "Other"))) %>%
+  ungroup()
+
+CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
+  geom_bar(stat = "identity", fill = "#5e3c99") +
+  coord_cartesian(ylim = c(0, .8)) +
+  labs(x="Number of employees per company", y = "Proportion of companies") +
+  theme(text = element_text(size = 18))
+
+# ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
+
+# rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
+
+# Overcount contents
+EmpOvercount <- TownshipEmployment$Overcount
+
+# With no employees or employers
+Nope <- TownshipEmployment$NoEmps
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################
 # pairnorm and onwards need to be redone
 #####################################
 
