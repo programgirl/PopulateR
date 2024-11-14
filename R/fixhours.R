@@ -251,7 +251,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     InSchoolLabels <- levels(people[[pplstat]])
 
     OutputDataFrame <- OutputDataFrame %>%
-      mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), order = TRUE))
+      mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), ordered = TRUE))
 
     #close factor test for school variable
   }
@@ -265,7 +265,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     OutputDataFrame <- OutputDataFrame %>%
       mutate(IntHours = factor(IntHours,
                                levels = c(1:length(HoursLabels)),
-                               labels = c(HoursLabels), order = TRUE))
+                               labels = c(HoursLabels), ordered = TRUE))
 
     #close factor test for hours worked variable
   }
