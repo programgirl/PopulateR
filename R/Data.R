@@ -231,7 +231,7 @@
 #' Adolescents with a school status and employment hours
 #'
 #' @description
-#' Synthetic adolescents aged between 16 and 20, produced from aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460. School status was added using school leavers data produced by the Ministry of Education. Statistics New Zealand and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
+#' Synthetic adolescents aged between 15 and 18, produced from aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460. School status was added using school leavers data produced by the Ministry of Education. Statistics New Zealand and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
 #'
 #' @format A data frame of 546 observations and 6 variables
 #' \describe{
