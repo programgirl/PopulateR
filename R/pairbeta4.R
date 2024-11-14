@@ -34,9 +34,10 @@
 #'     filter(Relationship == "NonPartnered", Age < 20) %>%
 #'     slice_sample(n = 200)
 #'
-#' ChildAllMatched <- pairbeta4(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
-#'                              shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1, HHStartNum = 1,
-#'                              HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+#' ChildAllMatched <- pairbeta4(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
+#'                              lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = 16.5,
+#'                              scaleP = 40.1, HHStartNum = 1, HHNumVar = "Household",
+#'                              userseed=4, ptostop = .01, numiters = 1000000)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
 #' UnmatchedChildren <- ChildAllMatched$Smaller
@@ -51,9 +52,10 @@
 #'  filter(Relationship == "NonPartnered", Age < 20) %>%
 #'  slice_sample(n = 500)
 #'
-#'  ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID", lrgage = "Age",
-#'                            shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1, HHStartNum = 1,
-#'                            HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+#'  ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID",
+#'                            lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = -16.5,
+#'                            scaleP = -40.1, HHStartNum = 1, HHNumVar = "Household",
+#'                            userseed=4, ptostop = .01, numiters = 1000000)
 #'
 #' MatchedPairs2 <- ChildMatched$Matched
 #' UnmatchedChildren2 <- ChildMatched$Smaller
