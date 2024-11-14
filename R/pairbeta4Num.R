@@ -36,9 +36,10 @@
 #'   slice_sample(n = 200)
 #'
 #' # match the children to the parents
-#' ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
-#'                                 shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1,
-#'                                 HHNumVar = "Household", userseed=4, attempts = 10, numiters = 10000)
+#' ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
+#'                                 lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = 16.5,
+#'                                 scaleP = 40.1, HHNumVar = "Household", userseed=4, attempts = 10,
+#'                                 numiters = 10000)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
 #' UnmatchedChildren <- ChildAllMatched$Smaller
