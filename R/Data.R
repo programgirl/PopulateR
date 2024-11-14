@@ -102,7 +102,7 @@
 #' @description
 #' Four-person households, consisting of one parent and three children, with a combination of people in school and not in school. Ages 15 through 18 contain a mixture of people in school and those who have left school. This has been constructed from the Township data frame.
 #'
-#' @format A data frame of 3,080 rows and 8 variables
+#' @format A data frame of 3,052 rows and 8 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Relationship}{Relationship status of the person}
