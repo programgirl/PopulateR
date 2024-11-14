@@ -36,8 +36,8 @@
 #' # the same number of children is assigned to all parents
 #' # adding two children to each parent
 #'
-#' ChildMatched <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
-#'                             parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#' ChildMatched <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+#'                             Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
 #'                             HHNumVar = "Household", userseed =4, maxdiff = 3)
 #' MatchedFamilies <- ChildMatched$Matched
 #' UnmatchedChildren <- ChildMatched$Children
@@ -45,8 +45,8 @@
 #'
 #' # affected by the permitted age difference between children
 #'
-#' ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
-#'                             parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+#' ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
+#'                              Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
 #'                             HHNumVar = "Household", userseed =4, maxdiff = 4)
 #' MatchedFamilies2 <- ChildMatched2$Matched
 #' UnmatchedChildren2 <- ChildMatched2$Children
