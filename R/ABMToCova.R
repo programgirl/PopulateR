@@ -1,7 +1,7 @@
 #' @importFrom data.table :=
 #' @importFrom dplyr distinct filter full_join group_by mutate rename select slice ungroup
 #' @importFrom magrittr %>%
-#' @importFrom rlang sym !!
+#' @importFrom rlang .data sym !!
 NULL
 
 #' Creates a data frame of weighted contact pairs.
