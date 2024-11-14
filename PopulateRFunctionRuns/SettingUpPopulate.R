@@ -415,9 +415,7 @@ WorkingAdolescents <- WithSchoolInd %>%
 save(WorkingAdolescents, file = "data/WorkingAdolescents.rda")
 
 
-# remove all extra files
-rm(Original, Fixed, FixedGroup, AllHoursValues, OriginalGraph, FixedGraph, OneGroup)
-
+# remove all files at this point via global environment window
 
 
 
@@ -447,6 +445,9 @@ CRSchools <- InterimSchools %>%
 
 #####################################
 # extract kids for schools
+
+load("data/Township.rda")
+
 KidsYoung <- Township %>%
   filter(between(Age, 0, 14)) %>%
   mutate(SchoolStatus = ifelse(Age < 5, "N", "Y"))
@@ -457,21 +458,17 @@ KidsOlderTemp <- Township %>%
 KidsCounts <- KidsOlderTemp %>%
   group_by(Age) %>%
   summarise(AgeCounts = n()) %>%
-  mutate(Probs = ifelse(Age == 15, round(AgeCounts*.98),
+  mutate(Num = ifelse(Age == 15, round(AgeCounts*.98),
                         ifelse(Age == 16, round(AgeCounts*.85),
                               ifelse(Age == 17, round(AgeCounts*.6), round(AgeCounts*.2)))))
-Probs15to18 <- KidsCounts %>%
-  pull(Probs)
+Nums15to18 <- KidsCounts %>%
+  select(Age, Num)
 
 
 # now do sample for each age for school status
-# use the stratify package
 
-library(splitstackshape)
-# https://stackoverflow.com/questions/62603942/how-do-i-sample-specific-sizes-within-groups
-set.seed(2)
-SampledKids <- stratified(KidsOlderTemp, "Age", c("15" = Probs15to18[1], "16" = Probs15to18[2],
-                                               "17" = Probs15to18[3], "18" = Probs15to18[4]))
+SampledKids <- diffsample(people = KidsOlderTemp, pplage = "Age", Nums15to18, smplage = "Age",
+                          smplcounts = "Num", userseed = 4)
 
 # add school indicator for these kids
 SampledKids <- SampledKids %>%
@@ -486,7 +483,7 @@ NotSampledKids <- KidsOlderTemp %>%
 KidsForSchools <- bind_rows(KidsYoung, SampledKids, NotSampledKids) %>%
   mutate(SchoolStatus = forcats::fct_relevel(SchoolStatus, c("N", "Y")))
 
-rm(KidsYoung, KidsOlderTemp, KidsCounts, SampledKids, NotSampledKids, Probs15to18, Schools2018MOEData)
+rm(KidsYoung, KidsOlderTemp, KidsCounts, SampledKids, NotSampledKids, Nums15to18, Schools2018MOEData)
 
 # construct parents
 set.seed(2)
@@ -496,7 +493,10 @@ Parents <- Township %>%
   mutate(HouseholdID = row_number()+500,
          SchoolStatus = factor("N"))
 
-ParentsAndKids <- childrenyes(KidsForSchools, 3, 4, 3, .2, Parents, 3, 4, 18, 54, 6, UserSeed = 4)
+ParentsAndKids <- pairmultNum(KidsForSchools, chlid = "ID", chlage = "Age", numchild = 3, twinprob = .03,
+                              Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
+                              HHNumVar = "HouseholdID", userseed=4, maxdiff=4)
+
 
 # create the factor for SchoolStatus into an ordered factor
 IntoSchools <- ParentsAndKids$Matched %>%
@@ -538,53 +538,53 @@ OriginalSchoolsToUse <- SchoolsToUse %>%
   filter(AgeInRoll == 5 & RollCount > 0)
 
 
-save(SchoolsToUse, file = "data/SchoolsToUse.RData")
-save(IntoSchools, file = "data/IntoSchools.RData")
+save(SchoolsToUse, file = "data/SchoolsToUse.rda")
+save(IntoSchools, file = "data/IntoSchools.rda")
 
-# get the sums of each age
-AgeSums <- colSums(SchoolsInterim[6:19], na.rm = T)
-
-# have to delete a lot of schools, e.g. we have 139 five-year-olds in the sample data and
-# 7024 spaces on the rolls for five-year-olds
-
-# extract schools with rolls containing five-year-olds
-# remove the larger schools
-PrimarySchools <- InterimSchools %>%
-  filter(between(Age.5, 8, 12),
-         Age.14 == 0,
-         Age.12 < 15)
-
-SelectedPrimarySchoolAgeSums <- colSums(PrimarySchools[6:19], na.rm = T)
-
-Colleges <- InterimSchools %>%
-  filter(Age.15 > 0)
-
-
-Colleges <- InterimSchools %>%
-  filter(School.Name %in% c("Geraldine High School", "Craighead Diocesan School", "Timaru Boys' High School"))
-  # filter(SchoolName %in% c("Craighead Diocesan School", "St Thomas of Canterbury College", "Kingslea School",
-  #                          "Unlimited Paenga Tawhiti"))
-
-SelectedCollegeSchoolAgeSums <- colSums(Colleges[6:19], na.rm = T)
-
-BothCounts <- SelectedPrimarySchoolAgeSums + SelectedCollegeSchoolAgeSums
-
-rm(Schools2018MOEData, InterimSchools, AgeSums, SelectedPrimarySchoolAgeSums, Colleges,
-   SelectedCollegeSchoolAgeSums, BothCounts, OriginalSchoolsToUse, CRSchools)
-
-# add in some extra mock children as singletons to test the amended code
-set.seed(2)
-ExtraKids <- KidsIntoSchools %>%
-  filter(Age < 16) %>%
-  slice_sample(n = 50) %>%
-  mutate(HouseholdID = row_number(),
-         ID = as.character(row_number()+100))
-
-ExtraTesting <- bind_rows(KidsIntoSchools, ExtraKids)
-
-SchoolsAdded <- ChildrenToSchools(ExtraTesting, ChildIDCol = 3, ChildAgeCol = 4, ChildSxCol = 7,
-                                  HouseholdIDCol = 6, SchoolsToUse, SchoolIDCol = 2, SchoolAgeCol = 4,
-                                  SchoolRollCol = 5, SchoolTypeCol = 3, ChildProb = .8, UserSeed = 4)
+# # get the sums of each age
+# AgeSums <- colSums(InterimSchools[4:17], na.rm = T)
+#
+# # have to delete a lot of schools, e.g. we have 138 five-year-olds in the sample data and
+# # 6985 spaces on the rolls for five-year-olds
+#
+# # extract schools with rolls containing five-year-olds
+# # remove the larger schools
+# PrimarySchools <- InterimSchools %>%
+#   filter(between(Age.5, 8, 12),
+#          Age.14 == 0,
+#          Age.12 < 15)
+#
+# SelectedPrimarySchoolAgeSums <- colSums(PrimarySchools[4:17], na.rm = T)
+#
+# Colleges <- InterimSchools %>%
+#   filter(Age.15 > 0)
+#
+#
+# Colleges <- InterimSchools %>%
+#   filter(School.Name %in% c("Geraldine High School", "Craighead Diocesan School", "Timaru Boys' High School"))
+#   # filter(SchoolName %in% c("Craighead Diocesan School", "St Thomas of Canterbury College", "Kingslea School",
+#   #                          "Unlimited Paenga Tawhiti"))
+#
+# SelectedCollegeSchoolAgeSums <- colSums(Colleges[4:17], na.rm = T)
+#
+# BothCounts <- SelectedPrimarySchoolAgeSums + SelectedCollegeSchoolAgeSums
+#
+# rm(Schools2018MOEData, InterimSchools, AgeSums, SelectedPrimarySchoolAgeSums, Colleges,
+#    SelectedCollegeSchoolAgeSums, BothCounts, OriginalSchoolsToUse, CRSchools)
+#
+# # add in some extra mock children as singletons to test the amended code
+# set.seed(2)
+# ExtraKids <- KidsIntoSchools %>%
+#   filter(Age < 16) %>%
+#   slice_sample(n = 50) %>%
+#   mutate(HouseholdID = row_number(),
+#          ID = as.character(row_number()+100))
+#
+# ExtraTesting <- bind_rows(KidsIntoSchools, ExtraKids)
+#
+# SchoolsAdded <- ChildrenToSchools(ExtraTesting, ChildIDCol = 3, ChildAgeCol = 4, ChildSxCol = 7,
+#                                   HouseholdIDCol = 6, SchoolsToUse, SchoolIDCol = 2, SchoolAgeCol = 4,
+#                                   SchoolRollCol = 5, SchoolTypeCol = 3, ChildProb = .8, UserSeed = 4)
 
 
 ####################################
@@ -595,7 +595,7 @@ SchoolsAdded <- ChildrenToSchools(ExtraTesting, ChildIDCol = 3, ChildAgeCol = 4,
 AdultsNoID <- Township %>%
   filter(Age > 19, Relationship == "NonPartnered")
 
-save(AdultsNoID, file = "data/AdultsNoID.RData")
+save(AdultsNoID, file = "data/AdultsNoID.rda")
 
 ####################################
 # Businesses
@@ -629,43 +629,9 @@ AllEmployers <- as.data.frame(AllEmployers %>%
          minCo = ifelse(minCo < 1, 1, minCo),
          minStaff = ifelse(minStaff < 1, 1, minStaff)))
 
-save(AllEmployers, file = "data/AllEmployers.RData")
+save(AllEmployers, file = "data/AllEmployers.rda")
 
-# remember, uses the code from the CodeExamples to construct the data frame
 
-# by employer
-CompaniesCreated <- TownshipEmployment$Companies
-
-library("ggplot2")
-AveEmpCount <- CompaniesCreated %>%
-  mutate(Size = ifelse(between(EmployeeCount, 1, 5), "1 - 5",
-                ifelse(EmployeeCount > 5 & EmployeeCount <= 10, "6 - 10",
-                ifelse(EmployeeCount > 10 & EmployeeCount <= 20, "11 - 20",
-                ifelse(EmployeeCount > 20 & EmployeeCount <= 50, "21 - 50",
-                ifelse(EmployeeCount > 50 & EmployeeCount <= 100, "51 - 100",
-                ifelse(EmployeeCount > 100 & EmployeeCount <= 150, "101 - 150","> 150"))))))) %>%
-  group_by(Size) %>%
-  summarise(n = n()) %>%
-    mutate(freq = n/sum(n),
-           Size = factor(Size, levels=c("None", "< 1", "1 - 5", "6 - 10", "11 - 20", "21 - 50",
-                                                 "51 - 100", "101 - 150", "> 150", "Other"))) %>%
-    ungroup()
-
-CompanyPropComps <- ggplot(AveEmpCount, aes(x = Size, y = freq)) +
-  geom_bar(stat = "identity", fill = "#5e3c99") +
-  coord_cartesian(ylim = c(0, .8)) +
-  labs(x="Number of employees per company", y = "Proportion of companies") +
-  theme(text = element_text(size = 18))
-
-# ggsave(CompanyPropComps, file="~/Sync/PhD/Thesis2020/PopSimArticle/CompanySizes.pdf")
-
-# rm(Tablecode7602, Tablecode7602fixed, Tablecode7602probs, AllEmployers, OriginalAveEmpl, NewAveEmpl, FullCompData, CompanyPropComps, AveEmpCount)
-
-# Overcount contents
-EmpOvercount <- TownshipEmployment$Overcount
-
-# With no employees or employers
-Nope <- TownshipEmployment$NoEmps
 
 
 ####################################
@@ -676,21 +642,24 @@ Nope <- TownshipEmployment$NoEmps
 
 # how many employed in Township?
 table(Township$HoursWorked)
-#10000-4770 = 5230
-# therefore need employers that can employ at least 5230 employees
+#10000-4795 = 5205
+# therefore need employers that can employ at least 5205 employees
 # USES THE DATA OUTPUT FROM THE TOWNSHIPEMPLOYMENT EXAMPLE
 # TheCompanies <- TownshipEmployment$Companies
 #
 # A014 <- TheCompanies %>%
 #   filter(ANZSIC06 == "A014 Sheep, Beef Cattle and Grain Farming")
 
+#### use the output from the createemp example
+
 set.seed(2)
-EmployerSet <- TownshipEmployment$Companies %>%
-  slice_sample(weight_by = EmployeeCount, n = 225)
+EmployerSet <- TownshipEmployment %>%
+  slice_sample(weight_by = NumEmployees, n = 225) %>%
+  select(ANZSIC06, NumEmployees, Company)
 
-sum(EmployerSet$EmployeeCount)
+sum(EmployerSet$NumEmployees)
 
-save(EmployerSet, file = "data/EmployerSet.RData")
+save(EmployerSet, file = "data/EmployerSet.rda")
 
 
 
@@ -704,11 +673,11 @@ set.seed(2)
 Ppl4networks <- Township  %>%
   slice_sample(n = 5000)
 
-save(Ppl4networks, file="data/Ppl4networks.RData")
+save(Ppl4networks, file="data/Ppl4networks.rda")
 
 set.seed(2)
 NetworkMatrix <- as.vector(rpois(n = nrow(Ppl4networks), lambda = 4))
-save(NetworkMatrix, file="data/NetworkMatrix.RData")
+save(NetworkMatrix, file="data/NetworkMatrix.rda")
 
 # plot the igraph data
 # NEED THE SMALL EXAMPLE FROM THE PACKAGE TO DO THIS
