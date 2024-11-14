@@ -8,8 +8,7 @@
 
 library(dplyr)
 
-set.seed(1)
-EmployedPeople <- addemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
+EmployedPeople <- addemp(EmployerSet, empid = "Company", empcount = "NumEmployees", Township,
                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA", userseed = 4)
 
 
