@@ -151,7 +151,8 @@ rm(Ages)
 save(InitialDataframe, file = "data/InitialDataframe.rda")
 save(SingleAges, file = "data/SingleAges.rda")
 
-
+# usethis::use_data(InitialDataframe)
+# usethis::use_data(SingleAges)
 
 
 #####################################
