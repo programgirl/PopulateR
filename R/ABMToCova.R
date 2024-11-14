@@ -39,7 +39,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
            Age = !! AgeColName,
            HouseholdID = !! HouseholdIDcolName,
            PlaceTwo = !! PlaceTwocolName) %>%
-    select(ID, HouseholdID, PlaceTwo, IndCode, IndName, Age)
+    select(.data$ID, .data$HouseholdID, .data$PlaceTwo, .data$IndCode, .data$IndName, .data$Age)
 
 
   # TODO implement beta other than 1
