@@ -25,13 +25,13 @@ NULL
 #' table(WorkingAdolescents$HoursWorked, WorkingAdolescents$SchoolStatus)
 #'
 #' # one grouping variable
-#' Group1 <- "Sex"
+#' Group1 <- "Age"
 #' OneGroup <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus",
 #'                      pplhours = "HoursWorked", hoursmax = 3, grpdef = Group1, userseed = 4)
 #' table(OneGroup$HoursWorked, OneGroup$SchoolStatus)
 #'
 #' # two grouping variables
-#' Group2 <- c("Sex", "Relationship")
+#' Group2 <- c("Age", "Sex")
 #' TwoGroups <- fixhours(WorkingAdolescents, pplid = "ID", pplstat = "SchoolStatus",
 #'                       pplhours = "HoursWorked", hoursmax = 3, grpdef = Group2, userseed = 4)
 #' table(TwoGroups$HoursWorked, TwoGroups$SchoolStatus)
