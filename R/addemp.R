@@ -20,10 +20,11 @@
 #' @examples
 #' library("dplyr")
 #' set.seed(1)
-#' EmployedPeople <- pairemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
-#'                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA", userseed = 4)
+#' EmployedPeople <- addemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
+#'                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA",
+#'                           userseed = 4)
 
-pairemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, missval = NA, userseed = NULL) {
+addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, missval = NA, userseed = NULL) {
 
   # setup
 
