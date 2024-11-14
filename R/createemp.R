@@ -27,7 +27,7 @@ NULL
 #'
 #' TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
 #'                                 indsmax = "maxCo", pplmin = "minStaff", pplmax = "maxStaff",
-#'                                 stffname="Employees", cpyname="Employer", userseed = 4)
+#'                                 stffname="NumEmployees", cpyname="Company", userseed = 4)
 
 createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stffname=NULL, cpyname=NULL, userseed = NULL) {
 
