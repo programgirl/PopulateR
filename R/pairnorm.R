@@ -32,9 +32,9 @@
 #'
 #' # partners females and males, using a normal distribution, with the females
 #' being younger by a mean of -2 and a standard deviation of 3
-#' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
-#'                            userseed = 4, ptostop=.01)
+#' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall,
+#'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
+#'                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
 #' Couples1 <- OppSexCouples1$Matched
 #'
 #' different size dataframes
@@ -44,15 +44,16 @@
 #' PartneredMales <- Township %>%
 #'   filter(Sex == "Male", Relationship == "Partnered")
 #'
-#' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar="HouseholdID",
-#'                            userseed = 4, ptostop=.01)
+#' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales,
+#'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
+#'                            HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
 #' Couples2 <- OppSexCouples2$Matched
 #'
 #' # skew normal example, does not converge
-#' OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
-#'                            HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+#' OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall,
+#'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
+#'                            alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4,
+#'                            ptostop=.01)
 #' Couples3 <- OppSexCouples3$Matched
 
 
