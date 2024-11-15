@@ -27,7 +27,6 @@ NULL
 #'
 #' @examples
 #' library("dplyr")
-#' # with the 50% sample from Township
 #' # output as igraph
 #' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
