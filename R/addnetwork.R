@@ -6,7 +6,7 @@ NULL
 
 #' Create a social network
 #'
-#' This function creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one person's social network size from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
+#' Creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one person's social network size from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
 #'
 #' A normal distribution is used, using the age differences between the pairs. This is centred on 0, i.e. the people in the pair are the same age. If people B and C are in person A's network, the value of probsame is used to determine the likelihood that people B and C know each other. The larger this probability, the more likely that people in one person's network know each other, compared to random construction of a network between them.
 #'
@@ -40,8 +40,8 @@ NULL
 #'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#' # set.seed(4)
-#' SmallDemo <- Township %>%
+#'
+#'  SmallDemo <- Township %>%
 #'   slice_sample(n = 20)
 #'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
