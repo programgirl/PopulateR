@@ -133,26 +133,13 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   ############################################################################################
 
   h1 <- full_join(ABMPop, ABMPop, by = "HouseholdID", relationship = "many-to-many") %>%
-    rename(p1 = ID.x,
-           p2 = ID.y) %>%
-    select(p1, p2) %>%
-    filter(p1 != p2) %>%
-    group_by(grp = paste(pmax(p1, p2), pmin(p1, p2), sep = "_")) %>%
+    rename(p1 = .data$ID.x,
+           p2 = .data$ID.y) %>%
+    filter(.data$p1 != .data$p2) %>%
+    group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(-grp)
-
-#
-#   h0 <- ABMPop %>%
-#     select(ID) %>%
-#     filter(!ID %in% c(h1$p1, h1$p2)) %>%
-#     rename(p1 = ID) %>%
-#     mutate(p2=0)
-  #
-  #
-  # h <- bind_rows(h1, h0) %>%
-  #   mutate(beta = 1)
-
+    select(- .data$grp)
 
   h <- h1 %>%
     mutate(beta=1)
@@ -165,7 +152,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   ############################################################################################
 
   SchoolLayer <- ABMPop %>%
-    filter(IndCode %in% c("P801000", "P802100", "P802200"))
+    filter(.data$IndCode %in% c("P801000", "P802100", "P802200"))
 
   if(ECE == "N" & PSchool == "N" & SSchool == "N") {
 
@@ -181,19 +168,19 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
     # remove ECE
     if(ECE == "N") {
       SchoolLayer <- SchoolLayer %>%
-        filter(!IndCode == "P801000")
+        filter(! .data$IndCode == "P801000")
     }
 
     # remove primary schools
     if(PSchool == "N") {
       SchoolLayer <- SchoolLayer %>%
-        filter(!IndCode == "P802100")
+        filter(! .data$IndCode == "P802100")
     }
 
     # remove secondary schools
     if(SSchool == "N") {
       SchoolLayer <- SchoolLayer %>%
-        filter(!IndCode == "P802200")
+        filter(! .data$IndCode == "P802200")
       }
 
   }
@@ -203,14 +190,14 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
     Layer2 <- SchoolLayer
 
     s1 <- full_join(SchoolLayer, Layer2, by = "PlaceTwo", relationship = "many-to-many") %>%
-      filter(ID.x != ID.y) %>%
-      rename(p1 = ID.x,
-             p2 = ID.y) %>%
-    select(c(p1,p2))  %>%
-      group_by(grp = paste(pmax(p1, p2), pmin(p1, p2), sep = "_")) %>%
+      filter(.data$ID.x != .data$ID.y) %>%
+      rename(p1 = .data$ID.x,
+             p2 = .data$ID.y) %>%
+    select(c(.data$p1, .data$p2))  %>%
+      group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
-      select(-grp)
+      select(- .data$grp)
 
   }
 
@@ -219,9 +206,9 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   if(exists("s1")) {
 
     s2 <- ABMPop %>%
-      select(ID) %>%
-      filter(!ID %in% s1$p1) %>%
-      rename(p1=ID) %>%
+      select(.data$ID) %>%
+      filter(! .data$ID %in% s1$p1) %>%
+      # rename(p1= .data$ID) %>%
       mutate(p2=0)
 
    s <- bind_rows(s1,s2) %>%
@@ -230,8 +217,8 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   } else {
 
     s <- ABMPop %>%
-      select(ID) %>%
-      rename(p1=ID) %>%
+      select(.data$ID) %>%
+      rename(p1= .data$ID) %>%
       mutate(p2=0) %>%
       distinct() %>%
       mutate(beta = 1)
@@ -248,26 +235,17 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
     # if there are no industries to exclude, make all the contacts
 
   w1 <- ABMPop %>%
-    filter(!IndCode %in% c("P801000", "P802100", "P802200", "Not employed"))
+    filter(! .data$IndCode %in% c("P801000", "P802100", "P802200", "Not employed"))
 
   w2 <- full_join(w1, w1, by = "PlaceTwo", relationship = "many-to-many") %>%
-    filter(ID.x != ID.y) %>%
-    rename(p1 = ID.x,
-           p2 = ID.y) %>%
-    select(p1, p2) %>%
-    group_by(grp = paste(pmax(p1, p2), pmin(p1, p2), sep = "_")) %>%
+    filter(.data$ID.x != .data$ID.y) %>%
+    rename(p1 = .data$ID.x,
+           p2 = .data$ID.y) %>%
+    select(.data$p1, .data$p2) %>%
+    group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(-grp)
-
-  # w3 <- ABMPop %>%
-  #   select(ID) %>%
-  #   filter(!ID %in% w2$p1) %>%
-  #   rename(p1 = ID) %>%
-  #   mutate(p2 = 0)
-  #
-  # w <- bind_rows(w2, w3) %>%
-  #   mutate(beta = 1)
+    select(- .data$grp)
 
   w <- w2 %>%
     mutate(beta=1)
@@ -278,27 +256,18 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
     # there are industries to exclude, remove them from the population
 
     w1 <- ABMPop %>%
-      filter(!IndCode %in% c("P801000", "P802100", "P802200", "Not employed")) %>%
-      filter(!IndCode %in% excludeDF[,1])
+      filter(! .data$IndCode %in% c("P801000", "P802100", "P802200", "Not employed")) %>%
+      filter(! .data$IndCode %in% excludeDF[,1])
 
     w2 <- full_join(w1, w1, by = "PlaceTwo", relationship = "many-to-many") %>%
-      filter(ID.x != ID.y) %>%
-      rename(p1 = ID.x,
-             p2 = ID.y) %>%
-      select(p1, p2) %>%
-      group_by(grp = paste(pmax(p1, p2), pmin(p1, p2), sep = "_")) %>%
+      filter(.data$ID.x != .data$ID.y) %>%
+      rename(p1 = .data$ID.x,
+             p2 = .data$ID.y) %>%
+      select(.data$p1, .data$p2) %>%
+      group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
-      select(-grp)
-    #
-    # w3 <- ABMPop %>%
-    #   select(ID) %>%
-    #   filter(!ID %in% w2$p1) %>%
-    #   rename(p1 = ID) %>%
-    #   mutate(p2 = 0)
-    #
-    # w <- bind_rows(w2, w3) %>%
-    #   mutate(beta = 1)
+      select(- .data$grp)
 
     w <- w2 %>%
       mutate(beta = 1)
@@ -312,22 +281,8 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   ############################################################################################
 
   c1 <- contacts %>%
-    rename(p1 = from,
-           p2 = to)
-  #
-  # c2 <- contacts %>%
-  #   rename(p1 = to,
-  #          p2 = from)
-  #
-  # c3 <- ABMPop %>%
-  #   select(ID) %>%
-  #   filter(!ID %in% c(c1$p1, c1$p2)) %>%
-  #   rename(p1 = ID) %>%
-  #   mutate(p2 = 0)
-#
-#   c <- bind_rows(c1, c2, c3) %>%
-#     mutate(beta = 1)
-#
+    rename(p1 = .data$from,
+           p2 = .data$to)
 
   c <- c1 %>%
     mutate(beta=1)
@@ -338,8 +293,8 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   ############################################################################################
 
   age <- ABMPop %>%
-    arrange(ID) %>%
-    select(Age)
+    arrange(.data$ID) %>%
+    select(.data$Age)
 
 
 
