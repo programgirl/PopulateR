@@ -1,4 +1,5 @@
-#' Create many-to-one pairs, when one data frame contains a household identifier.
+#' Create many-to-one pairs, when one data frame contains a household identifier
+#'
 #' This function creates a data frame of many-to-one pairs, based on a distribution of age differences. Designed to match multiple children to the same parent, the function can be used for any situation where a many-to-one match is required based on a range of age differences. For clarity and brevity, the terms "children" and "parents" will be used.
 #' Two data frames are required: one for children and one for potential parents. The data frame of potential parents must contain household identifiers
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the parents data frame is not required.
