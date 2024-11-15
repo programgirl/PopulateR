@@ -1,4 +1,11 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr bind_cols bind_rows filter mutate rename slice_sample
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data sym !!
+NULL
+
 #' Create a data frame of people with employers added
+#'
 #'
 #' This function creates a data frame of people and matching employers, if employed. Two data frames are required: one for the people and one for the employers.
 #' A numeric or ordered factor for working hours is required. The minimum value for being in employment must be specified. Anyone coded under this value will be treated as unemployed. Thus, pre-cleaning the people data frame is not required.
