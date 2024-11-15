@@ -88,7 +88,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   WorkingDataFrame <- people %>%
     rename(ID = !! pplid,
            Age = !! pplage) %>%
-    select(ID, Age)
+    select("ID", "Age")
 
   # check that we don't end up with one person needing a match and none to spare
 
