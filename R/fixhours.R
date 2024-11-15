@@ -81,8 +81,8 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     rename(InSchool= !! pplstat,
            IntHours = !! pplhours,
            IntID = !! pplid) %>%
-    mutate(IntHours = as.integer(IntHours),
-           InSchool = as.integer(InSchool))
+    mutate(IntHours = as.integer(.data$IntHours),
+           InSchool = as.integer(.data$InSchool))
 
   # get the min and max values for the InSchool variable
 
@@ -112,6 +112,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     set.seed(userseed)
   }
 
+  WorkingDF <- data.frame()
 
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
@@ -127,7 +128,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
     # get the number in each status in the variable of interest
     NumInEachStatus <- CurrentGroup %>%
-      group_by(InSchool) %>%
+      group_by(.data$InSchool) %>%
       summarise(NumPerLevel = n())
 
     #need to skip the bit below if there is ONLY the "not in school" status
@@ -146,10 +147,10 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
       CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef))
 
         HoursTooHigh <- CurrentGroup %>%
-          filter(IntHours > hoursmax & InSchool == maxInSchool)
+          filter(.data$IntHours > hoursmax & .data$InSchool == maxInSchool)
 
         HoursCanSub <- CurrentGroup %>%
-          filter(IntHours <= hoursmax & InSchool == minInSchool)
+          filter(.data$IntHours <= hoursmax & .data$InSchool == minInSchool)
 
         # cat("HoursTooHigh has", nrow(HoursTooHigh), "and HoursCanSub has", nrow(HoursCanSub), "rows", "\n")
 
@@ -175,17 +176,17 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
           # literally swap the hours worked in HoursTooHigh and HoursCanSub by row
 
           HoursTooHighStatus <- HoursTooHigh %>%
-            select(IntHours)
+            select("IntHours")
 
           HoursCanSubFixed <- HoursCanSub %>%
-            select(-IntHours) %>%
+            select(- "IntHours") %>%
             bind_cols(HoursTooHighStatus)
 
           HoursCanSubStatus <- HoursCanSub %>%
-            select(IntHours)
+            select("IntHours")
 
           HoursTooHighFixed <- HoursTooHigh %>%
-            select(-IntHours) %>%
+            select(- "IntHours") %>%
             bind_cols(HoursCanSubStatus)
 
           Fixed <- bind_rows(HoursCanSubFixed, HoursTooHighFixed)
@@ -193,7 +194,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
             # get the people in the group that weren't amended
 
             UnAmended <- CurrentGroup %>%
-              filter(!(IntID %in% c(Fixed$IntID)))
+              filter(!(.data$IntID %in% c(Fixed$IntID)))
 
               # this needs to be a file that takes all the groups
 
@@ -232,7 +233,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
   # add in people who are omitted from the fix cycle
 
   missingPeople <- peopleRenamed %>%
-    filter(!IntID %in% c(OutputDataFrame$IntID))
+    filter(! .data$IntID %in% c(OutputDataFrame$IntID))
 
   missingPeopleRowCount <- nrow(missingPeople)
 
@@ -251,7 +252,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     InSchoolLabels <- levels(people[[pplstat]])
 
     OutputDataFrame <- OutputDataFrame %>%
-      mutate(InSchool= factor(InSchool, labels = c(InSchoolLabels), ordered = TRUE))
+      mutate(InSchool= factor(.data$InSchool, labels = c(InSchoolLabels), ordered = TRUE))
 
     #close factor test for school variable
   }
@@ -263,7 +264,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     HoursLabels <- levels(people[[pplhours]])
 
     OutputDataFrame <- OutputDataFrame %>%
-      mutate(IntHours = factor(IntHours,
+      mutate(IntHours = factor(.data$IntHours,
                                levels = c(1:length(HoursLabels)),
                                labels = c(HoursLabels), ordered = TRUE))
 
@@ -272,9 +273,9 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
 
   OutputDataFrame <- OutputDataFrame %>%
-    rename(!!StatusColName := InSchool,
-           !!IDColName := IntID,
-           !!HoursColName := IntHours)
+    rename(!!StatusColName := "InSchool",
+           !!IDColName := "IntID",
+           !!HoursColName := "IntHours")
 
 
   return(OutputDataFrame)
