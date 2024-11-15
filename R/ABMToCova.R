@@ -1,5 +1,5 @@
 #' @importFrom data.table :=
-#' @importFrom dplyr distinct filter full_join group_by mutate rename select slice ungroup
+#' @importFrom dplyr arrange bind_rows distinct filter full_join group_by mutate rename select slice ungroup
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data sym !!
 NULL
