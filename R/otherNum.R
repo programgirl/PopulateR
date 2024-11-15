@@ -7,6 +7,7 @@
 NULL
 
 #' Create a match of people into existing households
+#'
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
 #' Two data frames are required. The 'existing' data frame contains the people already in households. The 'additions' data frame contains the people. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
 #' The output data frame of matches will only contain households of the required size.
