@@ -19,8 +19,8 @@ NULL
 #' @return A data frame of people sampled according to the age sample sizes required.
 #'
 #' @examples
-#' SampleNeeded <- data.frame(Age = c(16, 17, 18, 19, 20),
-#'                            NumNeeded = c(5, 10, 15, 10, 5))
+#' SampleNeeded <- data.frame(Age = c(16, 17, 18),
+#'                            NumNeeded = c(5, 10, 15))
 #' SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded,
 #'                                  smplage = "Age", smplcounts = "NumNeeded", userseed = 4)
 #'
@@ -51,7 +51,7 @@ diffsample <- function(people, pplage, sampledf, smplage, smplcounts, userseed =
     currentSampleSize <- as.numeric(currentAgeRow$NumToSample)
 
     currentSample <- peopleRenamed %>%
-      filter(AgeVar == currentAge)
+      filter(.data$AgeVar == currentAge)
 
     if(currentSampleSize > nrow(currentSample)) {
 
@@ -81,7 +81,7 @@ diffsample <- function(people, pplage, sampledf, smplage, smplcounts, userseed =
 
   # create output dataframe and output
   OutputDataFrame <- FinalDF %>%
-    rename(!!AgeColName := AgeVar)
+    rename(!!AgeColName := "AgeVar")
 
 
   return(OutputDataFrame)
