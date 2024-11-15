@@ -19,8 +19,7 @@
 #'
 #' @examples
 #' library("dplyr")
-#' set.seed(1)
-#' EmployedPeople <- addemp(EmployerSet, empid = "CompanyName", empcount = "EmployeeCount", Township,
+#' EmployedPeople <- addemp(EmployerSet, empid = "Company", empcount = "NumEmployees", Township,
 #'                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA",
 #'                           userseed = 4)
 
@@ -41,7 +40,7 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
 
   # expand the employer data frame to one row per employee
 
-  employersRenamed <- tidyr::uncount(employersRenamed, NumStaff)
+  employersRenamed <- tidyr::uncount(employersRenamed, .data$NumStaff)
 
    workersRenamed <- people %>%
     rename(IntHours = !! wrkhrs,
@@ -56,12 +55,12 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
    workersWorking <- people %>%
      rename(IntHours = !! wrkhrs,
             workersid = !! pplid) %>%
-     filter(as.integer(IntHours) >= hoursmin)
+     filter(as.integer(.data$IntHours) >= hoursmin)
 
    workersUnemployed <- people %>%
      rename(IntHours = !! wrkhrs,
             workersid = !! pplid) %>%
-     filter(!(workersid %in% c(workersWorking$workersid)))
+     filter(!(.data$workersid %in% c(workersWorking$workersid)))
 
    # check if wrkhrs is an ordered factor or numeric
    # fix the 0 employer id for unemployed
@@ -88,7 +87,7 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
   if (nrow(employersRenamed) < nrow(workersWorking)) {
 
     stop("The number of employed people in the people data frame exceeds the number of staff in the employer population by",
-         nrow(employersRenamed) - nrow(workingsWorking), "people \n")
+         nrow(employersRenamed) - nrow(workersWorking), "people \n")
 
   }
 
@@ -114,16 +113,16 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
      HoursLabels <- levels(people[,wrkhrs])
 
      OutputDataframe <- OutputDataframe %>%
-       mutate(IntHours = factor(IntHours, labels = c(HoursLabels), ordered =  TRUE))
+       mutate(IntHours = factor(.data$IntHours, labels = c(HoursLabels), ordered =  TRUE))
 
      #close factor test for hours worked variable
    }
 
 
    OutputDataframe <- OutputDataframe %>%
-     rename(!!pplidcolName := workersid,
-            !!wrkhrscolName := IntHours,
-            !!empidcolName := EmployerID)
+     rename(!!pplidcolName := "workersid",
+            !!wrkhrscolName := "IntHours",
+            !!empidcolName := "EmployerID")
 
 
 
