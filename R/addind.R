@@ -98,19 +98,19 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
                                      rename(IntSex = !! pplsx,
                                             IntAge = !!pplage,
                                             IntID = !!pplid) %>%
-                                     mutate(IntSex = as.character(IntSex),
-                                            IntAge = as.integer(IntAge)))
+                                     mutate(IntSex = as.character(.data$IntSex),
+                                            IntAge = as.integer(.data$IntAge)))
 
   # cat("PeopleDataframe generated", "\n")
 
   Schooling <- as.data.frame(leavers %>%
                                rename(IntSex = !! lvrsx, IntAge = !! lvrage,
                                       Year = !! lvryear, NumLeftSchool = !! lvrcount) %>%
-                               mutate(IntSex = as.character(IntSex),
-                                      IntAge = as.integer(IntAge),
-                                      Year = as.integer(Year),
-                                      NumLeftSchool = as.integer(NumLeftSchool)) %>%
-                               select(IntSex, IntAge, Year, NumLeftSchool))
+                               mutate(IntSex = as.character(.data$IntSex),
+                                      IntAge = as.integer(.data$IntAge),
+                                      Year = as.integer(.data$Year),
+                                      NumLeftSchool = as.integer(.data$NumLeftSchool)) %>%
+                               select("IntSex", "IntAge", "Year", "NumLeftSchool"))
 
   # cat("Schooling dataframe generated", "\n")
 
@@ -118,9 +118,9 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   AgePyramid <- as.data.frame(pyramid %>%
                                 rename(IntSex = !! pyrsx, IntAge = !! pyrage,
                                        AllPeople = !! pyrcount) %>%
-                                mutate(IntSex = as.character(IntSex),
-                                       IntAge = as.integer(IntAge)) %>%
-                                select(IntSex, IntAge, AllPeople))
+                                mutate(IntSex = as.character(.data$IntSex),
+                                       IntAge = as.integer(.data$IntAge)) %>%
+                                select("IntSex", "IntAge", "AllPeople"))
 
   # print(str(AgePyramid))
 
@@ -143,19 +143,19 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   #####################################
 
   PeopleSexCodes <- PeopleDataframe %>%
-    select(IntSex) %>%
-    distinct(IntSex) %>%
-    arrange(IntSex)
+    select("IntSex") %>%
+    distinct(.data$IntSex) %>%
+    arrange(.data$IntSex)
 
   SchoolingSexCodes <- Schooling %>%
-    select(IntSex) %>%
-    distinct(IntSex) %>%
-    arrange(IntSex)
+    select("IntSex") %>%
+    distinct(.data$IntSex) %>%
+    arrange(.data$IntSex)
 
   PyramidSexCodes <- AgePyramid %>%
-    select(IntSex) %>%
-    distinct(IntSex) %>%
-    arrange(IntSex)
+    select("IntSex") %>%
+    distinct(.data$IntSex) %>%
+    arrange(.data$IntSex)
 
 
   if (isFALSE(identical(PeopleSexCodes, PyramidSexCodes))) {
@@ -178,9 +178,9 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   #####################################
 
   DuplicateTesting <- Schooling %>%
-    group_by(Year, IntSex, IntAge) %>%
+    group_by(.data$Year, .data$IntSex, .data$IntAge) %>%
     summarise(Duplicates = n()) %>%
-    filter(Duplicates > 1)
+    filter(.data$Duplicates > 1)
 
 
   if (!(is.na(DuplicateTesting$Year[1])) == TRUE) {
@@ -195,12 +195,12 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   #####################################
 
   Schooling <- Schooling %>%
-    filter(Year <= pplyear) %>%
-    mutate(Deduction = pplyear - Year,
-           CurrentAge = IntAge + Deduction) %>%
-    group_by(IntSex, CurrentAge) %>%
-    summarise(TotalLeaverCount = sum(NumLeftSchool)) %>%
-    filter(CurrentAge <= maxedage)
+    filter(.data$Year <= pplyear) %>%
+    mutate(Deduction = pplyear - .data$Year,
+           CurrentAge = .data$IntAge + .data$Deduction) %>%
+    group_by(.data$IntSex, .data$CurrentAge) %>%
+    summarise(TotalLeaverCount = sum(.data$NumLeftSchool)) %>%
+    filter(.data$CurrentAge <= maxedage)
 
   ####################################
   ####################################
@@ -209,11 +209,11 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   ####################################
   CombinedData <- Schooling %>%
     left_join(AgePyramid, by = c("IntSex", "CurrentAge" =  "IntAge")) %>%
-    mutate(PropLeft = TotalLeaverCount / AllPeople,
-           PropLeft = ifelse(PropLeft > 1, 1, PropLeft)) %>%
-    filter(!(is.na(PropLeft))) %>%
-    rename(IntAge = CurrentAge) %>%
-    select(-(c(TotalLeaverCount, AllPeople)))
+    mutate(PropLeft = .data$TotalLeaverCount / .data$AllPeople,
+           PropLeft = ifelse(.data$PropLeft > 1, 1, .data$PropLeft)) %>%
+    filter(!(is.na(.data$PropLeft))) %>%
+    rename(IntAge = .data$CurrentAge) %>%
+    select(-(c("TotalLeaverCount", "AllPeople")))
 
   # remove any NAs as these will cause problems with the maths
   CombinedData <- CombinedData %>%
@@ -222,7 +222,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
 
   # create data frame that is not amended as the function works through the ages for the school indicator
   potEducationDataframe <- PeopleDataframe %>%
-    filter(between(IntAge, minedage, maxedage))
+    filter(between(.data$IntAge, minedage, maxedage))
   ####################################
   ####################################
 
@@ -248,8 +248,8 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
     }
 
     workingSubset <- potEducationDataframe %>%
-      filter(IntAge == currentAge) %>%
-      filter(IntSex == currentSex)
+      filter(.data$IntAge == currentAge) %>%
+      filter(.data$IntSex == currentSex)
 
     expectedCount <- round(nrow(workingSubset)*currentProp)
 
@@ -279,27 +279,27 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
 
 
   kidsAllInSchool <- PeopleDataframe %>%
-    filter(between(IntAge, minedage, maxedage),
-           !IntAge %in% CombinedData$IntAge,
-           !IntID %in% internalDFinSchool$IntID) %>%
+    filter(between(.data$IntAge, minedage, maxedage),
+           ! .data$IntAge %in% CombinedData$IntAge,
+           ! .data$IntID %in% internalDFinSchool$IntID) %>%
     mutate(Status = "Y")
 
   kidsNotInSchoolInAges <- PeopleDataframe %>%
-    filter(between(IntAge, minedage, maxedage),
-           IntAge %in% CombinedData$IntAge,
-           !IntID %in% internalDFinSchool$IntID) %>%
+    filter(between(.data$IntAge, minedage, maxedage),
+           .data$IntAge %in% CombinedData$IntAge,
+           ! .data$IntID %in% internalDFinSchool$IntID) %>%
     mutate(Status = "N")
 
   internalPplNotInSchool <- PeopleDataframe %>%
-    filter(!(between(IntAge, minedage, maxedage))) %>%
+    filter(!(between(.data$IntAge, minedage, maxedage))) %>%
     mutate(Status = "N")
 
   CompleteDF <- bind_rows(internalDFinSchool, kidsAllInSchool, kidsNotInSchoolInAges, internalPplNotInSchool) %>%
-    mutate(Status = factor(Status, levels = c("N", "Y"))) %>%
-    rename(!!stvarname := Status,
-           !!PeopleIDColName := IntID,
-           !!PeopleSexColName := IntSex,
-           !!PeopleAgeColName := IntAge)
+    mutate(Status = factor(.data$Status, levels = c("N", "Y"))) %>%
+    rename(!!stvarname := "Status",
+           !!PeopleIDColName := "IntID",
+           !!PeopleSexColName := "IntSex",
+           !!PeopleAgeColName := "IntAge")
 
   ReportedProps <- CompleteDF %>%
     filter(between(!!PeopleAgeColName, min(AgePyramid$IntAge), max(AgePyramid$IntAge))) %>%
