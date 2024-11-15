@@ -1,4 +1,5 @@
 #' Construct pairs of people, when one data frame contains a household identifier.
+#'
 #' This function creates a data frame of pairs, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("locationP") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
 #' The household identifier variable can exist in either data frame. The function will apply the relevant household identifier once each pair is constructed.
