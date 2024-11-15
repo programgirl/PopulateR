@@ -129,28 +129,29 @@
 #' @source Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
 "LeftSchool"
 
-#' #' The number of contacts for each person
-#' #'
-#' #' @description
-#' #' A matrix of 5,000 integers constricted using a Poisson distribution. Each value is the number of contacts for a person.
-#' #'
-#' #' @format A list of 5,000 integers
-#' "NetworkMatrix"
+#' The number of contacts for 5000 person
 #'
-#' #' Synthetic people living in the Timaru District
-#' #'
-#' #' @description
-#' #' 5000 synthetic people produced from combining aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
-#' #'
-#' #' @format A data frame with 5,000 rows and 5 variables
-#' #' \describe{
-#' #'     \item{Sex}{Sex of the person}
-#' #'     \item{Relationship}{Relationship status of the person}
-#' #'     \item{ID}{The unique identifier for the person}
-#' #'     \item{Age}{The age of the person}
-#' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#' #' }
-#' "Ppl4networks"
+#' @description
+#' A matrix of 5,000 integers constricted using a Poisson distribution. Each value is the number of contacts for a person.
+#'
+#' @format A list of 5,000 integers
+"NetworkMatrix"
+
+#' Synthetic people living in the Timaru District
+#'
+#' @description
+#' 5000 synthetic people.
+#'
+#' @format A data frame with 5,000 rows and 5 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#' }
+#' @source Timaru District 2018 census data (tablecodes 8277, 8395, and 8460), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+"Ppl4networks"
 
 #' Sex/Age pyramid for teenagers in the Canterbury Region
 #'
@@ -164,7 +165,7 @@
 #'     \item{Value}{The count of adolescents}
 #'     \item{Age}{The age relating to that count}
 #' }
-#' @source Canterbury region 2018 census dataset (tablecode 8277), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @source Canterbury region 2018 census data (tablecode 8277), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 "RegionalStructure"
 
 #' #' Schools and their roll counts
