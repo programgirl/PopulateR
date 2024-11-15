@@ -6,6 +6,7 @@
 NULL
 
 #' Provides an age structure to relationship status, when a relationship status has been previously defined using age groups rather than ages.
+#'
 #' Redistributes a user-defined relationship status value between ages, using age groups and other variables (if specified). Within the group definition provided, the marginal totals of the relationship status values are retained.
 #' The data frame can include groups where all people have the same relationship status. In this situation, there is no need to restrict the data frame to only those whose relationship status must be redistributed.
 #' @export
@@ -146,7 +147,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
   # get the number in each status in the variable of interest
     NumInEachStatus <- CurrentGroup %>%
-      group_by(StatusID) %>%
+      group_by(.data$StatusID) %>%
       summarise(NumPerLevel = n())
 
     # cat("The number of people in each relationship status is ", "\n")
@@ -165,8 +166,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
    # extract the number of people in the status that needs fixing
     NumToFix <- pull(NumInEachStatus %>%
-      filter(StatusID == stfixval) %>%
-      select(NumPerLevel))
+      filter(.data$StatusID == stfixval) %>%
+      select("NumPerLevel"))
     }
 
     if(length(NumToFix) == 0 & is.integer(NumToFix)) {
@@ -211,8 +212,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     # str(InitialCounts)
 
     StatOnlyCounts <- CurrentGroup %>%
-      group_by(!!AgeColName, StatusID) %>%
-      filter(StatusID == stfixval) %>%
+      group_by(!!AgeColName, .data$StatusID) %>%
+      filter(.data$StatusID == stfixval) %>%
       summarise(NuminDesStatus = n())
 
     # cat("StatusID is", StatOnlyCounts$StatusID, "\n")
@@ -238,19 +239,19 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       # str(InitialCounts)
 
      suppressMessages(CountComp <- left_join(RelevantProps, InitialCounts) %>%
-        mutate(TotalinStatus = ifelse(is.na(TotalinStatus), 0, TotalinStatus),
-               ExpectedCount = round(TotalinStatus * !!PropscolName, 0),
-               StatusID = replace(StatusID, is.na(StatusID), !!quo_name(stfixval)),
-              NuminDesStatus = ifelse(is.na(NuminDesStatus), 0, NuminDesStatus)))
+        mutate(TotalinStatus = ifelse(is.na(.data$TotalinStatus), 0, .data$TotalinStatus),
+               ExpectedCount = round(.data$TotalinStatus * !!PropscolName, 0),
+               StatusID = replace(.data$StatusID, is.na(.data$StatusID), !!{{stfixval}}),
+              NuminDesStatus = ifelse(is.na(.data$NuminDesStatus), 0, .data$NuminDesStatus)))
 
 
     } else {
 
       suppressMessages(CountComp <- left_join(RelevantProps, InitialCounts) %>%
-        mutate(TotalinStatus = ifelse(is.na(TotalinStatus), 0, TotalinStatus),
-               ExpectedCount = round(TotalinStatus * !!PropscolName, 0),
-               StatusID = ifelse(is.na(StatusID), NeededRelLevel, StatusID),
-               NuminDesStatus = ifelse(is.na(NuminDesStatus), 0, NuminDesStatus)))
+        mutate(TotalinStatus = ifelse(is.na(.data$TotalinStatus), 0, .data$TotalinStatus),
+               ExpectedCount = round(.data$TotalinStatus * !!PropscolName, 0),
+               StatusID = ifelse(is.na(.data$StatusID), NeededRelLevel, .data$StatusID),
+               NuminDesStatus = ifelse(is.na(.data$NuminDesStatus), 0, .data$NuminDesStatus)))
 
     }
 
@@ -275,9 +276,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     TheMultiplier <- ActualCounts/CalculatedCounts
 
     suppressMessages(CountComp <- CountComp %>%
-      mutate(OldExpected = round(TotalinStatus * !!PropscolName, 0),
-             ExpectedCount = floor(TotalinStatus * !!PropscolName * TheMultiplier),
-             Remainder = (TotalinStatus * !!PropscolName * TheMultiplier) %% 1))
+      mutate(OldExpected = round(.data$TotalinStatus * !!PropscolName, 0),
+             ExpectedCount = floor(.data$TotalinStatus * !!PropscolName * TheMultiplier),
+             Remainder = (.data$TotalinStatus * !!PropscolName * TheMultiplier) %% 1))
 
     CountsDiff <- sum(CountComp$NuminDesStatus) - sum(CountComp$ExpectedCount)
 
@@ -285,7 +286,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
    #  https://stackoverflow.com/a/3956184/1030648
 
     CountComp <- CountComp %>%
-      arrange(desc(Remainder))
+      arrange(desc(.data$Remainder))
 
 
     # add 1 to the counts for n == CountsDiff
@@ -321,7 +322,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     ###########################
 
     CountComp <- CountComp %>%
-      mutate(DiffsNeeded = ExpectedCount - NuminDesStatus)
+      mutate(DiffsNeeded = .data$ExpectedCount - .data$NuminDesStatus)
 
     ##########################################################################
     # ONLY HERE TO PRODUCE TABLE FOR DISSERTATION
@@ -332,14 +333,14 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
 
     UndersCount <- CountComp %>%
-      filter(DiffsNeeded < 0) %>%
+      filter(.data$DiffsNeeded < 0) %>%
       summarise(Rows = n()) %>%
-      pull(Rows)
+      pull(.data$Rows)
 
     OversCount <- CountComp %>%
-      filter(DiffsNeeded > 0) %>%
+      filter(.data$DiffsNeeded > 0) %>%
       summarise(Rows = n()) %>%
-      pull(Rows)
+      pull(.data$Rows)
 
 
 
@@ -357,7 +358,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     if(CheckNoZeros > 0 & !(UndersCount == 0) & !(OversCount == 0)) {
 
     CountUnders <- CountComp %>%
-      filter(DiffsNeeded < 0)
+      filter(.data$DiffsNeeded < 0)
 
     # cat("CountComp is", "\n")
     # str(CountComp)
@@ -376,9 +377,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       # str(CurrentGroup)
 
       suppressMessages(CurrentSample <- left_join(CurrentTooMany, CurrentGroup, by = c(matchdef)) %>%
-                         filter(StatusID.y == !!quo_name(stfixval))  %>%
-                         rename(StatusID = StatusID.x) %>%
-                         select(-StatusID.y) #%>%
+                         filter(.data$StatusID.y == !!{{stfixval}})  %>%
+                         rename(StatusID = "StatusID.x") %>%
+                         select(-"StatusID.y") #%>%
                        #  slice_sample(n = abs(CurrentTooMany$DiffsNeeded), replace = FALSE)
       )
 
@@ -410,7 +411,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
       # delete the already sampled people
       CurrentGroup <- CurrentGroup %>%
-        filter(!(PersonID %in% c(UnderSample$PersonID)))
+        filter(!(.data$PersonID %in% c(UnderSample$PersonID)))
 
 
     # closes  for(j in 1:nrow(CountUnders))
@@ -421,7 +422,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
 
     CountOvers <- CountComp %>%
-      filter(DiffsNeeded  > 0)
+      filter(.data$DiffsNeeded  > 0)
 
 
     for(k in 1:nrow(CountOvers)) {
@@ -431,9 +432,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       # cat("Current too few is", CurrentTooFew$DiffsNeeded, "\n")
 
       suppressMessages(CurrentSample <- left_join(CurrentTooFew, CurrentGroup, by = c(matchdef)) %>%
-        filter(!StatusID.y == !!quo_name(stfixval)) %>%
-        mutate(StatusID = StatusID.y) %>%
-        select(-c(StatusID.x, StatusID.y)) # %>%
+        filter(! .data$StatusID.y == !!{{stfixval}}) %>%
+        mutate(StatusID = .data$StatusID.y) %>%
+        select(-c("StatusID.x", "StatusID.y")) # %>%
         # slice_sample(n = abs(CurrentTooFew$DiffsNeeded))
         )
 
@@ -474,7 +475,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
       # delete the already sampled people
       CurrentGroup <- CurrentGroup %>%
-        filter(!(PersonID %in% c(OverSample$PersonID)))
+        filter(!(.data$PersonID %in% c(OverSample$PersonID)))
 
       # cat("Oversample is ", nrow(OverSample), "\n")
 
@@ -538,14 +539,14 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
 
     Fixed <- bind_rows(OverSampleFixed, UnderSampleFixed) %>%
-      select(-(c(NuminDesStatus, ExpectedCount, DiffsNeeded))) %>%
+      select(-(c("NuminDesStatus", "ExpectedCount", "DiffsNeeded"))) %>%
       rename_all(list(~gsub("\\.y$", "", .)))
 
 
   # add them to the others that haven't been amended
 
     UnAmended <- CurrentGroup %>%
-      filter(!(PersonID %in% c(Fixed$PersonID)))
+      filter(!(.data$PersonID %in% c(Fixed$PersonID)))
 
 
     # cat("The number fixed is", nrow(Fixed), "and the number unamended is", nrow(UnAmended), "\n")
@@ -615,11 +616,11 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
   # add all these people back in
 
   MissingPeople <- peopleRenamed %>%
-    filter((!(PersonID %in% c(GroupFixed$PersonID))))
+    filter((!(.data$PersonID %in% c(GroupFixed$PersonID))))
 
 
   FinalDF <- bind_rows(GroupFixed, MissingPeople) %>%
-    arrange(PersonID)
+    arrange(.data$PersonID)
 
 
   # fix the col names and remove the extra rows
@@ -636,10 +637,10 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
 
     OutputDataFrame <- FinalDF %>%
-      select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
+      select(-c("TotalinStatus", {{PropscolName}}, "OldExpected", "Remainder",
                 contains(c(".y", ".x")))) %>%
-      rename(!!StatuscolName := StatusID,
-             !!IDColName := PersonID)
+      rename(!!StatuscolName := "StatusID",
+             !!IDColName := "PersonID")
 
 
   for(m in 1:length(grpdef)) {
@@ -672,10 +673,10 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     } else {
 
   OutputDataFrame <- FinalDF %>%
-    select(-c(TotalinStatus, {{PropscolName}}, TotalinStatus, OldExpected, Remainder,
+    select(-c("TotalinStatus", {{PropscolName}}, "OldExpected", "Remainder",
               contains(c(".y", ".x")))) %>%
-    rename(!!StatuscolName := StatusID,
-           !!IDColName := PersonID)
+    rename(!!StatuscolName := "StatusID",
+           !!IDColName := "PersonID")
 
 
   # closes else to factor test
