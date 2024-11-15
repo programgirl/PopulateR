@@ -113,21 +113,22 @@
 #' #'     \item{SexCode}{Sex, (F)emale or (M)ale}
 #' #' }
 #' "IntoSchools"
+
+#' School leavers
 #'
-#' #' School leavers
-#' #'
-#' #' @description
-#' #' School leavers in the Canterbury Region, counts by age and sex, for the period 2009 to 2018, sourced from the Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
-#' #'
-#' #' @format A data frame with 120 rows and 4 variables
-#' #' \describe{
-#' #'     \item{YearLeft}{The year for the school leaver count}
-#' #'     \item{Sex}{The sex for the school leaver count}
-#' #'     \item{Age}{The age for the school leaver count}
-#' #'     \item{Total}{The count of adolescents who left school in that year, of that age and sex}
-#' #' }
-#' "LeftSchool"
+#' @description
+#' School leavers in the Canterbury Region, counts by age and sex, for the period 2009 to 2018.
 #'
+#' @format A data frame with 120 rows and 4 variables
+#' \describe{
+#'     \item{YearLeft}{The year for the school leaver count}
+#'     \item{Sex}{The sex for the school leaver count}
+#'     \item{Age}{The age for the school leaver count}
+#'     \item{Total}{The count of adolescents who left school in that year, of that age and sex}
+#' }
+#' @source Ministry of Education. The Ministry of Education's data are licensed by the Ministry of Education for reuse under the Creative Commons Attribution 4.0 International licence.
+"LeftSchool"
+
 #' #' The number of contacts for each person
 #' #'
 #' #' @description
@@ -150,21 +151,22 @@
 #' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #' #' }
 #' "Ppl4networks"
+
+#' Sex/Age pyramid for teenagers in the Canterbury Region
 #'
-#' #' Sex/Age pyramid for the Canterbury Region
-#' #'
-#' #' @description
-#' #' The number of people, by age and sex, living in the Canterbury region, restricted to ages 13 to 19 years. The data was produced by combining aggregate Canterbury region 2018 census datasets, using tablecode 8277, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
-#' #'
-#' #' @format A data frame with 14 observations and 4 variables
-#' #' \describe{
-#' #'     \item{Sex}{The sex relating to the count}
-#' #'     \item{Age group}{String variable of age plus the text " years"}
-#' #'     \item{Value}{The count of adolescents}
-#' #'     \item{Age}{The age relating to that count}
-#' #' }
-#' "RegionalStructure"
+#' @description
+#' The number of people, by age and sex, living in the Canterbury region, restricted to ages 13 to 19 years.
 #'
+#' @format A data frame with 14 observations and 4 variables
+#' \describe{
+#'     \item{Sex}{The sex relating to the count}
+#'     \item{Age.group}{String variable of age plus the text " years"}
+#'     \item{Value}{The count of adolescents}
+#'     \item{Age}{The age relating to that count}
+#' }
+#' @source Canterbury region 2018 census dataset (tablecode 8277), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+"RegionalStructure"
+
 #' #' Schools and their roll counts
 #' #'
 #' #' @description
