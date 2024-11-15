@@ -1,4 +1,5 @@
 #' Pairs people from smalldf with people from largedf, creating couples in households.
+#'
 #' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
 #' Both data frames must be restricted to only those people that will have a couples match performed.
@@ -23,22 +24,21 @@
 #' @examples
 #' library(dplyr)
 #'
-#'matched dataframe sizes first, using a normal distribution
+#' # matched dataframe sizes first, using a normal distribution
 #' set.seed(1)
 #' PartneredFemales <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered")
 #' PartneredMales <- Township %>%
-#'   filter(Sex == "Male", Relationship == "Partnered")
+#'  filter(Sex == "Male", Relationship == "Partnered")
 #'
 #' # partners females and males, using a normal distribution, with the females
-#' being younger by a mean of -2 and a standard deviation of 3
+#' # being younger by a mean of -2 and a standard deviation of 3
 #' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+#'                          HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
 #' Couples1 <- OppSexCouples1$Matched
 #'
-#' different size dataframes
-#'
+#' # different size dataframes
 #' PartneredFemales <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered")
 #' PartneredMales <- Township %>%
@@ -46,7 +46,7 @@
 #'
 #' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                            HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
+#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
 #' Couples2 <- OppSexCouples2$Matched
 #'
 #' # skew normal example, does not converge
