@@ -14,6 +14,9 @@ EmployedPeople <- addemp(EmployerSet, empid = "Company", empcount = "NumEmployee
 
 
 
+
+
+
 ###########################################################
 # addind example
 ###########################################################
@@ -81,6 +84,9 @@ table(KidsInSchool$School.Name)
 
 
 
+
+
+
 #############################################################
 # agedis example
 #############################################################
@@ -90,9 +96,6 @@ library(dplyr)
 DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
                           pyramid = SingleAges, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
                           agevarname = "TheAge", userseed = 4)
-
-
-
 
 
 
@@ -120,8 +123,8 @@ TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "
 
 library("dplyr")
 
-SampleNeeded <- data.frame(Age = c(16, 17, 18, 19, 20),
-                           NumNeeded = c(5, 10, 15, 10, 5))
+SampleNeeded <- data.frame(Age = c(16, 17, 18),
+                           NumNeeded = c(5, 10, 15))
 
 SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded, smplage = "Age",
                                  smplcounts = "NumNeeded", userseed = 4)
