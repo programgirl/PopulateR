@@ -103,10 +103,10 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   # can only take two values for school status variable
 
   TestLevels <- peopleRenamed %>%
-    select(schStat) %>%
-    group_by(schStat) %>%
+    select("schStat") %>%
+    group_by(.data$schStat) %>%
     summarise(Nums = n()) %>%
-    pull(schStat)
+    pull(.data$schStat)
 
   if(length(TestLevels) > 2) {
     stop("The school status variable must contain a maximum of two values.")
@@ -118,28 +118,28 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
            schoolAge = !! schagecolName,
            personCounts = !! schrollcolName,
            schoolType = !! schtypecolName) %>%
-    mutate(schoolID = as.character(schoolID),
-           schoolType = as.character(schoolType),
-           originalCounts = personCounts) %>%
+    mutate(schoolID = as.character(.data$schoolID),
+           schoolType = as.character(.data$schoolType),
+           originalCounts = .data$personCounts) %>%
     #mutate(across(where(is.factor), as.character)) %>%
-    select(schoolID, schoolAge, personCounts, schoolType, originalCounts)
+    select("schoolID", "schoolAge", "personCounts", "schoolType", "originalCounts")
 
   OriginalschoolsCounts <- schoolsRenamed
 
   # test if there is a matching school ID to a person ID - may cause non-bipartite graphs
   peopleIDOnly <- peopleRenamed %>%
-    select(personID) %>%
-    rename(ID = personID)
+    select("personID") %>%
+    rename(ID = "personID")
 
   schoolsIDOnly <- schoolsRenamed %>%
-    select(schoolID) %>%
-    rename(ID = schoolID) %>%
+    select("schoolID") %>%
+    rename(ID = "schoolID") %>%
     distinct()
 
   combinedIDs <- bind_rows(peopleIDOnly, schoolsIDOnly) %>%
-    group_by(ID) %>%
+    group_by(.data$ID) %>%
     summarise(numID = n()) %>%
-    filter(numID > 1)
+    filter(.data$numID > 1)
 
 
   if(nrow(combinedIDs) > 1) {
@@ -155,11 +155,11 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   #####################################################################
 
   peopleCodeTest <- peopleRenamed %>%
-    select(personType) %>%
+    select("personType") %>%
     unique()
 
   schoolsCodeTest <- schoolsRenamed %>%
-    select(schoolType) %>%
+    select("schoolType") %>%
     unique()
 
   # are they the same
@@ -184,8 +184,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
   schoolsCountTest <- schoolsRenamed %>%
-    group_by(schoolAge) %>%
-    summarise(schoolAgeCount = sum(personCounts))
+    group_by(.data$schoolAge) %>%
+    summarise(schoolAgeCount = sum(.data$personCounts))
 
   ###############################################
   # test if there is only one factor level, i.e. all kids to assign
@@ -196,18 +196,18 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   if(length(TestLevels) == 1) {
 
     peopleCountTest <- peopleRenamed %>%
-      group_by(personAge) %>%
+      group_by(.data$personAge) %>%
       summarise(AgeCount = n())
 
     CountComparison <- full_join(peopleCountTest, schoolsCountTest, by = c("personAge" = "schoolAge")) %>%
-      mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
-             schoolAgeCount = replace(schoolAgeCount, is.na(schoolAgeCount), 0),
-             CountDiff = schoolAgeCount - AgeCount) %>%
-      filter(schoolAgeCount != 0, AgeCount != 0)
+      mutate(AgeCount = replace(.data$AgeCount, is.na(.data$AgeCount), 0),
+             schoolAgeCount = replace(.data$schoolAgeCount, is.na(.data$schoolAgeCount), 0),
+             CountDiff = .data$schoolAgeCount - .data$AgeCount) %>%
+      filter(.data$schoolAgeCount != 0, .data$AgeCount != 0)
 
     TooManyKids <- CountComparison %>%
-      filter(CountDiff < 0) %>%
-      select(personAge)
+      filter(.data$CountDiff < 0) %>%
+      select("personAge")
 
     # need to construct the reduced data frame on the basis of age at school
 
@@ -221,30 +221,30 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
     # print(MinFactorLevel)
 
     NotFactor <- peopleRenamed %>%
-      filter(as.integer(schStat) == as.integer(MinFactorLevel))
+      filter(as.integer(.data$schStat) == as.integer(MinFactorLevel))
 
     # cat("The notfactor data frame has this number of rows", nrow(NotFactor), "\n")
 
     # cat("The number of rows in original peoplerenamed is", nrow(peopleRenamed), "\n")
 
     peopleRenamed <- peopleRenamed %>%
-      filter(!(personID %in% NotFactor$personID))
+      filter(!(.data$personID %in% NotFactor$personID))
 
     # cat("The revised count after removing wrong factor level is", nrow(peopleRenamed), "\n")
 
     peopleCountTest <- peopleRenamed %>%
-      group_by(personAge) %>%
+      group_by(.data$personAge) %>%
       summarise(AgeCount = n())
 
     CountComparison <- full_join(peopleCountTest, schoolsCountTest, by = c("personAge" = "schoolAge")) %>%
-      mutate(AgeCount = replace(AgeCount, is.na(AgeCount), 0),
-             schoolAgeCount = replace(schoolAgeCount, is.na(schoolAgeCount), 0),
-             CountDiff = schoolAgeCount - AgeCount) %>%
-      filter(schoolAgeCount != 0, AgeCount != 0)
+      mutate(AgeCount = replace(.data$AgeCount, is.na(.data$AgeCount), 0),
+             schoolAgeCount = replace(.data$schoolAgeCount, is.na(.data$schoolAgeCount), 0),
+             CountDiff = .data$schoolAgeCount - .data$AgeCount) %>%
+      filter(.data$schoolAgeCount != 0, .data$AgeCount != 0)
 
     TooManyKids <- CountComparison %>%
-      filter(CountDiff < 0) %>%
-      select(personAge)
+      filter(.data$CountDiff < 0) %>%
+      select("personAge")
 
     # closes else to if(length(TestLevels) == 1)
   }
@@ -268,7 +268,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   # is done for multiple factor levels too, just in case the school age range is incompatible
   # get age range
   AgeRestriction <- CountComparison %>%
-    select(personAge)
+    select("personAge")
 
   # apply to people
 
@@ -290,12 +290,12 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   #####################################################################
   # get the number of households
   NumberHouseholds <- as.numeric(peopleRenamed %>%
-                                   dplyr::summarise(Count = n_distinct(HouseholdID)) %>%
-                                   pull(Count))
+                                   dplyr::summarise(Count = n_distinct(.data$HouseholdID)) %>%
+                                   pull(.data$Count))
 
   # get list of household IDs
   HouseholdIDList <- as.data.frame(peopleRenamed %>%
-                                     distinct(HouseholdID))
+                                     distinct(.data$HouseholdID))
 
   #####################################################################
   # create counts by sex
@@ -304,15 +304,15 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   #####################################################################
 
   peopleSexAge <- peopleRenamed %>%
-    group_by(personType, personAge) %>%
+    group_by(.data$personType, .data$personAge) %>%
     summarise(AgeCount = n())
 
   schoolsexAge <- schoolsRenamed %>%
-    group_by(schoolType, personAge) %>%
-    summarise(schoolAgeCount = sum(personCounts))
+    group_by(.data$schoolType, .data$personAge) %>%
+    summarise(schoolAgeCount = sum(.data$personCounts))
 
   ListofHouseholds <- peopleRenamed %>%
-    group_by(HouseholdID) %>%
+    group_by(.data$HouseholdID) %>%
     summarise(numberKids = n())
 
 
@@ -321,7 +321,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   #####################################################################
 
   ListofHouseholds <- ListofHouseholds %>%
-    arrange(desc(numberKids))
+    arrange(desc(.data$numberKids))
 
   #####################################################################
   # igraph function to match kids into different schools
@@ -379,7 +379,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
     # get the people in the household
 
     peopleInHousehold <- peopleRenamed %>%
-      filter(HouseholdID == CurrentHousehold)
+      filter(.data$HouseholdID == CurrentHousehold)
 
     NumKids <- as.numeric(nrow(peopleInHousehold))
 
@@ -390,12 +390,12 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
     # get person ages dataframe
     personAges <- peopleInHousehold %>%
-      group_by(personType, personAge) %>%
+      group_by(.data$personType, .data$personAge) %>%
       summarise(CountsByAge = n())
 
     # need a test to see if more than one age
     personAgesMaxCount <- peopleInHousehold %>%
-      group_by(personAge) %>%
+      group_by(.data$personAge) %>%
       summarise(CountsByAge = n())
 
 
@@ -425,17 +425,17 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
       schoolsubset <- left_join(peopleInHousehold, schoolsRenamed, by = "personAge",
                                 relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-        mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
-        filter(personCounts > 0,
-               isMatch == "Y") %>%
-        mutate(remainingPeople = personCounts - 1)
+        mutate(isMatch = ifelse(.data$schoolType == "C" | .data$schoolType == .data$personType, "Y", "N"))  %>%
+        filter(.data$personCounts > 0,
+               .data$isMatch == "Y") %>%
+        mutate(remainingPeople = .data$personCounts - 1)
 
 
       if(nrow(schoolsubset) > 0) {
 
           schoolMatch <- schoolsubset %>%
-            slice_sample(n=1, weight_by = personCounts, replace = FALSE) %>%
-            select(-c(personCounts, schoolType, originalCounts, isMatch, remainingPeople))
+            slice_sample(n=1, weight_by = .data$personCounts, replace = FALSE) %>%
+            select(-c("personCounts", "schoolType", "originalCounts", "isMatch", "remainingPeople"))
 
       } else {
 
@@ -446,10 +446,10 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
         schoolMatch <- left_join(peopleInHousehold, schoolsRenamed, by = "personAge",
                                  relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-          mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
-          filter(isMatch == "Y") %>%
-          slice_sample(n=1, weight_by = originalCounts, replace = FALSE) %>%
-          select(-c(personCounts, schoolType, originalCounts, isMatch))
+          mutate(isMatch = ifelse(.data$schoolType == "C" | .data$schoolType == .data$personType, "Y", "N"))  %>%
+          filter(.data$isMatch == "Y") %>%
+          slice_sample(n=1, weight_by = .data$originalCounts, replace = FALSE) %>%
+          select(-c("personCounts", "schoolType", "originalCounts", "isMatch"))
 
         # closes else to if(nrow(schoolsubset) > 0) {
       }
@@ -461,14 +461,14 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
       schoolInfo <- schoolMatch %>%
         ungroup() %>%
-        select(schoolID, personAge)
+        select("schoolID", "personAge")
 
       schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-        mutate(personCounts = personCounts - 1,
-               personCounts = ifelse(personCounts < 0, 0, personCounts))
+        mutate(personCounts = .data$personCounts - 1,
+               personCounts = ifelse(.data$personCounts < 0, 0, .data$personCounts))
 
       schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-        select(schoolID, personAge, personCounts, schoolType, originalCounts)
+        select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
       # cat("Original sizes",nrow(schoolsSelected), "and", nrow(schoolsNotSelected), "for InitialMatches smaller \n")
 
@@ -509,12 +509,12 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
       schoolsubset <- left_join(personAges, schoolsRenamed, by = "personAge",
                                 relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-        mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
-        select(-CountsByAge) %>%
-        filter(personCounts > 0,
-               isMatch == "Y") %>%
-        mutate(remainingPeople = personCounts - 1) %>%
-        filter(remainingPeople > -1)
+        mutate(isMatch = ifelse(.data$schoolType == "C" | .data$schoolType == .data$personType, "Y", "N"))  %>%
+        select(- "CountsByAge") %>%
+        filter(.data$personCounts > 0,
+               .data$isMatch == "Y") %>%
+        mutate(remainingPeople = .data$personCounts - 1) %>%
+        filter(.data$remainingPeople > -1)
 
 
       # need to split the allocation based on sameprob
@@ -562,8 +562,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
         schoolTypeCheck <- schoolsubset %>%
-          group_by(schoolType) %>%
-          distinct(schoolType)
+          group_by(.data$schoolType) %>%
+          distinct(.data$schoolType)
 
 
         if(nrow(schoolTypeCheck) > 1) {
@@ -572,23 +572,23 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           # create a new variable that is a not-same sex versus same-sex marker
 
           sexedsubset <- schoolsubset %>%
-            mutate(SexDual = ifelse(schoolType == "C", "O", "S"))
+            mutate(SexDual = ifelse(.data$schoolType == "C", "O", "S"))
 
           # put the single sex schools into one subset
           # has count by age only, no school ID, no person ID
 
           SingleSexSubAges <- sexedsubset %>%
-            filter(SexDual == "S") %>%
-            group_by(personType, personAge) %>%
-            slice_max(remainingPeople) %>%
-            group_by(schoolID) %>%
+            filter(.data$SexDual == "S") %>%
+            group_by(.data$personType, .data$personAge) %>%
+            slice_max(.data$remainingPeople) %>%
+            group_by(.data$schoolID) %>%
             summarise(NumKidsSpots = n()) %>%
             ungroup()
 
           SingleSexSubRolls <- sexedsubset %>%
-            filter(SexDual == "S") %>%
-            group_by(schoolID) %>%
-            summarise(RollSpots = sum(remainingPeople)) %>%
+            filter(.data$SexDual == "S") %>%
+            group_by(.data$schoolID) %>%
+            summarise(RollSpots = sum(.data$remainingPeople)) %>%
             ungroup()
 
           SingleSexSub <- left_join(SingleSexSubAges, SingleSexSubRolls, by = c("schoolID"))
@@ -602,15 +602,15 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           # the opposite sex ones in another
           # has count by school ID, no ages
           OppSexSubAges <- sexedsubset %>%
-            filter(SexDual == "O") %>%
-            group_by(schoolID) %>%
+            filter(.data$SexDual == "O") %>%
+            group_by(.data$schoolID) %>%
             summarise(NumKidsSpots = n()) %>%
             ungroup()
 
           OppSexSubRolls <- sexedsubset %>%
-            filter(SexDual == "O") %>%
-            group_by(schoolID) %>%
-            summarise(RollSpots = sum(remainingPeople)) %>%
+            filter(.data$SexDual == "O") %>%
+            group_by(.data$schoolID) %>%
+            summarise(RollSpots = sum(.data$remainingPeople)) %>%
             ungroup()
 
           OppSexSub <- left_join(OppSexSubAges, OppSexSubRolls, by = c("schoolID"))
@@ -622,8 +622,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
           SelectedOppSexSchool <- OppSexSub %>%
-            filter(NumKidsSpots == OppSexNum) %>%
-            arrange(desc(RollSpots)) %>%
+            filter(.data$NumKidsSpots == OppSexNum) %>%
+            arrange(desc(.data$RollSpots)) %>%
             slice_head(n=1)
 
           OppSexWeight <- as.numeric(SelectedOppSexSchool$RollSpots)
@@ -668,28 +668,28 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
             # many-to-many needed to account for twin households
 
             InitialMatches <- schoolsubset %>%
-              filter(schoolID %in% c(SingleSexSub$schoolID)) %>%
-              select(-c(personCounts, originalCounts, remainingPeople)) %>%
+              filter(.data$schoolID %in% c(SingleSexSub$schoolID)) %>%
+              select(-c("personCounts", "originalCounts", "remainingPeople")) %>%
               left_join(peopleInHousehold, by = c("personAge", "personType"), relationship = "many-to-many") %>%
-              select(-c(schoolType, isMatch))
+              select(-c("schoolType", "isMatch"))
 
             # make sure ALL single sex options are assigned
             while(nrow(InitialMatches) > 0) {
 
               schoolInfo <- InitialMatches %>%
                 ungroup() %>%
-                select(schoolID, personAge, personType) %>%
-                group_by(schoolID, personAge, personType) %>%
+                select("schoolID", "personAge", "personType") %>%
+                group_by(.data$schoolID, .data$personAge, .data$personType) %>%
                 summarise(KidsPerAge = n())
 
               numKidsBySchool <- schoolInfo %>%
-                group_by(schoolID, personType) %>%
-                summarise(numberKids = sum(KidsPerAge))
+                group_by(.data$schoolID, .data$personType) %>%
+                summarise(numberKids = sum(.data$KidsPerAge))
 
               HowManySexes <- as.numeric(nrow(numKidsBySchool %>%
                                                 ungroup() %>%
-                                                select(personType) %>%
-                                                distinct(personType)))
+                                                select("personType") %>%
+                                                distinct(.data$personType)))
 
               if(HowManySexes > 2) {
                 stop("HMS > 2")
@@ -699,33 +699,33 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
               # select school with the greatest number of kids
               selectedSchool <- numKidsBySchool %>%
                 ungroup() %>%
-                slice_max(numberKids) %>%
+                slice_max(.data$numberKids) %>%
                 slice_sample(n=1) %>%
-                pull(schoolID)
+                pull(.data$schoolID)
 
               # print(selectedSchool)
 
               # # add the children to the school
               InitialMatchesA <- InitialMatches %>%
-                filter(schoolID == selectedSchool)
+                filter(.data$schoolID == selectedSchool)
 
               # # get the kids counts by age for the selected school
               MatchingInfo1 <- schoolInfo %>%
                 ungroup() %>%
-                filter(schoolID == selectedSchool) %>%
-                select(-personType)
+                filter(.data$schoolID == selectedSchool) %>%
+                select(-"personType")
 
 
               # update the selected schools counts and rejoin with the non-selected schools
               # to reconstruct schoolsRenamed with the correctly decremented counts
 
               schoolsSelected1 <- left_join(MatchingInfo1, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-                mutate(personCounts = personCounts - KidsPerAge,
-                       personCounts = ifelse(personCounts < 0, 0, personCounts)) %>%
-                select(-KidsPerAge)
+                mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                       personCounts = ifelse(.data$personCounts < 0, 0, .data$personCounts)) %>%
+                select(-"KidsPerAge")
 
               schoolsNotSelected1 <- anti_join(schoolsRenamed, MatchingInfo1, by = c("schoolID", "personAge")) %>%
-                select(schoolID, personAge, personCounts, schoolType, originalCounts)
+                select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
               schoolsRenamed <- bind_rows(schoolsNotSelected1, schoolsSelected1)
 
@@ -747,7 +747,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
               # remove the matched children from the household children data frame
 
               InitialMatches <- InitialMatches %>%
-                filter(!personID %in% InitialMatchesA$personID)
+                filter(! .data$personID %in% InitialMatchesA$personID)
 
               # closes while(nrow(InitialMatches) > 0) {
             }
@@ -755,7 +755,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
             # handle children who are not going to a single-sex school
 
             remainingAges <- peopleInHousehold %>%
-              filter(!personID %in% ChildSchoolMatches$personID)
+              filter(! .data$personID %in% ChildSchoolMatches$personID)
 
             # add any remaining children to schools
 
@@ -765,20 +765,20 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
               schoolsubset <- left_join(remainingAges, schoolsRenamed, by = "personAge",
                                         relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-                mutate(isMatch = ifelse(schoolType == "C", "Y", "N"))  %>%
-                filter(personCounts > 0,
-                       isMatch == "Y") %>%
-                mutate(remainingPeople = personCounts - 1) %>%
-                filter(remainingPeople > -1)
+                mutate(isMatch = ifelse(.data$schoolType == "C", "Y", "N"))  %>%
+                filter(.data$personCounts > 0,
+                       .data$isMatch == "Y") %>%
+                mutate(remainingPeople = .data$personCounts - 1) %>%
+                filter(.data$remainingPeople > -1)
 
               schoolSubAges <- schoolsubset %>%
-                group_by(schoolID) %>%
+                group_by(.data$schoolID) %>%
                 summarise(NumKidsSpots = n()) %>%
                 ungroup()
 
               schoolSubRolls <- schoolsubset %>%
-                group_by(schoolID) %>%
-                summarise(RollSpots = sum(remainingPeople)) %>%
+                group_by(.data$schoolID) %>%
+                summarise(RollSpots = sum(.data$remainingPeople)) %>%
                 ungroup()
 
               schoolSub <- left_join(schoolSubAges, schoolSubRolls, by = c("schoolID"))
@@ -791,35 +791,35 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
               selectedSchool <- schoolSub %>%
-                filter(NumKidsSpots == maxNumKids) %>%
-                arrange(desc(RollSpots)) %>%
+                filter(.data$NumKidsSpots == maxNumKids) %>%
+                arrange(desc(.data$RollSpots)) %>%
                 slice_head(n=1) %>%
-                select(schoolID) %>%
-                pull(schoolID)
+                select("schoolID") %>%
+                pull(.data$schoolID)
 
               # put children matched to a school inside a temporary data frame
 
               MatchesB <- schoolsubset %>%
-                filter(schoolID == selectedSchool) %>%
-                select(-c(personCounts, schoolType, originalCounts, isMatch, remainingPeople))
+                filter(.data$schoolID == selectedSchool) %>%
+                select(-c("personCounts", "schoolType", "originalCounts", "isMatch", "remainingPeople"))
 
               # get kids per age per school for decrementing the schoolsRenamed data frame
 
               schoolInfo <- MatchesB %>%
                 ungroup() %>%
-                select(schoolID, personAge) %>%
-                group_by(schoolID, personAge) %>%
+                select("schoolID", "personAge") %>%
+                group_by(.data$schoolID, .data$personAge) %>%
                 summarise(KidsPerAge = n())
 
               # decrement the school(s) roll counts
 
               schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-                mutate(personCounts = personCounts - KidsPerAge,
-                       personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
-                select(-KidsPerAge)
+                mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                       personCounts = ifelse(.data$personCounts <= 0, 0, .data$personCounts)) %>%
+                select(-"KidsPerAge")
 
               schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-                select(schoolID, personAge, personCounts, schoolType, originalCounts)
+                select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
               schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
@@ -838,7 +838,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
               }
 
               remainingAges <- remainingAges %>%
-                filter(!personID %in% MatchesB$personID)
+                filter(! .data$personID %in% MatchesB$personID)
 
               # closes while(nrow(remainingAges) > 0) {
             }
@@ -851,33 +851,33 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
             selectedSchoolID <- SelectedOppSexSchool %>%
-              select(schoolID) %>%
-              pull(schoolID)
+              select("schoolID") %>%
+              pull(.data$schoolID)
 
             InitialMatches <- schoolsubset %>%
-              filter(schoolID == selectedSchoolID) %>%
+              filter(.data$schoolID == selectedSchoolID) %>%
               ungroup() %>%
-              select(-c(personCounts, schoolType, originalCounts, isMatch, remainingPeople)) %>%
+              select(-c("personCounts", "schoolType", "originalCounts", "isMatch", "remainingPeople")) %>%
               left_join(peopleInHousehold, by = c("personAge", "personType"))
 
             schoolInfo <- InitialMatches %>%
               ungroup() %>%
-              select(schoolID, personAge) %>%
-              group_by(schoolID, personAge) %>%
+              select("schoolID", "personAge") %>%
+              group_by(.data$schoolID, .data$personAge) %>%
               summarise(KidsPerAge = n())
 
             schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-              mutate(personCounts = personCounts - KidsPerAge,
-                     personCounts = ifelse(personCounts < 0, 0, personCounts)) %>%
-              select(-KidsPerAge)
+              mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                     personCounts = ifelse(.data$personCounts < 0, 0, .data$personCounts)) %>%
+              select(-"KidsPerAge")
 
             schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-              select(schoolID, personAge, personCounts, schoolType, originalCounts)
+              select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
             schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
             remainingAges <- peopleInHousehold %>%
-              filter(!personID %in% c(InitialMatches$personID))
+              filter(! .data$personID %in% c(InitialMatches$personID))
 
             if(exists("ChildSchoolMatches")) {
               ChildSchoolMatches <- bind_rows(ChildSchoolMatches, InitialMatches)
@@ -894,20 +894,20 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
               schoolsubset <- left_join(remainingAges, schoolsRenamed, by = "personAge",
                                         relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-                mutate(isMatch = ifelse(schoolType == "C", "Y", "N"))  %>%
-                filter(personCounts > 0,
-                       isMatch == "Y") %>%
-                mutate(remainingPeople = personCounts - 1) %>%
-                filter(remainingPeople > -1)
+                mutate(isMatch = ifelse(.data$schoolType == "C", "Y", "N"))  %>%
+                filter(.data$personCounts > 0,
+                       .data$isMatch == "Y") %>%
+                mutate(remainingPeople = .data$personCounts - 1) %>%
+                filter(.data$remainingPeople > -1)
 
               schoolSubAges <- schoolsubset %>%
-                group_by(schoolID) %>%
+                group_by(.data$schoolID) %>%
                 summarise(NumKidsSpots = n()) %>%
                 ungroup()
 
               schoolSubRolls <- schoolsubset %>%
-                group_by(schoolID) %>%
-                summarise(RollSpots = sum(remainingPeople)) %>%
+                group_by(.data$schoolID) %>%
+                summarise(RollSpots = sum(.data$remainingPeople)) %>%
                 ungroup()
 
               schoolSub <- left_join(schoolSubAges, schoolSubRolls, by = c("schoolID"))
@@ -922,30 +922,30 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
               # get the school
 
               selectedSchoolID <- schoolSub %>%
-                filter(NumKidsSpots == maxNumKids) %>%
-                arrange(desc(RollSpots)) %>%
+                filter(.data$NumKidsSpots == maxNumKids) %>%
+                arrange(desc(.data$RollSpots)) %>%
                 slice_head(n=1) %>%
-                pull(schoolID)
+                pull(.data$schoolID)
 
               # match the kids and update the school rolls
 
               MatchesB <- schoolsubset %>%
-                filter(schoolID == selectedSchoolID) %>%
-                select(-c(personCounts, schoolType, originalCounts, isMatch, remainingPeople))
+                filter(.data$schoolID == selectedSchoolID) %>%
+                select(-c("personCounts", "schoolType", "originalCounts", "isMatch", "remainingPeople"))
 
               schoolInfo <- MatchesB %>%
                 ungroup() %>%
-                select(schoolID, personAge) %>%
-                group_by(schoolID, personAge) %>%
+                select("schoolID", "personAge") %>%
+                group_by(.data$schoolID, .data$personAge) %>%
                 summarise(KidsPerAge = n())
 
               schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-                mutate(personCounts = personCounts - KidsPerAge,
-                       personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
-                select(-KidsPerAge)
+                mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                       personCounts = ifelse(.data$personCounts <= 0, 0, .data$personCounts)) %>%
+                select(-"KidsPerAge")
 
               schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-                select(schoolID, personAge, personCounts, schoolType, originalCounts)
+                select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
               schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
@@ -962,7 +962,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
               # update remaining children data frame
 
               remainingAges <- remainingAges %>%
-                filter(!personID %in% c(MatchesB$personID))
+                filter(! .data$personID %in% c(MatchesB$personID))
 
               # closes while(nrow(remainingAges) > 0) {
             }
@@ -977,13 +977,13 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
           schoolSubAges <- schoolsubset %>%
-            group_by(schoolID) %>%
+            group_by(.data$schoolID) %>%
             summarise(NumKidsSpots = n()) %>%
             ungroup()
 
           schoolSubRolls <- schoolsubset %>%
-            group_by(schoolID) %>%
-            summarise(RollSpots = sum(remainingPeople)) %>%
+            group_by(.data$schoolID) %>%
+            summarise(RollSpots = sum(.data$remainingPeople)) %>%
             ungroup()
 
           schoolSub <- left_join(schoolSubAges, schoolSubRolls, by = c("schoolID"))
@@ -991,36 +991,36 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           maxNumKids <- as.numeric(max(schoolSub$NumKidsSpots))
 
           selectedSchoolID <- schoolSub %>%
-            filter(NumKidsSpots == maxNumKids) %>%
-            arrange(desc(RollSpots)) %>%
+            filter(.data$NumKidsSpots == maxNumKids) %>%
+            arrange(desc(.data$RollSpots)) %>%
             slice_head(n=1) %>%
-            select(schoolID) %>%
-            pull(schoolID)
+            select("schoolID") %>%
+            pull(.data$schoolID)
 
           InitialMatches <- schoolsubset %>%
-            filter(schoolID == selectedSchoolID) %>%
+            filter(.data$schoolID == selectedSchoolID) %>%
             ungroup() %>%
-            select(-c(personCounts, schoolType, originalCounts, isMatch, remainingPeople)) %>%
+            select(-c("personCounts", "schoolType", "originalCounts", "isMatch", "remainingPeople")) %>%
             left_join(peopleInHousehold, by = c("personAge", "personType"))
 
           schoolInfo <- InitialMatches %>%
             ungroup() %>%
-            select(schoolID, personAge) %>%
-            group_by(schoolID, personAge) %>%
+            select("schoolID", "personAge") %>%
+            group_by(.data$schoolID, .data$personAge) %>%
             summarise(KidsPerAge = n())
 
           schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-            mutate(personCounts = personCounts - KidsPerAge,
-                   personCounts = ifelse(personCounts < 0, 0, personCounts)) %>%
-            select(-KidsPerAge)
+            mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                   personCounts = ifelse(.data$personCounts < 0, 0, .data$personCounts)) %>%
+            select(-"KidsPerAge")
 
           schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-            select(schoolID, personAge, personCounts, schoolType, originalCounts)
+            select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
           schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
           remainingAges <- peopleInHousehold %>%
-            filter(!personID %in% c(InitialMatches$personID))
+            filter(! .data$personID %in% c(InitialMatches$personID))
 
           if(exists("ChildSchoolMatches")) {
             ChildSchoolMatches <- bind_rows(ChildSchoolMatches, InitialMatches)
@@ -1031,7 +1031,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           }
 
           remainingAges <- peopleInHousehold %>%
-            filter(!personID %in% c(InitialMatches$personID))
+            filter(! .data$personID %in% c(InitialMatches$personID))
 
           # handle the children yet to be placed into a school
 
@@ -1058,12 +1058,12 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
         schoolsubset <- left_join(peopleInHousehold, schoolsRenamed, by = "personAge",
                                   relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-          mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
-          filter(personCounts > 0,
-                 isMatch == "Y") %>%
-          mutate(remainingPeople = personCounts - 1) %>%
-          filter(remainingPeople > -1) %>%
-          select(personID, schoolID, remainingPeople)
+          mutate(isMatch = ifelse(.data$schoolType == "C" | .data$schoolType == .data$personType, "Y", "N"))  %>%
+          filter(.data$personCounts > 0,
+                 .data$isMatch == "Y") %>%
+          mutate(remainingPeople = .data$personCounts - 1) %>%
+          filter(.data$remainingPeople > -1) %>%
+          select("personID", "schoolID", "remainingPeople")
 
 
         # add a unique school to each child ID
@@ -1078,19 +1078,19 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
         schoolInfo <- InitialMatches %>%
           ungroup() %>%
-          select(schoolID, personAge) %>%
-          group_by(schoolID, personAge) %>%
+          select("schoolID", "personAge") %>%
+          group_by(.data$schoolID, .data$personAge) %>%
           summarise(KidsPerAge = n())
 
         # decrement the school(s) roll counts
 
         schoolsSelected <- left_join(schoolInfo, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-          mutate(personCounts = personCounts - KidsPerAge,
-                 personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
-          select(-KidsPerAge)
+          mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                 personCounts = ifelse(.data$personCounts <= 0, 0, .data$personCounts)) %>%
+          select(-"KidsPerAge")
 
         schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
-          select(schoolID, personAge, personCounts, schoolType, originalCounts)
+          select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
         schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
@@ -1109,26 +1109,26 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
         }
 
         remainingAges <- peopleInHousehold %>%
-          filter(!personID %in% ChildSchoolMatches$personID)
+          filter(! .data$personID %in% ChildSchoolMatches$personID)
 
         # if there aren't enough different schools
         if(nrow(remainingAges) > 0) {
 
           schoolsubset <- left_join(remainingAges, schoolsRenamed, by = "personAge",
                                     relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
-            mutate(isMatch = ifelse(schoolType == "C" | schoolType == personType, "Y", "N"))  %>%
-            filter(personCounts > 0,
-                   isMatch == "Y") %>%
-            mutate(remainingPeople = personCounts - 1) %>%
-            filter(remainingPeople > -1) %>%
-            select(personID, schoolID, remainingPeople)
+            mutate(isMatch = ifelse(.data$schoolType == "C" | .data$schoolType == .data$personType, "Y", "N"))  %>%
+            filter(.data$personCounts > 0,
+                   .data$isMatch == "Y") %>%
+            mutate(remainingPeople = .data$personCounts - 1) %>%
+            filter(.data$remainingPeople > -1) %>%
+            select("personID", "schoolID", "remainingPeople")
 
           finalMatches <- schoolsubset %>%
-            group_by(personID) %>%
-            slice_max(remainingPeople, with_ties = FALSE)
+            group_by(.data$personID) %>%
+            slice_max(.data$remainingPeople, with_ties = FALSE)
 
           finalKids <- left_join(finalMatches, peopleInHousehold, by = "personID") %>%
-           select(-remainingPeople)
+           select(-"remainingPeople")
 
           # add kids to output person data frame
           ChildSchoolMatches <- bind_rows(ChildSchoolMatches, finalKids)
@@ -1137,20 +1137,20 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
           summarySchoolCounts <- finalKids %>%
             ungroup() %>%
-            select(schoolID, personAge) %>%
-            group_by(schoolID, personAge) %>%
+            select("schoolID", "personAge") %>%
+            group_by(.data$schoolID, .data$personAge) %>%
             summarise(KidsPerAge = n())
 
           # decrement the school(s) roll counts
 
           schoolsSelected <- left_join(summarySchoolCounts, schoolsRenamed, by = c("schoolID", "personAge")) %>%
-            mutate(personCounts = personCounts - KidsPerAge,
-                   personCounts = ifelse(personCounts <= 0, 0, personCounts)) %>%
-            select(-KidsPerAge)
+            mutate(personCounts = .data$personCounts - .data$KidsPerAge,
+                   personCounts = ifelse(.data$personCounts <= 0, 0, .data$personCounts)) %>%
+            select(-"KidsPerAge")
 
 
           schoolsNotSelected <- anti_join(schoolsRenamed, summarySchoolCounts, by = c("schoolID", "personAge")) %>%
-            select(schoolID, personAge, personCounts, schoolType, originalCounts)
+            select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
 
           schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
@@ -1168,7 +1168,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   }
 
   NotInSchool <- NotInSchool %>%
-    filter(!(personID %in% c(ChildSchoolMatches$personID))) %>%
+    filter(!(.data$personID %in% c(ChildSchoolMatches$personID))) %>%
     mutate(schoolID = as.character(0))
 
   allPeople <- bind_rows(NotInSchool, ChildSchoolMatches)
@@ -1176,10 +1176,10 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   if(isTRUE(is.integer(schools[[schid]]))) {
 
     schoolsRenamed <- schoolsRenamed %>%
-      mutate(schoolID = as.integer(schoolID))
+      mutate(schoolID = as.integer(.data$schoolID))
 
     allPeople <- allPeople %>%
-      mutate(schoolID = as.integer(schoolID))
+      mutate(schoolID = as.integer(.data$schoolID))
   }
 
 
@@ -1187,10 +1187,10 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   if(isTRUE(is.numeric(schools[[schid]]))) {
 
     schoolsRenamed <- schoolsRenamed %>%
-      mutate(schoolID = as.numeric(schoolID))
+      mutate(schoolID = as.numeric(.data$schoolID))
 
     allPeople <- allPeople %>%
-      mutate(schoolID = as.numeric(schoolID))
+      mutate(schoolID = as.numeric(.data$schoolID))
   }
 
 
@@ -1198,10 +1198,10 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   if(isTRUE(is.factor(schools[[schid]]))) {
 
     schoolsRenamed <- schoolsRenamed %>%
-      mutate(schoolID = as.factor(schoolID))
+      mutate(schoolID = as.factor(.data$schoolID))
 
     allPeople <- allPeople %>%
-      mutate(schoolID = as.numeric(schoolID))
+      mutate(schoolID = as.numeric(.data$schoolID))
   }
 
 
@@ -1209,30 +1209,30 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
 
   allPeople <- allPeople %>%
-    rename(!!pplidcolName := personID,
-           !!pplagecolName := personAge,
-           !!pplsexcolName := personType,
-           !!hhidcolName := HouseholdID,
-           !!statcolName := schStat,
-           !!schidcolName := schoolID)
+    rename(!!pplidcolName := "personID",
+           !!pplagecolName := "personAge",
+           !!pplsexcolName := "personType",
+           !!hhidcolName := "HouseholdID",
+           !!statcolName := "schStat",
+           !!schidcolName := "schoolID")
 
   schoolsRenamed <- schoolsRenamed %>%
-    rename(spacesRemaining = personCounts) %>%
-    rename(!!schidcolName := schoolID,
-           !!schagecolName := personAge,
-           !!schrollcolName := originalCounts,
-           !!schtypecolName := schoolType)
+    rename(spacesRemaining = "personCounts") %>%
+    rename(!!schidcolName := "schoolID",
+           !!schagecolName := "personAge",
+           !!schrollcolName := "originalCounts",
+           !!schtypecolName := "schoolType")
 
   usedSpots <- ChildSchoolMatches %>%
-    group_by(schoolID, personAge) %>%
+    group_by(.data$schoolID, .data$personAge) %>%
     summarise(spacesUsed = n()) %>%
-    rename(!!schidcolName := schoolID,
-           !!schagecolName := personAge)
+    rename(!!schidcolName := "schoolID",
+           !!schagecolName := "personAge")
 
   schoolsOutput <- suppressMessages(left_join(schools, schoolsRenamed))
 
   schoolsOutput <- left_join(schoolsOutput,usedSpots) %>%
-    mutate(spacesUsed = ifelse(is.na(spacesUsed), 0, spacesUsed))
+    mutate(spacesUsed = ifelse(is.na(.data$spacesUsed), 0, .data$spacesUsed))
 
   cat("The dataframes are $Population and $Schools", "\n")
   cat("$Population contains everyone in the people data frame, with school IDs added", "\n")
