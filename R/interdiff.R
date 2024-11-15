@@ -6,7 +6,8 @@ NULL
 
 #' Estimates values for ages when only age group data is available.
 #'
-#' This function uses values provided for age group to interpolate the relevant values for ages.
+#' Interpolates ages from age group medians
+#'
 #' The node ages for each age group are defined by the user, along with the age group values. The function will then impute the values within the age group edges.
 #' Zero values at both extremes must be included. For example, for the age group 20-24 years, the pplprop value is for pplage. if the first non-zero relationship probability is for the age group 20-24 years, and the previous age group is 15-19 years, pplprop==0 for pplage==19.
 #'For each age group, there must be a minimum and maximum age specified. This provides the interpolation range for each age group. For the anchoring 0 values, the minimum and maximum ages are the same. In this example, for pplage==19, endmin==19, and endmax==19.
@@ -103,12 +104,13 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
     CurrentDef = PeopleUnique[i, , drop=FALSE]
 
     WorkingAgeMin <- min(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
-                                      select(MinAge) %>%
-                                      pull(MinAge)))
+                                      select("MinAge") %>%
+                                      # pull(.data$MinAge)))
+                                    pull()))
 
 
     WorkingAgeMax <- max(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
-                                      select(MaxAge) %>%
+                                      select("MaxAge") %>%
                                       pull()))
 
     # cat("WorkingAgeMin is ", WorkingAgeMin, " and WorkingAgeMax is ", WorkingAgeMax, "\n")
@@ -133,7 +135,7 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
     # need to sort CurrentGroup by age
     CurrentGroup <- CurrentGroup %>%
-      arrange(OriginalAge)
+      arrange(.data$OriginalAge)
 
 
     # dataframe of defined probs constructed
@@ -247,7 +249,7 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
 
       CurrentDF <- CurrentDF %>%
-        mutate(Fits = startval + (Age - mininflex) * slopeval)
+        mutate(Fits = startval + (.data$Age - mininflex) * slopeval)
 
       ExpandedGroup <- CurrentDef %>%
         slice_sample(n = nrow(CurrentDF), replace = TRUE)
@@ -304,7 +306,7 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
   # removal of mid-points not working
 
   GroupDF <- GroupDF %>%
-    group_by(Age,across(all_of(grpdef))) %>%
+    group_by(.data$Age,across(all_of(grpdef))) %>%
     filter(row_number() == 1) %>%
     ungroup()
 
