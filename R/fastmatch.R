@@ -99,8 +99,8 @@ fastmatch <- function(people, pplage, probSS = NULL, uwProp = NULL, uwLA = NULL,
   PropToUpWeight <- people %>%
     filter(people[[pplage]] >= uwLA & people[[pplage]] <= uwUA) %>%
     summarise(Value=n()) %>%
-    mutate(PropResult = Value/nrow(people)) %>%
-    pull(PropResult)
+    mutate(PropResult = .data$Value/nrow(people)) %>%
+    pull(.data$PropResult)
 
 
   UpWeightObs <- people %>%

@@ -123,8 +123,8 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
             # get max paste0 value so that the starting company name is updated for the next loop
             EndPaste0Value <- Internalemployer %>%
               slice_tail(n = 1) %>%
-              mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  CompanyName))) %>%
-              pull(ValueIs)
+              mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  .data$CompanyName))) %>%
+              pull(.data$ValueIs)
 
             # cat("The last company number is", EndPaste0Value, "\n")
 
@@ -176,8 +176,8 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
 
           EndPaste0Value <- Internalemployer %>%
             slice_tail(n = 1) %>%
-            mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  CompanyName))) %>%
-            pull(ValueIs)
+            mutate(ValueIs =  as.numeric(gsub("[^[:digit:].]", "",  .data$CompanyName))) %>%
+            pull(.data$ValueIs)
 
           Paste0Value <- EndPaste0Value + 1
 
@@ -207,12 +207,12 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
   # rename the variables
 
   OutputDataframe <- OutputDataframe %>%
-  rename(!!empmincolName := companyCtMin,
-         !!empmaxcolName := companyCtMax,
-         !!pplmincolName := staffCtMin,
-         !!pplmaxcolName := staffCtMax,
-         {{stffname}} := Staff,
-         {{cpyname}} := CompanyName)
+  rename(!!empmincolName := "companyCtMin",
+         !!empmaxcolName := "companyCtMax",
+         !!pplmincolName := "staffCtMin",
+         !!pplmaxcolName := "staffCtMax",
+         {{stffname}} := "Staff",
+         {{cpyname}} := "CompanyName")
 
 
 
