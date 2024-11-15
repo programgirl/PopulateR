@@ -77,11 +77,11 @@ agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, p
 
   BaseDataFrame <- as.data.frame(individuals %>%
     rename(Sex = !! indsx, MinAge = !! minage, MaxAge = !! maxage) %>%
-    mutate(Sex = as.character(Sex)))
+    mutate(Sex = as.character(.data$Sex)))
 
   Agepyramid <- as.data.frame(pyramid %>%
     rename(Sex = !! pyrsx, Age = !! pyrage, Prob = !! pyrcount) %>%
-    mutate(Sex = as.character(Sex)))
+    mutate(Sex = as.character(.data$Sex)))
 
   #####################################
   #####################################
@@ -94,14 +94,14 @@ agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, p
   #####################################
 
   BaseSexCodes <- BaseDataFrame %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
+    select("Sex") %>%
+    distinct(.data$Sex) %>%
+    arrange(.data$Sex)
 
   pyramidSexCodes <- Agepyramid %>%
-    select(Sex) %>%
-    distinct(Sex) %>%
-    arrange(Sex)
+    select("Sex") %>%
+    distinct(.data$Sex) %>%
+    arrange(.data$Sex)
 
 
   if (isFALSE(identical(BaseSexCodes, pyramidSexCodes))) {
@@ -131,16 +131,16 @@ agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, p
  #   print("Selected current individual")
 
     AgeRestricted <- Agepyramid %>%
-      filter(between(Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
-             Sex == CurrentIndividual$Sex) %>%
-      select(Age, Prob)
+      filter(between(.data$Age, CurrentIndividual$MinAge, CurrentIndividual$MaxAge),
+             .data$Sex == CurrentIndividual$Sex) %>%
+      select("Age", "Prob")
 
  #  print("Constructed age pyramid of correct ages")
 
     OutputAge <- AgeRestricted %>%
-      slice_sample(n=1, weight_by = Prob) %>%
-      select(Age) %>%
-      pull(Age)
+      slice_sample(n=1, weight_by = .data$Prob) %>%
+      select("Age") %>%
+      pull(.data$Age)
 
 #    print("Probabilistic age selected")
 
