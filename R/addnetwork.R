@@ -40,14 +40,14 @@ NULL
 #' #                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
-#'
+#' set.seed(2) # small datasets can cause problems if a random seed is used for sampling
 #'  SmallDemo <- Township %>%
 #'   filter(between(Age, 20, 29)) %>%
 #'   slice_sample(n = 20)
 #'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
 #'                               probsame = .5, userseed=4, numiters = 10, usematrix = "N")
-#'  plot(NetworkSmallN)
+#'  # plot(NetworkSmallN)
 
 
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
