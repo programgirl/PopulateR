@@ -12,41 +12,42 @@
 #' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
 #' #' }
 #' "AdultsNoID"
+
+#'Employers and employees, by industry
 #'
-#' #' The number of employers and employees, by industry, in the Timaru District, 2018
-#' #'
-#' #' @description
-#' #' The number of businesses and employees by industry, Timaru District, for 2018, sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence. The data has been modified by adding in four additional variables, representing the estimated minimum and maximum counts of businesses and employees.
-#' #'
-#' #' @format A data frame of 183 rows and 7 variables
-#' #' \describe{
-#' #'     \item{ANZSIC06}{The code and associated name for each industry}
-#' #'     \item{BusinessCount}{The random-rounded count of employers in the industry}
-#' #'     \item{EmployeeCount}{The random-rounded count of employees in the industry}
-#' #'     \item{nimCo}{The minimum number of employers in the industry}
-#' #'     \item{maxCo}{The maximum number of employers in the industry}
-#' #'     \item{minStaff}{The minimum number of people employed in the industry}
-#' #'     \item{maxStaff}{The maximum number of people employed in the industry}
-#' #'}
-#' "AllEmployers"
+#' @description
+#' The number of businesses and employees by industry, Timaru District, for 2018.
 #'
-#' #' Synthetic people restricted to an age range
-#' #'
-#' #' @description
-#' #' A subset of people from the Township data frame, aged between 20 and 91 years. Age bands, and the associated minimum and maximum ages, have been added.
-#' #'
-#' #' @format A data frame of 7,568 rows and 8 variables
-#' #' \describe{
-#' #'     \item{Sex}{Sex of the person}
-#' #'     \item{Relationship}{Relationship status of the person}
-#' #'     \item{ID}{The unique identifier for the person}
-#' #'     \item{Age}{The age of the person}
-#' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#' #'     \item{Ageband}{The ten-year age band for the age}
-#' #'     \item{MinAge}{The minimum age in the age band}
-#' #'     \item{MaxAge}{The maximum age in the age band}
-#' #'     }
-#' "BadRels"
+#' @format A data frame of 183 rows and 7 variables
+#' \describe{
+#'     \item{ANZSIC06}{The code and associated name for each industry}
+#'     \item{BusinessCount}{The random-rounded count of employers in the industry}
+#'     \item{EmployeeCount}{The random-rounded count of employees in the industry}
+#'     \item{minCo}{The minimum number of employers in the industry}
+#'     \item{maxCo}{The maximum number of employers in the industry}
+#'     \item{minStaff}{The minimum number of people employed in the industry}
+#'     \item{maxStaff}{The maximum number of people employed in the industry}
+#'}
+#' @source Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence. The data has been modified by adding in four additional variables, representing the estimated minimum and maximum counts of businesses and employees.
+"AllEmployers"
+
+#' Synthetic people restricted to an age range
+#'
+#' @description
+#' A subset of people from the Township data frame, aged between 20 and 91 years. Age bands, and the associated minimum and maximum ages, have been added.
+#'
+#' @format A data frame of 7,568 rows and 8 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#'     \item{Ageband}{The ten-year age band for the age}
+#'     \item{MinAge}{The minimum age in the age band}
+#'     \item{MaxAge}{The maximum age in the age band}
+#'     }
+"BadRels"
 
 #' Synthetic employers and their employee counts
 #'
@@ -62,23 +63,23 @@
 #'
 "EmployerSet"
 
-#' #' The proportion of people in a relationship, by age band within sex
-#' #'
-#' #' @description
-#' #' The estimated proportion of people in a relationship, by age band within sex, for people aged between 20 and 90 years.
-#' #'
-#' #' @format A data frame of 14 rows and 7 variables
-#' #' \describe{
-#' #'     \item{Sex}{Either Male or Female}
-#' #'     \item{AgeBand}{The 10-year age band}
-#' #'     \item{MinAge}{The minimum age of the age band}
-#' #'     \item{MaxAge}{The maximum age of the age band}
-#' #'     \item{Relationship}{All people are Partnered}
-#' #'     \item{RelProps}{The proportion of people who have a relationship status of "Partnered"}
-#' #'     \item{MidPoints}{The median age in the age band}
-#' #' }
-#' #'
-#' "GroupInfo"
+#' The proportion of people in a relationship, by age band within sex
+#'
+#' @description
+#' The estimated proportion of people in a relationship, by age band within sex, for people aged between 20 and 90 years.
+#'
+#' @format A data frame of 14 rows and 7 variables
+#' \describe{
+#'     \item{Sex}{Either Male or Female}
+#'     \item{AgeBand}{The 10-year age band}
+#'     \item{MinAge}{The minimum age of the age band}
+#'     \item{MaxAge}{The maximum age of the age band}
+#'     \item{Relationship}{All people are Partnered}
+#'     \item{RelProps}{The proportion of people who have a relationship status of "Partnered"}
+#'     \item{MidPoints}{The median age in the age band}
+#' }
+#'
+"GroupInfo"
 
 #' People in age groups, in the Timaru District
 #'
@@ -197,7 +198,7 @@
 #'     \item{Value}{The number of people that age and sex}
 #'     \item{Age}{Age at last birthday}
 #' }
-#' @source Timaru District 2018 census data (tablecodes 8277), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
+#' @source Timaru District 2018 census data (tablecode 8277), sourced from Statistics New Zealand. Statistics New Zealand data are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.
 "SingleAges"
 
 #' Simulated township
@@ -231,19 +232,20 @@
 #' #'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
 #' #' }
 #' "WithSchoolInd"
+
+#' Adolescents with a school status and employment hours
 #'
-#' #' Adolescents with a school status and employment hours
-#' #'
-#' #' @description
-#' #' Synthetic adolescents aged between 15 and 18, produced from aggregate Timaru District 2018 census data, using tablecodes 8277, 8395, and 8460. School status was added using school leavers data produced by the Ministry of Education. Statistics New Zealand and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
-#' #'
-#' #' @format A data frame of 546 observations and 6 variables
-#' #' \describe{
-#' #'     \item{Sex}{Sex of the person}
-#' #'     \item{Relationship}{Relationship status of the person}
-#' #'     \item{ID}{The unique identifier for the person}
-#' #'     \item{Age}{Age of the person}
-#' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#' #'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
-#' #' }
-#' "WorkingAdolescents"
+#' @description
+#' A set of synthetic adolescents aged between 15 and 18.
+#'
+#' @format A data frame of 546 observations and 6 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{Age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
+#' }
+#' @source Timaru District 2018 census data (tablecodes 8277, 8395, and 8460). School status was added using school leavers data produced by the Ministry of Education. Statistics New Zealand and the Ministry of Education's data are licensed, separately, for reuse under the Creative Commons Attribution 4.0 International licence.
+"WorkingAdolescents"
