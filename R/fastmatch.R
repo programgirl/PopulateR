@@ -22,6 +22,7 @@ NULL
 #' @return A data frame of an even number of observations for allocation into same-sex couples. If HHStartNum is specified, household allocation will be performed.
 #'
 #' @examples
+#' library(dplyr)
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'                                     PersonAge = c(round(runif(200, min=18, max=23),0),
 #'                                     round(runif(300, min=24, max=50),0),
