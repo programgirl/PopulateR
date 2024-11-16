@@ -26,9 +26,9 @@ NULL
 #' @return A data frame of an observations, with an added column that contains the age.
 
 #' @examples
-#' DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
+#' \donttest{DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
 #'                           pyramid = SingleAges, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
-#'                           agevarname = "TheAge", userseed = 4)
+#'                           agevarname = "TheAge", userseed = 4)}
 
 
 agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, pyrcount, agevarname,

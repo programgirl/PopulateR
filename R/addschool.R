@@ -33,13 +33,13 @@ NULL
 #' @examples
 #' library(dplyr)
 #' # children in the same household will be added to the same school, if possible with a .8 probability
-#' SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode",
+#' \donttest{SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode",
 #'                           pplst = "SchoolStatus", hhid = "HouseholdID", SchoolsToUse,
 #'                           schid = "School.Name", schage = "AgeInRoll", schroll = "RollCount",
 #'                           schtype = "Gender", schmiss = 0, sameprob = .8, userseed = 4)
 #'
 #' Population <- SchoolsAdded$Population
-#' Schools <- SchoolsAdded$Schools
+#' Schools <- SchoolsAdded$Schools}
 
 addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, schools, schid, schage, schroll, schtype,
                        schmiss = 0, sameprob = 1, userseed=NULL)
