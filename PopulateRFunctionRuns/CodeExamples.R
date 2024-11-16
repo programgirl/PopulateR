@@ -291,7 +291,8 @@ PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 library("dplyr")
 
 AdultsID <- IntoSchools %>%
-  filter(Age > 20)
+  filter(Age > 20) %>%
+  select(-c(SchoolStatus, SexCode))
 
 set.seed(2)
 NoHousehold <- Township %>%
