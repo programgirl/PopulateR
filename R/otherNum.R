@@ -23,13 +23,13 @@ NULL
 #' @param numadd The number of people to be added to the household.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param ptostop  The critical p-value stopping rule for the function.
+#' @param attempts The number of times the function will randomly change two matches to improve the fit.
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 10000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
 #'
 #' @examples
-#' library("dplyr")
+#' \donttest{library("dplyr")
 #' AdultsID <- IntoSchools %>%
 #' filter(Age > 20)
 #' set.seed(2)
@@ -42,7 +42,7 @@ NULL
 #'                           userseed=4, attempts= 10, numiters = 10000)
 #' CompletedHouseholds <- OldHouseholds$Matched
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
-#' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched
+#' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
 #'
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
