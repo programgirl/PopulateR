@@ -6,7 +6,7 @@
 #' @importFrom rlang sym !!
 NULL
 
-#' Create a match of people into existing households
+#' Match people into existing households
 #'
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
 #' Two data frames are required. The 'existing' data frame contains the people already in households. The 'additions' data frame contains the people. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.
@@ -29,10 +29,10 @@ NULL
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
 #'
 #' @examples
-#'
+#' library("dplyr")
 #' AdultsID <- IntoSchools %>%
 #' filter(Age > 20)
-#'
+#' set.seed(2)
 #' NoHousehold <- Township %>%
 #'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
 #'   slice_sample(n = 1500)
@@ -40,6 +40,9 @@ NULL
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
 #'                           userseed=4, attempts= 10, numiters = 10000)
+#' CompletedHouseholds <- OldHouseholds$Matched
+#' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
+#' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched
 #'
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
@@ -283,15 +286,15 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
        # cat("MatchingSample size is", nrow(MatchingSample), "\n")
     #
     additionsRenamed <- additionsRenamed %>%
-      filter(!(addID %in% MatchingSample$addID))
+      filter(!(.data$addID %in% MatchingSample$addID))
 
     # get age differences
 
     CurrentAgeMatch <- existingRenamed %>%
-      select(internalHHID, existAge, existID)
+      select("internalHHID", "existAge", "existID")
 
     MatchedAgeExtract <- MatchingSample %>%
-      select(addAge, addID)
+      select("addAge", "addID")
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
@@ -456,24 +459,24 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
   theOriginal <- left_join(baseMini, existingOriginal, by = c("existID"))
 
   theOriginal <- theOriginal %>%
-    rename(!!exsidcolName := existID,
-           !!exsagecolName := existAge,
-           !!HHIDcolName := internalHHID)
+    rename(!!exsidcolName := "existID",
+           !!exsagecolName := "existAge",
+           !!HHIDcolName := "internalHHID")
 
   # the data frame that contributed new people to the household
 
   # data for the matched people
    addedMini <- theMatched %>%
-     select(addID, internalHHID)
+     select("addID", "internalHHID")
 
 
    # merge in their details
    theMatched <- left_join(addedMini, additionsOriginal, by = c("addID"))
 
    theMatched <- theMatched %>%
-     rename(!!addidcolName := addID,
-            !!addagecolName := addAge,
-            !!HHIDcolName := internalHHID)
+     rename(!!addidcolName := "addID",
+            !!addagecolName := "addAge",
+            !!HHIDcolName := "internalHHID")
 
 
    # merge the two into the matched output data frame
