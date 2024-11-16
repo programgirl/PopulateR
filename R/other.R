@@ -209,7 +209,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
     mutate({{HHNumVar}} := seq(HHStartNum, (HHStartNum + BaseSize - 1)))
 
   RemainingPeople <- peopleRenamed %>%
-    filter(!(RenamedID %in% c(BasePeople$RenamedID)))
+    filter(!(.data$RenamedID %in% c(BasePeople$RenamedID)))
 
       # cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
 
@@ -225,19 +225,19 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
          # cat("MatchingSample size is", nrow(MatchingSample), "\n")
 
       RemainingPeople <- RemainingPeople %>%
-        filter(!(RenamedID %in% MatchingSample$RenamedID))
+        filter(!(.data$RenamedID %in% MatchingSample$RenamedID))
 
       # cat("RemainingPeople is", nrow(RemainingPeople), "rows \n")
 
       # get age differences
 
       CurrentAgeMatch <- BasePeople %>%
-        select(RenamedAge,RenamedID)
+        select("RenamedAge","RenamedID")
 
       MatchedAgeExtract <- MatchingSample %>%
-        select(RenamedAge, RenamedID) %>%
-        rename(MatchedAge = RenamedAge,
-               MatchedID = RenamedID)
+        select("RenamedAge", "RenamedID") %>%
+        rename(MatchedAge = .data$RenamedAge,
+               MatchedID = .data$RenamedID)
 
       CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
@@ -301,7 +301,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
         # compute change in Chi-squared value from current pairing to proposed pairing
         PropAgeMatch <- CurrentAgeMatch %>%
-          filter(!(RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
+          filter(!(.data$RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
           bind_rows(., PropPair1,PropPair2)
 
         # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
@@ -391,13 +391,13 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
   TheMatched <- TheMatched %>%
     rename_with(drop_dot_y) %>%
-    select(-RenamedAge) %>%
-    rename(!!pplidcolName := MatchedID,
-           !!pplagecolName := MatchedAge)
+    select(-"RenamedAge") %>%
+    rename(!!pplidcolName := "MatchedID",
+           !!pplagecolName := "MatchedAge")
 
   TheBase <- AppendedBase %>%
-    rename(!!pplidcolName := RenamedID,
-           !!pplagecolName := RenamedAge)
+    rename(!!pplidcolName := "RenamedID",
+           !!pplagecolName := "RenamedAge")
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
 
