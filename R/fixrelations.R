@@ -26,16 +26,19 @@ NULL
 #' @examples
 #' library("dplyr")
 #' thegroups <- as.vector("Sex")
+#' GroupInfo <- rbind(GroupInfo, list("Male", "Under 20 Years", 19, 19, "Partnered", 0, 19),
+#'                    list("Female", "Under 20 Years", 19, 19, "Partnered", 0, 19))
 #' RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
 #'                       endmax = "MaxAge", grpdef = thegroups)
 #' # add in the age groups
 #' RelProps <- RelProps %>%
-#'   mutate(AgeBand = ifelse(between(Age, 20, 29), "20-29 Years",
-#'                           ifelse(between(Age, 30, 39), "30-39 Years",
-#'                           ifelse(between(Age, 40, 49), "40-49 Years",
-#'                           ifelse(between(Age, 50, 59), "50-59 Years",
-#'                           ifelse(between(Age, 60, 69), "60-69 Years",
-#'                           ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
+#'   mutate(AgeBand = ifelse(ifelse(Age==19, "Under 20 Years",
+#'                    ifelse(between(Age, 20, 29), "20-29 Years",
+#'                    ifelse(between(Age, 30, 39), "30-39 Years",
+#'                    ifelse(between(Age, 40, 49), "40-49 Years",
+#'                    ifelse(between(Age, 50, 59), "50-59 Years",
+#'                    ifelse(between(Age, 60, 69), "60-69 Years",
+#'                    ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
 #'
 #' # perform separately by sex
 #' joinwith <- c("Age", "Sex")
