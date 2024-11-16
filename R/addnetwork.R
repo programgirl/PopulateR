@@ -35,20 +35,19 @@ NULL
 #' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
 #'
 #' # output as n x n adjacency matrix
-#' NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+#' # takes a long time
+#' # NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
+#' #                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
 #'
 #' # smaller sample for visualisation
 #'
 #'  SmallDemo <- Township %>%
+#'   filter(between(Age, 20, 29)) %>%
 #'   slice_sample(n = 20)
 #'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
 #'                               probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 #'  plot(NetworkSmallN)
-
-
-
 
 
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
@@ -119,12 +118,15 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
                                         method="simple.no.multiple")
 
 
-  # cat("Wirednetwork created", "\n")
+  # cat("WiredNetwork created \n")
   # now, get it so that the clustering is better
   current_clustering <- igraph::transitivity(WiredNetwork)
 
+  # cat("current_clustering done \n")
+
   target_clustering <- probsame # P(triads | length 3 path)
 
+  # cat("target_clustering done \n")
 
   # https://github.com/cwatson/brainGraph/pull/26
   ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
@@ -132,7 +134,11 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
                                                        cl=target_clustering,
                                                        max.iters=100)
 
+  # cat("ClusteredNetwork done \n")
+
   igraph::transitivity(ClusteredNetwork)
+
+  # cat("ClusteredNetwork done \n")
 
   # OK, now we want to get our ages on this. One way is to just
   # place them directly, but let's do it slightly indirectly so
@@ -239,6 +245,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   accept <- list() # this is just to store how often we accept a proposal
   for (i in 1:numiters) { # lots of iterations
+
 
     # do the permutation: first off, how many people do we permute?
     num_to_permute <- 2 + rpois(1, 0.5)
