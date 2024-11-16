@@ -32,20 +32,20 @@ NULL
 #'                       endmax = "MaxAge", grpdef = thegroups)
 #' # add in the age groups
 #' RelProps <- RelProps %>%
-#'   mutate(AgeBand = ifelse(ifelse(Age==19, "Under 20 Years",
+#'   mutate(AgeBand = ifelse(Age==19, "Under 20 Years",
 #'                    ifelse(between(Age, 20, 29), "20-29 Years",
 #'                    ifelse(between(Age, 30, 39), "30-39 Years",
 #'                    ifelse(between(Age, 40, 49), "40-49 Years",
 #'                    ifelse(between(Age, 50, 59), "50-59 Years",
 #'                    ifelse(between(Age, 60, 69), "60-69 Years",
-#'                    ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
+#'                    ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years"))))))))
 #'
 #' # perform separately by sex
-#' joindef <- c("Age", "Sex")
+#' thejoindef <- c("Age", "Sex")
 #' thegroups <- c("Sex", "AgeBand")
 #' FinalRels <- fixrelations(BadRels, pplid = "ID", pplage = "Age", pplstat = "Relationship",
 #'                           stfixval = "Partnered", props = RelProps, propcol = "Fits",
-#'                           grpdef = thegroups, matchdef = joindef, userseed = 4)
+#'                           grpdef = thegroups, matchdef = thejoindef, userseed = 4)
 
 
 fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
