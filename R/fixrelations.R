@@ -5,7 +5,7 @@
 #' @importFrom tidyr contains
 NULL
 
-#' Provides an age structure to relationship status, when a relationship status has been previously defined using age groups rather than ages.
+#' Provides an age structure to relationship status, estimated from age groups
 #'
 #' Redistributes a user-defined relationship status value between ages, using age groups and other variables (if specified). Within the group definition provided, the marginal totals of the relationship status values are retained.
 #' The data frame can include groups where all people have the same relationship status. In this situation, there is no need to restrict the data frame to only those whose relationship status must be redistributed.
