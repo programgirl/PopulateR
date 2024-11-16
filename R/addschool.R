@@ -1,5 +1,5 @@
 #' @importFrom data.table :=
-#' @importFrom dplyr anti_join arrange between bind_rows desc distinct filter full_join group_by left_join mutate n_distinct rename select slice_head slice_max slice_sample summarise ungroup
+#' @importFrom dplyr anti_join arrange between bind_rows desc distinct filter full_join group_by left_join mutate n_distinct pull rename select slice_head slice_max slice_sample summarise ungroup
 #' @importFrom rlang sym !!
 #' @importFrom stats na.omit runif
 NULL
