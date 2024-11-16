@@ -1,17 +1,17 @@
-#' #' Non-partnered synthetic people
-#' #'
-#' #' @description
-#' #' A subset of people from the Township data frame, aged 20 years and older with a relationship status of "NonPartnered".
-#' #'
-#' #' @format A data frame of 2,213 rows and 5 variables
-#' #' \describe{
-#' #'     \item{Sex}{Sex of the person}
-#' #'     \item{Relationship}{Relationship status of the person}
-#' #'     \item{ID}{The unique identifier for the person}
-#' #'     \item{Age}{The age of the person}
-#' #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#' #' }
-#' "AdultsNoID"
+#' Non-partnered synthetic people
+#'
+#' @description
+#' A subset of people from the Township data frame, aged 20 years and older with a relationship status of "NonPartnered".
+#'
+#' @format A data frame of 2,213 rows and 5 variables
+#' \describe{
+#'     \item{Sex}{Sex of the person}
+#'     \item{Relationship}{Relationship status of the person}
+#'     \item{ID}{The unique identifier for the person}
+#'     \item{Age}{The age of the person}
+#'     \item{HoursWorked}{The number of hours worked in employment, per week}
+#' }
+"AdultsNoID"
 
 #'Employers and employees, by industry
 #'
