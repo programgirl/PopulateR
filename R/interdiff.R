@@ -4,11 +4,9 @@
 #' @importFrom tidyselect matches where
 NULL
 
-#' Estimates values for ages when only age group data is available.
-#'
 #' Interpolates ages from age group medians
 #'
-#' The node ages for each age group are defined by the user, along with the age group values. The function will then impute the values within the age group edges.
+#' The node ages for each age group are defined by the user, along with the age group values. The ages are then imputed from these nodes.
 #' Zero values at both extremes must be included. For example, for the age group 20-24 years, the pplprop value is for pplage. if the first non-zero relationship probability is for the age group 20-24 years, and the previous age group is 15-19 years, pplprop==0 for pplage==19.
 #'For each age group, there must be a minimum and maximum age specified. This provides the interpolation range for each age group. For the anchoring 0 values, the minimum and maximum ages are the same. In this example, for pplage==19, endmin==19, and endmax==19.
 #' If there is no zero for older ages, as the final node value occurs inside the age group, the function assumes that the last node-to-node should be used to extrapolate for the ages older than the oldest node value. For example, if the last node value is for 90 years of age, but the oldest age is 95 years, the function will assume the same slope for ages 91 through 95 years.
