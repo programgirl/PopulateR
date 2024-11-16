@@ -672,7 +672,7 @@ save(EmployerSet, file = "data/EmployerSet.rda")
 
 set.seed(2)
 Ppl4networks <- Township  %>%
-  slice_sample(n = 5000)
+  slice_sample(n = 1000)
 
 save(Ppl4networks, file="data/Ppl4networks.rda")
 
@@ -733,6 +733,8 @@ plot(NetworkSmallN)
 
 # keep running this until no more warnings or errors
 devtools::check()
+
+devtools::run_examples()
 
 # after all checks passed
 # for compiling the package
