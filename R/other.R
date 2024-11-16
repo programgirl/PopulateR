@@ -28,12 +28,12 @@ NULL
 #'
 #' @examples
 # library(dplyr)
-#' NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
+#' \donttest{NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
 #'                        HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .01,
 #'                        numiters = 1000000)
 #'
 #' PeopleInHouseholds <- NewHouseholds$Matched
-#' PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
+#' PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3}
 
 
 other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL,
@@ -236,8 +236,8 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
       MatchedAgeExtract <- MatchingSample %>%
         select("RenamedAge", "RenamedID") %>%
-        rename(MatchedAge = .data$RenamedAge,
-               MatchedID = .data$RenamedID)
+        rename(MatchedAge = "RenamedAge",
+               MatchedID = "RenamedID")
 
       CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
