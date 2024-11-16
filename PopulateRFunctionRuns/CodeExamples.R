@@ -288,9 +288,12 @@ PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 ###########################################################
 # people into existing households
 # the people to add data frame is smaller than required, by 40 people
+library("dplyr")
+
 AdultsID <- IntoSchools %>%
   filter(Age > 20)
 
+set.seed(2)
 NoHousehold <- Township %>%
   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
   slice_sample(n = 1500)
@@ -299,7 +302,9 @@ OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "Ho
                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
                           userseed=4, attempts= 10, numiters = 10000)
 
-
+CompletedHouseholds <- OldHouseholds$Matched
+IncompleteHouseholds <- OldHouseholds$Existing
+UnmatchedOthers <- OldHouseholds$Additions
 
 
 
