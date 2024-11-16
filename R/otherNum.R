@@ -31,7 +31,8 @@ NULL
 #' @examples
 #' \donttest{library("dplyr")
 #' AdultsID <- IntoSchools %>%
-#' filter(Age > 20)
+#' filter(Age > 20) %>%
+#' select(-c(SchoolStatus, SexCode))
 #' set.seed(2)
 #' NoHousehold <- Township %>%
 #'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
@@ -40,7 +41,7 @@ NULL
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
 #'                           userseed=4, attempts= 10, numiters = 10000)
-#' CompletedHouseholds <- OldHouseholds$Matched
+#' CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
 #' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
 #'
@@ -356,7 +357,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!(existID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
+        filter(!(.data$existID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
         bind_rows(., PropPair1,PropPair2)
 
 
@@ -451,7 +452,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
   # the data frame that already had a household ID
 
   baseMini <- theMatched %>%
-    select(existID) %>%
+    select("existID") %>%
     unique()
 
 
