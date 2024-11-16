@@ -45,6 +45,7 @@ NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 
 # smaller examples for the article
 
+set.seed(2) # small datasets can cause problems if a random seed is used for sampling
 SmallDemo <- Township %>%
   filter(between(Age, 20, 29)) %>%
   slice_sample(n = 20)
@@ -214,16 +215,21 @@ table(OneGroup$HoursWorked, OneGroup$Age, OneGroup$SchoolStatus)
 # create the expected proportion of people in relationships, by age within sex
 library("dplyr")
 thegroups <- as.vector("Sex")
+
+GroupInfo <- rbind(GroupInfo, list("Male", "Under 20 Years", 19, 19, "Partnered", 0, 19),
+                   list("Female", "Under 20 Years", 19, 19, "Partnered", 0, 19))
+
 RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
                       endmax = "MaxAge", grpdef = thegroups)
 # add in the age groups
 RelProps <- RelProps %>%
-  mutate(AgeBand = ifelse(between(Age, 20, 29), "20-29 Years",
-                          ifelse(between(Age, 30, 39), "30-39 Years",
-                                 ifelse(between(Age, 40, 49), "40-49 Years",
-                                        ifelse(between(Age, 50, 59), "50-59 Years",
-                                               ifelse(between(Age, 60, 69), "60-69 Years",
-                                                      ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years")))))))
+  mutate(AgeBand = ifelse(Age==19, "Under 20 Years",
+                   ifelse(between(Age, 20, 29), "20-29 Years",
+                   ifelse(between(Age, 30, 39), "30-39 Years",
+                   ifelse(between(Age, 40, 49), "40-49 Years",
+                   ifelse(between(Age, 50, 59), "50-59 Years",
+                   ifelse(between(Age, 60, 69), "60-69 Years",
+                   ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years"))))))))
 
 # use this to amend the proportion of people within relationships, by age within sex
 
