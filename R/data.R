@@ -132,17 +132,17 @@
 #' The number of contacts for 5000 person
 #'
 #' @description
-#' A matrix of 5,000 integers constricted using a Poisson distribution. Each value is the number of contacts for a person.
+#' A matrix of 1,000 integers constricted using a Poisson distribution. Each value is the number of contacts for a person.
 #'
-#' @format A list of 5,000 integers
+#' @format A list of 1,000 integers
 "NetworkMatrix"
 
 #' Synthetic people living in the Timaru District
 #'
 #' @description
-#' 5000 synthetic people.
+#' 1000 synthetic people.
 #'
-#' @format A data frame with 5,000 rows and 5 variables
+#' @format A data frame with 1,000 rows and 5 variables
 #' \describe{
 #'     \item{Sex}{Sex of the person}
 #'     \item{Relationship}{Relationship status of the person}
