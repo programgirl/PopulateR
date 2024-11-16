@@ -1,4 +1,4 @@
-#' @importFrom dplyr across arrange bind_rows filter group_by left_join mutate pull rename row_number select slice_sample ungroup
+#' @importFrom dplyr across all_of  arrange bind_rows filter group_by left_join mutate pull rename row_number select slice_sample ungroup
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym
 #' @importFrom tidyselect matches where
