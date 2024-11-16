@@ -43,7 +43,7 @@
 #'     \item{ID}{The unique identifier for the person}
 #'     \item{Age}{The age of the person}
 #'     \item{HoursWorked}{The number of hours worked in employment, per week}
-#'     \item{Ageband}{The ten-year age band for the age}
+#'     \item{AgeBand}{The ten-year age band for the age}
 #'     \item{MinAge}{The minimum age in the age band}
 #'     \item{MaxAge}{The maximum age in the age band}
 #'     }
