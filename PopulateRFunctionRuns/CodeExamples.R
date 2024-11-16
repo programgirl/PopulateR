@@ -45,8 +45,8 @@ NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
 
 # smaller examples for the article
 
-set.seed(4)
 SmallDemo <- Township %>%
+  filter(between(Age, 20, 29)) %>%
   slice_sample(n = 20)
 
 Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
