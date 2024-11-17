@@ -198,8 +198,10 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       select(all_of(matchdef)) %>%
       unique()
 
-    suppressMessages(RelevantProps <- left_join(MatchingValues, props, by = c(matchdef)) %>%
-      replace(is.na(.), 0))
+    suppressMessages(RelevantProps <- left_join(MatchingValues, props, by = c(matchdef)))
+
+    RelevantProps <- replace(RelevantProps, is.na(RelevantProps), 0)
+
 
 
     # cat("The information about RelevantProps is", "\n")
