@@ -1,6 +1,15 @@
-#' Pairs people from smalldf with people from largedf, using a four-parameter beta distribution, into households.
-#' This function creates a data frame of paired people, based on a distribution of age differences. The function uses a four-parameter beta distribution to create the pairs.
-#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
+#' @importFrom data.table :=
+#' @importFrom dplyr bind_cols bind_rows filter left_join rename select slice_sample
+#' @importFrom graphics hist
+#' @importFrom magrittr %>%
+#' @importFrom PearsonDS ppearsonI qpearsonI rpearsonI
+#' @importFrom rlang sym !!
+NULL
+
+#' Pair two people, using a four-parameter beta distribution, into households
+#'
+#' Creates a data frame of paired people, based on a distribution of age differences. The function uses a four-parameter beta distribution to create the pairs.
+#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the "smalldf" data frame must be the smaller of the two. In this situation, a random subsample of the "largedf" data frame will be used.
 #' Both data frames must be restricted to only those people that will be paired.
 #' @export
 #' @param smalldf The data frame containing one set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the smallest number.
@@ -37,13 +46,13 @@
 #' ChildAllMatched <- pairbeta4(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
 #'                              lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = 16.5,
 #'                              scaleP = 40.1, HHStartNum = 1, HHNumVar = "Household",
-#'                              userseed=4, ptostop = .01, numiters = 1000000)
+#'                              userseed=4, ptostop = .01, numiters = 1000)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
 #' UnmatchedChildren <- ChildAllMatched$Smaller
 #' UnmatchedAdults <- ChildAllMatched$Larger
 #'
-#' # children data frame is larger, the locationP and scaleP values are negative
+#' \donttest{# children data frame is larger, the locationP and scaleP values are negative
 #'
 #'Parents2 <- Township %>%
 #'filter(Relationship == "Partnered", Age > 18) %>%
@@ -55,14 +64,11 @@
 #'  ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID",
 #'                            lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = -16.5,
 #'                            scaleP = -40.1, HHStartNum = 1, HHNumVar = "Household",
-#'                            userseed=4, ptostop = .01, numiters = 1000000)
+#'                            userseed=4, ptostop = .01, numiters = 1000)
 #'
 #' MatchedPairs2 <- ChildMatched$Matched
 #' UnmatchedChildren2 <- ChildMatched$Smaller
-#' UnmatchedAdults2 <- ChildMatched$Larger
-
-
-
+#' UnmatchedAdults2 <- ChildMatched$Larger}
 
 
 pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL, locationP=NULL,
@@ -216,7 +222,7 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
       # generate random sample of people that age from the smalldf
       lrgSubset <- lrgRenamed %>%
-        filter(largeAge == reqAge)
+        filter(.data$largeAge == reqAge)
 
       if(nrow(lrgSubset) > 0) {
         lrgChosen <- lrgSubset %>%
@@ -241,24 +247,24 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
     if(isMatched == "Y") {
 
       matchedSml <- currentSml %>%
-        select(smallID)
+        select("smallID")
 
       matchedLrg <- lrgChosen %>%
-        select(largeID)
+        select("largeID")
 
       matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
-        filter(smallID == matchedSml$smallID)
+        filter(.data$smallID == matchedSml$smallID)
 
       matchedLrgFull <- lrgRenamed %>%
-        filter(largeID == matchedLrg$largeID)
+        filter(.data$largeID == matchedLrg$largeID)
 
 
       if(exists("CurrentAgeMatch")) {
 
         smlSummaryData <- matchedSmFull %>%
-          select(smallID, smallAge)
+          select("smallID", "smallAge")
         lrgSummaryData <- matchedLrgFull %>%
-          select(largeID, largeAge)
+          select("largeID", "largeAge")
         interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
         CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
 
@@ -266,9 +272,9 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
       } else {
 
         smlSummaryData <- matchedSmFull %>%
-          select(smallID, smallAge)
+          select("smallID", "smallAge")
         lrgSummaryData <- matchedLrgFull %>%
-          select(largeID, largeAge)
+          select("largeID", "largeAge")
         CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
 
         # closes else to  if(exists("CurrentAgeMatch"))
@@ -276,7 +282,7 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
       # remove matched person from being reselected from largerdf
       lrgRenamed <- lrgRenamed %>%
-        filter(!(largeID == matchedLrg$largeID))
+        filter(!(.data$largeID == matchedLrg$largeID))
 
 
       # closes if(isMatched == "Y") {
@@ -290,7 +296,7 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
         round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
 
       lrgSubset <- lrgRenamed %>%
-        filter(between(largeAge, minAgeNeeded, maxAgeNeeded))
+        filter(between(.data$largeAge, minAgeNeeded, maxAgeNeeded))
 
       if(nrow(lrgSubset) > 0) {
         lrgChosen <- lrgSubset %>%
@@ -298,24 +304,24 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
         # do the extraction work here only if there is a matching person drawn
         matchedSml <- currentSml %>%
-          select(smallID)
+          select("smallID")
 
         matchedLrg <- lrgChosen %>%
-          select(largeID)
+          select("largeID")
 
         matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
-          filter(smallID == matchedSml$smallID)
+          filter(.data$smallID == matchedSml$smallID)
 
         matchedLrgFull <- lrgRenamed %>%
-          filter(largeID == matchedLrg$largeID)
+          filter(.data$largeID == matchedLrg$largeID)
 
 
         if(exists("CurrentAgeMatch")) {
 
           smlSummaryData <- matchedSmFull %>%
-            select(smallID, smallAge)
+            select("smallID", "smallAge")
           lrgSummaryData <- matchedLrgFull %>%
-            select(largeID, largeAge)
+            select("largeID", "largeAge")
           interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
           CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
 
@@ -323,9 +329,9 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
         } else {
 
           smlSummaryData <- matchedSmFull %>%
-            select(smallID, smallAge)
+            select("smallID", "smallAge")
           lrgSummaryData <- matchedLrgFull %>%
-            select(largeID, largeAge)
+            select("largeID", "largeAge")
           CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
 
           # closes else to  if(exists("CurrentAgeMatch"))
@@ -333,7 +339,7 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
         # remove matched person from being reselected from largerdf
         lrgRenamed <- lrgRenamed %>%
-          filter(!(largeID == matchedLrg$largeID))
+          filter(!(.data$largeID == matchedLrg$largeID))
 
         # closes if(nrow(lrgSubset) > 0) {
       }
@@ -509,9 +515,9 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
     # compute change in Chi-squared value from current pairing to proposed pairing
 
     PropAgeMatch <- CurrentAgeMatch %>%
-      # filter(!(smalldf[[smlidcolName]] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-      filter(!(smallID %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-      bind_rows(., PropPair1,PropPair2)
+      filter(!(.data$smallID %in% c(PropPair1[,1], PropPair2[,1])))
+
+    PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1,PropPair2)
 
     # cat("PropAgeMatch done", "\n")
 
@@ -576,17 +582,17 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
   # need to do the renames separately
 
   FullMatchedSml <- CurrentAgeMatch %>%
-    select(smallID, smallAge, internalHHID) %>%
-    rename(!! smlidcolName := smallID,
-           !! smlagecolName := smallAge,
-           {{HHNumVar}} := internalHHID) %>%
+    select("smallID", "smallAge", "internalHHID") %>%
+    rename(!! smlidcolName := "smallID",
+           !! smlagecolName := "smallAge",
+           {{HHNumVar}} := "internalHHID") %>%
     left_join(smalldf)
 
   FullMatchedLrg <- CurrentAgeMatch %>%
-    select(largeID, largeAge, internalHHID) %>%
-    rename(!! lrgidcolName := largeID,
-           !! lrgagecolName := largeAge,
-           {{HHNumVar}} := internalHHID) %>%
+    select("largeID", "largeAge", "internalHHID") %>%
+    rename(!! lrgidcolName := "largeID",
+           !! lrgagecolName := "largeAge",
+           {{HHNumVar}} := "internalHHID") %>%
     left_join(largedf)
 
   OutputDataframe <- rbind(FullMatchedSml, FullMatchedLrg)
