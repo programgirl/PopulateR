@@ -301,8 +301,9 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
         # compute change in Chi-squared value from current pairing to proposed pairing
         PropAgeMatch <- CurrentAgeMatch %>%
-          filter(!(.data$RenamedID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
-          bind_rows(., PropPair1,PropPair2)
+          filter(!(.data$RenamedID %in% c(PropPair1[,2], PropPair2[,2])))
+
+        PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
         # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
 
@@ -348,7 +349,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
         InterimDataFrame <- BasePeople %>%
           left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
           left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-          select(all_of(NumberColspplPlusOne:ncol(.)))
+          select(all_of(NumberColspplPlusOne:last_col()))
 
         TheMatched <- bind_rows(InterimDataFrame, TheMatched)
 
@@ -357,7 +358,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
         TheMatched <- BasePeople %>%
           left_join(CurrentAgeMatch, by=c("RenamedID", "RenamedAge")) %>%
           left_join(MatchingSample, by= c("MatchedID" = "RenamedID")) %>%
-          select(all_of(NumberColspplPlusOne:ncol(.)))
+          select(all_of(NumberColspplPlusOne:last_col()))
 
       }
 
