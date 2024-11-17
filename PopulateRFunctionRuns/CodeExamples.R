@@ -404,7 +404,7 @@ ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents,
 
 
 MatchedPairs <- ChildAllMatched$Matched
-UnmatchedChildren <- ChildAllMatched$Smaller
+UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
 UnmatchedAdults <- ChildAllMatched$Larger
 
 # children data frame is larger, the locationP and scaleP values are negative
