@@ -7,7 +7,7 @@
 #' @importFrom tidyselect last_col
 NULL
 
-#' Create a match of people into households
+#' Match people into new households
 #'
 #' This function creates a data frame of household inhabitants, with the specified number of inhabitants.
 #' One data frame, containing the people to match, is required. The use of an age distribution for the matching ensures that an age structure is present in the households. A less correlated age structure can be produced by entering a larger standard deviation.

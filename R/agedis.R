@@ -4,9 +4,9 @@
 #' @importFrom rlang sym !!
 NULL
 
-#' Add a sex/age structure to a data frame of grouped ages.
+#' Add a sex/age structure to a data frame of grouped ages
 #'
-#' This function creates a data frame that adds an age structure to a data frame that contains age groups.
+#' Adds an age variable to a data frame that contains age groups, based on age group within sex.
 #' Two data frames are required: the data frame that contains individuals with age bands ("individuals"), and a data frame used as the basis for constructing a sex/age pyramid ("pyramid").
 #' The individuals data frame requires two columns relating to the age groups. One is the minimum age in the age group. The second is the maximum age in the age group. For example, the age group 0 - 4 years would have 0 as the minimum age value and 4 as the maximum age value. Each person in the individuals data frame must have both the minimum and maximum age variables populated.
 #' The pyramid data frame must contain counts by sex/age in the population of interest.

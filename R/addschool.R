@@ -4,9 +4,9 @@
 #' @importFrom stats na.omit runif
 NULL
 
-#' Create a data frame of people matched to schools
+#' Match school children to schools
 #'
-#' This function creates a data frame of people and matching schools. By default, all similarly-aged students in the same household will be matched to the same school. If one student is matched to a same-sex school, then all similarly aged students will also be matched to a same-sex school. This includes opposite-sex children.
+#' Creates a data frame of people and matching schools. By default, all similarly-aged students in the same household will be matched to the same school. If one student is matched to a same-sex school, then all similarly aged students will also be matched to a same-sex school. This includes opposite-sex children, with boys attending a same-sex boys school, and girls attending a same-sex girls school.
 #' Two data frames are required: one for the people ("people) and one for the schools ("schools").
 #' In the "people" data frame, a numeric or ordered factor for school status is required. The smallest value/level will be treated as the code for non-students. If one value is used, everyone in the data frame will be allocated a school. Thus, pre-cleaning a data frame is not required.
 #' The "schools" data frame must be a summary in the form of roll counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used,  and the relevant value must be on each row of the schools" data frame.

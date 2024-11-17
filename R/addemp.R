@@ -4,10 +4,9 @@
 #' @importFrom rlang .data sym !!
 NULL
 
-#' Create a data frame of people with employers added
+#' Add employers to people in employment
 #'
-#'
-#' This function creates a data frame of people and matching employers, if employed. Two data frames are required: one for the people and one for the employers.
+#' Creates a data frame of people and matching employers, if employed. Two data frames are required: one for the people and one for the employers. For people not in employment, a user-supplied missing value is used instead of the employer information.
 #' A numeric or ordered factor for working hours is required. The minimum value for being in employment must be specified. Anyone coded under this value will be treated as unemployed. Thus, pre-cleaning the people data frame is not required.
 #' The employer data frame can be either a summary in the form of the number of employees by employer. The other option is that each row represents a vacancy for an employee. Thus, an employer with 5 employees may be represented as either: a single row with an employee count of 5, or 5 rows with an employee count of 1 in each row.
 #' @export

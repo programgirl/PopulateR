@@ -5,9 +5,9 @@
 #' @importFrom stats setNames
 NULL
 
-#' Reallocates the working hours between people in education and people not in education.
+#' Reallocates working hours between people in education and people not in education
 #'
-#' This function reallocates working hours so that people in education work fewer hours than people not in education. Pre-cleaning so that only people inside the student age range is not required. The hours of work are reallocated so that shorter hours worked are prioritised to those in education. The variables provided in the grpdef vector define the marginal totals that must be retained.
+#' Reallocates working hours so that people in education work fewer hours than people not in education. Pre-cleaning so that only people inside the student age range is not required. The hours of work are reallocated so that shorter hours worked are prioritised to those in education. The variables provided in the grpdef vector define the marginal totals that must be retained.
 #' @export
 #' @param people A data frame containing individual people.
 #' @param pplid The variable containing the unique identifier for each person, in the people data frame.

@@ -4,9 +4,9 @@
 #' @importFrom rlang .data sym !!
 NULL
 
-#' Creates a data frame of weighted contact pairs.
+#' Creates the four data frames of weighted contact pairs for use in Covasim
 #'
-#' This function creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
+#' Creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
 #'
 #' There are two restrictions for use. First, the codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "Y" as Covasim requires a school layer.
 #'

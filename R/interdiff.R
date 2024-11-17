@@ -4,7 +4,7 @@
 #' @importFrom tidyselect matches where
 NULL
 
-#' Interpolates ages from age group medians
+#' Interpolate ages from age group medians
 #'
 #' The node ages for each age group are defined by the user, along with the age group values. The ages are then imputed from these nodes.
 #' Zero values at both extremes must be included. For example, for the age group 20-24 years, the pplprop value is for pplage. if the first non-zero relationship probability is for the age group 20-24 years, and the previous age group is 15-19 years, pplprop==0 for pplage==19.
