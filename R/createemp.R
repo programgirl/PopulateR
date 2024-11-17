@@ -117,8 +117,10 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
 
       Internalemployer <- currentEmp %>%
               slice(rep(seq_len(n()), numEmp)) %>%
-              mutate(Staff = 1,
-                     CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)))
+              mutate(n = row_number(),
+                     Staff = 1,
+                     CompanyName = paste0("Company", Paste0Value+(n-1))) %>%
+              select(- "n")
 
             # get max paste0 value so that the starting company name is updated for the next loop
             EndPaste0Value <- Internalemployer %>%
@@ -171,8 +173,10 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
 
           Internalemployer <- currentEmp %>%
             slice(rep(seq_len(n()), numEmp)) %>%
-            mutate(CompanyName = paste0("Company", Paste0Value:(Paste0Value+nrow(.)-1)),
-                   Staff = AchievedCompSize)
+            mutate(n = row_number(),
+                   CompanyName = paste0("Company", Paste0Value+(n-1)),
+                   Staff = AchievedCompSize) %>%
+            select(- "n")
 
           EndPaste0Value <- Internalemployer %>%
             slice_tail(n = 1) %>%
