@@ -51,10 +51,10 @@ NULL
 #'                                 numiters = 10000)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
-#' UnmatchedChildren <- ChildAllMatched$Smaller
+#' UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
 #' UnmatchedAdults <- ChildAllMatched$Larger
 #'
-#' # children data frame is larger, the locationP and scaleP values are negative
+#' \donttest{# children data frame is larger, the locationP and scaleP values are negative
 #'
 #' Parents2 <- Township %>%
 #'   filter(Relationship == "Partnered", Age > 18) %>%
@@ -71,7 +71,7 @@ NULL
 #'
 #' MatchedPairs2 <- ChildMatched$Matched
 #' UnmatchedChildren2 <- ChildMatched$Smaller
-#' UnmatchedAdults2 <- ChildMatched$Larger
+#' UnmatchedAdults2 <- ChildMatched$Larger}
 
 
 pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL,
