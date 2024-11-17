@@ -357,9 +357,9 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!(.data$existID %in% c(PropPair1[,2], PropPair2[,2]))) %>%
-        bind_rows(., PropPair1,PropPair2)
+        filter(!(.data$existID %in% c(PropPair1[,2], PropPair2[,2])))
 
+      PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
       # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
 
