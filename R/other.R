@@ -4,6 +4,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom stats dnorm qchisq qnorm pnorm
 #' @importFrom rlang sym !!
+#' @importFrom tidyselect last_col
 NULL
 
 #' Create a match of people into households
