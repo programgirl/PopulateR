@@ -330,8 +330,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   kidsAdd <- function(theDF) {
     # generate bipartite match
     theGraph <- igraph::graph_from_data_frame(theDF) %>%
-      # igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personAge)
-      igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personID)
+
+    theGraph <- igraph::set_vertex_attr(name = "type", value = names(igraph::V(theGraph)) %in% theDF$personID)
 
     # cat("Household is ", CurrentHousehold, "\n")
 
@@ -1231,8 +1231,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
   schoolsOutput <- suppressMessages(left_join(schools, schoolsRenamed))
 
-  schoolsOutput <- left_join(schoolsOutput,usedSpots) %>%
-    mutate(spacesUsed = ifelse(is.na(.data$spacesUsed), 0, .data$spacesUsed))
+  schoolsOutput <- suppressMessages(left_join(schoolsOutput,usedSpots) %>%
+    mutate(spacesUsed = ifelse(is.na(.data$spacesUsed), 0, .data$spacesUsed)))
 
   cat("The dataframes are $Population and $Schools", "\n")
   cat("$Population contains everyone in the people data frame, with school IDs added", "\n")
