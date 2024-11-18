@@ -1,6 +1,12 @@
-#' Create many-to-one pairs, when one data frame contains a household identifier
+#' @importFrom data.table :=
+#' @importFrom dplyr between bind_cols bind_rows filter left_join rename select slice_sample
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+NULL
+
+#' Create many-to-one pairs, when there are existing households
 #'
-#' This function creates a data frame of many-to-one pairs, based on a distribution of age differences. Designed to match multiple children to the same parent, the function can be used for any situation where a many-to-one match is required based on a range of age differences. For clarity and brevity, the terms "children" and "parents" will be used.
+#' Creates a data frame of many-to-one pairs, based on a distribution of age differences. Designed to match multiple children to the same parent, the function can be used for any situation where a many-to-one match is required based on a range of age differences. For clarity and brevity, the terms "children" and "parents" will be used.
 #' Two data frames are required: one for children and one for potential parents. The data frame of potential parents must contain household identifiers
 #' The minimum and maximum ages of parents must be specified. This ensures that there are no parents who were too young (e.g. 11 years) or too old (e.g. 70 years) at the time the child was born. The presence of too young and too old parents is tested throughout this function. Thus, pre-cleaning the parents data frame is not required.
 #' Both data frames must be restricted to only those people that will be paired.
@@ -196,9 +202,9 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
     # make sure the minimum and maximum ages have enough other child ages to meet the numkids and maxdiff requirements
 
     AgesForTwins <- childrenRenamed %>%
-      group_by(ChildAge) %>%
+      group_by(.data$ChildAge) %>%
       summarise(NumAge = n()) %>%
-      filter(NumAge > 1)
+      filter(.data$NumAge > 1)
 
     # select twin ages
 
@@ -209,13 +215,13 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # get age, need to select randomly
 
       TwinAgeSelect <- AgesForTwins %>%
-        slice_sample(n=1, weight_by = NumAge)
+        slice_sample(n=1, weight_by = .data$NumAge)
 
       CurrentAge <- TwinAgeSelect$ChildAge
 
       # pull children from the child dataframe who are that age
       SelectedKids <- childrenRenamed %>%
-        filter(ChildAge==CurrentAge) %>%
+        filter(.data$ChildAge==CurrentAge) %>%
         slice_sample(n=2, replace = FALSE)
 
       # get parent
@@ -225,7 +231,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # cat("Needed min is", NeededMin, "needed max is", NeededMax, "\n")
 
       SelectedParent <- parentsRenamed %>%
-        filter(between(ParentAge, NeededMin, NeededMax)) %>%
+        filter(between(.data$ParentAge, NeededMin, NeededMax)) %>%
         slice_sample(n=1)
 
       currentHHID <- SelectedParent$internalHHID
@@ -254,17 +260,17 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
       # remove the children from the available children and update the counts to enter into the loop
       childrenRenamed <- childrenRenamed %>%
-        filter(!(ChildID %in% c(SelectedKids$ChildID)))
+        filter(!(.data$ChildID %in% c(SelectedKids$ChildID)))
 
       AgesForTwins <- childrenRenamed %>%
-        group_by(ChildAge) %>%
+        group_by(.data$ChildAge) %>%
         summarise(NumAge = n()) %>%
-        filter(NumAge > 1)
+        filter(.data$NumAge > 1)
 
       # remove the parent
 
       parentsRenamed <- parentsRenamed %>%
-        filter(!(ParentID %in% c(SelectedParent$ParentID)))
+        filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
 
       # have to add the additional twin stuff in here, need to check if children needed > 0
@@ -292,9 +298,9 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
     MaxChildrenRenamedAge <- max(childrenRenamed$ChildAge)
 
     AgesForTwins <- childrenRenamed %>%
-      group_by(ChildAge) %>%
+      group_by(.data$ChildAge) %>%
       summarise(NumAge = n()) %>%
-      filter(NumAge > 1)
+      filter(.data$NumAge > 1)
 
 
     # minTwinAge <- min(AgesForTwins) + (maxdiff - 1)
@@ -316,7 +322,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # TODO loop to make sure that twin age is reasonable given number of kids needed
 
       TwinAgeSelect <- AgesForTwins %>%
-        slice_sample(n=1, weight_by = NumAge)
+        slice_sample(n=1, weight_by = .data$NumAge)
 
       CurrentAge <- TwinAgeSelect$ChildAge
 
@@ -324,7 +330,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
       # pull children from the child dataframe who are that age
       SelectedKids <- childrenRenamed %>%
-        filter(ChildAge==CurrentAge) %>%
+        filter(.data$ChildAge==CurrentAge) %>%
         slice_sample(n=2, replace = FALSE)
 
       # get parent
@@ -332,7 +338,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       NeededMax <- maxparage + CurrentAge
 
       SelectedParent <- parentsRenamed %>%
-        filter(between(ParentAge, NeededMin, NeededMax)) %>%
+        filter(between(.data$ParentAge, NeededMin, NeededMax)) %>%
         slice_sample(n=1)
 
       currentHHID <- SelectedParent$internalHHID
@@ -348,7 +354,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # find another n = NumAdditionalKids children
 
       childrenRenamed <- childrenRenamed %>%
-        filter(!(ChildID %in% c(SelectedKids$ChildID)))
+        filter(!(.data$ChildID %in% c(SelectedKids$ChildID)))
 
       # filter out children same age, plus children too old or young to be added
 
@@ -357,9 +363,9 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
       # shortlist based on the age of the twins
       AgesForExtraChildren <- childrenRenamed %>%
-        group_by(ChildAge) %>%
-        filter(!(ChildAge==CurrentAge),
-               between(ChildAge, AddChildMinAge, AddChildMaxAge))
+        group_by(.data$ChildAge) %>%
+        filter(!(.data$ChildAge==CurrentAge),
+               between(.data$ChildAge, AddChildMinAge, AddChildMaxAge))
 
       # short list based on the age of the parent
       # need the possible child age range for the selected parent
@@ -372,8 +378,8 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       #     "and maximum child age is", MaxChildAgeToAdd, "\n")
 
       AgesForExtraChildren <- AgesForExtraChildren %>%
-        filter(between(ChildAge, MinChildAgeToAdd, MaxChildAgeToAdd)) %>%
-        group_by(ChildAge) %>%
+        filter(between(.data$ChildAge, MinChildAgeToAdd, MaxChildAgeToAdd)) %>%
+        group_by(.data$ChildAge) %>%
         summarise(NumAge = n())
 
       # sample NumAddtionalKids rows
@@ -397,7 +403,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
           NewChildAge <- NewChildToAdd$ChildAge
 
           NewChild <- childrenRenamed %>%
-            filter(ChildAge == NewChildAge) %>%
+            filter(.data$ChildAge == NewChildAge) %>%
             slice_sample(n=1) %>%
             mutate(internalHHID = currentHHID)
 
@@ -449,12 +455,12 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
         # remove the children from the available children and update the counts to enter into the loop
         childrenRenamed <- childrenRenamed %>%
-          filter(!(ChildID %in% c(SelectedKids$ChildID)))
+          filter(!(.data$ChildID %in% c(SelectedKids$ChildID)))
 
         AgesForTwins <- childrenRenamed %>%
-          group_by(ChildAge) %>%
+          group_by(.data$ChildAge) %>%
           summarise(NumAge = n()) %>%
-          filter(NumAge > 1)
+          filter(.data$NumAge > 1)
 
         # minTwinAge <- min(AgesForTwins) + (maxdiff - 1)
         # maxTwinAge <- max(AgesForTwins) - (maxdiff - 1)
@@ -467,7 +473,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
         # remove the parent
 
         parentsRenamed <- parentsRenamed %>%
-          filter(!(ParentID %in% c(SelectedParent$ParentID)))
+          filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
 
       } else {
@@ -480,15 +486,15 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
         # remove problem twin age
         AgesForTwins <- childrenRenamed %>%
-          filter(ChildAge == CurrentAge)
-        group_by(ChildAge) %>%
+          filter(.data$ChildAge == CurrentAge)
+        group_by(.data$ChildAge) %>%
           summarise(NumAge = n()) %>%
-          filter(NumAge > 1)
+          filter(.data$NumAge > 1)
 
         # add selected children back into the childrenRenamed dataframe
         # who were removed
         SelectedKids <- SelectedKids %>%
-          select(-internalHHID)
+          select(- "internalHHID")
 
         childrenRenamed <- bind_rows(childrenRenamed, SelectedKids)
 
@@ -541,7 +547,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
 
     SelectedParent <- parentsRenamed %>%
-      filter(between(ParentAge, NeededMin, NeededMax)) %>%
+      filter(between(.data$ParentAge, NeededMin, NeededMax)) %>%
       slice_sample(n=1)
 
      # cat("NeededMin is", NeededMin, "NeededMax is", NeededMax, "and parent age is", SelectedParent$ParentAge, "\n")
@@ -567,12 +573,12 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # cat("Fell over at the filter stage", "\n")
 
       SelectedNextChildAges <- childrenRenamed %>%
-        filter(!(ChildID == SelectedFirstChild$ChildID),
-               !(ChildAge == SelectedFirstChild$ChildAge),
-               between(ChildAge, MinChildAge, MaxChildAge)) %>%
-        group_by(ChildAge) %>%
+        filter(!(.data$ChildID == SelectedFirstChild$ChildID),
+               !(.data$ChildAge == SelectedFirstChild$ChildAge),
+               between(.data$ChildAge, MinChildAge, MaxChildAge)) %>%
+        group_by(.data$ChildAge) %>%
         summarise(NumAge = n()) %>%
-        filter(NumAge > 0)
+        filter(.data$NumAge > 0)
 
 
       # test if there needs to be a distribution restriction on the child ages
@@ -590,12 +596,12 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
           # remove selected child from children dataframe
           childrenRenamed <- childrenRenamed %>%
-            filter(!(ChildID %in% c(SelectedFirstChild$ChildID)))
+            filter(!(.data$ChildID %in% c(SelectedFirstChild$ChildID)))
 
 
           # just sample ages with no restriction
           SampledChildAges <- SelectedNextChildAges %>%
-            slice_sample(n=(numchild-1), weight_by = NumAge, replace = FALSE)
+            slice_sample(n=(numchild-1), weight_by = .data$NumAge, replace = FALSE)
 
           # get child
 
@@ -606,14 +612,14 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
             SampledAge <- SampledAgeRow$ChildAge
 
             SelectedKids <- childrenRenamed %>%
-              filter(ChildAge == SampledAge) %>%
+              filter(.data$ChildAge == SampledAge) %>%
               slice_sample(n=1) %>%
               mutate(internalHHID = currentHHID)
 
             # remove from childrenRenamed
 
             childrenRenamed <- childrenRenamed %>%
-              filter(!(ChildID %in% c(SelectedKids$ChildID)))
+              filter(!(.data$ChildID %in% c(SelectedKids$ChildID)))
 
             # create an interim dataset of children to append to working dataset
 
@@ -626,7 +632,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
               #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
               parentsRenamed <- parentsRenamed %>%
-                filter(!(ParentID %in% c(SelectedParent$ParentID)))
+                filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
               # closes if(exists("ChildAgeMatch")) {
             } else {
@@ -638,7 +644,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
               #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
               parentsRenamed <- parentsRenamed %>%
-                filter(!(ParentID %in% c(SelectedParent$ParentID)))
+                filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
               # closes else to if(exists("ChildAgeMatch")) {
             }
@@ -665,7 +671,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
           #####################################
 
           childrenRenamed <- childrenRenamed %>%
-            filter(!(ChildID %in% c(SelectedFirstChild$ChildID)))
+            filter(!(.data$ChildID %in% c(SelectedFirstChild$ChildID)))
 
           # closes else to if(nrow(SelectedNextChildAges) > numchild-1) {
         }
@@ -689,7 +695,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
         NeededMaxExtra <- CurrentAge + maxdiff
 
         SelectedNextChildAges <- SelectedNextChildAges %>%
-          filter(between(ChildAge, NeededMinExtra, NeededMaxExtra))
+          filter(between(.data$ChildAge, NeededMinExtra, NeededMaxExtra))
 
 
 
@@ -697,11 +703,11 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
           # remove selected child from children dataframe
           childrenRenamed <- childrenRenamed %>%
-            filter(!(ChildID %in% c(SelectedFirstChild$ChildID)))
+            filter(!(.data$ChildID %in% c(SelectedFirstChild$ChildID)))
 
           # just sample ages with no restriction
           SampledChildAges <- SelectedNextChildAges %>%
-            slice_sample(n=(numchild-1), weight_by = NumAge, replace = FALSE)
+            slice_sample(n=(numchild-1), weight_by = .data$NumAge, replace = FALSE)
 
           # get child
 
@@ -712,14 +718,14 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
             SampledAge <- SampledAgeRow$ChildAge
 
             SelectedKids <- childrenRenamed %>%
-              filter(ChildAge == SampledAge) %>%
+              filter(.data$ChildAge == SampledAge) %>%
               slice_sample(n=1) %>%
               mutate(internalHHID = currentHHID)
 
             # remove from childrenRenamed
 
             childrenRenamed <- childrenRenamed %>%
-              filter(!(ChildID %in% c(SelectedKids$ChildID)))
+              filter(!(.data$ChildID %in% c(SelectedKids$ChildID)))
 
             # create an interim dataset of children to append to working dataset
 
@@ -732,7 +738,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
               #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
               parentsRenamed <- parentsRenamed %>%
-                filter(!(ParentID %in% c(SelectedParent$ParentID)))
+                filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
               # closes if(exists("ChildAgeMatch")) {
             } else {
@@ -744,7 +750,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
               #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
               parentsRenamed <- parentsRenamed %>%
-                filter(!(ParentID %in% c(SelectedParent$ParentID)))
+                filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
 
               # closes else to if(exists("ChildAgeMatch")) {
             }
@@ -770,7 +776,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
           # cat("Selected first child ID is", SelectedFirstChild$ChildID, "\n")
 
           childrenRenamed <- childrenRenamed %>%
-            filter(!(ChildID %in% c(SelectedFirstChild$ChildID)))
+            filter(!(.data$ChildID %in% c(SelectedFirstChild$ChildID)))
 
           # closes else to if(nrow(SelectedNextChildAges) > numchild-1) {
         }
@@ -788,7 +794,7 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
       # remove all ages of that child in the data frame
       # alternatively, remove child and see if that fixes it
       childrenRenamed <- childrenRenamed %>%
-        filter(!(ChildID %in% c(SelectedFirstChild$ChildID)))
+        filter(!(.data$ChildID %in% c(SelectedFirstChild$ChildID)))
 
     }
 
@@ -803,18 +809,18 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
 
   FullMatchedChld <- ChildAgeMatch %>%
-    rename(!! chidcolName := ChildID,
-           !! chagecolName := ChildAge,
-           {{HHNumVar}} := internalHHID)
+    rename(!! chidcolName := "ChildID",
+           !! chagecolName := "ChildAge",
+           {{HHNumVar}} := "internalHHID")
 
 
   # cat("The FullMatchedChld dataset info is", "\n")
   # str(FullMatchedChld)
 
   FullMatchedPrnt <- ParentAgeMatch %>%
-    rename(!! paridcolName := ParentID,
-           !! paragecolName := ParentAge,
-           {{HHNumVar}} := internalHHID) %>%
+    rename(!! paridcolName := "ParentID",
+           !! paragecolName := "ParentAge",
+           {{HHNumVar}} := "internalHHID") %>%
     unique()
 
 
