@@ -549,18 +549,28 @@ UnmatchedAdults2 <- ChildMatched2$Adults
 library(dplyr)
 
 # demonstrate matched dataframe sizes first, using a normal distribution
+# females younger by a mean of -2 and a standard deviation of 3
 set.seed(1)
-PartneredFemales <- Township %>%
-  filter(Sex == "Female", Relationship == "Partnered")
-PartneredMalesSmall <- Township %>%
+PartneredFemales1 <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered") %>%
+  slice_sample(n=100, replace = FALSE)
+PartneredMales1 <- Township %>%
   filter(Sex == "Male", Relationship == "Partnered") %>%
-  slice_sample(n = nrow(PartneredFemales))
+  slice_sample(n = nrow(PartneredFemales), replace = FALSE)
 
-OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
+OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1, lrgid = "ID",
                           lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
-                          userseed = 4, ptostop=.01)
+                          userseed = 4, ptostop=.05)
 
 Couples1 <- OppSexCouples1$Matched
+
+# repeat first example using a skew normal distribution
+# doesn't converge but pairs still output
+OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1, lrgid = "ID",
+                           lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
+                           HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+
+Couples2 <- OppSexCouples2$Matched
 
 # there are more partnered males than partnered females
 # so all partnered males will have a matched female partner
@@ -568,28 +578,25 @@ Couples1 <- OppSexCouples1$Matched
 # being the smallest data frame, the female one must be the first
 
 # different size dataframes
-PartneredFemales <- Township %>%
-  filter(Sex == "Female", Relationship == "Partnered")
+set.seed(1)
+PartneredFemales3 <- Township %>%
+  filter(Sex == "Female", Relationship == "Partnered") %>%
+  slice_sample(n=600, replace = FALSE)
 
-PartneredMales <- Township %>%
-  filter(Sex == "Male", Relationship == "Partnered")
+PartneredMales3 <- Township %>%
+  filter(Sex == "Male", Relationship == "Partnered") %>%
+  slice_sample(n=650, replace = FALSE)
 
-OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales, lrgid = "ID",
+OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3, lrgid = "ID",
                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar="HouseholdID",
                            userseed = 4, ptostop=.01)
 
-Couples2 <- OppSexCouples2$Matched
+Couples3 <- OppSexCouples3$Matched
 
 # 21 males not matched
 NotMatched2 <- OppSexCouples2$Unmatched
 
-# repeat first example using a skew normal distribution
-# doesn't converge
-OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-                           lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
-                           HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
 
-Couples3 <- OppSexCouples3$Matched
 
 
 
