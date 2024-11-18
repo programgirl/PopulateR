@@ -1,6 +1,15 @@
-#' Pairs people from smalldf with people from largedf, creating couples in households.
+#' @importFrom data.table :=
+#' @importFrom dplyr between bind_cols bind_rows filter left_join rename select slice_sample
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+#' @importFrom sn dsn psn qsn
+#' @importFrom stats dnorm pnorm qnorm
+#' @importFrom tidyselect ends_with
+NULL
+
+#' Pair two people, using either a normal or skew-normal distribution, into households
 #'
-#' This function creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
+#' Creates a data frame of couples, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("alphaused") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
 #' Both data frames must be restricted to only those people that will have a couples match performed.
 #' @export
@@ -25,36 +34,48 @@
 #' library(dplyr)
 #'
 #' # matched dataframe sizes first, using a normal distribution
+#' # females younger by a mean of -2 and a standard deviation of 3
 #' set.seed(1)
-#' PartneredFemales <- Township %>%
-#'   filter(Sex == "Female", Relationship == "Partnered")
-#' PartneredMales <- Township %>%
-#'  filter(Sex == "Male", Relationship == "Partnered")
+#' PartneredFemales1 <- Township %>%
+#'   filter(Sex == "Female", Relationship == "Partnered") %>%
+#'   slice_sample(n=100, replace = FALSE)
+#' PartneredMales1 <- Township %>%
+#'  filter(Sex == "Male", Relationship == "Partnered") %>%
+#'  slice_sample(n = nrow(PartneredFemales1), replace = FALSE)
 #'
 #' # partners females and males, using a normal distribution, with the females
 #' # being younger by a mean of -2 and a standard deviation of 3
-#' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall,
+#' OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
 #'                          HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
 #' Couples1 <- OppSexCouples1$Matched
 #'
-#' # different size dataframes
-#' PartneredFemales <- Township %>%
-#'   filter(Sex == "Female", Relationship == "Partnered")
-#' PartneredMales <- Township %>%
-#'   filter(Sex == "Male", Relationship == "Partnered")
+#' \donttest{# repeat first example using a skew normal distribution
+#' # doesn't converge but pairs still output
 #'
-#' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales,
+#' OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
+#'                            alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID",
+#'                            userseed = 4, ptostop=.01)
 #' Couples2 <- OppSexCouples2$Matched
 #'
-#' # skew normal example, does not converge
-#' OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall,
+#' # different size dataframes
+#' # there are more partnered males than partnered females
+#' # so all partnered males will have a matched female partner
+#' # but not all females will be matched
+#' # being the smallest data frame, the female one must be the first
+#'
+#' PartneredFemales3 <- Township %>%
+#'   filter(Sex == "Female", Relationship == "Partnered") %>%
+#'          slice_sample(n=600, replace = FALSE)
+#' PartneredMales3 <- Township %>%
+#'   filter(Sex == "Male", Relationship == "Partnered") %>%
+#' slice_sample(n=650, replace = FALSE)
+#'
+#' OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                            alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4,
-#'                            ptostop=.01)
-#' Couples3 <- OppSexCouples3$Matched
+#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
+#' Couples3 <- OppSexCouples3$Matched}
 
 
 pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
@@ -362,8 +383,10 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
     # compute change in Chi-squared value from current pairing to proposed pairing
     PropAgeMatch <- CurrentAgeMatch %>%
-      filter(!(smalldf[[smlidcolName]] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-      bind_rows(., PropPair1,PropPair2)
+      filter(!(smalldf[[smlidcolName]] %in% c(PropPair1[,1], PropPair2[,1])))
+
+    PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
+
 
     # do chi-squared
     Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
@@ -408,8 +431,8 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   # return full largedf and smalldf rows as matched household pairs
   # extract ages counts for matching the largedfs
   MatchedlargedfAges <- CurrentAgeMatch %>%
-    dplyr::select(largedfAge) %>%
-    group_by(largedfAge) %>%
+    select("largedfAge") %>%
+    group_by(.data$largedfAge) %>%
     mutate(largedfAgeCount = row_number()) %>%
     ungroup()
 
@@ -436,7 +459,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
     rename(largedfAge = {{lrgagecolName}})
 
   largedfsMatched <- left_join(MatchedlargedfAges, largedfsToMatch, by = c("largedfAge", "largedfAgeCount")) %>%
-    mutate(!!lrgagecolName := largedfAge)
+    mutate(!!lrgagecolName := "largedfAge")
 
 
 
@@ -446,7 +469,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   # do not need smalldf age as this will be a duplicate column on the merge
 
   smalldfsMatchPrep <- CurrentAgeMatch %>%
-    group_by(largedfAge) %>%
+    group_by(.data$largedfAge) %>%
     mutate(largedfAgeCount = row_number()) %>%
     dplyr::select(-c(2))
 
@@ -465,7 +488,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
 
 
   FullMatchedDataFrame <- left_join(smalldfsReadyToMatch, largedfsMatched, by=c("largedfAge", "largedfAgeCount")) %>%
-    dplyr::select(-largedfAge, -largedfAgeCount) %>%
+    dplyr::select(- c("largedfAge", "largedfAgeCount")) %>%
     ungroup() %>%
     mutate({{HHNumVar}} := seq(HHStartNum, MaxHHStartNum))
 
