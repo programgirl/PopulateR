@@ -50,14 +50,14 @@ NULL
 #' UnmatchedChildren <- ChildMatched$Children
 #' UnmatchedAdults <- ChildMatched$Adults
 #'
-#' # affected by the permitted age difference between children
+#' \donttest{# affected by the permitted maximum age difference from reference child
 #'
 #' ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
 #'                              Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
 #'                             HHNumVar = "Household", userseed =4, maxdiff = 4)
 #' MatchedFamilies2 <- ChildMatched2$Matched
 #' UnmatchedChildren2 <- ChildMatched2$Children
-#' UnmatchedAdults2 <- ChildMatched2$Adults
+#' UnmatchedAdults2 <- ChildMatched2$Adults}
 
 
 
