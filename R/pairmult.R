@@ -1,5 +1,5 @@
 #' @importFrom data.table :=
-#' @importFrom dplyr bind_cols bind_rows filter left_join rename select slice_sample
+#' @importFrom dplyr between bind_cols bind_rows filter left_join rename select slice_sample
 #' @importFrom magrittr %>%
 #' @importFrom rlang sym !!
 NULL
