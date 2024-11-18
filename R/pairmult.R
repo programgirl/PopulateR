@@ -1,3 +1,9 @@
+#' @importFrom data.table :=
+#' @importFrom dplyr bind_cols bind_rows filter left_join rename select slice_sample
+#' @importFrom magrittr %>%
+#' @importFrom rlang sym !!
+NULL
+
 #' Create many-to-one pairs of people and place them into households
 #'
 #' Creates a data frame of many-to-one pairs, based on a distribution of age differences. Designed to match multiple children to the same parent, the function can be used for any situation where a many-to-one match is required based on a range of age differences. For clarity and brevity, the terms "children" and "parents" will be used.
@@ -41,13 +47,13 @@
 #'                          HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 3)
 #' MatchedFamilies <- ChildMatched$Matched
 #'
-#' # affected by maximum age difference permitted between children
+#' \donttest{# affected by maximum age difference permitted between children
 #' ChildMatched2 <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
 #'                           Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
 #'                           HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 4)
 #' MatchedFamilies2 <- ChildMatched2$Matched
 #' UnmatchedChildren2 <- ChildMatched2$Children
-#' UnmatchedAdults2 <- ChildMatched2$Adults
+#' UnmatchedAdults2 <- ChildMatched2$Adults}
 #'
 pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage,
                       minparage = NULL, maxparage = NULL, HHStartNum = NULL, HHNumVar= NULL,
@@ -270,7 +276,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
     AgesForTwins <- childrenRenamed %>%
       group_by(.data$ChildAge) %>%
-      summarise(.data$NumAge = n()) %>%
+      summarise(NumAge = n()) %>%
       filter(.data$NumAge > 1)
 
 
@@ -300,7 +306,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
       # pull children from the child dataframe who are that age
       SelectedKids <- childrenRenamed %>%
-        filter(ChildAge==CurrentAge) %>%
+        filter(.data$ChildAge==CurrentAge) %>%
         slice_sample(n=2, replace = FALSE) %>%
         mutate(internalHHID = currentHHID)
       # get parent
