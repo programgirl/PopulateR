@@ -7,10 +7,10 @@ Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre]",
                        "Mark Bebbington <M.Bebbington@massey.ac.nz> [ctb]"
                        ))
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
-Description: Creates data frames for synthetic data. These are used in microsimulations of population data.
-     Typically, the package will be used when detailed population data is unavailable. The package is
-     primarily aimed at the construction of synthetic households. However, the functions are implemented
-     so that household construction is an optional output.
+Description: A set of independent tools for constructing detailed synthetic human populations
+     from frequency tables. Add ages based on age groups and sex, create households, add 
+     students to education facilites, create employers, add employers to employees, and 
+     create interpersonal networks.
 Depends: R (>= 4.0)
 Imports: brainGraph (>= 3.0.0),
          data.table (>= 1.14.10),
