@@ -508,7 +508,7 @@ MatchedFamilies <- ChildMatched$Matched
 UnmatchedChildren <- ChildMatched$Children
 UnmatchedAdults <- ChildMatched$Adults
 
-# affected by the permitted age difference between children
+# affected by the maximum permitted age difference from the reference chil
 ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03, Parents,
                              parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
                              HHNumVar = "Household", userseed =4, maxdiff = 4)
