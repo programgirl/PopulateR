@@ -38,7 +38,7 @@ NULL
 #' set.seed(1)
 #' PartneredFemales1 <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered") %>%
-#'   slice_sample(n=100, replace = FALSE)
+#'   slice_sample(n=120, replace = FALSE)
 #' PartneredMales1 <- Township %>%
 #'  filter(Sex == "Male", Relationship == "Partnered") %>%
 #'  slice_sample(n = nrow(PartneredFemales1), replace = FALSE)
@@ -47,7 +47,7 @@ NULL
 #' # being younger by a mean of -2 and a standard deviation of 3
 #' OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                          HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+#'                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.05)
 #' Couples1 <- OppSexCouples1$Matched
 #'
 #' \donttest{# repeat first example using a skew normal distribution
@@ -56,7 +56,7 @@ NULL
 #' OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
 #'                            alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID",
-#'                            userseed = 4, ptostop=.01)
+#'                            userseed = 4, ptostop=.05)
 #' Couples2 <- OppSexCouples2$Matched
 #'
 #' # different size dataframes
@@ -67,14 +67,14 @@ NULL
 #'
 #' PartneredFemales3 <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered") %>%
-#'          slice_sample(n=600, replace = FALSE)
+#'          slice_sample(n=120, replace = FALSE)
 #' PartneredMales3 <- Township %>%
 #'   filter(Sex == "Male", Relationship == "Partnered") %>%
-#' slice_sample(n=650, replace = FALSE)
+#' slice_sample(n=140, replace = FALSE)
 #'
 #' OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.01)
+#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.05)
 #' Couples3 <- OppSexCouples3$Matched}
 
 
@@ -405,6 +405,9 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
       log_chisq <- prop_log_chisq
 
     }
+
+    # cat("critical chisquare is", round(Critical_log_chisq,6),  "iteration is", i,
+    #     "chsquare is",round(log_chisq,6), "\n")
 
     if (log_chisq <= Critical_log_chisq) {
       break
