@@ -329,15 +329,16 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
   kidsAdd <- function(theDF) {
 
-    cat("Entered internal function \n")
     # generate bipartite match
-    theGraph <- igraph::graph_from_data_frame(theDF)
+    theGraph <- igraph::graph_from_data_frame(theDF)  %>%
+      igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personID)
 
-    cat("theGraph constructed \n")
+    # cat("theGraph constructed \n")
 
-    theGraph <- igraph::set_vertex_attr(name = "type", value = names(igraph::V(theGraph)) %in% theDF$personID)
-
-    cat("Household is ", CurrentHousehold, "\n")
+    # theGraph <- igraph::set_vertex_attr(theGraph, name = "type",
+    #                                     value = names(igraph::V(theGraph)) %in% theDF$personID)
+    #
+    # cat("Household is ", CurrentHousehold, "\n")
 
 
     # max bipartite match
