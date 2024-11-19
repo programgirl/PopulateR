@@ -301,7 +301,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   } else {
 
-    return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
+    return(igraph::as_adjacency_matrix(ClusteredNetwork, type = "both", names = TRUE))
   }
 
 }
