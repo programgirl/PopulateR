@@ -48,7 +48,7 @@ The two options for output are a dgCMatrix or an igraph. The dgCMatrix is output
 }
 \examples{
 library("dplyr")
-# output as igraph
+\donttest{# output as igraph
 NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
 
@@ -58,7 +58,7 @@ NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
 # output as n x n adjacency matrix
 # takes a long time
 # NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+#                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")}
 
 # smaller sample for visualisation
 set.seed(2) # small datasets can cause problems if a random seed is used for sampling
