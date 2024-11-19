@@ -2,12 +2,12 @@ Package: PopulateR
 Type: Package
 Title: PopulateR: Create Data Frames for the Microsimulation of Human Populations
 Version: 1.0
-Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre]",
+Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre,cph]",
                        "Jonathan Marshall <J.C.Marshall@massey.ac.nz> [aut]",
                        "Mark Bebbington <M.Bebbington@massey.ac.nz> [ctb]"
                        ))
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
-Description: A set of independent tools for constructing detailed synthetic human populations
+Description: Tools for constructing detailed synthetic human populations
      from frequency tables. Add ages based on age groups and sex, create households, add 
      students to education facilites, create employers, add employers to employees, and 
      create interpersonal networks.
