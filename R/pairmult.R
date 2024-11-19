@@ -30,7 +30,9 @@ NULL
 #' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' set.seed(1)
 #' Parents <- Township %>%
 #'   filter(Relationship == "Partnered", Age > 18) %>%
@@ -47,14 +49,7 @@ NULL
 #'                          HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 3)
 #' MatchedFamilies <- ChildMatched$Matched
 #'
-#' \donttest{# affected by maximum age difference permitted between children
-#' ChildMatched2 <- pairmult(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
-#'                           Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
-#'                           HHStartNum = 1, HHNumVar = "Household", userseed=4, maxdiff = 4)
-#' MatchedFamilies2 <- ChildMatched2$Matched
-#' UnmatchedChildren2 <- ChildMatched2$Children
-#' UnmatchedAdults2 <- ChildMatched2$Adults}
-#'
+
 pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage,
                       minparage = NULL, maxparage = NULL, HHStartNum = NULL, HHNumVar= NULL,
                       userseed=NULL, maxdiff=1000)
