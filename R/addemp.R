@@ -25,6 +25,7 @@ NULL
 #'
 #' @examples
 #' library("dplyr")
+#'
 #' EmployedPeople <- addemp(EmployerSet, empid = "Company", empcount = "NumEmployees", Township,
 #'                           pplid = "ID", wrkhrs = "HoursWorked", hoursmin = 2, missval = "NA",
 #'                           userseed = 4)
