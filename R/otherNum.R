@@ -40,7 +40,7 @@ NULL
 #'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
 #'   slice_sample(n = 1500)
 #'
-#'# toy example with few interations
+#'# toy example with few iterations
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
 #'                           userseed=4, attempts= 10, numiters = 80)
