@@ -40,12 +40,12 @@ NULL
 #'                    ifelse(between(Age, 60, 69), "60-69 Years",
 #'                    ifelse(between(Age, 70, 79), "70-79 Years", "80-90 Years"))))))))
 #'
-#' # perform separately by sex
+#' \donttest{# perform separately by sex
 #' thejoindef <- c("Age", "Sex")
 #' thegroups <- c("Sex", "AgeBand")
 #' FinalRels <- fixrelations(BadRels, pplid = "ID", pplage = "Age", pplstat = "Relationship",
 #'                           stfixval = "Partnered", props = RelProps, propcol = "Fits",
-#'                           grpdef = thegroups, matchdef = thejoindef, userseed = 4)
+#'                           grpdef = thegroups, matchdef = thejoindef, userseed = 4)}
 
 
 fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
