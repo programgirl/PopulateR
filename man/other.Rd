@@ -47,10 +47,13 @@ One data frame, containing the people to match, is required. The use of an age d
 The output data frame of matches will only contain households of the required size. If the number of rows in the people data frame is not divisible by household size, the overcount will be output to a separate data frame.
 }
 \examples{
-\donttest{NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
-                       HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .01,
-                       numiters = 1000000)
+library(dplyr)
+
+# creating three-person households toy example with few iterations
+NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
+                       HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .05,
+                       numiters = 500)
 
 PeopleInHouseholds <- NewHouseholds$Matched
-PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3}
+PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 }
