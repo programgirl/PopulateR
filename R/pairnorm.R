@@ -31,6 +31,7 @@ NULL
 #' @return A list of two data frames. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
 #'
 #' @examples
+#'
 #' library(dplyr)
 #'
 #' # matched dataframe sizes first, using a normal distribution
@@ -56,7 +57,7 @@ NULL
 #' OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
 #'                            alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID",
-#'                            userseed = 4, ptostop=.05)
+#'                            userseed = 4, ptostop=.3)
 #' Couples2 <- OppSexCouples2$Matched
 #'
 #' # different size dataframes
@@ -74,7 +75,7 @@ NULL
 #'
 #' OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.05)
+#'                           HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.3)
 #' Couples3 <- OppSexCouples3$Matched}
 
 
