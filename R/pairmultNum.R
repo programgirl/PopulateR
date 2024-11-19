@@ -51,17 +51,6 @@ NULL
 #' MatchedFamilies <- ChildMatched$Matched
 #' UnmatchedChildren <- ChildMatched$Children
 #' UnmatchedAdults <- ChildMatched$Adults
-#'
-#' \donttest{# affected by the permitted maximum age difference from reference child
-#'
-#' ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
-#'                              Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
-#'                             HHNumVar = "Household", userseed =4, maxdiff = 4)
-#' MatchedFamilies2 <- ChildMatched2$Matched
-#' UnmatchedChildren2 <- ChildMatched2$Children
-#' UnmatchedAdults2 <- ChildMatched2$Adults}
-
-
 
 pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parents, parid, parage, minparage = NULL,
                         maxparage = NULL, HHNumVar = NULL, userseed=NULL, maxdiff=1000)
@@ -169,6 +158,14 @@ pairmultNum <- function(children, chlid, chlage, numchild = 2, twinprob = 0, par
 
     ExpctNumHH <- ExpctNumHHTwins
 
+  }
+
+  ExpMaxHH <- nrow(parentsRenamed)
+  ExpNumParTwins <- ExpMaxHH * (twinprob/2)
+
+  if(ExpctNumHH > ExpNumParTwins) {
+
+    ExpctNumHH <- round(ExpNumParTwins,0)
   }
 
   cat("Expected number of households containing twins is", ExpctNumHH, "\n")
