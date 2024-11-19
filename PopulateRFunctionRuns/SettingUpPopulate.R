@@ -729,7 +729,7 @@ plot(NetworkSmallN)
 
 
 
-
+devtools::run_examples()
 
 # keep running this until no more warnings or errors
 devtools::check()
