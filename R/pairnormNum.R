@@ -26,8 +26,8 @@ NULL
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
 #' @param HHNumVar The household identifier variable. This must exist in only one data frame.
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
-#' @param attempts The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.
-#' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the couples. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 #'
 #' @return A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
@@ -46,9 +46,8 @@ NULL
 #'
 #' # match the children to the parents
 #' ChildAllMatched <- pairnormNum(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
-#'                                 lrgage = "Age", directxi=-25, directomega = 3.7, locationP = 16.5,
-#'                                 scaleP = 40.1, HHNumVar = "Household", userseed=4,
-#'                                 ptostop = 0.05)
+#'                                 lrgage = "Age", directxi=-25, directomega = 3.7,
+#'                                 HHNumVar = "Household", userseed=4, ptostop = 0.05)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
 #' UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
