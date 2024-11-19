@@ -23,6 +23,7 @@ NULL
 #' @return #'A data frames of synthetic companies, with the number of employees and a mock company name.
 #'
 #' @examples
+#'
 #' library("dplyr")
 #'
 #' TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
