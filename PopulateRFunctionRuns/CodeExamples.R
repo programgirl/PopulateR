@@ -94,7 +94,10 @@ table(KidsInSchool$School.Name)
 
 library(dplyr)
 
-DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
+ReducedDF <- InitialDataframe %>%
+  slice_sample(n=200, replace = FALSE)
+
+DisaggregateAge <- agedis(ReducedDF, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
                           pyramid = SingleAges, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
                           agevarname = "TheAge", userseed = 4)
 
@@ -269,9 +272,9 @@ RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", end
 
 library("dplyr")
 
-# creating three-person households
+# creating three-person households toy example with few iterations
 NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
-                       HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+                       HHNumVar = "Household", userseed=4, ptostop = .05, numiters = 500)
 
 PeopleInHouseholds <- NewHouseholds$Matched
 PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
@@ -299,9 +302,10 @@ NoHousehold <- Township %>%
   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
   slice_sample(n = 1500)
 
+# toy example with few iterations
 OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
-                          userseed=4, attempts= 10, numiters = 10000)
+                          userseed=4, attempts= 10, numiters = 100)
 
 CompletedHouseholds <- OldHouseholds$Matched
 IncompleteHouseholds <- OldHouseholds$Existing
@@ -340,7 +344,8 @@ Children <- Township %>%
 
 ChildAllMatched <- pairbeta4(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
                            shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1, HHStartNum = 1,
-                           HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+                           HHNumVar = "Household", userseed=4, ptostop = .01, attempts= 2,
+                           numiters = 8)
 
 
 MatchedPairs <- ChildAllMatched$Matched
@@ -356,15 +361,12 @@ Children2 <- Township %>%
   filter(Relationship == "NonPartnered", Age < 20) %>%
   slice_sample(n = 500)
 
-# comparison of distributions depending on which data frame contains the oldest ages
-test1 <- PearsonDS::rpearsonI(n = 10000, a = 2.2, b = 3.7, location = 16.5, scale = 40.1)
-test2 <- PearsonDS::rpearsonI(n = 10000, a = 2.2, b = 3.7, location = -16.5, scale = -40.1)
-
 # negatives for both location and scale are the correct converse for positive location and scale.
 
 ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID", lrgage = "Age",
-                             shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1, HHStartNum = 1,
-                             HHNumVar = "Household", userseed=4, ptostop = .01, numiters = 1000000)
+                          shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1, HHStartNum = 1,
+                          HHNumVar = "Household", userseed=4, ptostop = .05, attempts = 2,
+                          numiters = 8)
 
 MatchedPairs2 <- ChildMatched$Matched
 UnmatchedChildren2 <- ChildMatched$Smaller
@@ -400,7 +402,7 @@ Children <- Township %>%
 # match the children to the parents
 ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID", lrgage = "Age",
                                 shapeA = 2.2, shapeB = 3.7, locationP = 16.5, scaleP = 40.1,
-                                HHNumVar = "Household", userseed=4, attempts = 10, numiters = 10000)
+                                HHNumVar = "Household", userseed=4, attempts = 6, numiters = 80)
 
 
 MatchedPairs <- ChildAllMatched$Matched
@@ -419,7 +421,7 @@ Children2 <- Township %>%
 
 ChildMatched <- pairbeta4Num(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID", lrgage = "Age",
                              shapeA = 2.2, shapeB = 3.7, locationP = -16.5, scaleP = -40.1,
-                             HHNumVar = "Household", userseed=4, attempts = 10, numiters = 10000)
+                             HHNumVar = "Household", userseed=4, attempts = 10, numiters = 80)
 
 MatchedPairs2 <- ChildMatched$Matched
 UnmatchedChildren2 <- ChildMatched$Smaller
@@ -560,7 +562,7 @@ PartneredMales1 <- Township %>%
 
 OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1, lrgid = "ID",
                           lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
-                          userseed = 4, ptostop=.05)
+                          userseed = 4, ptostop=.3)
 
 Couples1 <- OppSexCouples1$Matched
 
