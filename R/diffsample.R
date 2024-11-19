@@ -19,6 +19,7 @@ NULL
 #' @return A data frame of people sampled according to the age sample sizes required.
 #'
 #' @examples
+#'
 #' SampleNeeded <- data.frame(Age = c(16, 17, 18),
 #'                            NumNeeded = c(5, 10, 15))
 #' SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded,
