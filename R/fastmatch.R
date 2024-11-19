@@ -23,6 +23,7 @@ NULL
 #'
 #' @examples
 #' library(dplyr)
+#'
 #' PersonDataframe <- data.frame(cbind(PersonID = c(1:1000),
 #'                                     PersonAge = c(round(runif(200, min=18, max=23),0),
 #'                                     round(runif(300, min=24, max=50),0),
