@@ -29,7 +29,9 @@ NULL
 #' @return A list of three  data frames. $Matched contains the data frame of child-parent matches. $Adults contains any unmatched observations from the parents data frame. $Children contains any unmatched observations from the children data frame. $Adults and/or $Children may be empty data frames.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' set.seed(1)
 #' Parents <- Township %>%
 #'   filter(Relationship == "Partnered", Age > 18) %>%
