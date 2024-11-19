@@ -7,7 +7,7 @@
 #' @importFrom rlang sym !!
 NULL
 
-#' Pair two people,using either a normal or skew-normal distribution, households already exist
+#' Pair two people, using either a normal or skew-normal distribution, households already exist
 #'
 #' Creates a data frame of pairs, based on a distribution of age differences. The function will use either a skew normal or normal distribution, depending on whether a skew ("locationP") parameter is provided. The default value for the skew is 0, and using the default will cause a normal distribution to be used.
 #' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
@@ -21,7 +21,7 @@ NULL
 #' @param largedf A data frame containing the second set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the largest number.
 #' @param lrgid The variable containing the unique ID for each person, in the largedf data frame.
 #' @param lrgage The age variable, in the largedf data frame.
-#' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the normal distribution.
+#' @param directxi If a skew-normal distribution is used, this is the location value. If the default alphaused value of 0 is used, this defaults to the mean value for the normal distribution. Use a positive value if the older ages are in smldf.
 #' @param directomega If a skew-normal distribution is used, this is the scale value. If the default alphaused value of 0 is used, this defaults to the standard deviation value for the normal distribution.
 #' @param alphaused The skew. If a normal distribution is to be used, this can be omitted as the default value is 0 (no skew).
 #' @param HHNumVar The household identifier variable. This must exist in only one data frame.
@@ -33,31 +33,27 @@ NULL
 #'
 #' @examples
 #' library(dplyr)
-#' # demonstrate matched dataframe sizes first
+#' # parents are older than the children using a normal distribution of mean = 30,
+#' # standard deviation of 5
 #' set.seed(1)
-#' # sample a combination of females and males to be parents
 #' Parents <- Township %>%
-#'   filter(Relationship == "Partnered", Age > 18) %>%
-#'   slice_sample(n = 500) %>%
-#'   mutate(Household = row_number())
+#'   filter(between(Age, 24, 60)) %>%
+#'   slice_sample(n=120, replace = FALSE) %>%
+#'   mutate(HouseholdID = row_number())
 #' Children <- Township %>%
-#'   filter(Relationship == "NonPartnered", Age < 20) %>%
-#'   slice_sample(n = 200)
+#'   filter(Age < 20) %>%
+#'   slice_sample(n = nrow(Parents), replace = FALSE)
 #'
-#' # match the children to the parents
-#' ChildAllMatched <- pairnormNum(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
-#'                                 lrgage = "Age", directxi=-25, directomega = 3.7,
-#'                                 HHNumVar = "Household", userseed=4, attempts=10,
-#'                                 numiters = 1000)
-#'
-#' MatchedPairs <- ChildAllMatched$Matched
-#' UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
-#' UnmatchedAdults <- ChildAllMatched$Larger
-#'
+#' PrntChld <- pairnormNum(Parents, smlid = "ID", smlage = "Age", Children, lrgid = "ID",
+#'                         lrgage = "Age", directxi = 30, directomega = 5, HHNumVar = "HouseholdID",
+#'                         userseed = 4, attempts=10, numiters = 500)
+#' Matched <- PrntChld$Matched  # all matched but not the specified distribution
+#' UnmatchedAdults <- PrntChld$Smaller
+#' UnmatchedChildren <- PrntChld$Larger
 
 
-pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
-                         alphaused=NULL, HHNumVar, userseed=NULL, ptostop=NULL, numiters=1000000) {
+pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
+                         alphaused=0, HHNumVar, userseed=NULL, attempts = 10, numiters=1000000) {
 
 
   #####################################
@@ -86,10 +82,6 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
 
   if(is.null(HHNumVar)) {
     stop("A name for the household count variable must be supplied.")
-  }
-
-  if(shapeB < 0) {
-    stop("shapeB must be greater than zero.")
   }
 
 
@@ -209,221 +201,131 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
 
   if (alphaused==0) {
 
+    #####################################
+    # normal distribution
+    #####################################
     cat("Normal distribution was used", "\n")
 
-  # closes function using normal distribution
-  } else {
-    # using the skew normal
+    for(i in 1:nrow(smlRenamed)) {
 
-    # closes matching based on skew normal
-  }
+      counter <- 0
+
+      # get current young person age
+      currentSml <- smlRenamed[i,]
+      currentAge <- currentSml$smallAge
+
+      # try to match
+
+      while(!(counter == attempts)) {
+
+        # create an age difference based on the distribution
+        drawResult <- round(rnorm(1, mean=directxi, sd=directomega),0)
+
+        # NumAttempts <- NumAttempts + 1
+
+        # required age of older person
+        if(directxi > 0) {
+          reqAge <- currentAge - drawResult
+        } else {
+          reqAge <- currentAge + drawResult
+          # closes if(meanvalue < 0) {
+        }
+
+        # cat("Current age is", currentAge, "reqAge is", reqAge, "\n")
 
 
+        # generate random sample of people that age from the smalldf
+        lrgSubset <- lrgRenamed %>%
+          filter(.data$largeAge == reqAge)
 
+        if(nrow(lrgSubset) > 0) {
+          lrgChosen <- lrgSubset %>%
+            slice_sample(n = 1)
 
+          counter <- attempts
 
+          isMatched <- "Y"
 
+        } else {
 
+          counter <- counter + 1
 
+          isMatched <- "N"
 
+          # closes if(nrow(lrgSubset) > 0) {
+        }
 
-
-
-  for(i in 1:nrow(smlRenamed)) {
-
-    counter <- 0
-
-    # get current young person age
-    currentSml <- smlRenamed[i,]
-    currentAge <- currentSml$smallAge
-
-    # try to match
-
-    while(!(counter == attempts)) {
-
-      # create an age difference based on the distribution
-      drawResult <- round(PearsonDS::rpearsonI(1, a=posShapeA, b=shapeB, location=locationP, scale=scaleP),0)
-
-      # NumAttempts <- NumAttempts + 1
-
-      # required age of older person
-      if(shapeA < 0) {
-        reqAge <- currentAge - drawResult
-      } else {
-        reqAge <- currentAge + drawResult
-        # closes if(meanvalue < 0) {
+        # closes  while(counter <= attempts) {
       }
 
+      if(isMatched == "Y") {
 
-      # generate random sample of people that age from the smalldf
-      lrgSubset <- lrgRenamed %>%
-        filter(.data$largeAge == reqAge)
+        # cat("Is matched \n")
 
-      if(nrow(lrgSubset) > 0) {
-        lrgChosen <- lrgSubset %>%
-          slice_sample(n = 1)
+        if(WhereHHID == "Small") {
 
-        counter <- attempts
+          # cat("HHID in small df \n")
 
-        isMatched <- "Y"
+          currentHHID <- currentSml$smallHHID
 
-      } else {
+          matchedSml <- currentSml %>%
+            select("smallID")
 
-        counter <- counter + 1
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
 
-        isMatched <- "N"
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID) %>%
+            rename(internalHHID = "smallHHID")
 
-        # closes if(nrow(lrgSubset) > 0) {
-      }
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID) %>%
+            mutate(internalHHID = currentHHID)
 
-      # closes  while(counter <= attempts) {
-    }
+          # closes if(WhereHHID == "Small") {
+        } else {
 
-    if(isMatched == "Y") {
+          cat("HHID in large df \n")
 
-      # cat("Is matched \n")
+          matchedSml <- currentSml %>%
+            select("smallID")
 
-      if(WhereHHID == "Small") {
+          currentHHID <- lrgChosen$largeHHID
 
-        # cat("HHID in small df \n")
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
 
-        currentHHID <- currentSml$smallHHID
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID) %>%
+            mutate(internalHHID = "currentHHID")
 
-        matchedSml <- currentSml %>%
-          select("smallID")
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID) %>%
+            rename(internalHHID = "largeHHID")
 
-        matchedLrg <- lrgChosen %>%
-          select("largeID")
-
-        matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
-          filter(.data$smallID == matchedSml$smallID) %>%
-          rename(internalHHID = "smallHHID")
-
-        matchedLrgFull <- lrgRenamed %>%
-          filter(.data$largeID == matchedLrg$largeID) %>%
-          mutate(internalHHID = currentHHID)
-
-        # closes if(WhereHHID == "Small") {
-      } else {
-
-        # cat("HHID in large df \n")
-
-        matchedSml <- currentSml %>%
-          select("smallID")
-
-        currentHHID <- lrgChosen$largeHHID
-
-        matchedLrg <- lrgChosen %>%
-          select("largeID")
-
-        matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
-          filter(.data$smallID == matchedSml$smallID) %>%
-          mutate(internalHHID = "currentHHID")
-
-        matchedLrgFull <- lrgRenamed %>%
-          filter(.data$largeID == matchedLrg$largeID) %>%
-          rename(internalHHID = "largeHHID")
-
-        # closes else to if(WhereHHID == "Small") {
-      }
+          # closes else to if(WhereHHID == "Small") {
+        }
 
 
-      # keep putting the matches into a single data frame
-      # only need the one test, if the smaller data frame is matched, so is the larger one
-      if(exists("FullMatchedSml") == TRUE) {
+        # keep putting the matches into a single data frame
+        # only need the one test, if the smaller data frame is matched, so is the larger one
+        if(exists("FullMatchedSml") == TRUE) {
 
-        FullMatchedSml <- bind_rows(FullMatchedSml, matchedSmFull)
-        FullMatchedLrg <- bind_rows(FullMatchedLrg, matchedLrgFull)
+          FullMatchedSml <- bind_rows(FullMatchedSml, matchedSmFull)
+          FullMatchedLrg <- bind_rows(FullMatchedLrg, matchedLrgFull)
 
-      } else {
+        } else {
 
-        FullMatchedSml <- matchedSmFull
-        FullMatchedLrg <- matchedLrgFull
+          FullMatchedSml <- matchedSmFull
+          FullMatchedLrg <- matchedLrgFull
 
-        # closes if(exists("FullMatchedSml") == TRUE) {
-      }
-
-
-      #######################################################################################
-      # Start of first set of chi-squared output addition
-      #######################################################################################
-
-      if(exists("CurrentAgeMatch")) {
-
-        smlSummaryData <- matchedSmFull %>%
-          select("smallID", "smallAge")
-        lrgSummaryData <- matchedLrgFull %>%
-          select("largeID", "largeAge")
-        interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
-        CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
+          # closes if(exists("FullMatchedSml") == TRUE) {
+        }
 
 
-      } else {
-
-        smlSummaryData <- matchedSmFull %>%
-          select("smallID", "smallAge")
-        lrgSummaryData <- matchedLrgFull %>%
-          select("largeID", "largeAge")
-        CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
-
-      }
-
-      #######################################################################################
-      # End of first set of chi-squared output addition
-      #######################################################################################
-
-
-      # removed matched person from being reselected from largerdf
-      lrgRenamed <- lrgRenamed %>%
-        filter(!(.data$largeID == matchedLrg$largeID))
-
-
-      # closes if(isMatched == "Y") {
-    } else {
-      # just draw a sample that is between the correct ages.
-
-      minAgeNeeded <- currentAge +
-        round(PearsonDS::qpearsonI(1/100000, a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-
-      maxAgeNeeded <- currentAge +
-        round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-
-      if(shapeA < 0) {
-
-        maxAgeNeeded <- currentAge -
-          round(PearsonDS::qpearsonI(1/100000, a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-        minAgeNeeded <- currentAge -
-          round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-
-      } else {
-
-        minAgeNeeded <- currentAge +
-          round(PearsonDS::qpearsonI(1/100000, a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-        maxAgeNeeded <- currentAge +
-          round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))
-        # closes if(meanvalue < 0) {
-      }
-
-      lrgSubset <- lrgRenamed %>%
-        filter(between(.data$largeAge, minAgeNeeded, maxAgeNeeded))
-
-      if(nrow(lrgSubset) > 0) {
-        lrgChosen <- lrgSubset %>%
-          slice_sample(n = 1)
-
-        # do the extraction work here only if there is a matching person drawn
-        matchedSml <- currentSml %>%
-          select("smallID")
-
-        matchedLrg <- lrgChosen %>%
-          select("largeID")
-
-        matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
-          filter(.data$smallID == matchedSml$smallID)
-
-        matchedLrgFull <- lrgRenamed %>%
-          filter(.data$largeID == matchedLrg$largeID)
-
+        #######################################################################################
+        # Start of first set of chi-squared output addition
+        #######################################################################################
 
         if(exists("CurrentAgeMatch")) {
 
@@ -443,22 +345,350 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
             select("largeID", "largeAge")
           CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
 
-          # closes else to  if(exists("CurrentAgeMatch"))
         }
 
-        # remove matched person from being reselected from largerdf
+
+        #######################################################################################
+        # End of first set of chi-squared output addition
+        #######################################################################################
+
+
+        # removed matched person from being reselected from largerdf
         lrgRenamed <- lrgRenamed %>%
           filter(!(.data$largeID == matchedLrg$largeID))
 
-        # closes if(nrow(lrgSubset) > 0) {
+
+        # closes if(isMatched == "Y") {
+      } else {
+        # just draw a sample that is between the correct ages.
+        if(directxi > 0) {
+
+          maxAgeNeeded <- currentAge -
+            round(qnorm(1/100000, mean=directxi, sd=directomega))
+          minAgeNeeded <- currentAge -
+            round(qnorm(1-(1/100000), mean=directxi, sd=directomega))
+
+        } else {
+
+          minAgeNeeded <- currentAge +
+            round(qnorm(1/100000, mean=directxi, sd=directomega))
+          maxAgeNeeded <- currentAge +
+            round(qnorm(1-(1/100000), mean=directxi, sd=directomega))
+          # closes if(meanvalue < 0) {
+        }
+
+        # cat("minimum age needed is", minAgeNeeded, "max age is", maxAgeNeeded, "\n")
+
+        lrgSubset <- lrgRenamed %>%
+          filter(between(.data$largeAge, minAgeNeeded, maxAgeNeeded))
+
+        if(nrow(lrgSubset) > 0) {
+          lrgChosen <- lrgSubset %>%
+            slice_sample(n = 1)
+
+          # do the extraction work here only if there is a matching person drawn
+          matchedSml <- currentSml %>%
+            select("smallID")
+
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
+
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID)
+
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID)
+
+
+          if(exists("CurrentAgeMatch")) {
+
+            smlSummaryData <- matchedSmFull %>%
+              select("smallID", "smallAge")
+            lrgSummaryData <- matchedLrgFull %>%
+              select("largeID", "largeAge")
+            interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+            CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
+
+
+          } else {
+
+            smlSummaryData <- matchedSmFull %>%
+              select("smallID", "smallAge")
+            lrgSummaryData <- matchedLrgFull %>%
+              select("largeID", "largeAge")
+            CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+
+            # closes else to  if(exists("CurrentAgeMatch"))
+          }
+
+          # remove matched person from being reselected from largerdf
+          lrgRenamed <- lrgRenamed %>%
+            filter(!(.data$largeID == matchedLrg$largeID))
+
+          # closes if(nrow(lrgSubset) > 0) {
+        }
+
+        # closes else to if(isMatched == "Y") {
       }
 
-      # closes else to if(isMatched == "Y") {
+
+      # closes  for(i in 1:nrow(smlRenamed)) {
     }
 
+  # closes function using normal distribution
+  } else {
+    #####################################
+    # skew-normal distribution
+    #####################################
+    # using the skew normal
 
-    # closes  for(i in 1:nrow(smlRenamed)) {
+    cat("Skew-normal distribution was used", "\n")
+
+    for(i in 1:nrow(smlRenamed)){
+
+      counter <- 0
+
+      # get current young person age
+      currentSml <- smlRenamed[i,]
+      currentAge <- currentSml$smallAge
+
+      # try to match
+
+      while(!(counter == attempts)) {
+
+        # create an age difference based on the distribution
+        drawResult <- round(rsn(1, xi=directxi, omega=directomega, alpha=alphaused),0)
+
+        # NumAttempts <- NumAttempts + 1
+
+        # required age of older person
+        if(directxi > 0) {
+          reqAge <- currentAge - drawResult
+        } else {
+          reqAge <- currentAge + drawResult
+          # closes if(meanvalue < 0) {
+        }
+
+
+        # generate random sample of people that age from the smalldf
+        lrgSubset <- lrgRenamed %>%
+          filter(.data$largeAge == reqAge)
+
+        if(nrow(lrgSubset) > 0) {
+          lrgChosen <- lrgSubset %>%
+            slice_sample(n = 1)
+
+          counter <- attempts
+
+          isMatched <- "Y"
+
+        } else {
+
+          counter <- counter + 1
+
+          isMatched <- "N"
+
+          # closes if(nrow(lrgSubset) > 0) {
+        }
+
+        # closes  while(counter <= attempts) {
+      }
+
+      if(isMatched == "Y") {
+
+        # cat("Is matched \n")
+
+        if(WhereHHID == "Small") {
+
+          # cat("HHID in small df \n")
+
+          currentHHID <- currentSml$smallHHID
+
+          matchedSml <- currentSml %>%
+            select("smallID")
+
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
+
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID) %>%
+            rename(internalHHID = "smallHHID")
+
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID) %>%
+            mutate(internalHHID = currentHHID)
+
+          # closes if(WhereHHID == "Small") {
+        } else {
+
+          # cat("HHID in large df \n")
+
+          matchedSml <- currentSml %>%
+            select("smallID")
+
+          currentHHID <- lrgChosen$largeHHID
+
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
+
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID) %>%
+            mutate(internalHHID = "currentHHID")
+
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID) %>%
+            rename(internalHHID = "largeHHID")
+
+          # closes else to if(WhereHHID == "Small") {
+        }
+
+
+        # keep putting the matches into a single data frame
+        # only need the one test, if the smaller data frame is matched, so is the larger one
+        if(exists("FullMatchedSml") == TRUE) {
+
+          FullMatchedSml <- bind_rows(FullMatchedSml, matchedSmFull)
+          FullMatchedLrg <- bind_rows(FullMatchedLrg, matchedLrgFull)
+
+        } else {
+
+          FullMatchedSml <- matchedSmFull
+          FullMatchedLrg <- matchedLrgFull
+
+          # closes if(exists("FullMatchedSml") == TRUE) {
+        }
+
+
+        #######################################################################################
+        # Start of first set of chi-squared output addition
+        #######################################################################################
+
+        if(exists("CurrentAgeMatch")) {
+
+          smlSummaryData <- matchedSmFull %>%
+            select("smallID", "smallAge")
+          lrgSummaryData <- matchedLrgFull %>%
+            select("largeID", "largeAge")
+          interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+          CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
+
+
+        } else {
+
+          smlSummaryData <- matchedSmFull %>%
+            select("smallID", "smallAge")
+          lrgSummaryData <- matchedLrgFull %>%
+            select("largeID", "largeAge")
+          CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+
+        }
+
+        #######################################################################################
+        # End of first set of chi-squared output addition
+        #######################################################################################
+
+
+        # removed matched person from being reselected from largerdf
+        lrgRenamed <- lrgRenamed %>%
+          filter(!(.data$largeID == matchedLrg$largeID))
+
+
+        # closes if(isMatched == "Y") {
+      } else {
+        # just draw a sample that is between the correct ages.
+
+        minAgeNeeded <- currentAge +
+          round(qnorm(1/100000, mean=directxi, sd=directomega))
+
+        maxAgeNeeded <- currentAge +
+          round(qnorm(1-(1/100000), mean=directxi, sd=directomega))
+
+        if(directxi > 0) {
+
+          maxAgeNeeded <- currentAge -
+            round(qnorm(1/100000, mean=directxi, sd=directomega))
+          minAgeNeeded <- currentAge -
+            round(qnorm(1-(1/100000), mean=directxi, sd=directomega))
+
+        } else {
+
+          minAgeNeeded <- currentAge +
+            round(qnorm(1/100000, mean=directxi, sd=directomega))
+          maxAgeNeeded <- currentAge +
+            round(qnorm(1-(1/100000), mean=directxi, sd=directomega))
+          # closes if(meanvalue < 0) {
+        }
+
+        lrgSubset <- lrgRenamed %>%
+          filter(between(.data$largeAge, minAgeNeeded, maxAgeNeeded))
+
+        if(nrow(lrgSubset) > 0) {
+          lrgChosen <- lrgSubset %>%
+            slice_sample(n = 1)
+
+          # do the extraction work here only if there is a matching person drawn
+          matchedSml <- currentSml %>%
+            select("smallID")
+
+          matchedLrg <- lrgChosen %>%
+            select("largeID")
+
+          matchedSmFull <- left_join(matchedSml, smlRenamed, by = ("smallID"))  %>%
+            filter(.data$smallID == matchedSml$smallID)
+
+          matchedLrgFull <- lrgRenamed %>%
+            filter(.data$largeID == matchedLrg$largeID)
+
+
+          if(exists("CurrentAgeMatch")) {
+
+            smlSummaryData <- matchedSmFull %>%
+              select("smallID", "smallAge")
+            lrgSummaryData <- matchedLrgFull %>%
+              select("largeID", "largeAge")
+            interimAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+            CurrentAgeMatch <- bind_rows(CurrentAgeMatch, interimAgeMatch)
+
+
+          } else {
+
+            smlSummaryData <- matchedSmFull %>%
+              select("smallID", "smallAge")
+            lrgSummaryData <- matchedLrgFull %>%
+              select("largeID", "largeAge")
+            CurrentAgeMatch <- bind_cols(smlSummaryData, lrgSummaryData)
+
+            # closes else to  if(exists("CurrentAgeMatch"))
+          }
+
+          # remove matched person from being reselected from largerdf
+          lrgRenamed <- lrgRenamed %>%
+            filter(!(.data$largeID == matchedLrg$largeID))
+
+          # closes if(nrow(lrgSubset) > 0) {
+        }
+
+        # closes else to if(isMatched == "Y") {
+      }
+
+
+      # closes  for(i in 1:nrow(smlRenamed)) {
+    }
+
+    # closes matching based on skew normal
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   #####################################
@@ -482,63 +712,140 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
     stop("Fewer than 30 pairs have been created, function has been stopped.")
   }
 
-  min_bin <- round(PearsonDS::qpearsonI(1/100000, a=posShapeA, b=shapeB, location=locationP, scale=scaleP))-0.5
-  max_bin <- round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))+0.5
+  if (alphaused==0) {
 
-  # cat("Error when trying to bin", "\n")
+    min_bin <- round(qnorm(1/100000, mean=directxi, sd=directomega))-0.5
+    max_bin <- round(qnorm(1-(1/100000), mean=directxi, sd=directomega))+0.5
 
-  bins <- c(min_bin:max_bin)
-  # cat("The bins are", "\n")
-  # print(bins)
+    # cat("Error when trying to bin", "\n")
 
-  # cat("Error after making the bins", "\n")
+    bins <- c(min_bin:max_bin)
+    # cat("The bins are", "\n")
+    # print(bins)
 
-  # construct the probabilities for each bin, gives n(bins)-1
-  Probabilities <- PearsonDS::ppearsonI(bins[-1], a=posShapeA, b=shapeB, location=locationP, scale=scaleP) -
-    PearsonDS::ppearsonI(bins[-length(bins)], a=posShapeA, b=shapeB, location=locationP, scale=scaleP)
-  # cat("The probabilities are", "\n")
-  # print(Probabilities)
+    # cat("Error after making the bins", "\n")
 
-  logProb <- c(log(Probabilities))
-  logBins <- c(min_bin:max_bin)
-  # cat("The logProbs are", "\n")
-  # print(logProb)
-  # cat("The logBins are", "\n")
-  # print(logBins)
+    # construct the probabilities for each bin, gives n(bins)-1
+    Probabilities <- pnorm(bins[-1], mean=directxi, sd=directomega) -
+      pnorm(bins[-length(bins)], mean=directxi, sd=directomega)
+    # cat("The probabilities are", "\n")
+    # print(Probabilities)
 
-  ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
-  logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-  # cat("The ExpectedAgeProbs are", "\n")
-  # print(ExpectedAgeProbs)
-  # cat("The logEAgeProbs are", "\n")
-  # print(logEAgeProbs)
+    logProb <- c(log(Probabilities))
+    logBins <- c(min_bin:max_bin)
+    # cat("The logProbs are", "\n")
+    # print(logProb)
+    # cat("The logBins are", "\n")
+    # print(logBins)
 
-  # construct starting set of observed age difference values for iteration
-  if(shapeA < 0) {
+    ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+    logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+    # cat("The ExpectedAgeProbs are", "\n")
+    # print(ExpectedAgeProbs)
+    # cat("The logEAgeProbs are", "\n")
+    # print(logEAgeProbs)
 
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = bins, plot=FALSE)$counts
-    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = logBins, plot=FALSE)$counts
 
+    # construct starting set of observed age difference values for iteration
+    if(directxi > 0) {
+
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                                     breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                               breaks = logBins, plot=FALSE)$counts
+
+    } else {
+
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                                     breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                               breaks = logBins, plot=FALSE)$counts
+
+    }
+
+    # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
+    # print(ObservedAgeDifferences)
+    # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
+    # print(log0ObservedAges)
+
+    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+
+    Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
+        round(Critical_log_chisq,3), "\n")
+
+    #######################################################################################
+    # End of second set of chi-squared output addition
+    #######################################################################################
+
+    # normal distribution part finished
   } else {
 
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = bins, plot=FALSE)$counts
-    log0ObservedAges <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+    min_bin <- round(qsn(1/100000, xi=directxi, omega=directomega, alpha=alphaused))-0.5
+    max_bin <- round(qsn(1-(1/100000), xi=directxi, omega=directomega, alpha=alphaused))+0.5
 
+    # cat("Error when trying to bin", "\n")
+
+    bins <- c(min_bin:max_bin)
+    # cat("The bins are", "\n")
+    # print(bins)
+
+    # cat("Error after making the bins", "\n")
+
+    # construct the probabilities for each bin, gives n(bins)-1
+    Probabilities <- psn(bins[-1], xi=directxi, omega=directomega, alpha=alphaused) -
+      psn(bins[-length(bins)], xi=directxi, omega=directomega, alpha=alphaused)
+    # cat("The probabilities are", "\n")
+    # print(Probabilities)
+
+    logProb <- c(log(Probabilities))
+    logBins <- c(min_bin:max_bin)
+    # cat("The logProbs are", "\n")
+    # print(logProb)
+    # cat("The logBins are", "\n")
+    # print(logBins)
+
+    ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
+    logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
+    # cat("The ExpectedAgeProbs are", "\n")
+    # print(ExpectedAgeProbs)
+    # cat("The logEAgeProbs are", "\n")
+    # print(logEAgeProbs)
+
+    # construct starting set of observed age difference values for iteration
+    if(directxi > 0) {
+
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge, breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge, breaks = logBins, plot=FALSE)$counts
+
+    } else {
+
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge, breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge, breaks = logBins, plot=FALSE)$counts
+
+    }
+
+    # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
+    # print(ObservedAgeDifferences)
+    # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
+    # print(log0ObservedAges)
+
+    logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+    log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+
+    Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
+
+    cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
+        round(Critical_log_chisq,3), "\n")
+
+    # skew normal distribution part finished
   }
 
-  # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
-  # print(ObservedAgeDifferences)
-  # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
-  # print(log0ObservedAges)
 
-  logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
-  log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-
-
-  Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-  cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
-      round(Critical_log_chisq,3), "\n")
 
   #######################################################################################
   # End of second set of chi-squared output addition
@@ -673,7 +980,7 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
 
 
         # check for swap that creates an age difference out of bounds
-        if(shapeA < 0) {
+        if(directxi > 0) {
 
           if((PropPair1$smallAge - PropPair1$largeAge < min_bin) |
              (PropPair2$smallAge - PropPair2$largeAge < min_bin) |
@@ -693,7 +1000,7 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
             next
           }
 
-          # closes if(shapeA < 0) {
+          # closes if(directxi > 0) {
         }
 
 
@@ -707,15 +1014,20 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directx
         # cat("PropAgeMatch done", "\n")
 
         # do chi-squared
-        if(shapeA < 0) {
+        if(directxi > 0) {
 
-          Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,4], breaks = logBins, plot=FALSE)$counts
+          ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                                         breaks = bins, plot=FALSE)$counts
+          log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                                   breaks = logBins, plot=FALSE)$counts
 
         } else {
 
-          Proplog0 <- hist(PropAgeMatch[,4] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+          ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                                         breaks = bins, plot=FALSE)$counts
+          log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                                   breaks = logBins, plot=FALSE)$counts
 
-          # closes if(shapeA < 0) {
         }
 
 
