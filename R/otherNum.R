@@ -29,7 +29,9 @@ NULL
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
 #'
 #' @examples
-#' \donttest{library("dplyr")
+#'
+#' library("dplyr")
+#'
 #' AdultsID <- IntoSchools %>%
 #' filter(Age > 20) %>%
 #' select(-c(SchoolStatus, SexCode))
@@ -41,11 +43,11 @@ NULL
 #'# toy example with few interations
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
-#'                           userseed=4, attempts= 10, numiters = 100)
+#'                           userseed=4, attempts= 10, numiters = 80)
 #' CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
 #' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
-#'
+
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
                      numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000)
