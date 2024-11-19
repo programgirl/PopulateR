@@ -38,9 +38,10 @@ NULL
 #'   filter(Age > 20, Relationship == "NonPartnered", !(ID %in% c(AdultsID$ID))) %>%
 #'   slice_sample(n = 1500)
 #'
+#'# toy example with few interations
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
-#'                           userseed=4, attempts= 10, numiters = 10000)
+#'                           userseed=4, attempts= 10, numiters = 100)
 #' CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
 #' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
