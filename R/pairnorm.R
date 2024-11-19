@@ -47,7 +47,7 @@ NULL
 #' # being younger by a mean of -2 and a standard deviation of 3
 #' OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
 #'                            lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-#'                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.05)
+#'                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.3)
 #' Couples1 <- OppSexCouples1$Matched
 #'
 #' \donttest{# repeat first example using a skew normal distribution
