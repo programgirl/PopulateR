@@ -32,7 +32,9 @@ NULL
 #' @return A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' # demonstrate matched dataframe sizes first
 #' set.seed(1)
 #' # sample a combination of females and males to be parents
@@ -47,8 +49,8 @@ NULL
 #' # match the children to the parents, toy example with few iterations
 #' ChildAllMatched <- pairbeta4Num(Children, smlid = "ID", smlage = "Age", Parents, lrgid = "ID",
 #'                                 lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = 16.5,
-#'                                 scaleP = 40.1, HHNumVar = "Household", userseed=4, attempts = 10,
-#'                                 numiters = 80)
+#'                                 scaleP = 40.1, HHNumVar = "Household", userseed=4, attempts = 8,
+#'                                 numiters = 90)
 #'
 #' MatchedPairs <- ChildAllMatched$Matched
 #' UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
