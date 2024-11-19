@@ -212,7 +212,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
     mutate(PropLeft = .data$TotalLeaverCount / .data$AllPeople,
            PropLeft = ifelse(.data$PropLeft > 1, 1, .data$PropLeft)) %>%
     filter(!(is.na(.data$PropLeft))) %>%
-    rename(IntAge = .data$CurrentAge) %>%
+    rename(IntAge = "CurrentAge") %>%
     select(-(c("TotalLeaverCount", "AllPeople")))
 
   # remove any NAs as these will cause problems with the maths
