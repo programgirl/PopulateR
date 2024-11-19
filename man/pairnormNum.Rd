@@ -58,7 +58,9 @@ Both data frames must be restricted to only those people that are successfully p
 At least 30 matched pairs are required for the function to run. This is to reduce the proportion of empty cells.
 }
 \examples{
+
 library(dplyr)
+
 # parents are older than the children using a normal distribution of mean = 30,
 # standard deviation of 5
 set.seed(1)
@@ -72,7 +74,7 @@ Children <- Township \%>\%
 
 PrntChld <- pairnormNum(Parents, smlid = "ID", smlage = "Age", Children, lrgid = "ID",
                         lrgage = "Age", directxi = 30, directomega = 5, HHNumVar = "HouseholdID",
-                        userseed = 4, attempts=10, numiters = 500)
+                        userseed = 4, attempts=10, numiters = 80)
 Matched <- PrntChld$Matched  # all matched but not the specified distribution
 UnmatchedAdults <- PrntChld$Smaller
 UnmatchedChildren <- PrntChld$Larger

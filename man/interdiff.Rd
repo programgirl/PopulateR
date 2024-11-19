@@ -34,8 +34,9 @@ While the function is designed to interpolate proportions, in practice it can in
 }
 \examples{
 
-# create the expected proportion of people in relationships, by age within sex
 library("dplyr")
+
+# create the expected proportion of people in relationships, by age within sex
 thegroups <- as.vector("Sex")
 RelProps <- interdiff(GroupInfo, pplage = "MidPoints", pplprop = "RelProps", endmin = "MinAge",
                       endmax = "MaxAge", grpdef = thegroups)

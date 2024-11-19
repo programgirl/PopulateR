@@ -5,9 +5,9 @@
 \alias{AdultsNoID}
 \title{Non-partnered synthetic people}
 \format{
-A data frame of 2,213 rows and 5 variables
+A data frame of 2,213 rows and 5 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{SEither Male or Female}
     \item{Relationship}{Relationship status of the person}
     \item{ID}{The unique identifier for the person}
     \item{Age}{The age of the person}

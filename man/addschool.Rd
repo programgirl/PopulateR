@@ -61,7 +61,9 @@ The "schools" data frame must be a summary in the form of roll counts by age wit
 The minimum and maximum school ages, followed by the achieved counts by sex for each school, are printed to the console.
 }
 \examples{
+
 library(dplyr)
+
 # children in the same household will be added to the same school, if possible with a .8 probability
 \donttest{SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode",
                           pplst = "SchoolStatus", hhid = "HouseholdID", SchoolsToUse,

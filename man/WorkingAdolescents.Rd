@@ -3,26 +3,11 @@
 \docType{data}
 \name{WorkingAdolescents}
 \alias{WorkingAdolescents}
-\title{#' People with a school indicator
-#'
-#' @description
-#' A modified version of "Township" data frame with a school indicator variable added.
-#'
-#' @format A data frame with 10,000 rows and 6 variables
-#' \describe{
-#'     \item{Sex}{Sex of the person}
-#'     \item{Relationship}{Relationship status of the person}
-#'     \item{ID}{The unique identifier for the person}
-#'     \item{Age}{The age of the person}
-#'     \item{HoursWorked}{The number of hours worked in employment, per week. This is an ordered factor.}
-#'     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
-#' }
-"WithSchoolInd"
-Adolescents with a school status and employment hours}
+\title{Adolescents with a school status and employment hours}
 \format{
-A data frame of 546 observations and 6 variables
+A data frame of 478 observations and 6 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{Either Male or Female}
     \item{Relationship}{Relationship status of the person}
     \item{ID}{The unique identifier for the person}
     \item{Age}{Age of the person}

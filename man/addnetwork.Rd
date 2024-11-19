@@ -47,18 +47,8 @@ A normal distribution is used, using the age differences between the pairs. This
 The two options for output are a dgCMatrix or an igraph. The dgCMatrix is output as n x n. For a large data frame of people, this will be a large and sparse matrix, which may not be completed due to RAM limitations. The igraph output only contains the pairs, and should be a smaller object compared to the dgCMatrix.
 }
 \examples{
+
 library("dplyr")
-\donttest{# output as igraph
-NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-                        probsame = .5, userseed=4, numiters = 10, usematrix = "N")
-
-# transform to a data frame
-NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
-
-# output as n x n adjacency matrix
-# takes a long time
-# NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")}
 
 # smaller sample for visualisation
 set.seed(2) # small datasets can cause problems if a random seed is used for sampling

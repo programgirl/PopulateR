@@ -65,7 +65,9 @@ Two data frames are required. One person from each data frame will be matched, b
 Both data frames must be restricted to only those people that will be paired.
 }
 \examples{
+
 library(dplyr)
+
 # the children data frame is smaller
 set.seed(1)
 # sample a combination of females and males to be parents
@@ -87,9 +89,9 @@ UnmatchedAdults <- ChildAllMatched$Larger
 
 # children data frame is larger, the locationP and scaleP values are negative
 
-\donttest{Parents2 <- Township \%>\%
-filter(Relationship == "Partnered", Age > 18) \%>\%
- slice_sample(n = 200)
+Parents2 <- Township \%>\%
+ filter(Relationship == "Partnered", Age > 18) \%>\%
+ slice_sample(n = 100)
 Children2 <- Township \%>\%
  filter(Relationship == "NonPartnered", Age < 20) \%>\%
  slice_sample(n = 500)
@@ -101,5 +103,5 @@ Children2 <- Township \%>\%
 
 MatchedPairs2 <- ChildMatched$Matched
 UnmatchedChildren2 <- ChildMatched$Smaller
-UnmatchedAdults2 <- ChildMatched$Larger}
+UnmatchedAdults2 <- ChildMatched$Larger
 }

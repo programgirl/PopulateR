@@ -53,7 +53,9 @@ Two data frames are required. The 'existing' data frame contains the people alre
 The output data frame of matches will only contain households of the required size.
 }
 \examples{
-\donttest{library("dplyr")
+
+library("dplyr")
+
 AdultsID <- IntoSchools \%>\%
 filter(Age > 20) \%>\%
 select(-c(SchoolStatus, SexCode))
@@ -62,12 +64,11 @@ NoHousehold <- Township \%>\%
   filter(Age > 20, Relationship == "NonPartnered", !(ID \%in\% c(AdultsID$ID))) \%>\%
   slice_sample(n = 1500)
 
-# toy example with few interations
+# toy example with few iterations
 OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
-                          userseed=4, attempts= 10, numiters = 100)
+                          userseed=4, attempts= 10, numiters = 80)
 CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
-UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
-
+UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched
 }

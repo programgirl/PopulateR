@@ -26,6 +26,7 @@ A data frame of people sampled according to the age sample sizes required.
 Produces samples by group, enabling different sample sizes to be specified for each group. Sampling without replacement is used. While the function example is based on sampling by age, in practice sampling can be performed using any variable of choice. Only one grouping variable is used.
 }
 \examples{
+
 SampleNeeded <- data.frame(Age = c(16, 17, 18),
                            NumNeeded = c(5, 10, 15))
 SampledAdolescents <- diffsample(WorkingAdolescents, pplage = "Age", sampledf = SampleNeeded,

@@ -5,9 +5,9 @@
 \alias{Ppl4networks}
 \title{Synthetic people living in the Timaru District}
 \format{
-A data frame with 1,000 rows and 5 variables
+A data frame with 1,000 rows and 5 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{Either Male or Female}
     \item{Relationship}{Relationship status of the person}
     \item{ID}{The unique identifier for the person}
     \item{Age}{The age of the person}
@@ -21,6 +21,6 @@ Timaru District 2018 census data (tablecodes 8277, 8395, and 8460), sourced from
 Ppl4networks
 }
 \description{
-1000 synthetic people.
+1000 synthetic people, to match the number of people in the NetworkMatrix data frame.
 }
 \keyword{datasets}

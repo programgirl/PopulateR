@@ -5,9 +5,9 @@
 \alias{InitialDataframe}
 \title{People in age groups, in the Timaru District}
 \format{
-A data frame with 46,293 rows and 6 variables
+A data frame with 46,293 rows and 6 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{Either Male or Female}
     \item{Age.group}{Age group in five-year age bands}
     \item{Relationship}{Relationship status of the person}
     \item{LowerAge}{The youngest age in the Age.group}

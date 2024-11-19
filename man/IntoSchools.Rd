@@ -5,16 +5,16 @@
 \alias{IntoSchools}
 \title{Four person households, with a school status for each person}
 \format{
-A data frame of 3,052 rows and 8 variables
+A data frame of 980 rows and 8 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{Either Male or Female}
     \item{Relationship}{Relationship status of the person}
     \item{ID}{The unique identifier for the person}
     \item{Age}{The age of the person}
     \item{HoursWorked}{The number of hours worked in employment, per week}
     \item{SchoolStatus}{The indicator of whether the person is in school (Y) or not (N)}
     \item{HouseholdID}{The household identifier for the person}
-    \item{SexCode}{Sex, (F)emale or (M)ale}
+    \item{SexCode}{Either (F)emale or (M)ale}
 }
 }
 \usage{

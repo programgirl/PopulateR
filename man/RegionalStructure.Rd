@@ -5,7 +5,7 @@
 \alias{RegionalStructure}
 \title{Sex/Age pyramid for teenagers in the Canterbury Region}
 \format{
-A data frame with 14 observations and 4 variables
+A data frame with 14 observations and 4 variables:
 \describe{
     \item{Sex}{The sex relating to the count}
     \item{Age.group}{String variable of age plus the text " years"}

@@ -5,7 +5,7 @@
 \alias{GroupInfo}
 \title{The proportion of people in a relationship, by age band within sex}
 \format{
-A data frame of 14 rows and 7 variables
+A data frame of 14 rows and 7 variables:
 \describe{
     \item{Sex}{Either Male or Female}
     \item{AgeBand}{The 10-year age band}

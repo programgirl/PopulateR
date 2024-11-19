@@ -5,7 +5,7 @@
 \alias{SchoolsToUse}
 \title{Schools and their roll counts}
 \format{
-A data frame with 266 rows and 5 variables
+A data frame with 266 rows and 5 variables:
 \describe{
    \item{School.ID}{The numeric ID for the school}
    \item{School.Name}{The name for the school}

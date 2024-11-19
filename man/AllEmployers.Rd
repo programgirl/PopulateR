@@ -5,7 +5,7 @@
 \alias{AllEmployers}
 \title{Employers and employees, by industry}
 \format{
-A data frame of 183 rows and 7 variables
+A data frame of 183 rows and 7 variables:
 \describe{
     \item{ANZSIC06}{The code and associated name for each industry}
     \item{BusinessCount}{The random-rounded count of employers in the industry}

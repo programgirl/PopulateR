@@ -5,7 +5,7 @@
 \alias{LeftSchool}
 \title{School leavers}
 \format{
-A data frame with 120 rows and 4 variables
+A data frame with 120 rows and 4 variables:
 \describe{
     \item{YearLeft}{The year for the school leaver count}
     \item{Sex}{The sex for the school leaver count}

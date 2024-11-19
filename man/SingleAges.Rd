@@ -5,10 +5,10 @@
 \alias{SingleAges}
 \title{Sex/Age pyramid data for Timaru District}
 \format{
-A data frame with 190 rows and 4 variables
+A data frame with 190 rows and 4 variables:
 \describe{
     \item{Age.group}{Age group, in five-year age bands}
-    \item{Sex}{Sex, either Male or Female}
+    \item{Sex}{Either Male or Female}
     \item{Value}{The number of people that age and sex}
     \item{Age}{Age at last birthday}
 }

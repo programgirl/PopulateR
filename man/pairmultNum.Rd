@@ -57,7 +57,9 @@ The minimum and maximum ages of parents must be specified. This ensures that the
 Both data frames must be restricted to only those people that will be paired.
 }
 \examples{
+
 library(dplyr)
+
 set.seed(1)
 Parents <- Township \%>\%
   filter(Relationship == "Partnered", Age > 18) \%>\%
@@ -77,13 +79,4 @@ ChildMatched <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2
 MatchedFamilies <- ChildMatched$Matched
 UnmatchedChildren <- ChildMatched$Children
 UnmatchedAdults <- ChildMatched$Adults
-
-\donttest{# affected by the permitted maximum age difference from reference child
-
-ChildMatched2 <- pairmultNum(Children, chlid = "ID", chlage = "Age", numchild = 2, twinprob = 0.03,
-                             Parents, parid = "ID", parage = "Age", minparage = 18, maxparage = 54,
-                            HHNumVar = "Household", userseed =4, maxdiff = 4)
-MatchedFamilies2 <- ChildMatched2$Matched
-UnmatchedChildren2 <- ChildMatched2$Children
-UnmatchedAdults2 <- ChildMatched2$Adults}
 }

@@ -5,7 +5,7 @@
 \alias{EmployerSet}
 \title{Synthetic employers and their employee counts}
 \format{
-A data frame of 225 rows and 3 variables
+A data frame of 225 rows and 3 variables:
 \describe{
     \item{ANZSIC06}{The code and associated name for the industry associated with the employer}
     \item{NumEmployees}{The count of employees for the employer}

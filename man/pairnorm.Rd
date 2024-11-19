@@ -59,6 +59,7 @@ Two data frames are required. One person from each data frame will be matched, b
 Both data frames must be restricted to only those people that will have a couples match performed.
 }
 \examples{
+
 library(dplyr)
 
 # matched dataframe sizes first, using a normal distribution
@@ -78,30 +79,4 @@ OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", Part
                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.3)
 Couples1 <- OppSexCouples1$Matched
 
-\donttest{# repeat first example using a skew normal distribution
-# doesn't converge but pairs still output
-
-OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1,
-                           lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-                           alphaused = 5, HHStartNum = 1, HHNumVar = "HouseholdID",
-                           userseed = 4, ptostop=.05)
-Couples2 <- OppSexCouples2$Matched
-
-# different size dataframes
-# there are more partnered males than partnered females
-# so all partnered males will have a matched female partner
-# but not all females will be matched
-# being the smallest data frame, the female one must be the first
-
-PartneredFemales3 <- Township \%>\%
-  filter(Sex == "Female", Relationship == "Partnered") \%>\%
-         slice_sample(n=120, replace = FALSE)
-PartneredMales3 <- Township \%>\%
-  filter(Sex == "Male", Relationship == "Partnered") \%>\%
-slice_sample(n=140, replace = FALSE)
-
-OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3,
-                           lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
-                          HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.05)
-Couples3 <- OppSexCouples3$Matched}
 }

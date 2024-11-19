@@ -5,9 +5,9 @@
 \alias{BadRels}
 \title{Synthetic people restricted to an age range}
 \format{
-A data frame of 7,568 rows and 8 variables
+A data frame of 7,568 rows and 8 variables:
 \describe{
-    \item{Sex}{Sex of the person}
+    \item{Sex}{Either Male or Female}
     \item{Relationship}{Relationship status of the person}
     \item{ID}{The unique identifier for the person}
     \item{Age}{The age of the person}
