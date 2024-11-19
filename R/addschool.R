@@ -31,7 +31,9 @@ NULL
 #' @return Two data frames, as a list. $Population contains the synthetic population with the schools added. $Schools contains the remaining roll counts for the schools.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' # children in the same household will be added to the same school, if possible with a .8 probability
 #' \donttest{SchoolsAdded <- addschool(IntoSchools, pplid = "ID", pplage = "Age", pplsx = "SexCode",
 #'                           pplst = "SchoolStatus", hhid = "HouseholdID", SchoolsToUse,
