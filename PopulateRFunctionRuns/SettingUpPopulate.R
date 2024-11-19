@@ -734,9 +734,5 @@ plot(NetworkSmallN)
 # keep running this until no more warnings or errors
 devtools::check()
 
-devtools::run_examples()
-
-# after all checks passed
-# for compiling the package
-devtools::document()
-
+# now check is passed
+usethis::use_readme_rmd()
