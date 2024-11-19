@@ -553,10 +553,10 @@ library(dplyr)
 set.seed(1)
 PartneredFemales1 <- Township %>%
   filter(Sex == "Female", Relationship == "Partnered") %>%
-  slice_sample(n=100, replace = FALSE)
+  slice_sample(n=120, replace = FALSE)
 PartneredMales1 <- Township %>%
   filter(Sex == "Male", Relationship == "Partnered") %>%
-  slice_sample(n = nrow(PartneredFemales), replace = FALSE)
+  slice_sample(n = nrow(PartneredFemales1), replace = FALSE)
 
 OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1, lrgid = "ID",
                           lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
@@ -581,15 +581,15 @@ Couples2 <- OppSexCouples2$Matched
 set.seed(1)
 PartneredFemales3 <- Township %>%
   filter(Sex == "Female", Relationship == "Partnered") %>%
-  slice_sample(n=600, replace = FALSE)
+  slice_sample(n=120, replace = FALSE)
 
 PartneredMales3 <- Township %>%
   filter(Sex == "Male", Relationship == "Partnered") %>%
-  slice_sample(n=650, replace = FALSE)
+  slice_sample(n=140, replace = FALSE)
 
 OppSexCouples3 <- pairnorm(PartneredFemales3, smlid = "ID", smlage = "Age", PartneredMales3, lrgid = "ID",
                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar="HouseholdID",
-                           userseed = 4, ptostop=.01)
+                           userseed = 4, ptostop=.05)
 
 Couples3 <- OppSexCouples3$Matched
 
@@ -602,7 +602,30 @@ NotMatched2 <- OppSexCouples2$Unmatched
 
 
 
+#############################################################
+# pairnormNum
+#############################################################
 
+library(dplyr)
+
+# parents are older than the children using a normal distribution of mean = 30,
+# standard deviation of 5
+set.seed(1)
+Parents <- Township %>%
+  filter(between(Age, 24, 60)) %>%
+  slice_sample(n=120, replace = FALSE) %>%
+  mutate(HouseholdID = row_number())
+Children <- Township %>%
+  filter(Age < 20) %>%
+  slice_sample(n = nrow(Parents), replace = FALSE)
+
+PrntChld <- pairnormNum(Parents, smlid = "ID", smlage = "Age", Children, lrgid = "ID",
+                        lrgage = "Age", directxi = 30, directomega = 5, HHNumVar = "HouseholdID",
+                        userseed = 4, attempts=10, numiters = 500)
+
+Matched <- PrntChld$Matched  # matched but not the specified distribution
+UnmatchedAdults <- PrntChld$Smaller
+UnmatchedChildren <- PrntChld$Larger
 
 
 
