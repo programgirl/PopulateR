@@ -32,7 +32,9 @@ NULL
 #' @return A list of three data frames. $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' # the children data frame is smaller
 #' set.seed(1)
 #' # sample a combination of females and males to be parents
@@ -54,9 +56,9 @@ NULL
 #'
 #' # children data frame is larger, the locationP and scaleP values are negative
 #'
-#'\donttest{Parents2 <- Township %>%
-#'filter(Relationship == "Partnered", Age > 18) %>%
-#'  slice_sample(n = 200)
+#' Parents2 <- Township %>%
+#'  filter(Relationship == "Partnered", Age > 18) %>%
+#'  slice_sample(n = 100)
 #' Children2 <- Township %>%
 #'  filter(Relationship == "NonPartnered", Age < 20) %>%
 #'  slice_sample(n = 500)
@@ -68,7 +70,7 @@ NULL
 #'
 #' MatchedPairs2 <- ChildMatched$Matched
 #' UnmatchedChildren2 <- ChildMatched$Smaller
-#' UnmatchedAdults2 <- ChildMatched$Larger}
+#' UnmatchedAdults2 <- ChildMatched$Larger
 
 
 pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL, locationP=NULL,
