@@ -26,18 +26,8 @@ NULL
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
 #' @examples
+#'
 #' library("dplyr")
-#' \donttest{# output as igraph
-#' NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#'                         probsame = .5, userseed=4, numiters = 10, usematrix = "N")
-#'
-#' # transform to a data frame
-#' NetworksMadeDF <- igraph::as_data_frame(NetworksMadeN)
-#'
-#' # output as n x n adjacency matrix
-#' # takes a long time
-#' # NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-#' #                         probsame = .5, userseed=4, numiters = 10, usematrix = "Y")}
 #'
 #' # smaller sample for visualisation
 #' set.seed(2) # small datasets can cause problems if a random seed is used for sampling
@@ -115,7 +105,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # construct a graph with this degree distribution
   WiredNetwork <- igraph::sample_degseq(out.deg = netmax,
-                                        method="fast.heur.simple")
+                                        method="simple.no.multiple")
 
 
   # cat("WiredNetwork created \n")
@@ -173,7 +163,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # cat("Now getting the edgelist", "\n")
 
-  edges = igraph::as_edgelist(ClusteredNetwork)
+  edges = igraph::get.edgelist(ClusteredNetwork)
 
   # helper to get the age differences: The idea is that
   # we use the edges matrix (which has the vertex index of
@@ -301,7 +291,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   } else {
 
-    return(igraph::as_adjacency_matrix(ClusteredNetwork, type = "both", names = TRUE))
+    return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
   }
 
 }
