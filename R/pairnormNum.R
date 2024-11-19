@@ -32,7 +32,9 @@ NULL
 #' @return A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
 #' @examples
+#'
 #' library(dplyr)
+#'
 #' # parents are older than the children using a normal distribution of mean = 30,
 #' # standard deviation of 5
 #' set.seed(1)
@@ -46,7 +48,7 @@ NULL
 #'
 #' PrntChld <- pairnormNum(Parents, smlid = "ID", smlage = "Age", Children, lrgid = "ID",
 #'                         lrgage = "Age", directxi = 30, directomega = 5, HHNumVar = "HouseholdID",
-#'                         userseed = 4, attempts=10, numiters = 500)
+#'                         userseed = 4, attempts=10, numiters = 80)
 #' Matched <- PrntChld$Matched  # all matched but not the specified distribution
 #' UnmatchedAdults <- PrntChld$Smaller
 #' UnmatchedChildren <- PrntChld$Larger
