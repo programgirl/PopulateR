@@ -52,7 +52,7 @@ NULL
 #' UnmatchedChildren <- ChildAllMatched$Smaller
 #' UnmatchedAdults <- ChildAllMatched$Larger
 #'
-#' \donttest{# children data frame is larger, the locationP and scaleP values are negative
+#' # children data frame is larger, the locationP and scaleP values are negative
 #'
 #'Parents2 <- Township %>%
 #'filter(Relationship == "Partnered", Age > 18) %>%
@@ -64,11 +64,11 @@ NULL
 #'  ChildMatched <- pairbeta4(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID",
 #'                            lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = -16.5,
 #'                            scaleP = -40.1, HHStartNum = 1, HHNumVar = "Household",
-#'                            userseed=4, ptostop = .01, numiters = 1000)
+#'                            userseed=4, ptostop = .05, attempts = 5, numiters = 1000)
 #'
 #' MatchedPairs2 <- ChildMatched$Matched
 #' UnmatchedChildren2 <- ChildMatched$Smaller
-#' UnmatchedAdults2 <- ChildMatched$Larger}
+#' UnmatchedAdults2 <- ChildMatched$Larger
 
 
 pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL, locationP=NULL,
