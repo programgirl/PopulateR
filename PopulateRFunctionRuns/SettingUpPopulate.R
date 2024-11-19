@@ -734,5 +734,10 @@ plot(NetworkSmallN)
 # keep running this until no more warnings or errors
 devtools::check()
 
-# now check is passed
-usethis::use_readme_rmd()
+devtools::build_readme()
+# readme file constructed
+
+usethis::use_cran_comments()
+
+usethis::use_release_issue("1.0")
+
