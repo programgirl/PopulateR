@@ -2,8 +2,8 @@
 #' @importFrom dplyr bind_cols bind_rows filter left_join rename select slice_sample
 #' @importFrom graphics hist
 #' @importFrom magrittr %>%
-#' @importFrom sn dsn psn qsn
-#' @importFrom stats dnorm pnorm qnorm
+#' @importFrom sn dsn psn qsn rsn
+#' @importFrom stats dnorm pnorm qnorm rnorm
 #' @importFrom rlang sym !!
 NULL
 
@@ -818,13 +818,17 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     # construct starting set of observed age difference values for iteration
     if(directxi > 0) {
 
-      ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge, breaks = bins, plot=FALSE)$counts
-      log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge, breaks = logBins, plot=FALSE)$counts
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                                     breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
+                               breaks = logBins, plot=FALSE)$counts
 
     } else {
 
-      ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge, breaks = bins, plot=FALSE)$counts
-      log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge, breaks = logBins, plot=FALSE)$counts
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                                     breaks = bins, plot=FALSE)$counts
+      log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
+                               breaks = logBins, plot=FALSE)$counts
 
     }
 
@@ -1016,17 +1020,11 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
         # do chi-squared
         if(directxi > 0) {
 
-          ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                                         breaks = bins, plot=FALSE)$counts
-          log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                                   breaks = logBins, plot=FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch$smallAge - PropAgeMatch$largeAge, breaks = logBins, plot=FALSE)$counts
 
         } else {
 
-          ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                                         breaks = bins, plot=FALSE)$counts
-          log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                                   breaks = logBins, plot=FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch$largeAge - PropAgeMatch$smallAge, breaks = logBins, plot=FALSE)$counts
 
         }
 
