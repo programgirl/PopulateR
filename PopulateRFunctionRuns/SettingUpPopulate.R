@@ -447,7 +447,6 @@ CRSchools <- InterimSchools %>%
 #####################################
 # extract kids for schools
 
-load("data/Township.rda")
 
 KidsYoung <- Township %>%
   filter(between(Age, 0, 14)) %>%
@@ -490,7 +489,7 @@ rm(KidsYoung, KidsOlderTemp, KidsCounts, SampledKids, NotSampledKids, Nums15to18
 set.seed(2)
 Parents <- Township %>%
   filter(Relationship == "Partnered", Age > 19) %>%
-  slice_sample(n = 2000) %>%
+  slice_sample(n = 300) %>% # down from 2000
   mutate(HouseholdID = row_number()+500,
          SchoolStatus = factor("N"))
 
