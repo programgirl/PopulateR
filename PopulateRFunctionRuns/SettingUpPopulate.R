@@ -740,3 +740,12 @@ usethis::use_cran_comments()
 
 usethis::use_release_issue("1.0")
 
+urlchecker::url_check()
+
+devtools::check(remote = TRUE, manual = TRUE)
+
+
+
+
+
+
