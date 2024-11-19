@@ -115,7 +115,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # construct a graph with this degree distribution
   WiredNetwork <- igraph::sample_degseq(out.deg = netmax,
-                                        method="simple.no.multiple")
+                                        method="fast.heur.simple")
 
 
   # cat("WiredNetwork created \n")
@@ -173,7 +173,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # cat("Now getting the edgelist", "\n")
 
-  edges = igraph::get.edgelist(ClusteredNetwork)
+  edges = igraph::as_edgelist(ClusteredNetwork)
 
   # helper to get the age differences: The idea is that
   # we use the edges matrix (which has the vertex index of
