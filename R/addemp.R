@@ -24,6 +24,7 @@ NULL
 #' A data frame of the people, with an employer ID attached to each person. Unemployed people will have an employer ID of NA, or the value specified by missval. All columns in the employers data frame, except for the employee counts, are included in the output data frame.
 #'
 #' @examples
+#'
 #' library("dplyr")
 #'
 #' EmployedPeople <- addemp(EmployerSet, empid = "Company", empcount = "NumEmployees", Township,
