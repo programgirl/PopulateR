@@ -1,11 +1,11 @@
 Package: PopulateR
 Type: Package
-Title: PopulateR: Create Data Frames for the Microsimulation of Human Populations
+Title: Create Data Frames for the Microsimulation of Human Populations
 Version: 1.0
-Authors@R: as.person(c("Michelle Gosse <michelle.a.gosse@gmail.com> [aut,cre,cph]",
-                       "Jonathan Marshall <J.C.Marshall@massey.ac.nz> [aut]",
-                       "Mark Bebbington <M.Bebbington@massey.ac.nz> [ctb]"
-                       ))
+Authors@R: c(
+             person("Michelle", "Gosse", email="michelle.a.gosse@gmail.com", role=c("aut","cre","cph")),
+             person("Jonathan", "Marshall",email="J.C.Marshall@massey.ac.nz", role="aut"),
+             person("Mark", "Bebbington", email="M.Bebbington@massey.ac.nz", role="ctb")) 
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
 Description: Tools for constructing detailed synthetic human populations
      from frequency tables. Add ages based on age groups and sex, create households, add 
@@ -24,7 +24,6 @@ Imports: brainGraph (>= 3.1.0),
          tidyr (>= 1.3.1),
          tidyselect (>= 1.2.1),
          withr (>= 3.0.2)
-Remotes: github::jmarshallnz/brainGraph
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
