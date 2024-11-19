@@ -46,7 +46,7 @@ NULL
 #'                           userseed=4, attempts= 10, numiters = 80)
 #' CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
-#' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched}
+#' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched
 
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
