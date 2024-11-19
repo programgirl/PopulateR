@@ -49,7 +49,12 @@ The pyramid data frame must contain counts by sex/age in the population of inter
 The variables specifying sex can be numeric, character, or factor. The sole requirement is that the codes must match.  For example, if "F" and "M" are used in the individuals data frame to denote sex, then "F" and "M" are the codes required in the pyramid data frame. Any number of sex code values can be used, so long as they are unique.
 }
 \examples{
-\donttest{DisaggregateAge <- agedis(InitialDataframe, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
+
+library("dplyr")
+
+ReducedDF <- InitialDataframe \%>\%
+  slice_sample(n=200, replace = FALSE)
+DisaggregateAge <- agedis(ReducedDF, indsx = "Sex", minage = "LowerAge", maxage = "UpperAge",
                           pyramid = SingleAges, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
-                          agevarname = "TheAge", userseed = 4)}
+                          agevarname = "TheAge", userseed = 4)
 }
