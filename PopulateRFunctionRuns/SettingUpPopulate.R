@@ -744,7 +744,7 @@ urlchecker::url_check()
 
 devtools::check(remote = TRUE, manual = TRUE)
 
-
+devtools::check_win_devel()
 
 
 
