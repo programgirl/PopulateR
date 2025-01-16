@@ -79,4 +79,21 @@ OppSexCouples1 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", Part
                            HHStartNum = 1, HHNumVar = "HouseholdID", userseed = 4, ptostop=.3)
 Couples1 <- OppSexCouples1$Matched
 
+# different size dataframes
+# there are more partnered males than partnered females
+# so all partnered males will have a matched female partner
+# but not all females will be matched
+# being the smallest data frame, the female one must be the first
+
+PartneredFemales2 <- Township \%>\%
+  filter(Sex == "Female", Relationship == "Partnered") \%>\%
+         slice_sample(n=120, replace = FALSE)
+PartneredMales2 <- Township \%>\%
+  filter(Sex == "Male", Relationship == "Partnered") \%>\%
+slice_sample(n=140, replace = FALSE)
+
+OppSexCouples2 <- pairnorm(PartneredFemales2, smlid = "ID", smlage = "Age", PartneredMales2,
+                           lrgid = "ID", lrgage = "Age", directxi = -2, directomega = 3,
+                          HHStartNum = 1, HHNumVar="HouseholdID", userseed = 4, ptostop=.3)
+Couples2 <- OppSexCouples2$Matched
 }
