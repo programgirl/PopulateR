@@ -139,7 +139,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
     group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(- .data$grp)
+    select(.data$p1, .data$p2)
 
   h <- h1 %>%
     mutate(beta=1)
@@ -185,45 +185,25 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
 
   }
 
-  if(nrow(SchoolLayer) > 0) {
+  if(nrow(SchoolLayer) == 0) {
+
+    stop("There must be a school layer \n")
+
+  }
 
     Layer2 <- SchoolLayer
 
-    s1 <- full_join(SchoolLayer, Layer2, by = "PlaceTwo", relationship = "many-to-many") %>%
+    s <- full_join(SchoolLayer, Layer2, by = "PlaceTwo", relationship = "many-to-many") %>%
       filter(.data$ID.x != .data$ID.y) %>%
-      rename(p1 = .data$ID.x,
-             p2 = .data$ID.y) %>%
+      rename(p1 = ID.x,
+             p2 = ID.y) %>%
     select(c(.data$p1, .data$p2))  %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
-      select(- .data$grp)
-
-  }
-
-  # create all the 0s
-
-  if(exists("s1")) {
-
-    s2 <- ABMPop %>%
-      select(.data$ID) %>%
-      filter(! .data$ID %in% s1$p1) %>%
-      # rename(p1= .data$ID) %>%
-      mutate(p2=0)
-
-   s <- bind_rows(s1,s2) %>%
-     mutate(beta = 1)
-
-  } else {
-
-    s <- ABMPop %>%
-      select(.data$ID) %>%
-      rename(p1= .data$ID) %>%
-      mutate(p2=0) %>%
-      distinct() %>%
+      select(- .data$grp) %>%
       mutate(beta = 1)
 
-  }
 
 
   ############################################################################################
@@ -263,7 +243,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
-      select(.data$p1, .data$p2) %>%
+      select(p1, p2) %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
@@ -273,7 +253,6 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
       mutate(beta = 1)
 
   }
-
 
 
   ############################################################################################
