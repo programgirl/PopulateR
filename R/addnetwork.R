@@ -105,7 +105,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # construct a graph with this degree distribution
   WiredNetwork <- igraph::sample_degseq(out.deg = netmax,
-                                        method="simple.no.multiple")
+                                        method="fast.heur.simple")
 
 
   # cat("WiredNetwork created \n")
