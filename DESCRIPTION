@@ -1,6 +1,6 @@
 Package: PopulateR
 Type: Package
-Title: Create Data Frames for the Microsimulation of Human Populations
+Title: Create Data Frames for the Micro-simulation of Human Populations
 Version: 1.0
 Authors@R: c(
              person("Michelle", "Gosse", email="michelle.a.gosse@gmail.com", role=c("aut","cre","cph")),
@@ -9,7 +9,7 @@ Authors@R: c(
 Maintainer: Michelle Gosse <michelle.a.gosse@gmail.com>
 Description: Tools for constructing detailed synthetic human populations
      from frequency tables. Add ages based on age groups and sex, create households, add 
-     students to education facilites, create employers, add employers to employees, and 
+     students to education facilities, create employers, add employers to employees, and 
      create interpersonal networks.
 Depends: R (>= 4.0)
 Imports: brainGraph (>= 3.1.0),
