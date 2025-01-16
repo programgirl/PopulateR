@@ -195,8 +195,8 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
 
     s <- full_join(SchoolLayer, Layer2, by = "PlaceTwo", relationship = "many-to-many") %>%
       filter(.data$ID.x != .data$ID.y) %>%
-      rename(p1 = ID.x,
-             p2 = ID.y) %>%
+      rename(p1 = .data$ID.x,
+             p2 = .data$ID.y) %>%
     select(c(.data$p1, .data$p2))  %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
@@ -243,7 +243,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
-      select(p1, p2) %>%
+      select(.data$p1, .data$p2) %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
