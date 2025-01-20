@@ -1,8 +1,9 @@
-## Resubmission
+### Resubmission
 
-This is a resubmission. In this version I have:
+In this resubmission I have corrected Micro-simulation to Micro-Simulation.
 
-* Fixed the title case to Micro-Simulation in the Description.
+Note: the R CMD results below show one note. I am not seeing the note at my end. The check shows 0 errors, 0 warnings, and 0 notes.
+
 
 ## R CMD check results
 
