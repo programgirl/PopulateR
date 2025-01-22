@@ -56,24 +56,24 @@ NULL
 #' UnmatchedChildren <- ChildAllMatched$Smaller # all children matched
 #' UnmatchedAdults <- ChildAllMatched$Larger
 #'
-#' # children data frame is larger, the locationP and scaleP values are negative
-#'
-#' Parents2 <- Township %>%
-#'   filter(Relationship == "Partnered", Age > 18) %>%
-#'   slice_sample(n = 200) %>%
-#'   mutate(Household = row_number())
-#' Children2 <- Township %>%
-#'   filter(Relationship == "NonPartnered", Age < 20) %>%
-#'   slice_sample(n = 500)
-#'
-#' ChildMatched <- pairbeta4Num(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID",
-#'                              lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = -16.5,
-#'                              scaleP = -40.1, HHNumVar = "Household", userseed=4,
-#'                              attempts = 10, numiters = 80)
-#'
-#' MatchedPairs2 <- ChildMatched$Matched
-#' UnmatchedChildren2 <- ChildMatched$Smaller
-#' UnmatchedAdults2 <- ChildMatched$Larger
+#' # # children data frame is larger, the locationP and scaleP values are negative
+#' #
+#' # Parents2 <- Township %>%
+#' #   filter(Relationship == "Partnered", Age > 18) %>%
+#' #  slice_sample(n = 200) %>%
+#' #   mutate(Household = row_number())
+#' # Children2 <- Township %>%
+#' #   filter(Relationship == "NonPartnered", Age < 20) %>%
+#' #   slice_sample(n = 500)
+#' #
+#' # ChildMatched <- pairbeta4Num(Parents2, smlid = "ID", smlage = "Age", Children2, lrgid = "ID",
+#' #                              lrgage = "Age", shapeA = 2.2, shapeB = 3.7, locationP = -16.5,
+#' #                              scaleP = -40.1, HHNumVar = "Household", userseed=4,
+#' #                              attempts = 10, numiters = 80)
+#' #
+#' # MatchedPairs2 <- ChildMatched$Matched
+#' # UnmatchedChildren2 <- ChildMatched$Smaller
+#' # UnmatchedAdults2 <- ChildMatched$Larger
 
 
 pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL,
