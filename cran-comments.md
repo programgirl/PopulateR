@@ -1,11 +1,8 @@
-### Resubmission
-
-In this resubmission I have corrected Micro-simulation to Micro-Simulation.
-
-Note: the R CMD results below show one note. I am not seeing the note at my end. The check shows 0 errors, 0 warnings, and 0 notes. I have checked the log, which also shows 1 note. Again, I can't locate what is causing the note.
-
-
 ## R CMD check results
+
+## This is a resubmission
+
+In this resubmission I have commented out one example to reduce the time taken to run pair4betaNum to under 5 seconds. I can see there is a note below. R CMD finished with 0 errors, 0 warnings, and 0 notes so I am unaware of what is triggering the note.
 
 0 errors | 0 warnings | 1 note
 
