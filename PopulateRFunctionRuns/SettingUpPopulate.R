@@ -725,7 +725,7 @@ plot(NetworkSmallN)
 
 
 
-
+devtools::load_all()
 
 
 devtools::run_examples()
@@ -738,7 +738,7 @@ devtools::build_readme()
 
 usethis::use_cran_comments()
 
-usethis::use_release_issue("1.0")
+usethis::use_release_issue("1.12")
 
 urlchecker::url_check()
 
