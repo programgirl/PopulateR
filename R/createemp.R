@@ -32,7 +32,7 @@ NULL
 
 createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stffname=NULL, cpyname=NULL, userseed = NULL) {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
   if(is.null(stffname)) {
 
@@ -99,11 +99,8 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
 
     numStaff <- round(runif(1, minStaff, maxStaff),0)
 
-    # cat("minEmp is", minEmp, "maxEmp is", maxEmp, "minStaff is", minStaff, "maxStaff is", maxStaff, "numEmp is", numEmp, "numStaff is", numStaff, "\n")
-
     if(numStaff < numEmp) {
 
-      # cat("loop entered \n")
       numEmp <- numStaff
     }
 
