@@ -25,6 +25,7 @@ NULL
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
 #' @param attempts The number of times the function will randomly change two matches to improve the fit.
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 10000, and is the stopping rule if the algorithm does not converge.
+#' @param verbose Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are two people being added to each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.
 #'
 #' @return A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.
 #'
@@ -50,10 +51,10 @@ NULL
 
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
-                     numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000)
+                     numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000, verbose = FALSE)
 {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
   # content check
   if (is.null(numadd)) {
@@ -129,8 +130,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
   MaxAgeDifference2 <-  abs((min(existing[exsage]) -
                            max(additions[addage]))-5)
 
-  # MaxAgeDifference2 <-  (max(additions[addage]) -
-  #                          min(existing[exsage]))-5
 
   MaxAgeDifference <- max(MaxAgeDifference1, MaxAgeDifference2)
 
@@ -248,11 +247,11 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   if(NumNeeded > NumProvided) {
 
-    cat("The additions data frame should contain", NumNeeded, "people but only contains", NumProvided, "\n")
+    warning("The additions data frame should contain", NumNeeded, "people but only contains", NumProvided, "\n")
 
     NumCanUse <- floor(NumProvided / numadd)
 
-    cat(NumCanUse, "will be randomly sampled from the", NumExisting, "people already in households \n")
+    warning(NumCanUse, "will be randomly sampled from the", NumExisting, "people already in households \n")
 
     existingRenamed <- existingRenamed %>%
       slice_sample(n = NumCanUse)
@@ -260,9 +259,9 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   if(NumNeeded < NumProvided) {
 
-    cat("The additions data frame should contain", NumNeeded, "people and contains", NumProvided, "\n")
+    warning("The additions data frame should contain", NumNeeded, "people and contains", NumProvided, "\n")
 
-    cat(NumNeeded, "will be randomly sampled from the", NumProvided, "people to add to households \n")
+    warning(NumNeeded, "will be randomly sampled from the", NumProvided, "people to add to households \n")
 
     additionsRenamed <- additionsRenamed %>%
       slice_sample(n = NumNeeded)
@@ -280,14 +279,9 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   for (i in 1: numadd) {
 
-    # if(BaseSize < 1) {
-    #   stop("Sample size is less than 1", "\n")
-    # }
-
     MatchingSample <- additionsRenamed %>%
       slice_sample(n = BaseSize, replace = FALSE)
 
-       # cat("MatchingSample size is", nrow(MatchingSample), "\n")
     #
     additionsRenamed <- additionsRenamed %>%
       filter(!(.data$addID %in% MatchingSample$addID))
@@ -301,9 +295,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       select("addAge", "addID")
 
     CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
-
-    # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-    #     nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
 
 
     # ONLY ITERATE MATCHES IF THERE IS A SD
@@ -323,8 +314,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-    # print(log_chisq)
-
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
@@ -337,15 +326,10 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
     #####################################
     #####################################
 
-    # str(CurrentAgeMatch)
-
-    # cat("Gets to matching age iterations", "\n")
 
     if(log_chisq > Critical_log_chisq) {
 
     for (j in 1:numiters) {
-
-      # print(j)
 
 
       # randomly choose two pairs
@@ -364,8 +348,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
       PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
-      # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
-
       # do chi-squared
       Proplog0 <- hist(PropAgeMatch$existAge - PropAgeMatch$addAge, breaks = logBins, plot=FALSE)$counts
       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
@@ -375,8 +357,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
       if (compare_logK(ProplogK, logKObservedAges) < 0) {
 
-        # cat("Loop entered", prop_log_chisq, "\n")
-
         CurrentAgeMatch[Pick1,] <- PropPair1
         CurrentAgeMatch[Pick2,] <- PropPair2
 
@@ -385,16 +365,11 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
 
-        # cat("log chi-square is", log_chisq, "\n")
-
         # closes pair swqp
 
       }
 
-
-
       if (log_chisq <= Critical_log_chisq) {
-
 
         break
 
@@ -436,9 +411,12 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
      # closes else to if(exists("othersMatched")) {
     }
 
+    if(verbose == TRUE) {
+      cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
+    }
+
     # closes for (i in 1: numadd) {
     # i.e. closes loop through each addition needed
-
   }
 
   # the data frame theMatched is now a long one with a duplicate set of base ids if > 1 person needed matching
@@ -486,10 +464,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
    # merge the two into the matched output data frame
 
   OutputDataframe <- bind_rows(theOriginal, theMatched)
-
-  cat("The individual dataframes are $Matched, $Existing, and $Additions", "\n")
-  cat("$Existing contains unmatched observations from the data frame with a household ID", "\n")
-  cat("$Additions contains unmatched observations from the data frame without a household ID", "\n")
 
   MatchedIDs <- OutputDataframe %>%
     pull({{exsidcolName}})
