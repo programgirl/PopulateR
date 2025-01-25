@@ -36,14 +36,10 @@ NULL
 
 interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
-  withr::local_options(dplyr.summarise.inform=F)
-
-  # print(names(people))
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
 
-  # Subset the node dataframe NOTE this method no longer works, does not put in the column name
-  # PeopleUnique <- as.data.frame(nodes[,grpdef] %>%
-  #   unique())
+  # Subset the node dataframe
 
   PeopleUnique <- nodes %>%
     select(matches(grpdef)) %>%
@@ -100,27 +96,22 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
     # fix for one grouping variable
     # see https://stackoverflow.com/a/69116009/1030648
-    CurrentDef = PeopleUnique[i, , drop=FALSE]
+    CurrentDef = PeopleUnique[i, , drop = FALSE]
 
     WorkingAgeMin <- min(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
-                                      select("MinAge") %>%
-                                      # pull(.data$MinAge)))
-                                    pull()))
+                                     select("MinAge") %>%
+                                      pull()))
 
 
     WorkingAgeMax <- max(as.numeric(left_join(CurrentDef, peopleRenamed, by = c(grpdef)) %>%
                                       select("MaxAge") %>%
                                       pull()))
 
-    # cat("WorkingAgeMin is ", WorkingAgeMin, " and WorkingAgeMax is ", WorkingAgeMax, "\n")
-
     GroupInfo <- CurrentDef %>%
       mutate(across(where(is.factor), as.character))
 
 
     GroupInfo <- as.character(GroupInfo[1,])
-
-    # cat("Current def is", GroupInfo, "and minimum age is", WorkingAgeMin, "and maximum age is", WorkingAgeMax, "\n")
 
     # create data frame with ages
 
@@ -148,8 +139,6 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
       CurrentDF <- data.frame(Age = c(seq(from = WorkingAgeMin, to = WorkingAgeMax, by =1)))
 
-     # cat("The probability to apply is", CurrentGroup$OriginalProp[1], "\n")
-
       startpt <-  CurrentGroup$OriginalProp[1]
 
       CurrentDF$Fits <- rep(startpt, nrow(CurrentDF))
@@ -157,8 +146,6 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
       # add in group information
       ExpandedGroup <- CurrentDef %>%
         slice_sample(n = nrow(CurrentDF), replace = TRUE)
-
-      # cat("The number of rows of CurrentDF is", nrow(CurrentDF), "and the number of rows of ExpandedGroup is", nrow(ExpandedGroup), "\n")
 
       CurrentDF <- bind_cols(CurrentDF, ExpandedGroup)
 
@@ -168,16 +155,11 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
       if(exists("GroupDF")) {
 
-        # cat("Appending GroupDF", "\n")
-        # cat("GroupDF has", nrow(GroupDF), "rows and CurrentDF has", nrow(CurrentDF), "\n")
-
         GroupDF <-  bind_rows(GroupDF, CurrentDF)
 
       } else {
 
         GroupDF <- CurrentDF
-
-        # cat("GroupDF has", nrow(GroupDF), "rows and CurrentDF has", nrow(CurrentDF), "\n")
 
         # closes else to if(exists("GroupDF")) {
       }
@@ -191,52 +173,30 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
       startpt = CurrentGroup$OriginalAge[j]
       endpt = CurrentGroup$OriginalAge[(j+1)]
 
-      # cat("1 Start point is", startpt, "and end point is", endpt, "and number of rows are", nrow(CurrentGroup), "\n")
-
-      # cat("WorkingAgeMin is", CurrentGroup$OriginalAge[j], "\n")
-
       ptdiff <- endpt - startpt
 
       startval <- CurrentGroup$OriginalProp[j]
       endval = CurrentGroup$OriginalProp[(j+1)]
 
-      # cat("2 Start value is", startval, "and end value is", endval, "\n")
-
       valdiff <- endval - startval
 
       # do the estimates for the group
-
-      # print(chgpts)
-
       # get the relevant inflexion points
 
       mininflex <- startpt
 
       maxinflex <- endpt
 
-
-      # cat("3 mininflex is", mininflex, "and maxinflex is", maxinflex, "\n")
-
-      # cat("4 Inflexion points are", mininflex, "and", maxinflex, "\n")
-
       #do the next bit by whole numbers
       minintval <- ceiling(mininflex)
       maxintval <- floor(maxinflex)
 
-      # cat("5 Interpolation range is", minintval, "to", maxintval, "\n")
-
       sloperange <- maxinflex - mininflex
-
-      # print(sloperange)
 
       slopeval <- valdiff/sloperange
 
-      # cat("Slope is", slopeval, "\n")
-
       if(j ==(nrow(CurrentGroup)-1) & WorkingAgeMax > maxinflex) {
 
-        # cat("Current def is", GroupInfo, "and minimum age is", WorkingAgeMin, "and maximum age is", WorkingAgeMax, "\n")
-        # cat("maxinflex is", maxinflex, "and oldest age is", WorkingAgeMax, "\n")
         CurrentDF <- data.frame(Age = c(seq(from = minintval, to = WorkingAgeMax, by =1)))
 
       } else {
@@ -253,8 +213,6 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
       ExpandedGroup <- CurrentDef %>%
         slice_sample(n = nrow(CurrentDF), replace = TRUE)
 
-      # cat("The number of rows of CurrentDF is", nrow(CurrentDF), "and the number of rows of ExpandedGroup is", nrow(ExpandedGroup), "\n")
-
       CurrentDF <- bind_cols(CurrentDF, ExpandedGroup)
 
       CurrentMinAge <- min(CurrentDF$Age)
@@ -263,33 +221,17 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
 
       if(exists("GroupDF")) {
 
-        # cat("Appending GroupDF", "\n")
-        # cat("GroupDF has", nrow(GroupDF), "rows and CurrentDF has", nrow(CurrentDF), "\n")
-
         GroupDF <-  bind_rows(GroupDF, CurrentDF)
-
-        # cat("GroupDF now has", nrow(GroupDF), "rows", "\n")
 
       } else {
 
         GroupDF <- CurrentDF
 
-        # cat("GroupDF has", nrow(GroupDF), "rows and CurrentDF has", nrow(CurrentDF), "\n")
-
         # closes else to if(exists("GroupDF")) {
       }
 
-      # cat("Current def is", GroupInfo, "\n")
-
       # closes  for(j in 1:(nrow(CurrentGroup)-1))
     }
-
-      # cat("After nrow loop, current def is", GroupInfo, "\n")
-      #
-      # str(CurrentDef)
-      #
-      # cat("The number of rows of GroupDF is", nrow(GroupDF), "\n")
-
 
       # closes else for if(NumRowsInCurrentGroup == 1)
     }
@@ -300,16 +242,12 @@ interdiff <- function(nodes, pplage, pplprop, endmin, endmax, grpdef) {
   }
 
   # remove any duplicates that occur due to ages, rather than half ages, being used as edges
-  # cat("De-duplicates started, data frame size is ", nrow(GroupDF), "\n")
-
   # removal of mid-points not working
 
   GroupDF <- GroupDF %>%
     group_by(.data$Age,across(all_of(grpdef))) %>%
     filter(row_number() == 1) %>%
     ungroup()
-
-  cat("Fitted values were interpolated for", i, "groups \n")
 
   # closes function
 
