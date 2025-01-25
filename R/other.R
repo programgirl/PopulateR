@@ -22,8 +22,9 @@ NULL
 #' @param HHStartNum The starting value for HHNumVar. Must be numeric.
 #' @param HHNumVar The name for the household variable.
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
-#' @param ptostop = The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
+#' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the household inhabitants. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param prsummary Whether the number of iterations used, the critical chi-squared value, and the final chis-squared value are printed to the console. The default is FALSE, so no information will be printed to the console.
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 #'
@@ -33,16 +34,16 @@ NULL
 #' # creating three-person households toy example with few iterations
 #' NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
 #'                        HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .05,
-#'                        numiters = 500)
+#'                        numiters = 500, prsummary = TRUE)
 #'
 #' PeopleInHouseholds <- NewHouseholds$Matched
 #' PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
 
 
 other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNumVar, userseed=NULL,
-                    ptostop = NULL, numiters = 1000000) {
+                    ptostop = NULL, numiters = 1000000, prsummary = FALSE) {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
 
   #####################################
@@ -131,8 +132,8 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = 0, sd = sdused, log=TRUE)
-  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = 0, sd = sdused, log=TRUE)
+  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = 0, sd = sdused, log = TRUE)
+  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = 0, sd = sdused, log = TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
@@ -214,8 +215,6 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
   RemainingPeople <- peopleRenamed %>%
     filter(!(.data$RenamedID %in% c(BasePeople$RenamedID)))
 
-      # cat("RemainingPeople is", nrow(RemainingPeople), "rows", "\n")
-
     while(!(is.na(RemainingPeople$RenamedAge[1])) == TRUE) {
 
       if(BaseSize < 1) {
@@ -225,12 +224,8 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       MatchingSample <- RemainingPeople %>%
         slice_sample(n = BaseSize)
 
-         # cat("MatchingSample size is", nrow(MatchingSample), "\n")
-
       RemainingPeople <- RemainingPeople %>%
         filter(!(.data$RenamedID %in% MatchingSample$RenamedID))
-
-      # cat("RemainingPeople is", nrow(RemainingPeople), "rows \n")
 
       # get age differences
 
@@ -244,24 +239,19 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
       CurrentAgeMatch <- cbind(CurrentAgeMatch, MatchedAgeExtract)
 
-      # cat("Current age match is", nrow(CurrentAgeMatch), "Matched age extract is",
-          # nrow(MatchedAgeExtract), "combined age match is", nrow(CurrentAgeMatch), "\n")
-
       ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
       logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
       ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-                                     breaks = bins, plot=FALSE)$counts
+                                     breaks = bins, plot = FALSE)$counts
 
 
       # set up for chi-squared
       log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
-                               breaks = logBins, plot=FALSE)$counts
+                               breaks = logBins, plot = FALSE)$counts
       logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                                 log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
       log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
-
-      # print(log_chisq)
 
 
       if (is.null(ptostop)) {
@@ -275,9 +265,6 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
         # closes p-value stopping rule
       }
 
-      if(!(exists("TheMatched"))) {
-      cat("Critical chi-squared value is", round(Critical_log_chisq,6), "\n")
-      }
 
       #####################################
       #####################################
@@ -285,12 +272,8 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       #####################################
       #####################################
 
-      # cat("Gets to matching age iterations", "\n")
-
 
       for (i in 1:numiters) {
-
-        # print(i)
 
         # randomly choose two pairs
         Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -308,18 +291,14 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
         PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
-        # cat("PropAgeMatch has", nrow(PropAgeMatch), "rows", "\n")
-
         # do chi-squared
-        Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+        Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot = FALSE)$counts
         ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
                           log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
         prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
         if (compare_logK(ProplogK, logKObservedAges) < 0) {
-
-                 # cat("Loop entered", prop_log_chisq, "\n")
 
           CurrentAgeMatch[Pick1,] <- PropPair1
           CurrentAgeMatch[Pick2,] <- PropPair2
@@ -333,11 +312,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
         }
 
-                 # cat("log chi-square is", log_chisq, "\n")
-
         if (log_chisq <= Critical_log_chisq) {
-
-          cat("Break due to critical p-value reached", "\n")
           break
 
 
@@ -365,7 +340,9 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
 
       }
 
-      cat(i, "iterations were used, and the final chi-squared value was", round(log_chisq,6), "\n")
+      if(prsummary == TRUE) {
+        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq," and the final chi-squared value is", round(log_chisq,6), "\n")
+      }
 
       # closes the loop through the number of sets of people to match,
       # e.g. 1 set for two-person households, 2 sets for three-person households
@@ -381,12 +358,6 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       AppendedBase <- BasePeople
 
     }
-  #
-  #
-  #   # closes loop for matching people if sex IS NOT correlated
-  # }
-
-  # cat("Got to row 372 \n")
 
   # correct the names of the variables in the interim and base data frames
   # row bind these and output
@@ -404,8 +375,6 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
            !!pplagecolName := "RenamedAge")
 
   OutputDataframe <- bind_rows(TheBase, TheMatched)
-
-  cat("The individual dataframes are $Matched and $Unmatched.", "\n")
 
   MatchedIDs <- OutputDataframe %>%
     pull({{pplidcolName}})
