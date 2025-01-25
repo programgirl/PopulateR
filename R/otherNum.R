@@ -247,11 +247,8 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   if(NumNeeded > NumProvided) {
 
-    warning("The additions data frame should contain", NumNeeded, "people but only contains", NumProvided, "\n")
-
-    NumCanUse <- floor(NumProvided / numadd)
-
-    warning(NumCanUse, "will be randomly sampled from the", NumExisting, "people already in households \n")
+        NumCanUse <- floor(NumProvided / numadd)
+    warning("The additions data frame should contain ", NumNeeded, "people but only contained ", NumProvided, ". ", NumCanUse, " were randomly sampled from the ", NumExisting, " people already in households \n")
 
     existingRenamed <- existingRenamed %>%
       slice_sample(n = NumCanUse)
@@ -259,9 +256,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   if(NumNeeded < NumProvided) {
 
-    warning("The additions data frame should contain", NumNeeded, "people and contains", NumProvided, "\n")
-
-    warning(NumNeeded, "will be randomly sampled from the", NumProvided, "people to add to households \n")
+    warning("The additions data frame should contain ", NumNeeded, " people and contained", NumProvided, ". ", NumNeeded, " were randomly sampled from the ", NumProvided, " people to add to households \n")
 
     additionsRenamed <- additionsRenamed %>%
       slice_sample(n = NumNeeded)
@@ -316,8 +311,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-    cat("The critical chi-squared value is", round(Critical_log_chisq,6), "\n")
 
 
     #####################################
@@ -378,7 +371,11 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       # closes for (j in 1:numiters) {
     }
 
-      cat(j, "iterations were used, and the final chi-squared value was", round(log_chisq,6), "\n")
+
+      if(verbose == TRUE) {
+        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
+      }
+
 
       # closes if(log_chisq > Critical_log_chisq) {
     }
@@ -409,10 +406,6 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       theMatched <- CurrentAgeMatch
 
      # closes else to if(exists("othersMatched")) {
-    }
-
-    if(verbose == TRUE) {
-      cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
     }
 
     # closes for (i in 1: numadd) {
