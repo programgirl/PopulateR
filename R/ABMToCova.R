@@ -8,7 +8,7 @@ NULL
 #'
 #' Creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
 #'
-#' There are two restrictions for use. First, the codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "Y" as Covasim requires a school layer.
+#' There are three restrictions for use. First, the place2 codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "TRUE" as Covasim requires a school layer. Third, the place2 value for people who are not in school, and not in a workplace, must be "Not employed".
 #'
 #'
 #' @export
@@ -17,16 +17,16 @@ NULL
 #' @param ABMAge The variable containing the ages, in the in the ABMPop data frame.
 #' @param place1 The variable containing the Household ID.
 #' @param place2 The variable containing the school and workplace IDs.
-#' @param ECE Are ECE centres open? Default is "Y", change to "N" if ECEs are to close.
-#' @param PSchool Are primary schools open? Default is "Y", change to "N" if primary schools are to close.
-#' @param SSchool Are secondary schools open? Default is "Y", change to "N" if secondary schools are to close.
+#' @param ECE Are ECE centres open? Default is TRUE, change to FALSE if ECEs are to close.
+#' @param PSchool Are primary schools open? Default is TRUE, change to FALSE if primary schools are to close.
+#' @param SSchool Are secondary schools open? Default is TRUE, change to FALSE if secondary schools are to close.
 #' @param contacts A data frame consisting of existing contact pairs. The first two variables define the two people in the pair.
 #' @param excludeDF A data frame of industries to exclude. This must be the relevant IndNum variable in the ABMPop data frame. If this data frame is not included, all industries will be represented in the output data frame.
 
 #' @return A data frame of the household, school, workplace, contact layers, and people's ages, for use in Covasim.
 #'
 #'
-ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool = "Y", SSchool = "Y", contacts = NULL,
+ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool = TRUE, SSchool = TRUE, contacts = NULL,
                       excludeDF = NULL) {
 
   IDcolName <- sym(names(ABMPop[ABMID]))
@@ -45,85 +45,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   # TODO implement beta other than 1
   # TODO when beta is implemented, must ensure it is between 0 and 1
   # if(is.null(betaDF)) {
-  #
-  #
-  # } else {
-  #
-  #   Internal <- as.data.frame(betaDF %>%
-  #                               rename(IntAge = !! betaAge,
-  #                                      IntBeta = !! beta2Use))
-  #
-  #   # cat("Internal constructed \n")
-  #   # add sort
-  #
-  #   if(priority == "Y") {
-  #
-  #     Internal <- Internal %>%
-  #       arrange(desc(IntAge))
-  #
-  #   }
-  #
-  #   if(priority == "O") {
-  #
-  #
-  #     Internal <- Internal %>%
-  #       arrange(IntAge)
-  #   }
-  #
-  #   # create copy of the output data frame to iterate through
-  #
-  #   ODFCopy <- OutputDataFrame
-  #
-  #   cat("ODFCopy made with ", nrow(ODFCopy), "rows \n")
-  #
-  #   # start applying the replacement betas
-  #
-  #   for (j in 1:nrow(Internal)) {
-  #
-  #     # print(j)
-  #
-  #     CurrentAge <- as.numeric(Internal$IntAge[j])
-  #     CurrentBeta <- as.numeric(Internal$IntBeta[j])
-  #
-  #     # only need their IDs
-  #
-  #     PeepsThatAge <- ABMPop %>%
-  #       filter(Age == CurrentAge) %>%
-  #       select(ID)
-  #
-  #     # cat("CurrentAge is ", CurrentAge, "and CurrentBeta is ", CurrentBeta, "\n")
-  #
-  #     # locate the people in the Covasim dataset
-  #
-  #     WorkingPeople <- ODFCopy %>%
-  #       filter(p1 %in% PeepsThatAge$ID | p2 %in% PeepsThatAge) %>%
-  #       mutate(beta = CurrentBeta)
-  #
-  #     if(exists("UpdatedBetas")) {
-  #
-  #       UpdatedBetas <- bind_rows(UpdatedBetas, WorkingPeople)
-  #
-  #       ODFCopy <- anti_join(ODFCopy, WorkingPeople, by = c("p1", "p2"))
-  #
-  #       # closes if(exists("UpdatedBetas")) {
-  #
-  #     } else {
-  #
-  #       UpdatedBetas <- WorkingPeople
-  #
-  #       ODFCopy <- anti_join(ODFCopy, WorkingPeople, by = c("p1", "p2"))
-  #
-  #
-  #
-  #       # closes else to if(exists("UpdatedBetas")) {
-  #     }
-  #
-  #     # closes for (j in 1:nrow(Internal)) {
-  #   }
-  #
-  #   OutputDataFrame <- bind_rows(UpdatedBetas, ODFCopy)
-  #
-  # }
+   # }
 
 
 
@@ -154,31 +76,31 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   SchoolLayer <- ABMPop %>%
     filter(.data$IndCode %in% c("P801000", "P802100", "P802200"))
 
-  if(ECE == "N" & PSchool == "N" & SSchool == "N") {
+  if(ECE == FALSE & PSchool == FALSE & SSchool == FALSE) {
 
     stop("All three school types are set to N. A school layer must be output. \n")
   }
 
-  if(ECE == "N" | PSchool == "N" | SSchool == "N") {
+  if(ECE == FALSE | PSchool == FALSE | SSchool == FALSE) {
 
-    cat("At least one educational type is being excluded. \n")
+    warning("At least one educational type is being excluded. \n")
 
 
 
     # remove ECE
-    if(ECE == "N") {
+    if(ECE == FALSE) {
       SchoolLayer <- SchoolLayer %>%
         filter(! .data$IndCode == "P801000")
     }
 
     # remove primary schools
-    if(PSchool == "N") {
+    if(PSchool == FALSE) {
       SchoolLayer <- SchoolLayer %>%
         filter(! .data$IndCode == "P802100")
     }
 
     # remove secondary schools
-    if(SSchool == "N") {
+    if(SSchool == FALSE) {
       SchoolLayer <- SchoolLayer %>%
         filter(! .data$IndCode == "P802200")
       }
@@ -274,10 +196,6 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = "Y", PSchool 
   age <- ABMPop %>%
     arrange(.data$ID) %>%
     select(.data$Age)
-
-
-
-
 
   OutputDataFrame <- list()
   OutputDataFrame$h <- h
