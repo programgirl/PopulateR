@@ -146,8 +146,8 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
   # assign realistic expected probabilities in the bins outside the bins constructed earlier
   # use minAge and maxAge for this, only need range for included ages
   # Uses midpoint rule.
-  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = 0, sd = sdused, log=TRUE)
-  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = 0, sd = sdused, log=TRUE)
+  logProbLow <- dnorm(-MaxAgeDifference:(min_bin-0.5), mean = 0, sd = sdused, log = TRUE)
+  logProbHigh <- dnorm((max_bin+0.5):MaxAgeDifference, mean = 0, sd = sdused, log = TRUE)
 
   logProb <- c(logProbLow, log(Probabilities[-c(1, length(Probabilities))]), logProbHigh)
   logBins    <- c(-Inf, -(MaxAgeDifference-.5):(MaxAgeDifference-.5), Inf)
@@ -248,7 +248,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
   if(NumNeeded > NumProvided) {
 
         NumCanUse <- floor(NumProvided / numadd)
-    warning("The additions data frame should contain ", NumNeeded, "people but only contained ", NumProvided, ". ", NumCanUse, " were randomly sampled from the ", NumExisting, " people already in households \n")
+    warning("The additions data frame should contain ", NumNeeded, "people but only contained ", NumProvided, ". ", NumCanUse, " were randomly sampled from people already in households \n")
 
     existingRenamed <- existingRenamed %>%
       slice_sample(n = NumCanUse)
@@ -256,7 +256,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   if(NumNeeded < NumProvided) {
 
-    warning("The additions data frame should contain ", NumNeeded, " people and contained", NumProvided, ". ", NumNeeded, " were randomly sampled from the ", NumProvided, " people to add to households \n")
+    warning("The additions data frame should contain ", NumNeeded, " people and contained ", NumProvided, ". ", NumNeeded, " were randomly sampled to add to households. \n")
 
     additionsRenamed <- additionsRenamed %>%
       slice_sample(n = NumNeeded)
@@ -299,12 +299,12 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
     ObservedAgeDifferences <- hist(CurrentAgeMatch$existAge - CurrentAgeMatch$addAge,
-                                   breaks = bins, plot=FALSE)$counts
+                                   breaks = bins, plot = FALSE)$counts
 
 
     # set up for chi-squared
     log0ObservedAges <- hist(CurrentAgeMatch$existAge - CurrentAgeMatch$addAge,
-                             breaks = logBins, plot=FALSE)$counts
+                             breaks = logBins, plot = FALSE)$counts
     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                               log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
@@ -342,7 +342,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
       # do chi-squared
-      Proplog0 <- hist(PropAgeMatch$existAge - PropAgeMatch$addAge, breaks = logBins, plot=FALSE)$counts
+      Proplog0 <- hist(PropAgeMatch$existAge - PropAgeMatch$addAge, breaks = logBins, plot = FALSE)$counts
       ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
                         log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
@@ -372,12 +372,12 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
     }
 
 
-      if(verbose == TRUE) {
-        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
-      }
-
-
       # closes if(log_chisq > Critical_log_chisq) {
+    }
+
+
+    if(verbose == TRUE) {
+      cat(j, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
     }
 
     # closes if(!is.null(sdused) == TRUE) {
@@ -407,6 +407,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
      # closes else to if(exists("othersMatched")) {
     }
+
 
     # closes for (i in 1: numadd) {
     # i.e. closes loop through each addition needed
