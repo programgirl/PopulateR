@@ -70,7 +70,7 @@ fastmatch <- function(people, pplage, probSS = NULL, uwProp = NULL, uwLA = NULL,
   # create simple random sample without weights
 
    if (is.null(uwProp)) {
-    SameSexCouples <- people[sample(1:CountPartneredCouples, NumberRequired, replace=FALSE),]
+    SameSexCouples <- people[sample(1:CountPartneredCouples, NumberRequired, replace = FALSE),]
 
   }
 
@@ -137,7 +137,7 @@ fastmatch <- function(people, pplage, probSS = NULL, uwProp = NULL, uwLA = NULL,
 
     #cat("The upweight count is", UpWeightCount, "The number of rows for the UpWeightObs are", nrow(UpWeightObs), "\n")
 
-    UpWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(UpWeightObs)), UpWeightCount, replace=FALSE),]
+    UpWeightObsSample <- UpWeightObs[sample(1:as.numeric(nrow(UpWeightObs)), UpWeightCount, replace = FALSE),]
 
     DownWeightObs <- people %>%
       filter(people[[pplage]] < uwLA | people[[pplage]] > uwUA)
@@ -146,7 +146,7 @@ fastmatch <- function(people, pplage, probSS = NULL, uwProp = NULL, uwLA = NULL,
     # if there is only two total to output, there is no downweight sample
     if((NumberRequired - UpWeightCount) > 0) {
     DownWeightObsSample <- DownWeightObs[sample(1:as.numeric(nrow(DownWeightObs)), (NumberRequired - UpWeightCount),
-                                                replace=FALSE),]
+                                                replace = FALSE),]
 
     SameSexCouples <- rbind(UpWeightObsSample, DownWeightObsSample)
 
@@ -160,7 +160,7 @@ fastmatch <- function(people, pplage, probSS = NULL, uwProp = NULL, uwLA = NULL,
 
     # the expected and actual proportions are the same so just output a random sample
 
-    SameSexCouples <- people[[pplage]][sample(1:CountPartneredCouples, NumberRequired, replace=FALSE),]
+    SameSexCouples <- people[[pplage]][sample(1:CountPartneredCouples, NumberRequired, replace = FALSE),]
 
   }
 
