@@ -29,7 +29,7 @@ NULL
 #' @param pyrage The variable containing the ages, in the pyramid data.
 #' @param pyrcount The variable containing the counts for each sex/age combination, in the pyramid data
 #' @param stvarname The name of the variable to contain the education status. The output is "Y" for those still in education and "N" for those not in education.
-#' @param prsummary If TRUE, the proportion of students who have left school by age and sex will be printed to the console. Default is FALSE
+#' @param verbose If TRUE, the proportion of students who have left school by age and sex will be printed to the console. Default is FALSE
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #'
 #' @return A data frame of an observations, with an added column that contains the education status of each person.
@@ -39,12 +39,12 @@ NULL
 #'                   minedage = 5, maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age",
 #'                   lvryear = "YearLeft", lvrcount = "Total", RegionalStructure,
 #'                   pyrsx = "Sex", pyrage = "Age", pyrcount = "Value", stvarname = "Status",
-#'                   prsummary = TRUE, userseed = 4)
+#'                   verbose = TRUE, userseed = 4)
 
 addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxedage = NULL,
                    leavers, lvrsx, lvrage, lvryear, lvrcount,
                    pyramid, pyrsx, pyrage, pyrcount, stvarname = "Status",
-                   prsummary = FALSE, userseed = NULL)
+                   verbose = FALSE, userseed = NULL)
 
 {
 
@@ -302,7 +302,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
            !!PeopleSexColName := "IntSex",
            !!PeopleAgeColName := "IntAge")
 
-  if(prsummary == TRUE) {
+  if(verbose == TRUE) {
 
     ReportedProps <- CompleteDF %>%
       filter(between(!!PeopleAgeColName, min(AgePyramid$IntAge), max(AgePyramid$IntAge))) %>%
@@ -315,7 +315,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
     cat("The proportion of adolescents who have left school are shown in the table below, by age within sex \n")
     print(ReportedProps)
 
-    # closes  if(prsummary == TRUE) {
+    # closes  if(verbose == TRUE) {
   }
 
   return(CompleteDF)
