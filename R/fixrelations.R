@@ -127,7 +127,7 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
     # fix for one grouping variable
     # see https://stackoverflow.com/a/69116009/1030648
-    CurrentDef = PeopleUnique[i, , drop=FALSE]
+    CurrentDef = PeopleUnique[i, , drop = FALSE]
 
     suppressMessages(CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef)))
 
