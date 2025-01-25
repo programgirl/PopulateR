@@ -39,7 +39,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
            Age = !! AgeColName,
            HouseholdID = !! HouseholdIDcolName,
            PlaceTwo = !! PlaceTwocolName) %>%
-    select(.data$ID, .data$HouseholdID, .data$PlaceTwo, .data$IndCode, .data$IndName, .data$Age)
+    select(ID, HouseholdID, PlaceTwo, IndCode, IndName, Age)
 
 
   # TODO implement beta other than 1
@@ -61,7 +61,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
     group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(.data$p1, .data$p2)
+    select(p1, p2)
 
   h <- h1 %>%
     mutate(beta=1)
@@ -78,7 +78,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
 
   if(ECE == FALSE & PSchool == FALSE & SSchool == FALSE) {
 
-    stop("All three school types are set to N. A school layer must be output. \n")
+    stop("All three school types are set to FALSE. A school layer must be output. \n")
   }
 
   if(ECE == FALSE | PSchool == FALSE | SSchool == FALSE) {
@@ -119,11 +119,11 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
-    select(c(.data$p1, .data$p2))  %>%
+    select(c(p1, p2))  %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
-      select(- .data$grp) %>%
+      select(- grp) %>%
       mutate(beta = 1)
 
 
@@ -143,11 +143,11 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
     filter(.data$ID.x != .data$ID.y) %>%
     rename(p1 = .data$ID.x,
            p2 = .data$ID.y) %>%
-    select(.data$p1, .data$p2) %>%
+    select(p1, p2) %>%
     group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(- .data$grp)
+    select(- grp)
 
   w <- w2 %>%
     mutate(beta=1)
@@ -165,11 +165,11 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
-      select(.data$p1, .data$p2) %>%
+      select(p1, p2) %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
-      select(- .data$grp)
+      select(- grp)
 
     w <- w2 %>%
       mutate(beta = 1)
@@ -195,7 +195,7 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
 
   age <- ABMPop %>%
     arrange(.data$ID) %>%
-    select(.data$Age)
+    select(Age)
 
   OutputDataFrame <- list()
   OutputDataFrame$h <- h
