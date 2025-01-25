@@ -89,7 +89,6 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
   minInSchool = min(peopleRenamed$InSchool)
   maxInSchool = max(peopleRenamed$InSchool)
 
-  # cat("The minimum in school value is", minInSchool, "and the maximum in school value is", maxInSchool, "\n")
 
     #####################################
     #####################################
@@ -134,15 +133,9 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
     #need to skip the bit below if there is ONLY the "not in school" status
     if(nrow(NumInEachStatus) == 1) {
 
-      # cat("Group with only one status is", "\n")
-      # print(CurrentDef)
-
       NumToFix <- 0
 
     } else {
-
-      # cat("Group is", "\n")
-      # print(CurrentDef)
 
       CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef))
 
@@ -151,8 +144,6 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
         HoursCanSub <- CurrentGroup %>%
           filter(.data$IntHours <= hoursmax & .data$InSchool == minInSchool)
-
-        # cat("HoursTooHigh has", nrow(HoursTooHigh), "and HoursCanSub has", nrow(HoursCanSub), "rows", "\n")
 
 
         if(nrow(HoursTooHigh) > 0 & nrow(HoursCanSub) > 0) {
@@ -247,7 +238,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
   #
   if (is.factor(people[[pplstat]]) == TRUE) {
 
-    #   cat("School identifier is a factor")
+    # School identifier is a factor
 
     InSchoolLabels <- levels(people[[pplstat]])
 
@@ -259,7 +250,7 @@ fixhours <- function(people, pplid, pplstat, pplhours, hoursmax, grpdef, usersee
 
   if (is.factor(people[[pplhours]]) == TRUE) {
 
-    # cat("Hours worked is a factor", "\n")
+    # Hours worked is a factor
 
     HoursLabels <- levels(people[[pplhours]])
 
