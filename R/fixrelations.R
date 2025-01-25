@@ -50,9 +50,8 @@ NULL
 
 fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propcol, grpdef, matchdef, userseed = NULL) {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
-  # print(names(people))
 
 
   #####################################
@@ -106,16 +105,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     RelationshipLevels <- levels(people[[pplstat]])
     NeededRelLevel <- labels(people[[pplstat]])[match(stfixval, levels(people[[pplstat]]))]
 
-   # cat("Relationship levels are", RelationshipLevels, ", and the extracted relationship level is ", NeededRelLevel, "\n")
-   # cat("The information about the input dataframe is",  "\n")
-   #
-   # str(people)
 
   }
 
-
-
-  # print(class(stfixval))
 
   if (!is.null(userseed)) {
     set.seed(userseed)
@@ -123,8 +115,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
   # loop through the unique rows
   for(i in 1:nrow(PeopleUnique)) {
-
-    # cat("i is", i, "\n")
 
     # delete previous versions of these data frames
     if(exists("UnderSample")) {
@@ -140,10 +130,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     CurrentDef = PeopleUnique[i, , drop=FALSE]
 
     suppressMessages(CurrentGroup <- left_join(CurrentDef, peopleRenamed, by = c(grpdef)))
-    # cat("Group is", "\n")
-    # print(CurrentDef)
-    #
-    # cat("Number of people in the group is", nrow(CurrentGroup), "\n")
 
     # get everyone in the group
     TotalGroup <- CurrentGroup
@@ -153,15 +139,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       group_by(.data$StatusID) %>%
       summarise(NumPerLevel = n())
 
-    # cat("The number of people in each relationship status is ", "\n")
-    # print(NumInEachStatus)
-
-
     #need to skip the bit below if there is ONLY the partnered status OR there is no partnered status
     if(nrow(NumInEachStatus) == 1 | !(stfixval %in% NumInEachStatus$StatusID)) {
-
-      cat("Group with only one status is", "\n")
-      print(CurrentDef)
 
       NumToFix <- 0
 
@@ -178,21 +157,12 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       NumToFix <- 0
     }
 
-     # cat("Number of rows in current group is", nrow(CurrentGroup), "and Num in category is", NumToFix, "\n")
-
-
-
     # skip over the groups when the number in the status is the same as the number in the group
     # there is no-one to swap
 
     if(NumToFix > 0) {
 
-      # cat("The number of rows in the current group is ", nrow(CurrentGroup), "and the number to fix is ", NumToFix, "\n")
-      #
-      # cat("The num to fix is ", NumToFix, "\n")
-
-
-    # get the people that are in this subgroup
+          # get the people that are in this subgroup
 
     MatchingValues <- CurrentGroup %>%
       select(all_of(matchdef)) %>%
@@ -203,45 +173,20 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     RelevantProps <- replace(RelevantProps, is.na(RelevantProps), 0)
 
 
-
-    # cat("The information about RelevantProps is", "\n")
-    # str(RelevantProps)
-
     InitialCounts <- CurrentGroup %>%
       group_by(!!AgeColName) %>%
-      # group_by(!!AgeColName, StatusID) %>%
-      # filter(StatusID == stfixval) %>%
       summarise(TotalinStatus = n())
 
-    # cat("The first version of InitialCounts is", "\n")
-    # str(InitialCounts)
 
     StatOnlyCounts <- CurrentGroup %>%
       group_by(!!AgeColName, .data$StatusID) %>%
       filter(.data$StatusID == stfixval) %>%
       summarise(NuminDesStatus = n())
 
-    # cat("StatusID is", StatOnlyCounts$StatusID, "\n")
-
-    # cat("Initial counts construction below", "\n")
-
     suppressMessages(InitialCounts <- left_join(InitialCounts, StatOnlyCounts))
 
-    # cat("After the left join, the InitialCounts is", "\n")
-    # str(InitialCounts)
 
-         # cat("Initial counts constructed", "\n")
-
-
-  #  if(is.factor(expr(`$`(InitialCounts, !!StatuscolName))) == TRUE) {
     if (is.factor(people[[pplstat]]) == TRUE) {
-
-      # cat("is.factor loop entered", "\n")
-      # cat("The relationship value needed is ", stfixval, "\n")
-      # cat("The RelevantProps data frame is", "\n")
-      # str(RelevantProps)
-      # cat("The InitialCounts data frame is", "\n")
-      # str(InitialCounts)
 
      suppressMessages(CountComp <- left_join(RelevantProps, InitialCounts) %>%
         mutate(TotalinStatus = ifelse(is.na(.data$TotalinStatus), 0, .data$TotalinStatus),
@@ -261,22 +206,13 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     }
 
 
-       # cat("Join RelevantProps and InitialCounts complete", "\n")
-
     ActualCounts <- sum(CountComp$NuminDesStatus)
     CalculatedCounts <- sum(CountComp$ExpectedCount)
 
     if(is.na(CalculatedCounts)) {
 
-      # cat("Group is", "\n")
-      # print(CurrentDef)
-
       stop("Current group contains missing values", "\n")
     }
-#
-#     cat("Actual counts are", ActualCounts, "and the calculated counts are", CalculatedCounts, "\n")
-#
-#     cat("Calculated counts must be multiplied by ", ActualCounts/CalculatedCounts, "\n")
 
     TheMultiplier <- ActualCounts/CalculatedCounts
 
@@ -329,13 +265,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     CountComp <- CountComp %>%
       mutate(DiffsNeeded = .data$ExpectedCount - .data$NuminDesStatus)
 
-    ##########################################################################
-    # ONLY HERE TO PRODUCE TABLE FOR DISSERTATION
-    # LEAVE COMMENTED OUT
-    # return(CountComp)
-    ##########################################################################
-
-
 
     UndersCount <- CountComp %>%
       filter(.data$DiffsNeeded < 0) %>%
@@ -347,11 +276,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       summarise(Rows = n()) %>%
       pull(.data$Rows)
 
-
-
-    # these are the number of ages for each type of mis-count
-    # cat("Unders is", UndersCount, "and overs is", OversCount, "\n")
-    #
 
     CheckNoZeros <- sum(abs(CountComp$DiffsNeeded))
 
@@ -365,9 +289,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     CountUnders <- CountComp %>%
       filter(.data$DiffsNeeded < 0)
 
-    # cat("CountComp is", "\n")
-    # str(CountComp)
-
     # get the people to swap
 
     for(j in 1:nrow(CountUnders)) {
@@ -375,23 +296,13 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       CurrentTooMany <- CountUnders[j,]
 
 
-
-      # cat("Current too many is", CurrentTooMany$DiffsNeeded, "\n")
-      #
-      # str("CurrentGroup is", "\n")
-      # str(CurrentGroup)
-
       suppressMessages(CurrentSample <- left_join(CurrentTooMany, CurrentGroup, by = c(matchdef)) %>%
                          filter(.data$StatusID.y == !!{{stfixval}})  %>%
                          rename(StatusID = "StatusID.x") %>%
-                         select(-"StatusID.y") #%>%
-                       #  slice_sample(n = abs(CurrentTooMany$DiffsNeeded), replace = FALSE)
+                         select(-"StatusID.y")
       )
 
       if(nrow(CurrentSample) > 0) {
-
-        # cat("The number of CurrentSample rows is", nrow(CurrentSample), "\n")
-        # cat("The number of people needed for undercounts is", abs(CurrentTooMany$DiffsNeeded), "\n")
 
         if(nrow(CurrentSample) < abs(CurrentTooMany$DiffsNeeded)) {
           CurrentSample <- CurrentSample
@@ -422,9 +333,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     # closes  for(j in 1:nrow(CountUnders))
     }
 
-    # cat("After undersample, current group size is", nrow(CurrentGroup), "and undersample is", nrow(UnderSample), "\n")
-
-
 
     CountOvers <- CountComp %>%
       filter(.data$DiffsNeeded  > 0)
@@ -434,20 +342,15 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
       CurrentTooFew <- CountOvers[k,]
 
-      # cat("Current too few is", CurrentTooFew$DiffsNeeded, "\n")
-
       suppressMessages(CurrentSample <- left_join(CurrentTooFew, CurrentGroup, by = c(matchdef)) %>%
         filter(! .data$StatusID.y == !!{{stfixval}}) %>%
         mutate(StatusID = .data$StatusID.y) %>%
-        select(-c("StatusID.x", "StatusID.y")) # %>%
-        # slice_sample(n = abs(CurrentTooFew$DiffsNeeded))
+        select(-c("StatusID.x", "StatusID.y"))
         )
 
 
       # only sample from dataframes that have observations
       if(nrow(CurrentSample) > 0) {
-
-        # cat("The number of people needed for overcounts is", abs(CurrentTooMany$DiffsNeeded), "\n")
 
         # sample if the number needed is less than the number of observations
         if(abs(CurrentTooFew$DiffsNeeded) < nrow(CurrentSample)) {
@@ -466,8 +369,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
         # closes if(nrow(CurrentSample) > 0) {
       }
 
-      # cat("Before oversample, current group size is", nrow(CurrentGroup), "\n")
-
 
       if(exists("OverSample")) {
         OverSample <- bind_rows(OverSample, CurrentSample)
@@ -482,13 +383,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       CurrentGroup <- CurrentGroup %>%
         filter(!(.data$PersonID %in% c(OverSample$PersonID)))
 
-      # cat("Oversample is ", nrow(OverSample), "\n")
-
-
       # closes  for(k in 1:nrow(CountOvers))
     }
-
-    # cat("After oversample, current group size is", nrow(CurrentGroup), "and oversample is", nrow(OverSample), "\n")
 
     ##################################################
     # unders and overs may not be the same,
@@ -508,8 +404,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
         slice_sample(n = nrow(UnderSample), replace = FALSE)
     }
 
-    # cat("Final undersample size is", nrow(UnderSample), "and final oversample size is", nrow(OverSample), "\n")
-
     # now swapping the ages
     # only need to link age to ID, will wash out in the original data
     # should just be a straight join and then swap
@@ -518,13 +412,8 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
     UnderSample <- UnderSample %>%
       slice_sample(n = nrow(UnderSample), replace = FALSE)
 
-
-    # cat("Undercount is", (nrow(UnderSample)), "\n")
-
     OverSample <- OverSample %>%
       slice_sample(n = nrow(OverSample), replace = FALSE)
-
-    # cat("Overcount is", nrow(OverSample), "\n")
 
     # literally swap the ages in UnderDF and OverDF by row
 
@@ -552,9 +441,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
     UnAmended <- CurrentGroup %>%
       filter(!(.data$PersonID %in% c(Fixed$PersonID)))
-
-
-    # cat("The number fixed is", nrow(Fixed), "and the number unamended is", nrow(UnAmended), "\n")
 
     # this needs to be a file that takes all the groups
 
@@ -611,8 +497,6 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
       # closes if(nrow(CurrentGroup) > NumToFix)
     }
 
-    # cat("Size of output group is", nrow(GroupFixed), "\n")
-
         # closes for(i in 1:nrow(PeopleUnique))
   }
 
@@ -629,17 +513,9 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
 
   # fix the col names and remove the extra rows
-
-  # cat("Now outputting the data frame", "\n")
-
-  cat("The relationship variable name is", sym(names(people[pplstat])), "\n" )
-
   # NOTE: outputs correct relationship variable name in the input data frame
 
     if (is.factor(people[[pplstat]]) == TRUE) {
-
-    cat("Factor loop entered", "\n")
-
 
     OutputDataFrame <- FinalDF %>%
       select(-c("TotalinStatus", {{PropscolName}}, "OldExpected", "Remainder",
@@ -650,22 +526,11 @@ fixrelations <- function(people, pplid, pplage, pplstat, stfixval, props, propco
 
   for(m in 1:length(grpdef)) {
 
-    cat("The vector index is", m, "and the string is", grpdef[m], "\n")
-
-    print(is.factor(people[,grpdef[m]]))
-
     if(is.factor(people[,grpdef[m]]) == TRUE) {
 
-      cat("This is a factor", "\n")
-
       FactorName <- grpdef[m]
-      cat("The factor name is", FactorName, "\n")
 
       LevelsToUse <- levels(people[,grpdef[m]])
-
-      cat("The levels are", "\n")
-
-      print(LevelsToUse)
 
       OutputDataFrame[,grpdef[m]] <- factor(OutputDataFrame[,grpdef[m]], levels = c(levels(people[,grpdef[m]])))
 
