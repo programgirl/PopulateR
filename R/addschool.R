@@ -10,7 +10,6 @@ NULL
 #' Two data frames are required: one for the people ("people) and one for the schools ("schools").
 #' In the "people" data frame, a numeric or ordered factor for school status is required. The smallest value/level will be treated as the code for non-students. If one value is used, everyone in the data frame will be allocated a school. Thus, pre-cleaning a data frame is not required.
 #' The "schools" data frame must be a summary in the form of roll counts by age within school. Each row is one age only. For example, if a school has children aged 5 to 9 years, there should be 5 rows. Any combination of co-educational and single-sex schools can be used,  and the relevant value must be on each row of the schools" data frame.
-#' The minimum and maximum school ages, followed by the achieved counts by sex for each school, are printed to the console.
 #'
 #' @export
 #' @param people A data frame containing individual people.
@@ -47,7 +46,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
                        schmiss = 0, sameprob = 1, userseed=NULL)
 {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
   withr::local_options(warn=1)
 
   statcolName <- sym(names(people[pplst]))
@@ -193,8 +192,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   # test if there is only one factor level, i.e. all kids to assign
   ###############################################
 
-  # print(length(TestLevels))
-
   if(length(TestLevels) == 1) {
 
     peopleCountTest <- peopleRenamed %>%
@@ -215,24 +212,16 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
   } else {
 
-    # cat("Entered multiple factor loop", "\n")
+    # Entered multiple factor loop
     # get min factor level to exclude
 
     MinFactorLevel <- min(as.integer(peopleRenamed$schStat))
 
-    # print(MinFactorLevel)
-
     NotFactor <- peopleRenamed %>%
       filter(as.integer(.data$schStat) == as.integer(MinFactorLevel))
 
-    # cat("The notfactor data frame has this number of rows", nrow(NotFactor), "\n")
-
-    # cat("The number of rows in original peoplerenamed is", nrow(peopleRenamed), "\n")
-
     peopleRenamed <- peopleRenamed %>%
       filter(!(.data$personID %in% NotFactor$personID))
-
-    # cat("The revised count after removing wrong factor level is", nrow(peopleRenamed), "\n")
 
     peopleCountTest <- peopleRenamed %>%
       group_by(.data$personAge) %>%
@@ -262,8 +251,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   }
 
   MaxschoolAge <- as.numeric(CountComparison[nrow(CountComparison), 1])
-
-  cat("The minimum school age is", as.numeric(CountComparison[1,1]), "and the maximum school age is", as.numeric(CountComparison[nrow(CountComparison), 1]), "\n")
 
 
   # restrict person and school data frames to these minimum and maximum ages
@@ -333,30 +320,23 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
     # generate bipartite match
     theGraph <- igraph::graph_from_data_frame(theDF)  #%>%
-      # igraph::set_vertex_attr(name = "type", value = names(igraph::V(.)) %in% theDF$personID)
-
-    # cat("theGraph constructed \n")
 
     theGraph <- igraph::set_vertex_attr(theGraph, name = "type",
                                         value = names(igraph::V(theGraph)) %in% theDF$personID)
-    #
-    # cat("Household is ", CurrentHousehold, "\n")
-
 
     # max bipartite match
     maxbm <- na.omit(igraph::max_bipartite_match(theGraph)$matching)
 
     # retrieve match pattern and yield output
-    # v1 <- maxbm[maxbm %in% theDF$personAge]
     v1 <- maxbm[maxbm %in% theDF$personID]
     v2 <- names(v1)
-    # matchedSchools <- data.frame("personAge" = c(v1), schoolID = c(v2)
+
     data.frame(
-      # personAge = `class<-`(v1, class(theDF$personAge)),
       personID = `class<-`(v1, class(theDF$personID)),
       schoolID = `class<-`(v2, class(theDF$schoolID))
     )
 
+    # closes kidsAdd <- function(theDF) {
   }
 
 
@@ -380,17 +360,12 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
     CurrentHousehold <- ListofHouseholds$HouseholdID[i]
 
-    # cat("Current household is", CurrentHousehold, "\n")
-
-
     # get the people in the household
 
     peopleInHousehold <- peopleRenamed %>%
       filter(.data$HouseholdID == CurrentHousehold)
 
     NumKids <- as.numeric(nrow(peopleInHousehold))
-
-    # cat("Number in household is", NumKids, "and number available in schools", sum(schoolsRenamed$personCounts), "\n")
 
     # add people to same school
     # need to identify the number of people that can go to the same school
@@ -424,8 +399,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
     if(NumKids==1) {
 
-      # cat("The number of kids is 1 and household is", CurrentHousehold, "\n")
-
       # locate schools that can take the maximum number of people from NumberSameSchool down
 
       # have to do some special work when there are single-sex schools as well as co-end
@@ -447,9 +420,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
       } else {
 
         # all schools have 0 roll slots
-
-        cat("There were not enough school roll places available for household", CurrentHousehold, "extra roll place added \n")
-
 
         schoolMatch <- left_join(peopleInHousehold, schoolsRenamed, by = "personAge",
                                  relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
@@ -476,8 +446,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
       schoolsNotSelected <- anti_join(schoolsRenamed, schoolInfo, by = c("schoolID", "personAge")) %>%
         select("schoolID", "personAge", "personCounts", "schoolType", "originalCounts")
-
-      # cat("Original sizes",nrow(schoolsSelected), "and", nrow(schoolsNotSelected), "for InitialMatches smaller \n")
 
       schoolsRenamed <- bind_rows(schoolsNotSelected, schoolsSelected)
 
@@ -511,8 +479,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
       ###############################################
       ###############################################
 
-      # cat("The household is", CurrentHousehold, "max person ages is", max(personAges$CountsByAge), "\n")
-
 
       schoolsubset <- left_join(personAges, schoolsRenamed, by = "personAge",
                                 relationship = "many-to-many") %>% # have grouped by sex as well, next line handles it
@@ -530,9 +496,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
         probSelected <- runif(1, 0, 1)
 
-        # cat("probSelected is", probSelected, "\n")
-
-
         if(probSelected <= sameprob) {
 
           probUsed <- 1
@@ -548,9 +511,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
         probUsed <- 0
       }
 
-      # cat("Probability used is", probUsed, "\n")
-
-
       if(probUsed == 1) {
 
         ###############################################
@@ -559,7 +519,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
         ###############################################
         ###############################################
 
-        # cat("Household ID is", CurrentHousehold, "Children will be going to the same school \n")
 
         ###############################################
         ###############################################
@@ -604,8 +563,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           SingleSexNum <- as.numeric(sum(SingleSexSub$NumKidsSpots))
           SingleSexWeight <- as.numeric(sum(SingleSexSub$RollSpots))
 
-          # cat("The kids in single sex schools can be", SingleSexNum, "with", SingleSexWeight, "roll places \n")
-
           # the opposite sex ones in another
           # has count by school ID, no ages
           OppSexSubAges <- sexedsubset %>%
@@ -638,10 +595,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           # get the school with the max number of kids
           # also, random select if the max number is the same
 
-          # cat("The kids in co-ed schools can be", OppSexNum, "with", OppSexWeight, "roll places \n")
-
-
-
 
 
 
@@ -668,8 +621,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           }
 
           if(Variant == 1) {
-
-            # cat("Entered SS > OS loop \n")
 
             # get the single-sex schools
             # many-to-many needed to account for twin households
@@ -709,8 +660,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
                 slice_max(.data$numberKids) %>%
                 slice_sample(n=1) %>%
                 pull(.data$schoolID)
-
-              # print(selectedSchool)
 
               # # add the children to the school
               InitialMatchesA <- InitialMatches %>%
@@ -854,7 +803,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
             # ends if(Variant == 1) {
           } else {
 
-            # cat("Entered OS > SS \n")
+            # Entered OS > SS
 
 
             selectedSchoolID <- SelectedOppSexSchool %>%
@@ -1045,7 +994,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
           while(nrow(remainingAges) > 0) {
 
 
-            stop("Test case with all kids going to the same type of school, one or more children remaining \n")
+            stop("Children remaining without being placed in school.")
           }
 
 
@@ -1240,10 +1189,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
 
   schoolsOutput <- suppressMessages(left_join(schoolsOutput,usedSpots) %>%
     mutate(spacesUsed = ifelse(is.na(.data$spacesUsed), 0, .data$spacesUsed)))
-
-  cat("The dataframes are $Population and $Schools", "\n")
-  cat("$Population contains everyone in the people data frame, with school IDs added", "\n")
-  cat("$Schools contains updated count data for the schools", "\n")
 
   Output <- list()
   Output$Population <- allPeople
