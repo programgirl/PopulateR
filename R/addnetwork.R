@@ -22,7 +22,7 @@ NULL
 #' @param userseed The user-defined seed for reproducibility. If left blank, the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 100, and is the stopping rule if the algorithm does not converge.
 #' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is FALSE so an igraph object is output. If TRUE is used, the n x n dgCMatrix is output.
-#' @param prsummary Whether a notification is printed to the console if the number of contacts must be increased by one. Notification is that it has occurred, where the value has been increased, and the original and new number of contacts. The default is FALSE, so no information will be printed to the console.
+#' @param verbose Whether a notification is printed to the console if the number of contacts must be increased by one. Notification is that it has occurred, where the value has been increased, and the original and new number of contacts. The default is FALSE, so no information will be printed to the console.
 #'
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
@@ -42,7 +42,7 @@ NULL
 
 
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
-                   numiters=1000000, usematrix = FALSE, prsummary = FALSE) {
+                   numiters=1000000, usematrix = FALSE, verbose = FALSE) {
 
   withr::local_options(dplyr.summarise.inform = FALSE)
 
@@ -97,7 +97,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
     netmax[IndexToAdd1] <- OriginalValue + 1
 
-    if(prsummary == TRUE) {
+    if(verbose == TRUE) {
       cat("The number of network links must be a factor of 2.", "\n")
       cat("1 has been added to the network matrix at position", IndexToAdd1, "\n")
       cat("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
