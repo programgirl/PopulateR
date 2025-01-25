@@ -341,7 +341,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       }
 
       if(verbose == TRUE) {
-        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
+        cat(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
       }
 
       # closes the loop through the number of sets of people to match,
