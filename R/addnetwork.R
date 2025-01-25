@@ -21,7 +21,8 @@ NULL
 #' @param probsame The probability that a friend of a friend is also a friend. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
 #' @param userseed The user-defined seed for reproducibility. If left blank, the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 100, and is the stopping rule if the algorithm does not converge.
-#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is "N" so an igraph object is output. If "Y" is used, the n x n dgCMatrix is output.
+#' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is FALSE so an igraph object is output. If TRUE is used, the n x n dgCMatrix is output.
+#' @param prsummary Whether a notification is printed to the console if the number of contacts must be increased by one. Notification is that it has occurred, where the value has been increased, and the original and new number of contacts. The default is FALSE, so no information will be printed to the console.
 #'
 #' @return Either an igraph of social networks, or a dgCMatrix of n x n.
 #'
@@ -36,14 +37,14 @@ NULL
 #'   slice_sample(n = 20)
 #'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-#'                               probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+#'                               probsame = .5, userseed=4, numiters = 10)
 #'  # plot(NetworkSmallN)
 
 
 addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
-                   numiters=1000000, usematrix = "N") {
+                   numiters=1000000, usematrix = FALSE, prsummary = FALSE) {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
   if(!pplid %in% names(people)) {
     stop("The ID variable in the people data frame does not exist.")
@@ -87,7 +88,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
 
   if (!(sum(netmax) %% 2 == 0) == TRUE){
-    cat("The number of network links must be a factor of 2.", "\n")
 
     # random draw an index position
 
@@ -95,11 +95,17 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
     OriginalValue <- netmax[IndexToAdd1]
 
-    cat("1 has been added to the network matrix at position", IndexToAdd1, "\n")
-    cat("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
-
     netmax[IndexToAdd1] <- OriginalValue + 1
 
+    if(prsummary == TRUE) {
+      cat("The number of network links must be a factor of 2.", "\n")
+      cat("1 has been added to the network matrix at position", IndexToAdd1, "\n")
+      cat("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
+
+      # closes if(prsummary == TRUE) {
+    }
+
+    # closes if (!(sum(netmax) %% 2 == 0) == TRUE){
   }
 
 
@@ -107,16 +113,10 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   WiredNetwork <- igraph::sample_degseq(out.deg = netmax,
                                         method="fast.heur.simple")
 
-
-  # cat("WiredNetwork created \n")
   # now, get it so that the clustering is better
   current_clustering <- igraph::transitivity(WiredNetwork)
 
-  # cat("current_clustering done \n")
-
   target_clustering <- probsame # P(triads | length 3 path)
-
-  # cat("target_clustering done \n")
 
   # https://github.com/cwatson/brainGraph/pull/26
   ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
@@ -128,7 +128,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   igraph::transitivity(ClusteredNetwork)
 
-  # cat("ClusteredNetwork done \n")
 
   # OK, now we want to get our ages on this. One way is to just
   # place them directly, but let's do it slightly indirectly so
@@ -148,22 +147,12 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   ClusteredNetwork %>%
     igraph::set_vertex_attr("Age", value=theages[node_to_people])
 
-  # cat("Plot is below", "\n")
-  # plot()
-
-  # network_clustered %>%
-  #   igraph::set_vertex_attr("Age", value=theages[node_to_people]) # %>%
-  #   # igraph::set_vertex_attr("Household", value=thehouseholds[node_to_people])
-  # plot()
-
   # now, it'd be nice to work out the age differences as well
   # we do that by grabbing the edges in the graph as a matrix
   # of indices (which we'll then pass through node_to_people
   # to get to the people that each node corresponds to)
 
-  # cat("Now getting the edgelist", "\n")
-
-  edges = igraph::get.edgelist(ClusteredNetwork)
+  edges = igraph::as_edgelist(ClusteredNetwork)
 
   # helper to get the age differences: The idea is that
   # we use the edges matrix (which has the vertex index of
@@ -172,8 +161,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # and then grab the age out of that. We then compute
   # the difference
 
-  # cat("Get the age difference function", "\n")
-
   get_age_diff <- function(edges, node_to_people, Age) {
     # use the edges and node_to_people to lookup ages
     age1 = Age[node_to_people[edges[,1]]]
@@ -181,21 +168,11 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
     age1 - age2
   }
 
-  # cat("get the age differences", "\n")
-
   age_diff <- get_age_diff(edges, node_to_people, theages)
-
-  # cat("Second reference to network_clustered", "\n")
-  # we could now plot that on the edges:
-  # network_clustered %>%
-  #   set_vertex_attr("label", value=ages[node_to_people]) %>%
-  #   set_edge_attr("label", value=age_diff) %>%
-  #   plot()
 
   ClusteredNetwork %>%
     igraph::set_vertex_attr("label", value=theages[node_to_people]) %>%
     igraph::set_edge_attr("label", value=age_diff)
-  # plot(ClusteredNetwork)
 
   # right, now that we have the age difference, we could
   # optimise this through swapping. Assuming we want a
@@ -204,9 +181,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   # we're starting with:
   ss <- sum(age_diff^2)
-  # print(ss)
 
-  # cat("ss created", "\n")
   # now, we're going to swap which node represents which person
   # by shuffling the node_to_people vector.
 
@@ -231,8 +206,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
     if (n == 0) x else c(tail(x, -n), head(x, n))
   }
 
-  # cat("Shift vector created", "\n")
-
   accept <- list() # this is just to store how often we accept a proposal
   for (i in 1:numiters) { # lots of iterations
 
@@ -254,7 +227,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
     if (ss_prop < ss) {
 
-      # cat("i is", i, "ss is", ss, "and proposed ss is", ss_prop, "\n")
       # swap!
       node_to_people <- proposed
       age_diff <- age_diff_prop
@@ -269,13 +241,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   unlist(accept)
   # ss
 
-  # cat("Third reference to network_clustered", "\n")
-
   # plot with edge weights with differences and ages on nodes
-  # network_clustered %>%
-  #   set_edge_attr("label", value=age_diff) %>%
-  #   set_vertex_attr("label", value=theages[node_to_people]) %>%
-  #   plot()
 
   ClusteredNetwork <- ClusteredNetwork %>%
     igraph::set_edge_attr("label", value=age_diff) %>%
@@ -285,7 +251,7 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # key thing to note is that node_to_people is the map from vertices
   # on the network to people in your data set
 
-  if (!(usematrix) == "Y") {
+  if (!(usematrix) == TRUE) {
 
     return(ClusteredNetwork)
 
