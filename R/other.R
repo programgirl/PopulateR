@@ -24,7 +24,7 @@ NULL
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the household inhabitants. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
-#' @param prsummary Whether the number of iterations used, the critical chi-squared value, and the final chis-squared value are printed to the console. The default is FALSE, so no information will be printed to the console.
+#' @param prsummary Whether the number of iterations used, the critical chi-squared value, and the final chis-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are three people in each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.
 #'
 #' @return A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
 #'
@@ -341,7 +341,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       }
 
       if(prsummary == TRUE) {
-        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq," and the final chi-squared value is", round(log_chisq,6), "\n")
+        cat(i, "iterations were used, the critical chi-squared value was", Critical_log_chisq,", and the final chi-squared value is", round(log_chisq,6), "\n")
       }
 
       # closes the loop through the number of sets of people to match,
