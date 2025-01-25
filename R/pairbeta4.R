@@ -28,6 +28,7 @@ NULL
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param attempts The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.
 #' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param verbose Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are three people in each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.
 
 #' @return A list of three data frames. $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
@@ -73,9 +74,9 @@ NULL
 #' UnmatchedAdults2 <- ChildMatched$Larger
 
 
-pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NULL, shapeB=NULL, locationP=NULL,
-                        scaleP = NULL, HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, attempts=10,
-                        numiters=1000000) {
+pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA = NULL, shapeB = NULL,
+                      locationP = NULL, scaleP = NULL, HHStartNum, HHNumVar, userseed = NULL,
+                      ptostop = NULL, attempts=10, numiters=1000000, verbose = FALSE) {
 
 
 
@@ -210,8 +211,6 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
       # create an age difference based on the distribution
       drawResult <- round(PearsonDS::rpearsonI(1, a=shapeA, b=shapeB, location=locationP, scale=scaleP),0)
-
-      # NumAttempts <- NumAttempts + 1
 
       # required age of older person
       if(shapeA < 0) {
@@ -360,49 +359,36 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
   min_bin <- round(PearsonDS::qpearsonI(1/100000, a=posShapeA, b=shapeB, location=locationP, scale=scaleP))-0.5
   max_bin <- round(PearsonDS::qpearsonI(1-(1/100000), a=posShapeA, b=shapeB, location=locationP, scale=scaleP))+0.5
 
-  # cat("Error when trying to bin", "\n")
 
   bins <- c(min_bin:max_bin)
-  # cat("The bins are", "\n")
-  # print(bins)
+
 
   # construct the probabilities for each bin, gives n(bins)-1
   Probabilities <- PearsonDS::ppearsonI(bins[-1], a=posShapeA, b=shapeB, location=locationP, scale=scaleP) -
     PearsonDS::ppearsonI(bins[-length(bins)], a=posShapeA, b=shapeB, location=locationP, scale=scaleP)
-  # cat("The probabilities are", "\n")
-  # print(Probabilities)
+
 
   logProb <- c(log(Probabilities))
   logBins <- c(min_bin:max_bin)
-  # cat("The logProbs are", "\n")
-  # print(logProb)
-  # cat("The logBins are", "\n")
-  # print(logBins)
+
 
   ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
   logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-  # cat("The ExpectedAgeProbs are", "\n")
-  # print(ExpectedAgeProbs)
-  # cat("The logEAgeProbs are", "\n")
-  # print(logEAgeProbs)
+
 
   # construct starting set of observed age difference values for iteration
   if(shapeA < 0) {
 
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = bins, plot=FALSE)$counts
-    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = logBins, plot=FALSE)$counts
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = bins, plot = FALSE)$counts
+    log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,4], breaks = logBins, plot = FALSE)$counts
 
   } else {
 
-    ObservedAgeDifferences <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = bins, plot=FALSE)$counts
-    log0ObservedAges <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+    ObservedAgeDifferences <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = bins, plot = FALSE)$counts
+    log0ObservedAges <- hist(CurrentAgeMatch[,4] - CurrentAgeMatch[,2], breaks = logBins, plot = FALSE)$counts
 
   }
 
-  # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
-  # print(ObservedAgeDifferences)
-  # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
-  # print(log0ObservedAges)
 
   logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
   log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
@@ -417,8 +403,6 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
   }
 
-  cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
-      round(Critical_log_chisq,3), "\n")
 
   #####################################
   #####################################
@@ -476,7 +460,6 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
   for (i in 1:numiters) {
 
-    # print(i)
 
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -521,16 +504,15 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
 
     PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1,PropPair2)
 
-    # cat("PropAgeMatch done", "\n")
 
     # do chi-squared
     if(shapeA < 0) {
 
-      Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,4], breaks = logBins, plot=FALSE)$counts
+      Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,4], breaks = logBins, plot = FALSE)$counts
 
     } else {
 
-      Proplog0 <- hist(PropAgeMatch[,4] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
+      Proplog0 <- hist(PropAgeMatch[,4] - PropAgeMatch[,2], breaks = logBins, plot = FALSE)$counts
 
       # closes if(shapeA < 0) {
     }
@@ -550,7 +532,6 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
       logKObservedAges <- ProplogK
       log_chisq <- prop_log_chisq
 
-      # print(prop_log_chisq)
 
     }
 
@@ -562,7 +543,10 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
     # closes for (i in 1:numiters)
   }
 
-    cat(i, "iterations were used, and the final chi-squared value was", round(log_chisq,3), "\n")
+    if(verbose == TRUE) {
+      cat(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+    }
+
     # closes if(log_chisq > Critical_log_chisq) {
   }
 
@@ -598,12 +582,6 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA=NUL
     left_join(largedf)
 
   OutputDataframe <- rbind(FullMatchedSml, FullMatchedLrg)
-
-  # print(NumAttempts)
-
-  cat("The individual dataframes are $Matched, $Smaller, and $Larger", "\n")
-  cat("$Smaller contains unmatched observations from the smaller data frame", "\n")
-  cat("$Larger contains unmatched observations from the larger data frame", "\n")
 
   MatchedIDs <- OutputDataframe %>%
     pull({{lrgidcolName}})
