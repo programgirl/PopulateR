@@ -56,7 +56,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
 {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
   # check if the maximum difference between the child ages fits with the number of children
   if(maxdiff < (0.5*numchild)) {
@@ -154,8 +154,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
   ExpctNumHH <- round((nrow(childrenRenamed)*twinprob)/2,0)
 
-  cat("Expected number of twins is", ExpctNumHH*2, "\n")
-
   # seed must come before first sample is cut
   if (!is.null(userseed)) {
     set.seed(userseed)
@@ -190,8 +188,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
     # select twin ages
 
     for (i in 1:ExpctNumHH) {
-
-      # cat("Number of kids is", sum(AgesForTwins$NumAge), "\n")
 
       # get age, need to select randomly
 
@@ -275,18 +271,10 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
       filter(.data$NumAge > 1)
 
 
-    # minTwinAge <- min(AgesForTwins) + (maxdiff - 1)
-    # maxTwinAge <- max(AgesForTwins) - (maxdiff - 1)
-    # #
-    # cat("Min twin age is", minTwinAge, "max twin age is", maxTwinAge, "\n")
-    #
-    # AgesForTwins <- AgesForTwins %>%
-    #   filter(between(ChildAge, minTwinAge, maxTwinAge))
     # select twin ages
 
     for (i in 1:ExpctNumHH) {
 
-      # cat("Number of kids is", sum(AgesForTwins$NumAge), "\n")
 
       # get age, need to select randomly
 
@@ -297,7 +285,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
       CurrentAge <- TwinAgeSelect$ChildAge
 
-      # cat("Current age is", CurrentAge, "\n")
 
       # pull children from the child dataframe who are that age
       SelectedKids <- childrenRenamed %>%
@@ -313,8 +300,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
         slice_sample(n=1) %>%
         mutate(internalHHID = currentHHID)
 
-      # ParentExists <- nrow(SelectedParent)
-      # print(ParentExists)
 
       # find the kids that also need to be added
 
@@ -342,8 +327,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
       MinChildAgeToAdd <- SelectedParent$ParentAge - maxparage
       MaxChildAgeToAdd <- SelectedParent$ParentAge - minparage
 
-      # cat("Parent age is", SelectedParent$ParentAge, "min child age that can be added is", MinChildAgeToAdd,
-      #     "and maximum child age is", MaxChildAgeToAdd, "\n")
 
       AgesForExtraChildren <- AgesForExtraChildren %>%
         filter(between(.data$ChildAge, MinChildAgeToAdd, MaxChildAgeToAdd)) %>%
@@ -353,11 +336,9 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
       NumExtraAges <- nrow(AgesForExtraChildren)
 
-      # cat("Num extra ages is", NumExtraAges, "num additional kids is", NumAddtionalKids, "\n")
 
       if(NumExtraAges >= NumAddtionalKids) {
 
-        # cat("Entered loop \n")
 
         ChildAgesChosen <- AgesForExtraChildren %>%
           slice_sample(n= NumAddtionalKids, replace = FALSE)
@@ -389,12 +370,8 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
           # closes for(m in 1:NumAddtionalKids) {
         }
 
-        # cat("Number of children is", nrow(ChildAgesChosen), "\n")
 
         # randomly select the additional children
-
-
-        # closes loop for if(NumExtraAges >= NumAddtionalKids) {
 
         SelectedKids <- bind_rows(SelectedKids, DataframeAddedKids)
 
@@ -428,11 +405,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
         minTwinAge <- min(AgesForTwins) + (maxdiff - 1)
         maxTwinAge <- max(AgesForTwins) - (maxdiff - 1)
-        #
-        # cat("Min twin age is", minTwinAge, "max twin age is", maxTwinAge, "\n")
-        #
-        # AgesForTwins <- AgesForTwins %>%
-        #   filter(between(ChildAge, minTwinAge, maxTwinAge))
+
 
         # remove the parent
 
@@ -495,7 +468,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
 
       CurrentAge <- SelectedFirstChild$ChildAge
 
-      # cat("Current age is", CurrentAge, "and current ID is", SelectedFirstChild$ChildID, "\n")
       # get parent
       NeededMin <- minparage + CurrentAge
       NeededMax <- maxparage + CurrentAge
@@ -503,24 +475,17 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
         filter(between(.data$ParentAge, NeededMin, NeededMax)) %>%
         slice_sample(n=1)
 
-      # print(nrow(SelectedParent))
 
       # only do matching if nrow(SelectedParent) > 0
       # if it is zero, no parent selected
-
-      # cat("Fell over at SelectedParent > 0", "\n")
 
       if(nrow(SelectedParent) > 0) {
 
         # get kids by creating a dataframe of ages available
 
-        # cat("Fell over at Min and Max creation", "\n")
         MinChildAge <- SelectedParent$ParentAge - maxparage
         MaxChildAge <- SelectedParent$ParentAge - minparage
-        #
-        # cat("MinChildAge is", MinChildAge, "and MaxChildAge is", MaxChildAge, "\n")
 
-        # cat("Fell over at the filter stage", "\n")
 
         SelectedNextChildAges <- childrenRenamed %>%
           filter(!(.data$ChildID == SelectedFirstChild$ChildID),
@@ -581,8 +546,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
                 ChildAgeMatch <- bind_rows(ChildAgeMatch, SelectedKids)
                 ParentAgeMatch <- bind_rows(ParentAgeMatch, SelectedParent)
 
-                # childrenRenamed <- childrenRenamed %>%
-                #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
                 parentsRenamed <- parentsRenamed %>%
                   filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
@@ -593,8 +556,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
                 ChildAgeMatch <- SelectedKids
                 ParentAgeMatch <- SelectedParent
 
-                # childrenRenamed <- childrenRenamed %>%
-                #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
                 parentsRenamed <- parentsRenamed %>%
                   filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
@@ -690,8 +651,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
                 ChildAgeMatch <- bind_rows(ChildAgeMatch, SelectedKids)
                 ParentAgeMatch <- bind_rows(ParentAgeMatch, SelectedParent)
 
-                # childrenRenamed <- childrenRenamed %>%
-                #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
                 parentsRenamed <- parentsRenamed %>%
                   filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
@@ -702,8 +661,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
                 ChildAgeMatch <- SelectedKids
                 ParentAgeMatch <- SelectedParent
 
-                # childrenRenamed <- childrenRenamed %>%
-                #   filter(!(ChildID %in% c(SelectedKids$ChildID)))
 
                 parentsRenamed <- parentsRenamed %>%
                   filter(!(.data$ParentID %in% c(SelectedParent$ParentID)))
@@ -771,8 +728,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
            !! chagecolName := "ChildAge",
            {{HHNumVar}} := "internalHHID")
 
-  # cat("The FullMatchedChld dataset info is", "\n")
-  # str(FullMatchedChld)
 
   FullMatchedPrnt <- ParentAgeMatch %>%
     rename(!! paridcolName := "ParentID",
@@ -780,16 +735,9 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
            {{HHNumVar}} := "internalHHID") %>%
     unique()
 
-  # cat("The FullMatchedPrnt dataset info is", "\n")
-  # str(FullMatchedPrnt)
 
   OutputDataframe <- rbind(FullMatchedChld, FullMatchedPrnt)
 
-  # print(NumAttempts)
-
-  cat("The individual dataframes are $Matched, $Children, and $Adults", "\n")
-  cat("$Children contains unmatched observations from the children data frame", "\n")
-  cat("$Adults contains unmatched observations from the parent data frame", "\n")
 
   MatchedIDs <- OutputDataframe %>%
     pull({{paridcolName}})
