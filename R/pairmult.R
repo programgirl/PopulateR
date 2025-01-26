@@ -419,7 +419,7 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
         # TODO if this becomes a problem, but twins are matched first
         # not sure if this is going to work
 
-        cat("Twins have no matching siblings \n")
+        message("Twins have no matching siblings \n")
 
         # remove problem twin age
         AgesForTwins <- childrenRenamed %>%
@@ -446,7 +446,6 @@ pairmult <- function(children, chlid, chlage, numchild = 2, twinprob = 0, parent
     # closes if (ExpctNumHH > 0 & numchild > 2) {
   }
 
-  # cat("Twin families finished \n")
 
 
   #####################################
