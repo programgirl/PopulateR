@@ -1,7 +1,7 @@
 Package: PopulateR
 Type: Package
 Title: Create Data Frames for the Micro-Simulation of Human Populations
-Version: 1.12
+Version: 1.13
 Authors@R: c(
              person("Michelle", "Gosse", email="michelle.a.gosse@gmail.com", role=c("aut","cre","cph")),
              person("Jonathan", "Marshall",email="J.C.Marshall@massey.ac.nz", role="aut"),
