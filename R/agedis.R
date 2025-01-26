@@ -41,7 +41,7 @@ agedis <- function(individuals, indsx, minage, maxage, pyramid, pyrsx, pyrage, p
 
 {
 
-  withr::local_options(dplyr.summarise.inform=F)
+  withr::local_options(dplyr.summarise.inform = FALSE)
 
   #####################################
   # check for missing input information
