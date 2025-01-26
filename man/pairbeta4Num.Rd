@@ -18,7 +18,8 @@ pairbeta4Num(
   HHNumVar,
   userseed = NULL,
   attempts = 10,
-  numiters = 1e+06
+  numiters = 1e+06,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ pairbeta4Num(
 \item{attempts}{The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.}
 
 \item{numiters}{The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.}
+
+\item{verbose}{Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The default value is FALSE.}
 }
 \value{
 A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.

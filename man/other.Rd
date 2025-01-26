@@ -14,7 +14,8 @@ other(
   HHNumVar,
   userseed = NULL,
   ptostop = NULL,
-  numiters = 1e+06
+  numiters = 1e+06,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,9 +35,11 @@ other(
 
 \item{userseed}{If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.}
 
-\item{ptostop}{= The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.}
+\item{ptostop}{The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.}
 
 \item{numiters}{The maximum number of iterations used to construct the output data frame ($Matched) containing the household inhabitants. The default value is 1000000, and is the stopping rule if the algorithm does not converge.}
+
+\item{verbose}{Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are three people in each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.}
 }
 \value{
 A list of two data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Unmatched, if populated, contains the people that were not allocated to households. If the number of rows in the people data frame is divisible by the household size required, $Unmatched will be an empty data frame.
@@ -52,7 +55,7 @@ library(dplyr)
 # creating three-person households toy example with few iterations
 NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3,
                        HHStartNum = 1, HHNumVar = "Household", userseed=4, ptostop = .05,
-                       numiters = 500)
+                       numiters = 500, verbose = TRUE)
 
 PeopleInHouseholds <- NewHouseholds$Matched
 PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3

@@ -18,7 +18,8 @@ pairnorm(
   HHNumVar,
   userseed = NULL,
   ptostop = NULL,
-  numiters = 1e+06
+  numiters = 1e+06,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ pairnorm(
 \item{ptostop}{The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.}
 
 \item{numiters}{The maximum number of iterations used to construct the output data frame ($Matched) containing the couples. The default value is 1000000, and is the stopping rule if the algorithm does not converge.}
+
+\item{verbose}{Whether the distribution used, number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The default value is FALSE.}
 }
 \value{
 A list of two data frames. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.

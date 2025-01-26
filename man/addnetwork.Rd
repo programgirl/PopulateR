@@ -13,7 +13,8 @@ addnetwork(
   probsame = 0.5,
   userseed = NULL,
   numiters = 1e+06,
-  usematrix = "N"
+  usematrix = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,7 +34,9 @@ addnetwork(
 
 \item{numiters}{The maximum number of iterations used to construct the coupled data frame. This has a default value of 100, and is the stopping rule if the algorithm does not converge.}
 
-\item{usematrix}{If an adjacency matrix is output instead of an igraph object. Default is "N" so an igraph object is output. If "Y" is used, the n x n dgCMatrix is output.}
+\item{usematrix}{If an adjacency matrix is output instead of an igraph object. Default is FALSE so an igraph object is output. If TRUE is used, the n x n dgCMatrix is output.}
+
+\item{verbose}{Whether a notification is printed to the console if the number of contacts must be increased by one. Notification is that it has occurred, where the value has been increased, and the original and new number of contacts. The default is FALSE, so no information will be printed to the console.}
 }
 \value{
 Either an igraph of social networks, or a dgCMatrix of n x n.
@@ -57,6 +60,6 @@ set.seed(2) # small datasets can cause problems if a random seed is used for sam
   slice_sample(n = 20)
   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-                              probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+                              probsame = .5, userseed=4, numiters = 10)
  # plot(NetworkSmallN)
 }

@@ -16,7 +16,8 @@ otherNum(
   sdused = NULL,
   userseed = NULL,
   attempts = 10,
-  numiters = 10000
+  numiters = 10000,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ otherNum(
 \item{attempts}{The number of times the function will randomly change two matches to improve the fit.}
 
 \item{numiters}{The maximum number of iterations used to construct the household data frame. This has a default value of 10000, and is the stopping rule if the algorithm does not converge.}
+
+\item{verbose}{Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are two people being added to each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.}
 }
 \value{
 A list of three data frames $Matched contains the data frame of households containing matched people. All households will be of the specified size. $Existing, if populated, contains the excess people in the existing data frame, who could not be allocated additional people. $Additions, if populated, contains the excess people in the additions data frame who could not be allocated to an existing household.

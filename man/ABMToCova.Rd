@@ -10,9 +10,9 @@ ABMToCova(
   ABMAge,
   place1,
   place2,
-  ECE = "Y",
-  PSchool = "Y",
-  SSchool = "Y",
+  ECE = TRUE,
+  PSchool = TRUE,
+  SSchool = TRUE,
   contacts = NULL,
   excludeDF = NULL
 )
@@ -28,11 +28,11 @@ ABMToCova(
 
 \item{place2}{The variable containing the school and workplace IDs.}
 
-\item{ECE}{Are ECE centres open? Default is "Y", change to "N" if ECEs are to close.}
+\item{ECE}{Are ECE centres open? Default is TRUE, change to FALSE if ECEs are to close.}
 
-\item{PSchool}{Are primary schools open? Default is "Y", change to "N" if primary schools are to close.}
+\item{PSchool}{Are primary schools open? Default is TRUE, change to FALSE if primary schools are to close.}
 
-\item{SSchool}{Are secondary schools open? Default is "Y", change to "N" if secondary schools are to close.}
+\item{SSchool}{Are secondary schools open? Default is TRUE, change to FALSE if secondary schools are to close.}
 
 \item{contacts}{A data frame consisting of existing contact pairs. The first two variables define the two people in the pair.}
 
@@ -45,5 +45,5 @@ A data frame of the household, school, workplace, contact layers, and people's a
 Creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
 }
 \details{
-There are two restrictions for use. First, the codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "Y" as Covasim requires a school layer.
+There are three restrictions for use. First, the place2 codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "TRUE" as Covasim requires a school layer. Third, the place2 value for people who are not in school, and not in a workplace, must be "Not employed".
 }

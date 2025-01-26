@@ -22,6 +22,7 @@ addind(
   pyrage,
   pyrcount,
   stvarname = "Status",
+  verbose = FALSE,
   userseed = NULL
 )
 }
@@ -60,6 +61,8 @@ addind(
 
 \item{stvarname}{The name of the variable to contain the education status. The output is "Y" for those still in education and "N" for those not in education.}
 
+\item{verbose}{If TRUE, the proportion of students who have left school by age and sex will be printed to the console. Default is FALSE}
+
 \item{userseed}{If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.}
 }
 \value{
@@ -78,5 +81,5 @@ WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear
                   minedage = 5, maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age",
                   lvryear = "YearLeft", lvrcount = "Total", RegionalStructure,
                   pyrsx = "Sex", pyrage = "Age", pyrcount = "Value", stvarname = "Status",
-                  userseed = 4)
+                  verbose = TRUE, userseed = 4)
 }
