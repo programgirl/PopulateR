@@ -93,7 +93,6 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
   #####################################
 
   # dataset names
-  # cat("The children data frame is called", deparse(substitute(adolescents)), "\n")
 
   PeopleDataframe <- as.data.frame(people %>%
                                      rename(IntSex = !! pplsx,
@@ -102,7 +101,6 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
                                      mutate(IntSex = as.character(.data$IntSex),
                                             IntAge = as.integer(.data$IntAge)))
 
-  # cat("PeopleDataframe generated", "\n")
 
   Schooling <- as.data.frame(leavers %>%
                                rename(IntSex = !! lvrsx, IntAge = !! lvrage,
@@ -113,7 +111,6 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
                                       NumLeftSchool = as.integer(.data$NumLeftSchool)) %>%
                                select("IntSex", "IntAge", "Year", "NumLeftSchool"))
 
-  # cat("Schooling dataframe generated", "\n")
 
 
   AgePyramid <- as.data.frame(pyramid %>%
@@ -123,7 +120,6 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
                                        IntAge = as.integer(.data$IntAge)) %>%
                                 select("IntSex", "IntAge", "AllPeople"))
 
-  # print(str(AgePyramid))
 
   # get the original variable names
 
@@ -312,7 +308,7 @@ addind <- function(people, pplid, pplsx, pplage, pplyear, minedage = NULL, maxed
       filter(!!StatusName == "N") %>%
       select(-c(n, !!StatusName))
 
-    cat("The proportion of adolescents who have left school are shown in the table below, by age within sex \n")
+    message("The proportion of adolescents who have left school are shown in the table below, by age within sex \n")
     print(ReportedProps)
 
     # closes  if(verbose == TRUE) {
