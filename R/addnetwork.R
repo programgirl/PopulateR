@@ -98,9 +98,9 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
     netmax[IndexToAdd1] <- OriginalValue + 1
 
     if(verbose == TRUE) {
-      cat("The number of network links must be a factor of 2.", "\n")
-      cat("1 has been added to the network matrix at position", IndexToAdd1, "\n")
-      cat("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
+      message("The number of network links must be a factor of 2.", "\n")
+      message("1 has been added to the network matrix at position", IndexToAdd1, "\n")
+      message("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
 
       # closes if(prsummary == TRUE) {
     }
@@ -124,7 +124,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
                                                        cl=target_clustering,
                                                        max.iters=100)
 
-  # cat("ClusteredNetwork done \n")
 
   igraph::transitivity(ClusteredNetwork)
 
@@ -142,7 +141,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   # can add more than one attribute, see examples here
   # https://rdrr.io/cran/igraph/src/R/attributes.R
 
-  # cat("First reference to network_clustered", "\n")
 
   ClusteredNetwork %>%
     igraph::set_vertex_attr("Age", value=theages[node_to_people])
