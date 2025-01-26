@@ -116,7 +116,6 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
 
    if (is.ordered(people[,wrkhrs]) == TRUE) {
 
-     #  cat("Hours worked is a factor")
 
      HoursLabels <- levels(people[,wrkhrs])
 
