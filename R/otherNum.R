@@ -377,7 +377,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
 
     if(verbose == TRUE) {
-      cat(j, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+      message(j, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
     }
 
     # closes if(!is.null(sdused) == TRUE) {
