@@ -727,16 +727,16 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     if(directxi > 0) {
 
       ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                                     breaks = bins, plot=FALSE)$counts
+                                     breaks = bins, plot = FALSE)$counts
       log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                               breaks = logBins, plot=FALSE)$counts
+                               breaks = logBins, plot = FALSE)$counts
 
     } else {
 
       ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                                     breaks = bins, plot=FALSE)$counts
+                                     breaks = bins, plot = FALSE)$counts
       log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                               breaks = logBins, plot=FALSE)$counts
+                               breaks = logBins, plot = FALSE)$counts
 
     }
 
@@ -777,16 +777,16 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     if(directxi > 0) {
 
       ObservedAgeDifferences <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                                     breaks = bins, plot=FALSE)$counts
+                                     breaks = bins, plot = FALSE)$counts
       log0ObservedAges <- hist(CurrentAgeMatch$smallAge - CurrentAgeMatch$largeAge,
-                               breaks = logBins, plot=FALSE)$counts
+                               breaks = logBins, plot = FALSE)$counts
 
     } else {
 
       ObservedAgeDifferences <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                                     breaks = bins, plot=FALSE)$counts
+                                     breaks = bins, plot = FALSE)$counts
       log0ObservedAges <- hist(CurrentAgeMatch$largeAge - CurrentAgeMatch$smallAge,
-                               breaks = logBins, plot=FALSE)$counts
+                               breaks = logBins, plot = FALSE)$counts
 
     }
 
@@ -964,11 +964,11 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
         # do chi-squared
         if(directxi > 0) {
 
-          Proplog0 <- hist(PropAgeMatch$smallAge - PropAgeMatch$largeAge, breaks = logBins, plot=FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch$smallAge - PropAgeMatch$largeAge, breaks = logBins, plot = FALSE)$counts
 
         } else {
 
-          Proplog0 <- hist(PropAgeMatch$largeAge - PropAgeMatch$smallAge, breaks = logBins, plot=FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch$largeAge - PropAgeMatch$smallAge, breaks = logBins, plot = FALSE)$counts
 
         }
 
