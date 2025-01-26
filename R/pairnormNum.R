@@ -28,6 +28,7 @@ NULL
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param attempts The maximum number of times largedf will be sampled to draw an age match from the correct distribution, for each observation in the smalldf. The default number of attempts is 10.
 #' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the pairs. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
+#' @param verbose Whether the distribution used, number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The default value is FALSE.
 #'
 #' @return A list of three data frames $Matched contains the data frame of pairs. $Smaller contains the unmatched observations from smalldf. $Larger contains the unmatched observations from largedf.
 #'
@@ -55,7 +56,8 @@ NULL
 
 
 pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NULL, directomega=NULL,
-                         alphaused=0, HHNumVar, userseed=NULL, attempts = 10, numiters=1000000) {
+                        alphaused=0, HHNumVar, userseed=NULL, attempts = 10, numiters=1000000,
+                        verbose = FALSE) {
 
 
   #####################################
@@ -150,8 +152,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
   #####################################
   #####################################
 
-  # print(HHNumVar %in% names(smalldf))
-  # print(HHNumVar %in% names(largedf))
 
   if(HHNumVar %in% names(smalldf)) {
 
@@ -162,7 +162,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     WhereHHID <- "Small"
 
-    # cat("Household ID is in smalldf \n")
 
   } else {
 
@@ -173,7 +172,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     WhereHHID <- "Large"
 
-    # cat("Household ID is in largedf \n")
 
   }
 
@@ -199,14 +197,16 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
   #####################################
   #####################################
 
-  # NumAttempts <- 0
 
   if (alphaused==0) {
 
     #####################################
     # normal distribution
     #####################################
-    cat("Normal distribution was used", "\n")
+
+    if(verbose == TRUE) {
+    message("Normal distribution was used", "\n")
+    }
 
     for(i in 1:nrow(smlRenamed)) {
 
@@ -223,7 +223,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
         # create an age difference based on the distribution
         drawResult <- round(rnorm(1, mean=directxi, sd=directomega),0)
 
-        # NumAttempts <- NumAttempts + 1
 
         # required age of older person
         if(directxi > 0) {
@@ -233,7 +232,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
           # closes if(meanvalue < 0) {
         }
 
-        # cat("Current age is", currentAge, "reqAge is", reqAge, "\n")
 
 
         # generate random sample of people that age from the smalldf
@@ -262,11 +260,9 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
       if(isMatched == "Y") {
 
-        # cat("Is matched \n")
 
         if(WhereHHID == "Small") {
 
-          # cat("HHID in small df \n")
 
           currentHHID <- currentSml$smallHHID
 
@@ -286,8 +282,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
           # closes if(WhereHHID == "Small") {
         } else {
-
-          cat("HHID in large df \n")
 
           matchedSml <- currentSml %>%
             select("smallID")
@@ -379,7 +373,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
           # closes if(meanvalue < 0) {
         }
 
-        # cat("minimum age needed is", minAgeNeeded, "max age is", maxAgeNeeded, "\n")
 
         lrgSubset <- lrgRenamed %>%
           filter(between(.data$largeAge, minAgeNeeded, maxAgeNeeded))
@@ -444,7 +437,9 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     #####################################
     # using the skew normal
 
-    cat("Skew-normal distribution was used", "\n")
+    if(verbose == TRUE) {
+    message("Skew-normal distribution was used", "\n")
+    }
 
     for(i in 1:nrow(smlRenamed)){
 
@@ -461,7 +456,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
         # create an age difference based on the distribution
         drawResult <- round(rsn(1, xi=directxi, omega=directomega, alpha=alphaused),0)
 
-        # NumAttempts <- NumAttempts + 1
 
         # required age of older person
         if(directxi > 0) {
@@ -498,11 +492,9 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
       if(isMatched == "Y") {
 
-        # cat("Is matched \n")
 
         if(WhereHHID == "Small") {
 
-          # cat("HHID in small df \n")
 
           currentHHID <- currentSml$smallHHID
 
@@ -523,7 +515,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
           # closes if(WhereHHID == "Small") {
         } else {
 
-          # cat("HHID in large df \n")
 
           matchedSml <- currentSml %>%
             select("smallID")
@@ -690,9 +681,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
 
 
-
-
-
   #####################################
   #####################################
   # iteration for matching pair ages ends here
@@ -719,33 +707,20 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     min_bin <- round(qnorm(1/100000, mean=directxi, sd=directomega))-0.5
     max_bin <- round(qnorm(1-(1/100000), mean=directxi, sd=directomega))+0.5
 
-    # cat("Error when trying to bin", "\n")
 
     bins <- c(min_bin:max_bin)
-    # cat("The bins are", "\n")
-    # print(bins)
-
-    # cat("Error after making the bins", "\n")
 
     # construct the probabilities for each bin, gives n(bins)-1
     Probabilities <- pnorm(bins[-1], mean=directxi, sd=directomega) -
       pnorm(bins[-length(bins)], mean=directxi, sd=directomega)
-    # cat("The probabilities are", "\n")
-    # print(Probabilities)
+
 
     logProb <- c(log(Probabilities))
     logBins <- c(min_bin:max_bin)
-    # cat("The logProbs are", "\n")
-    # print(logProb)
-    # cat("The logBins are", "\n")
-    # print(logBins)
+
 
     ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-    # cat("The ExpectedAgeProbs are", "\n")
-    # print(ExpectedAgeProbs)
-    # cat("The logEAgeProbs are", "\n")
-    # print(logEAgeProbs)
 
 
     # construct starting set of observed age difference values for iteration
@@ -765,19 +740,12 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     }
 
-    # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
-    # print(ObservedAgeDifferences)
-    # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
-    # print(log0ObservedAges)
 
     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-    cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
-        round(Critical_log_chisq,3), "\n")
 
     #######################################################################################
     # End of second set of chi-squared output addition
@@ -789,33 +757,21 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
     min_bin <- round(qsn(1/100000, xi=directxi, omega=directomega, alpha=alphaused))-0.5
     max_bin <- round(qsn(1-(1/100000), xi=directxi, omega=directomega, alpha=alphaused))+0.5
 
-    # cat("Error when trying to bin", "\n")
-
     bins <- c(min_bin:max_bin)
-    # cat("The bins are", "\n")
-    # print(bins)
 
-    # cat("Error after making the bins", "\n")
 
     # construct the probabilities for each bin, gives n(bins)-1
     Probabilities <- psn(bins[-1], xi=directxi, omega=directomega, alpha=alphaused) -
       psn(bins[-length(bins)], xi=directxi, omega=directomega, alpha=alphaused)
-    # cat("The probabilities are", "\n")
-    # print(Probabilities)
+
 
     logProb <- c(log(Probabilities))
     logBins <- c(min_bin:max_bin)
-    # cat("The logProbs are", "\n")
-    # print(logProb)
-    # cat("The logBins are", "\n")
-    # print(logBins)
+
 
     ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
     logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
-    # cat("The ExpectedAgeProbs are", "\n")
-    # print(ExpectedAgeProbs)
-    # cat("The logEAgeProbs are", "\n")
-    # print(logEAgeProbs)
+
 
     # construct starting set of observed age difference values for iteration
     if(directxi > 0) {
@@ -834,19 +790,12 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     }
 
-    # cat("The ObservedAgeDifferences are", length(ObservedAgeDifferences), "\n")
-    # print(ObservedAgeDifferences)
-    # cat("The log0ObservedAges are", length(log0ObservedAges), "\n")
-    # print(log0ObservedAges)
 
     logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
     log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
-
-    cat("Current chi-squared value is", round(log_chisq,3), "and critical chi-squared value is",
-        round(Critical_log_chisq,3), "\n")
 
     # skew normal distribution part finished
   }
@@ -891,11 +840,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     OutputDataframe <- rbind(FullMatchedSml, FullMatchedLrg)
 
-    # print(NumAttempts)
-
-    cat("The individual dataframes are $Matched, $Smaller, and $Larger", "\n")
-    cat("$Smaller contains unmatched observations from the smaller data frame", "\n")
-    cat("$Larger contains unmatched observations from the larger data frame", "\n")
 
     MatchedIDs <- OutputDataframe %>%
       pull({{lrgidcolName}})
@@ -972,7 +916,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
       for (i in 1:numiters) {
 
-        # print(i)
 
         # randomly choose two pairs
         Pick1 <- sample(nrow(CurrentAgeMatch), 1)
@@ -1017,7 +960,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
         PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
-        # cat("PropAgeMatch done", "\n")
 
         # do chi-squared
         if(directxi > 0) {
@@ -1045,7 +987,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
           logKObservedAges <- ProplogK
           log_chisq <- prop_log_chisq
 
-          # print(prop_log_chisq)
 
         }
 
@@ -1057,7 +998,10 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
         # closes for (i in 1:numiters)
       }
 
-      cat(i, "iterations were used, and the final chi-squared value was", round(log_chisq,3), "\n")
+      if(verbose == TRUE) {
+      message(i, " iterations were used, the critical chi-squared value was ", round(Critical_log_chisq,3),", and the final chi-squared value is ", round(log_chisq,3), "\n")
+      }
+
       # closes if(log_chisq > Critical_log_chisq) {
     }
 
@@ -1126,11 +1070,6 @@ pairnormNum <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi
 
     OutputDataframe <- rbind(FullMatchedSml, FullMatchedLrg)
 
-    # print(NumAttempts)
-
-    cat("The individual dataframes are $Matched, $Smaller, and $Larger", "\n")
-    cat("$Smaller contains unmatched observations from the smaller data frame", "\n")
-    cat("$Larger contains unmatched observations from the larger data frame", "\n")
 
     MatchedIDs <- OutputDataframe %>%
       pull({{lrgidcolName}})
