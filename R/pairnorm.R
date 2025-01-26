@@ -238,7 +238,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   if (alphaused==0) {
 
     if(verbose == TRUE) {
-    cat("Normal distribution was used", "\n")
+    message("Normal distribution was used", "\n")
     }
 
     min_bin <- round(qnorm(1/100000, mean=directxi, sd=directomega))-0.5
@@ -265,7 +265,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   } else {
 
     if(verbose == TRUE) {
-    cat("Skew-normal distribution has been used", "\n")
+    message("Skew-normal distribution has been used", "\n")
     }
 
     min_bin <- round(sn::qsn(1/100000,xi=directxi, omega=directomega, alpha=alphaused))-0.5
@@ -397,7 +397,7 @@ pairnorm <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, directxi=NU
   }
 
   if(verbose == TRUE) {
-  cat(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+  message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
   }
 
   #####################################
