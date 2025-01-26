@@ -544,7 +544,7 @@ pairbeta4 <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA = N
   }
 
     if(verbose == TRUE) {
-      cat(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+      message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
     }
 
     # closes if(log_chisq > Critical_log_chisq) {
