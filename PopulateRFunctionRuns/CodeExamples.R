@@ -25,7 +25,7 @@ library("dplyr")
 WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018, minedage = 5,
                   maxedage = 18, LeftSchool, lvrsx = "Sex", lvrage = "Age", lvryear = "YearLeft",
                   lvrcount = "Total", RegionalStructure, pyrsx = "Sex", pyrage = "Age", pyrcount = "Value",
-                  stvarname = "Status", userseed = 4)
+                  stvarname = "Status", prsummary = TRUE, userseed = 4)
 
 
 
@@ -41,7 +41,7 @@ NetworksMadeN <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
                             probsame = .5, userseed=4, numiters = 10)
 
 NetworksMadeY <- addnetwork(Ppl4networks, "ID", "Age", NetworkMatrix, sdused=2,
-                            probsame = .5, userseed=4, numiters = 10, usematrix = "Y")
+                            probsame = .5, userseed=4, numiters = 10, usematrix = TRUE)
 
 # smaller examples for the article
 
@@ -53,7 +53,7 @@ SmallDemo <- Township %>%
 Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 
 NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
-                            probsame = .5, userseed=4, numiters = 10, usematrix = "N")
+                            probsame = .5, userseed=4, numiters = 10)
 
 plot(NetworkSmallN)
 
@@ -274,7 +274,7 @@ library("dplyr")
 
 # creating three-person households toy example with few iterations
 NewHouseholds <- other(AdultsNoID, pplid = "ID", pplage = "Age", numppl = 3, sdused = 3, HHStartNum = 1,
-                       HHNumVar = "Household", userseed=4, ptostop = .05, numiters = 500)
+                       HHNumVar = "Household", userseed=4, ptostop = .05, numiters = 500, verbose = TRUE)
 
 PeopleInHouseholds <- NewHouseholds$Matched
 PeopleNot <- NewHouseholds$Unmatched      # 2213 not divisible by 3
@@ -568,9 +568,10 @@ Couples1 <- OppSexCouples1$Matched
 
 # repeat first example using a skew normal distribution
 # doesn't converge but pairs still output
+# not used in examples
 OppSexCouples2 <- pairnorm(PartneredFemales1, smlid = "ID", smlage = "Age", PartneredMales1, lrgid = "ID",
                            lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
-                           HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
+                           HHNumVar = "HouseholdID", userseed = 4, ptostop=.01, numiters = 10000, verbose = TRUE)
 
 Couples2 <- OppSexCouples2$Matched
 

@@ -738,7 +738,7 @@ devtools::build_readme()
 
 usethis::use_cran_comments()
 
-usethis::use_release_issue("1.12")
+usethis::use_release_issue("1.13")
 
 urlchecker::url_check()
 
