@@ -525,6 +525,9 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA 
 
     Critical_log_chisq <- log(qchisq(0.01, df=(length(logEAgeProbs-1)), lower.tail = TRUE))
 
+    if(verbose == TRUE) {
+      message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+    }
 
   #######################################################################################
   # End of second set of chi-squared output addition
@@ -538,10 +541,6 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA 
   #######################################################################################
 
   if(log_chisq <= Critical_log_chisq) {
-
-    if(verbose == TRUE) {
-      message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
-    }
 
   #######################################################################################
   #######################################################################################
@@ -691,11 +690,11 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA 
         # do chi-squared
         if(shapeA < 0) {
 
-          Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,4], breaks = logBins, plot = FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,4], breaks = logBins, plot=FALSE)$counts
 
         } else {
 
-          Proplog0 <- hist(PropAgeMatch[,4] - PropAgeMatch[,2], breaks = logBins, plot = FALSE)$counts
+          Proplog0 <- hist(PropAgeMatch[,4] - PropAgeMatch[,2], breaks = logBins, plot=FALSE)$counts
 
           # closes if(shapeA < 0) {
         }
@@ -726,12 +725,11 @@ pairbeta4Num <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, shapeA 
         # closes for (i in 1:numiters)
       }
 
+      if(verbose == TRUE) {
+        message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
+      }
 
       # closes if(log_chisq > Critical_log_chisq) {
-    }
-
-    if(verbose == TRUE & log_chisq <= Critical_log_chisq) {
-      message(i, "iterations were used, the critical chi-squared value was", round(Critical_log_chisq,3),", and the final chi-squared value is", round(log_chisq,3), "\n")
     }
 
 
