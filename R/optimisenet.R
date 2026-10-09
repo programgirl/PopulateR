@@ -3,7 +3,7 @@
 #' @importFrom utils head tail
 NULL
 
-#' Modify an igraph object to meet the required tolerance for transitivity
+#' Modify an undirected igraph object to meet the required tolerance for transitivity
 #'
 #'The transitivity of an igraph is the probability that three people are completely connected. In social terms, this is whether the friend of a friend is also my friend. If A is connected to B, and B is connected to C, this is the probability of whether C is also connected to A, creating a triangle
 #'
@@ -46,6 +46,10 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   if(!igraph::is_igraph(currentnet)) {
     stop("The data is not in igraph format")
+  }
+
+  if (igraph::is_directed(currentnet)) {
+    stop("The network must be undirected.")
   }
 
   if (!(tolerance > 0)) {
