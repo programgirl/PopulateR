@@ -44,6 +44,10 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   withr::local_options(dplyr.summarise.inform = FALSE)
 
+  ###################################################################
+  # data checking
+  ###################################################################
+
   if(!igraph::is_igraph(currentnet)) {
     stop("The data is not in igraph format")
   }
@@ -59,14 +63,26 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
   if(probsame - tolerance < 0 | probsame + tolerance > 1) {
     stop("Tolerance range is outside 0 to 1")
   }
-  #
-  #
-  # #####################################
-  # #####################################
-  # # get column names as symbols to use inside data frame subfunctions
-  # #####################################
-  # #####################################
-  #
+
+
+  ###################################################################
+  # setup for improvement
+  ###################################################################
+
+  mintarget <- probsame - tolerance
+  maxtarget <- probsame + tolerance
+
+  current_clustering <- igraph::transitivity(currentnet)
+
+  cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
+      current_clustering, "\n")
+
+  if(current_clustering < mintarget | current_clustering > maxtarget) {
+
+    cat("Entered loop")
+  }
+
+
   # # smalldf ID variable
   # pplsidcolName <- sym(names(people[pplid]))
   # # smalldf age variable
