@@ -8,6 +8,8 @@ NULL
 #'
 #' Creates social networks between people, based on age differences. A data frame of people with ages is required. These are the people who will have social relationships between each other. A a 1x n matrix of counts must also be supplied, where n is the number of rows in the people data frame. As person-to-person pairs are constructed, the sum of the matrix counts must be even. If it is not, the function will randomly select one person's social network size from the matrix and add 1 to it. If this correction happens, an explanation, including the index position of the count, will be printed to the console.
 #'
+#' While the probsame value is the target proportion of possible closed networks in the population, it is unlikely that this value is met. The tolerance value provides an acceptance range for the transitivity of the network, calculated as probsame +/- tolerance. The tolerance value must be > 0, so a range is created.
+#'
 #' A normal distribution is used, using the age differences between the pairs. This is centred on 0, i.e. the people in the pair are the same age. If people B and C are in person A's network, the value of probsame is used to determine the likelihood that people B and C know each other. The larger this probability, the more likely that people in one person's network know each other, compared to random construction of a network between them.
 #'
 #' The two options for output are a dgCMatrix or an igraph. The dgCMatrix is output as n x n. For a large data frame of people, this will be a large and sparse matrix, which may not be completed due to RAM limitations. The igraph output only contains the pairs, and should be a smaller object compared to the dgCMatrix.
@@ -19,6 +21,7 @@ NULL
 #' @param netmax A data frame containing the 1-dimensional matrix of network sizes. Must contain only integers and be the same length as the people data frame.
 #' @param sdused The standard deviation for the age differences between two people.
 #' @param probsame The probability that a friend of a friend is also a friend. For example, if A and B and friends, and B and C are friends, this is the probability that C is also a friend of A.
+#' @param tolerance The tolerance value for accepting the probsame result. The default is 0.05.
 #' @param userseed The user-defined seed for reproducibility. If left blank, the normal set.seed() function will be used.
 #' @param numiters The maximum number of iterations used to construct the coupled data frame. This has a default value of 100, and is the stopping rule if the algorithm does not converge.
 #' @param usematrix If an adjacency matrix is output instead of an igraph object. Default is FALSE so an igraph object is output. If TRUE is used, the n x n dgCMatrix is output.
@@ -41,7 +44,7 @@ NULL
 #'  # plot(NetworkSmallN)
 
 
-addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, userseed=NULL,
+addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, tolerance = 0.05, userseed=NULL,
                    numiters=1000000, usematrix = FALSE, verbose = FALSE) {
 
   withr::local_options(dplyr.summarise.inform = FALSE)
@@ -60,6 +63,10 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   if (!(is.integer(netmax))) {
     stop("The network matrix must only contain integers.")
+  }
+
+  if (!(tolerance > 0)) {
+    stop("The tolerance must be greater than zero.")
   }
 
 
@@ -117,6 +124,10 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
   current_clustering <- igraph::transitivity(WiredNetwork)
 
   target_clustering <- probsame # P(triads | length 3 path)
+
+  print(current_clustering)
+  cat(sprintf("%.10f", igraph::transitivity(WiredNetwork)))
+  return(WiredNetwork)
 
   # # https://github.com/cwatson/brainGraph/pull/26
   # ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
