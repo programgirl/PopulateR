@@ -118,11 +118,11 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, u
 
   target_clustering <- probsame # P(triads | length 3 path)
 
-  # https://github.com/cwatson/brainGraph/pull/26
-  ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
-                                                       rewire.iters=0,
-                                                       cl=target_clustering,
-                                                       max.iters=100)
+  # # https://github.com/cwatson/brainGraph/pull/26
+  # ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
+  #                                                      rewire.iters=0,
+  #                                                      cl=target_clustering,
+  #                                                      max.iters=100)
 
 
   igraph::transitivity(ClusteredNetwork)
