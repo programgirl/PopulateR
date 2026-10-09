@@ -44,25 +44,17 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   withr::local_options(dplyr.summarise.inform = FALSE)
 
-  # if(!pplid %in% names(people)) {
-  #   stop("The ID variable in the people data frame does not exist.")
-  # }
-  #
-  # if (!pplage %in% names(people)) {
-  #   stop("The age variable in the people data frame does not exist.")
-  # }
-  #
-  # if (!(length(netmax) == nrow(people))) {
-  #   stop("The network matrix must be the same length as the number of rows in the people data frame.")
-  # }
-  #
-  # if (!(is.integer(netmax))) {
-  #   stop("The network matrix must only contain integers.")
-  # }
-  #
-  # if (!(tolerance > 0)) {
-  #   stop("The tolerance must be greater than zero.")
-  # }
+  if(!igraph::is_igraph(currentnet)) {
+    stop("The data is not in igraph format")
+  }
+
+  if (!(tolerance > 0)) {
+    stop("The tolerance must be greater than zero.")
+  }
+
+  if(probsame - tolerance < 0 | probsame + tolerance > 1) {
+    stop("Tolerance range is outside 0 to 1")
+  }
   #
   #
   # #####################################
@@ -264,6 +256,5 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
   #   return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
   }
 
-}
 
 

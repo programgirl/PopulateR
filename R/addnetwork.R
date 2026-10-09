@@ -69,6 +69,10 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, t
     stop("The tolerance must be greater than zero.")
   }
 
+  if(probsame - tolerance < 0 | probsame + tolerance > 1) {
+    stop("Tolerance range is outside 0 to 1")
+  }
+
 
   #####################################
   #####################################
