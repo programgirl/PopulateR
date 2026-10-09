@@ -4,118 +4,153 @@
 #' @importFrom rlang .data sym !!
 NULL
 
-#' Creates the four data frames of weighted contact pairs for use in Covasim
+#' Creates the four data frames of weighted contact pairs for use in Covasim, plus age and ID matching data frames.
 #'
-#' Creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. A 1xn data frame of ages is also created.
-#'
-#' There are three restrictions for use. First, the place2 codes for preschool, primary school, and secondary school must be set to "P801000", "P802100", and "P802200", respectively. Second, at least one school type must be "TRUE" as Covasim requires a school layer. Third, the place2 value for people who are not in school, and not in a workplace, must be "Not employed".
+#' Creates the household, school, workplace, and contacts layers, from ABMPop, for use with the Python package Covasim. This function can be used with other data frames, as long as the following requirements are met: a single variable of unique IDs, a variable for age, a variable for sex, a single variable for household ID, a single variable for the second location of people and an associated variable that indicates whether the second location is a workplace or school. For people who stay in the household, the second location must be their household ID and the associated placetype must be "H". These people will only appear in the workplaces layer if at least one other person is household-bound.
+#' 
+#' A 1xn data frame of ages, and a 1xn data frame of sexes, is also created. The household, school, and workplace layers are identified using the placetype variable. As Covasim requires sequential numbering of people from 0 to max-1, the function will produce the corrected ID numbers.
 #'
 #'
 #' @export
 #' @param ABMPop The agent-based modelling data frame.
 #' @param ABMID The variable containing the unique identifier for each person, in the ABMPop data frame.
 #' @param ABMAge The variable containing the ages, in the in the ABMPop data frame.
+#' @param ABMSex The variable containing the sexes, in the ABMPop data frame. This must be in the format where females have the value 0, "F", or "Female" and males have the value "1", "M", or "Male".
 #' @param place1 The variable containing the Household ID.
-#' @param place2 The variable containing the school and workplace IDs.
-#' @param ECE Are ECE centres open? Default is TRUE, change to FALSE if ECEs are to close.
-#' @param PSchool Are primary schools open? Default is TRUE, change to FALSE if primary schools are to close.
-#' @param SSchool Are secondary schools open? Default is TRUE, change to FALSE if secondary schools are to close.
+#' @param place2 The variable containing the school and workplace codes.
+#' @param placetype The variable defining the layer that the place2 variable represents. Valid values are "H" (person remains in the household, e.g. person is not employed), "S" (child at school or school staff member), "W" (employed person), "R" (rest home resident, if identified separately to rest home staff). "W" and "R" are used to construct the workplace layer. 
 #' @param contacts A data frame consisting of existing contact pairs. The first two variables define the two people in the pair.
-#' @param excludeDF A data frame of industries to exclude. This must be the relevant IndNum variable in the ABMPop data frame. If this data frame is not included, all industries will be represented in the output data frame.
+#' @param agebyID if TRUE, the function will output a data frame of the age for each of the new IDs. This is not used in Covasim, which requires a file that only contains age.The default value is FALSE.
 
-#' @return A data frame of the household, school, workplace, contact layers, and people's ages, for use in Covasim.
+#' @return A data frame of the household, school, workplace, contact layers, people's ages, people's sexes, and a data frame of original versus corrected IDs, for use in Covasim.
 #'
 #'
-ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool = TRUE, SSchool = TRUE, contacts = NULL,
-                      excludeDF = NULL) {
+ABMToCova <- function(ABMPop, ABMID, ABMAge, ABMSex, place1, place2, placetype, contacts = NULL, agebyID = FALSE) {
 
   IDcolName <- sym(names(ABMPop[ABMID]))
   AgeColName <- sym(names(ABMPop[ABMAge]))
+  SexColName <- sym(names(ABMPop[ABMSex]))
   HouseholdIDcolName <- sym(names(ABMPop[place1]))
   PlaceTwocolName <- sym(names(ABMPop[place2]))
+  PlaceTypecolName <- sym(names(ABMPop[placetype]))
 
   ABMPop <- ABMPop %>%
     rename(ID = !! IDcolName,
            Age = !! AgeColName,
+           OrigSex = !! SexColName,
            HouseholdID = !! HouseholdIDcolName,
-           PlaceTwo = !! PlaceTwocolName) %>%
-    select(.data$ID, .data$HouseholdID, .data$PlaceTwo, .data$IndCode, .data$IndName, .data$Age)
+           PlaceTwo = !! PlaceTwocolName,
+           PlaceType = !! PlaceTypecolName) %>%
+    mutate(Sex = ifelse(.data$OrigSex %in% c("F", "Female"), 0, 
+                        ifelse(.data$OrigSex %in% c("M", "Male"), 1, .data$OrigSex))) %>%
+    select(.data$ID, .data$HouseholdID, .data$PlaceTwo, .data$PlaceType, .data$Age, .data$Sex)
 
+  if(is.null(contacts)) {
+    
+    stop("A contacts data frame must be supplied.")
 
-  # TODO implement beta other than 1
-  # TODO when beta is implemented, must ensure it is between 0 and 1
-  # if(is.null(betaDF)) {
-   # }
+  }
+  
+  ############################################################################################
+  # Prep for renumbering
+  ############################################################################################
+  
+  # IDs of the people in the contacts data frame
+  
+  IntContactsp1 <- contacts[,1]
+  IntContactsp2 <- contacts[,2]
+  
+  IntContacts <- as.vector(rbind(IntContactsp1, IntContactsp2))
+  IntContacts <- unique(IntContacts)
 
+  
+  # IDs of the people in the household layer, households with > 1 resident
+  
+  HouseholdIDs <- ABMPop %>%
+    select(.data$HouseholdID) %>%
+    group_by(.data$HouseholdID) %>%
+    summarise(NumPeople = n()) %>%
+    filter(.data$NumPeople > 1) %>%
+    left_join(ABMPop, by = "HouseholdID") %>%
+    ungroup() %>%
+    select(.data$ID)
+  
+  HouseholdVector <- pull(HouseholdIDs, .data$ID)
+ 
+  # bind the people in multiple-person households to those with contacts, remove duplicates
+  
+  MergedContacts <- unique(c(IntContacts, HouseholdVector))
+  
+  # finally, get the people who share a second location
+  
+  LocationIDs <- ABMPop %>%
+    select(.data$PlaceTwo, .data$PlaceType) %>%
+    group_by(.data$PlaceTwo, .data$PlaceType) %>%
+    summarise(NumPeople = n()) %>%
+    filter(.data$NumPeople > 1) %>%
+    left_join(ABMPop, by = c("PlaceTwo", "PlaceType")) %>%
+    ungroup() %>%
+    select(.data$ID)
+    
+  LocationVector <- pull(LocationIDs, .data$ID)
+  
+  FinalMergedContacts <- unique(c(MergedContacts, LocationVector))
+  
 
+  
+  
+  
+  
+  
+  ############################################################################################
+  # Delete out people who don't have contacts
+  ############################################################################################
 
+  ABMPop <- ABMPop %>%
+    filter(.data$ID %in% FinalMergedContacts)
+  
+  IDReordering <- ABMPop %>%
+    select(.data$ID) %>%
+    distinct() %>%
+    arrange(.data$ID) %>%
+    mutate(NewID = row_number()-1)
+  
+  ABMPopSeqNumbed <- left_join(ABMPop, IDReordering, by = "ID")
+
+  ABMPop <- ABMPopSeqNumbed %>%
+    select(- .data$ID) %>%
+    rename(ID = .data$NewID)
 
   ############################################################################################
   # Household Layer
   ############################################################################################
 
-  h1 <- full_join(ABMPop, ABMPop, by = "HouseholdID", relationship = "many-to-many") %>%
+  h <- full_join(ABMPop, ABMPop, by = "HouseholdID", relationship = "many-to-many") %>%
     rename(p1 = .data$ID.x,
            p2 = .data$ID.y) %>%
     filter(.data$p1 != .data$p2) %>%
     group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
-    select(.data$p1, .data$p2)
-
-  h <- h1 %>%
+    select(c(.data$p1, .data$p2)) %>%
     mutate(beta=1)
-
-
 
 
   ############################################################################################
   # School Layer
   ############################################################################################
 
-  SchoolLayer <- ABMPop %>%
-    filter(.data$IndCode %in% c("P801000", "P802100", "P802200"))
-
-  if(ECE == FALSE & PSchool == FALSE & SSchool == FALSE) {
-
-    stop("All three school types are set to FALSE. A school layer must be output. \n")
-  }
-
-  if(ECE == FALSE | PSchool == FALSE | SSchool == FALSE) {
-
-    warning("At least one educational type is being excluded. \n")
+  s1 <- ABMPop %>%
+    filter(.data$PlaceType == "S")
 
 
-
-    # remove ECE
-    if(ECE == FALSE) {
-      SchoolLayer <- SchoolLayer %>%
-        filter(! .data$IndCode == "P801000")
-    }
-
-    # remove primary schools
-    if(PSchool == FALSE) {
-      SchoolLayer <- SchoolLayer %>%
-        filter(! .data$IndCode == "P802100")
-    }
-
-    # remove secondary schools
-    if(SSchool == FALSE) {
-      SchoolLayer <- SchoolLayer %>%
-        filter(! .data$IndCode == "P802200")
-      }
-
-  }
-
-  if(nrow(SchoolLayer) == 0) {
+  if(nrow(s1) == 0) {
 
     stop("There must be a school layer \n")
 
   }
 
-    Layer2 <- SchoolLayer
-
-    s <- full_join(SchoolLayer, Layer2, by = "PlaceTwo", relationship = "many-to-many") %>%
+    s <- full_join(s1, s1, by = "PlaceTwo", relationship = "many-to-many") %>%
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
@@ -126,76 +161,112 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
       select(- .data$grp) %>%
       mutate(beta = 1)
 
-
-
   ############################################################################################
   # Workplace Layer
   ############################################################################################
 
-  if(is.null(excludeDF)) {
-
-    # if there are no industries to exclude, make all the contacts
-
+    # workers
   w1 <- ABMPop %>%
-    filter(! .data$IndCode %in% c("P801000", "P802100", "P802200", "Not employed"))
+    filter(.data$PlaceType %in% c("W", "R"))
+
+    if(nrow(w1) == 0) {
+
+      stop("There must be a workplace layer \n")
+
+    }
 
   w2 <- full_join(w1, w1, by = "PlaceTwo", relationship = "many-to-many") %>%
     filter(.data$ID.x != .data$ID.y) %>%
     rename(p1 = .data$ID.x,
            p2 = .data$ID.y) %>%
-    select(.data$p1, .data$p2) %>%
+    select(c(.data$p1, .data$p2)) %>%
     group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
     slice(1) %>%
     ungroup() %>%
     select(- .data$grp)
 
-  w <- w2 %>%
+  workers <- w2 %>%
     mutate(beta=1)
 
 
-  } else {
+  # those at home, code == "H"
 
-    # there are industries to exclude, remove them from the population
+  hw1 <- ABMPop %>%
+    filter(.data$PlaceType %in% c("H"))
 
-    w1 <- ABMPop %>%
-      filter(! .data$IndCode %in% c("P801000", "P802100", "P802200", "Not employed")) %>%
-      filter(! .data$IndCode %in% excludeDF[,1])
+  if(nrow(hw1) > 1) {
 
-    w2 <- full_join(w1, w1, by = "PlaceTwo", relationship = "many-to-many") %>%
+    hw2 <- full_join(hw1, hw1, by = "PlaceTwo", relationship = "many-to-many") %>%
       filter(.data$ID.x != .data$ID.y) %>%
       rename(p1 = .data$ID.x,
              p2 = .data$ID.y) %>%
-      select(.data$p1, .data$p2) %>%
+      select(c(.data$p1, .data$p2)) %>%
       group_by(grp = paste(pmax(.data$p1, .data$p2), pmin(.data$p1, .data$p2), sep = "_")) %>%
       slice(1) %>%
       ungroup() %>%
       select(- .data$grp)
 
-    w <- w2 %>%
-      mutate(beta = 1)
+    if(nrow(hw2) > 0)
+    homers <- hw2 %>%
+      mutate(beta=1)
 
+    w <- bind_rows(workers, homers)
+
+  } else {
+
+    w <- workers
   }
-
 
   ############################################################################################
   # Contacts Layer
   ############################################################################################
 
-  c1 <- contacts %>%
-    rename(p1 = .data$from,
-           p2 = .data$to)
+  communitycol1 <- contacts %>%
+    select(.data$from) %>%
+    left_join(IDReordering, by = c("from" = "ID")) %>%
+    distinct()
 
-  c <- c1 %>%
+  communitycol2 <- contacts %>%
+    select(.data$to) %>%
+    left_join(IDReordering, by = c("to" = "ID")) %>%
+    distinct()
+
+  c = left_join(contacts, communitycol1, by = "from") %>%
+   left_join(communitycol2, by = "to") %>%
+    select(c(.data$NewID.x, .data$NewID.y)) %>%
+    rename(p1 = .data$NewID.x,
+           p2 = .data$NewID.y) %>%
     mutate(beta=1)
 
   ############################################################################################
   # Age per person
   # needs to be sorted by ID
   ############################################################################################
-
+  
   age <- ABMPop %>%
+   arrange(.data$ID) %>%
+   distinct(.data$ID,.data$Age) %>%
+   select(.data$Age)
+  
+  if(agebyID == TRUE) {
+    
+    agebyID <- ABMPop %>%
+      arrange(.data$ID) %>%
+      distinct(.data$ID,.data$Age)
+  }
+
+  
+  ############################################################################################
+  # Sex per person
+  # needs to be sorted by ID
+  ############################################################################################
+  
+  sex <- ABMPop %>%
     arrange(.data$ID) %>%
-    select(.data$Age)
+    distinct(.data$ID,.data$Sex) %>%
+    select(.data$Sex)
+
+
 
   OutputDataFrame <- list()
   OutputDataFrame$h <- h
@@ -203,6 +274,12 @@ ABMToCova <- function(ABMPop, ABMID, ABMAge, place1, place2, ECE = TRUE, PSchool
   OutputDataFrame$w <- w
   OutputDataFrame$c <- c
   OutputDataFrame$age <- age
+  OutputDataFrame$sex <- sex
+  OutputDataFrame$Renumbering <- IDReordering
+  
+  if(exists("agebyID")) {
+    OutputDataFrame$agebyID <- agebyID
+  }
 
   return(OutputDataFrame)
   # closes function

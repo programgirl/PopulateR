@@ -95,9 +95,14 @@ addemp <- function(employers, empid, empcount, people, pplid, wrkhrs, hoursmin, 
   if (nrow(employersRenamed) < nrow(workersWorking)) {
 
     stop("The number of employed people in the people data frame exceeds the number of staff in the employer population by",
-         nrow(employersRenamed) - nrow(workersWorking), "people \n")
+         nrow(workersWorking) - nrow(employersRenamed), "people \n")
 
   }
+
+   # seed must come before first sample is cut
+   if (!is.null(userseed)) {
+     set.seed(userseed)
+   }
 
    # shuffle the rows of the employer data frame
 
