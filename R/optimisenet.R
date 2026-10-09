@@ -77,21 +77,76 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
   cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
       current_clustering, "\n")
 
-  if(current_clustering < mintarget | current_clustering > maxtarget) {
+  if(current_clustering < mintarget || current_clustering > maxtarget) {
 
-    cat("Entered loop")
+    cat("Entered loop as number of triangles not in range", "\n")
 
-    for(i in 1:numiters) {
+    # may need to decrease the number of triangles or increase the number of triangles
+    # need to do each type of operation separately as the fix is the opposite
+
+    ###################################################################
+    # increase number of triangles
+    ###################################################################
+    if(current_clustering < mintarget) {
+
+      for(i in 1:numiters) {
+
+        cat("Entered too few triangles loop", "\n")
+
+        new_transitivity <- igraph::transitivity(currentnet)
+
+        cat("New transitivity is", new_transitivity, "\n")
+
+        return()
+
+
+        if (new_clustering >= mintarget && new_clustering <= maxtarget) {
+          break
+        }
+
+        # closes for(i in 1:numiters) {
+      }
+
+      # closes if(current_clustering < mintarget) {
+    }
+
+
+
+    ###################################################################
+    # decrease number of triangles
+    ###################################################################
+    if(current_clustering > maxtarget) {
+
+
+    for(j in 1:numiters) {
       #ensure that there is no endless loop
 
+      newnet <- igraph::rewire(
+        currentnet,
+        with = igraph::keeping_degseq(niter = 100)
+      )
+
+      new_transitivity <- igraph::transitivity(currentnet)
+
+      cat("New transitivity is", new_transitivity, "\n")
+
+      return()
 
 
-      i = i + 1
-      # ends for(i in 1:numiters) {
+      if (new_clustering >= mintarget && new_clustering <= maxtarget) {
+        break
+      }
+
+      # ends for(j in 1:numiters) {
+    }
+
+      # ends if(current_clustering > maxtarget) {
     }
 
     # ends if(current_clustering < mintarget | current_clustering > maxtarget) {
   }
+
+
 
   #   return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
   }
