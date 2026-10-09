@@ -6,7 +6,7 @@ NULL
 
 #' Add a variable indicating whether the person is in education, or has left education
 #'
-#' Creates a data frame with a variable indicating whether the person is a student, or is not in education. This is an factor with two levels. Pre-cleaning so that only people inside the student age range is not required.
+#' Creates a data frame with a variable indicating whether the person is a student, or is not in education.If ages exist where only some people are in school, a probability-based method is needed to assign the indicator value This is a factor with two levels. Pre-cleaning so that only people inside the student age range is not required.
 #' Three data frames are required. The first is the data frame that contains the people ("people") to whom the indicator will be applied. The other two data frames are counts: school leaver counts ("leavers"), and the sex/age pyramid counts ("pyramid") that apply to the school leaver counts. As cumulative proportions of school leavers are calculated, the leavers data frames must contain multiple years of data. For example, if the minimum school leaving age is 17 and the maximum age is 18, then there must be two years of data in the leavers data frame. The pyramid data frame contains the sex/age counts for the relevant year. For example, if the people data frame is based on 2021 data frame, then the pyramid data frame should be the counts for 2021, and the value for pplyear would be 2021.
 #' The variables specifying sex can be numeric, character, or factor. The sole requirement is that the same code is used in all three data frames. For example, if "F" and "M" are used in the adolescents data frame to denote sex, then "F" and "M" are the codes required in both the leavers and pyramid data frames. Any number of values can be used, so long as they are unique.
 #'
@@ -21,7 +21,7 @@ NULL
 #' @param maxedage The maximum age that a person, normally an adolescent, can leave education.
 #' @param leavers A data frame containing the counts, by sex, age, and year, of the people who have left education.
 #' @param lvrsx The variable containing the codes for sex, in the leavers data.
-#' @param lvrage The variable containing the codes for sex, in the leavers data.
+#' @param lvrage The variable containing the codes for age, in the leavers data.
 #' @param lvryear The variable containing the year for the lvrcount.
 #' @param lvrcount The variable containing the counts for each sex/age combination in the leavers data.
 #' @param pyramid A data frame containing the sex/age pyramid to be used.
@@ -32,7 +32,7 @@ NULL
 #' @param verbose If TRUE, the proportion of students who have left school by age and sex will be printed to the console. Default is FALSE
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #'
-#' @return A data frame of an observations, with an added column that contains the education status of each person.
+#' @return A data frame of observations, with an added column that contains the education status of each person.
 #'
 #' @examples
 #' WithInd <- addind(Township, pplid = "ID", pplsx = "Sex", pplage = "Age", pplyear = 2018,
