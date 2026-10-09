@@ -102,7 +102,34 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         cat("Entered too few triangles loop", "\n")
 
-        new_transitivity <- igraph::transitivity(currentnet)
+        degrees <- igraph::degree(currentnet)
+
+        candidates <- which(degrees >= 2)
+
+        eligiblenodes <- candidates[
+          vapply(candidates, function(v) {
+            neighbours <- igraph::neighbors(currentnet, v)
+            sum(degrees[as.integer(neighbours)] >= 2) >= 2
+          }, logical(1))
+        ]
+
+        weights <- choose(degrees[eligiblenodes], 2)
+
+        numswaps <- round(((mintriangles+maxtriangles)/2)*.1, 0)
+
+          cat("numswaps is", numswaps, "\n")
+
+        selectednodes <- sample(
+          eligiblenodes,
+          size = min(numswaps, length(eligiblenodes)),
+          replace = FALSE,
+          prob = weights
+        )
+
+
+        return(selectednodes)
+
+        new_clustering <- igraph::transitivity(newnet)
 
         cat("New transitivity is", new_transitivity, "\n")
 
