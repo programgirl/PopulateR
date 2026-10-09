@@ -79,6 +79,15 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   if(current_clustering < mintarget || current_clustering > maxtarget) {
 
+    degrees <- igraph::degree(currentnet)
+    triples <- sum(degrees * (degrees - 1) / 2)
+
+    mintriangles <- ceiling(mintarget * triples / 3)
+    maxtriangles <- floor(maxtarget * triples / 3)
+
+    cat("triples equals", triples, "mintriangles equals", mintriangles,
+        "maxtriangles equals", maxtriangles, "\n")
+
     cat("Entered loop as number of triangles not in range", "\n")
 
     # may need to decrease the number of triangles or increase the number of triangles
