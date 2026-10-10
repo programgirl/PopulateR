@@ -77,9 +77,13 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
   current_clustering <- igraph::transitivity(currentnet)
 
   # cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
-      current_clustering, "\n")
+      # current_clustering, "\n")
 
   if(current_clustering < mintarget || current_clustering > maxtarget) {
+
+    if (!is.null(userseed)) {
+      set.seed(userseed)
+    }
 
     degrees <- igraph::degree(currentnet)
     triples <- sum(degrees * (degrees - 1) / 2)
@@ -87,7 +91,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     mintriangles <- ceiling(mintarget * triples / 3)
     maxtriangles <- floor(maxtarget * triples / 3)
 
-    cat("triples equals", triples, "mintriangles equals", mintriangles,
+    # cat("triples equals", triples, "mintriangles equals", mintriangles,
         # "maxtriangles equals", maxtriangles, "\n")
 
     # cat("Entered loop as number of triangles not in range", "\n")
@@ -141,6 +145,15 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         # attached nodes with at least two edges
         if (length(attachednodes) >= 2) {
           # Continue identifying possible connections
+
+          cat("At least two nodes with one or more additional edges \n")
+
+          connections <- lapply(attachednodes, function(node) {
+            setdiff(
+              as.integer(igraph::neighbors(newnet, node)),
+              selectednode
+            )
+          })
 
 
           # closes if (length(attachednodes) >= 2) {
