@@ -69,6 +69,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
   # setup for improvement
   ###################################################################
 
+  newnet <- currentnet
+
   mintarget <- probsame - tolerance
   maxtarget <- probsame + tolerance
 
@@ -102,13 +104,13 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         cat("Entered too few triangles loop", "\n")
 
-        degrees <- igraph::degree(currentnet)
+        degrees <- igraph::degree(newnet)
 
         candidates <- which(degrees >= 2)
 
         eligiblenodes <- candidates[
           vapply(candidates, function(v) {
-            neighbours <- igraph::neighbors(currentnet, v)
+            neighbours <- igraph::neighbors(newnet, v)
             sum(degrees[as.integer(neighbours)] >= 2) >= 2
           }, logical(1))
         ]
@@ -121,12 +123,22 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           for(j in 1:numswaps) {
 
+            # select the node which will be used for the basis of the new triangle
         selectednode <- sample(
           eligiblenodes,
           size = 1,
           prob = weights)
 
-        return(selectednodes)
+        # the attached nodes, will attempt to join two to create a triangle
+        attachednodes <- as.integer(igraph::neighbors(newnet, selectednode))
+
+        # retain only the attached nodes with at least two edges
+        attachednodes <- attachednodes[
+          igraph::degree(newnet, v = attachednodes) >= 2
+        ]
+
+
+        return(attachednodes)
 
 
 
