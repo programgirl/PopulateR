@@ -168,8 +168,20 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           # select new edge to swap in
           if (length(remaining_attachednodes) >= 2) {
-            # Continue selecting the pair
 
+            # Randomly select two nodes attached to the central node
+            selected_pair <- sample(seq_along(remaining_attachednodes), 2)
+
+            attached1 <- remaining_attachednodes[selected_pair[1]]
+            attached2 <- remaining_attachednodes[selected_pair[2]]
+
+            # Randomly select one connection from each
+
+            connected1 <- connections[[selected_pair[1]]][sample.int(length(remaining_connections[[selected_pair[1]]]), 1)]
+            connected2 <- connections[[selected_pair[2]]][sample.int(length(remaining_connections[[selected_pair[2]]]), 1)]
+
+            cat("attached1 is", attached1, "attached 2 is", attached2,
+                "connected1 is", connected1, "connected2 is", connected2)
 
             # closes if (length(remaining_attachednodes) >= 2) {
           }
