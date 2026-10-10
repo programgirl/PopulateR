@@ -76,7 +76,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   current_clustering <- igraph::transitivity(currentnet)
 
-  cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
+  # cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
       current_clustering, "\n")
 
   if(current_clustering < mintarget || current_clustering > maxtarget) {
@@ -88,9 +88,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     maxtriangles <- floor(maxtarget * triples / 3)
 
     cat("triples equals", triples, "mintriangles equals", mintriangles,
-        "maxtriangles equals", maxtriangles, "\n")
+        # "maxtriangles equals", maxtriangles, "\n")
 
-    cat("Entered loop as number of triangles not in range", "\n")
+    # cat("Entered loop as number of triangles not in range", "\n")
 
     # may need to decrease the number of triangles or increase the number of triangles
     # need to do each type of operation separately as the fix is the opposite
@@ -102,7 +102,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       for(i in 1:numiters) {
 
-        cat("Entered too few triangles loop", "\n")
+        # cat("Entered too few triangles loop", "\n")
 
         degrees <- igraph::degree(newnet)
 
@@ -136,6 +136,15 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         attachednodes <- attachednodes[
           igraph::degree(newnet, v = attachednodes) >= 2
         ]
+
+        # only proceed to attempt to create a triangle if there is at least two
+        # attached nodes with at least two edges
+        if (length(attachednodes) >= 2) {
+          # Continue identifying possible connections
+
+
+          # closes if (length(attachednodes) >= 2) {
+        }
 
 
         return(attachednodes)
