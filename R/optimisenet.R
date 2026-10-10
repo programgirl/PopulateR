@@ -115,29 +115,39 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         weights <- choose(degrees[eligiblenodes], 2)
 
-        numswaps <- round(((mintriangles+maxtriangles)/2)*.1, 0)
+        numswaps <- round(((mintriangles+maxtriangles)/2)*.2, 0)
 
           cat("numswaps is", numswaps, "\n")
 
-        selectednodes <- sample(
-          eligiblenodes,
-          size = min(numswaps, length(eligiblenodes)),
-          replace = FALSE,
-          prob = weights
-        )
+          for(j in 1:numswaps) {
 
+        selectednode <- sample(
+          eligiblenodes,
+          size = 1,
+          prob = weights)
 
         return(selectednodes)
 
-        new_clustering <- igraph::transitivity(newnet)
+
+
+}
+
+        new_transitivity <- igraph::transitivity(newnet)
 
         cat("New transitivity is", new_transitivity, "\n")
+
+        if (new_transitivity >= mintarget &&
+            new_transitivity <= maxtarget) {
+          break
 
         return()
 
 
         if (new_clustering >= mintarget && new_clustering <= maxtarget) {
           break
+        }
+
+        # closes for(i in 1:numiters) {
         }
 
         # closes for(i in 1:numiters) {
