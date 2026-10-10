@@ -155,12 +155,32 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             )
           })
 
+          # remove all edges that already exist
+          connections <- lapply(connections, function(nodes) {
+            setdiff(nodes, attachednodes)
+          })
+
+          valid_connections <- lengths(connections) > 0
+
+          remaining_connections <- connections[valid_connections]
+          remaining_attachednodes <- attachednodes[valid_connections]
+
+
+          # select new edge to swap in
+          if (length(remaining_attachednodes) >= 2) {
+            # Continue selecting the pair
+
+
+            # closes if (length(remaining_attachednodes) >= 2) {
+          }
+
+
 
           # closes if (length(attachednodes) >= 2) {
         }
 
 
-        return(attachednodes)
+        return(remaining_attachednodes)
 
 
 
