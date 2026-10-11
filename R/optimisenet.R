@@ -133,6 +133,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           size = 1,
           prob = weights)
 
+        # return(selectednode)
+
         # the attached nodes, will attempt to join two to create a triangle
         attachednodes <- as.integer(igraph::neighbors(newnet, selectednode))
 
@@ -141,6 +143,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           igraph::degree(newnet, v = attachednodes) >= 2
         ]
 
+        # return(attachednodes)
+
         # only proceed to attempt to create a triangle if there is at least two
         # attached nodes with at least two edges
         if (length(attachednodes) >= 2) {
@@ -148,43 +152,91 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           cat("At least two nodes with one or more additional edges \n")
 
-          connections <- lapply(attachednodes, function(node) {
+          connectednodes <- lapply(attachednodes, function(node) {
             setdiff(
               as.integer(igraph::neighbors(newnet, node)),
               selectednode
             )
           })
 
+          # return(connectednodes)
+
           # remove all edges that already exist
-          connections <- lapply(connections, function(nodes) {
+          connectednodes <- lapply(connectednodes, function(nodes) {
             setdiff(nodes, attachednodes)
           })
 
-          valid_connections <- lengths(connections) > 0
+          # return(connectednodes)
 
-          remaining_connections <- connections[valid_connections]
-          remaining_attachednodes <- attachednodes[valid_connections]
+          valid_connected <- lengths(connectednodes) > 0
 
+          remaining_connected <- connectednodes[valid_connected]
+          remaining_attached <- attachednodes[valid_connected]
 
-          # select new edge to swap in
-          if (length(remaining_attachednodes) >= 2) {
+          attachedpairs <- combn(
+            seq_along(remaining_attached),
+            2,
+            simplify = FALSE
+          )
 
-            # Randomly select two nodes attached to the central node
-            selected_pair <- sample(seq_along(remaining_attachednodes), 2)
+          # create all possible combinations of existing attached nodes and
+          # connected nodes
 
-            attached1 <- remaining_attachednodes[selected_pair[1]]
-            attached2 <- remaining_attachednodes[selected_pair[2]]
+          possiblecombinations <- do.call(rbind, lapply(attachedpairs, function(pair) {
 
-            # Randomly select one connection from each
+            combinations <- expand.grid(
+              connected1 = remaining_connected[[pair[1]]],
+              connected2 = remaining_connected[[pair[2]]]
+            )
 
-            connected1 <- connections[[selected_pair[1]]][sample.int(length(remaining_connections[[selected_pair[1]]]), 1)]
-            connected2 <- connections[[selected_pair[2]]][sample.int(length(remaining_connections[[selected_pair[2]]]), 1)]
+            data.frame(
+              attached1 = remaining_attached[pair[1]],
+              attached2 = remaining_attached[pair[2]],
+              combinations
+            )
+          }))
 
-            cat("attached1 is", attached1, "attached 2 is", attached2,
-                "connected1 is", connected1, "connected2 is", connected2)
+          # return(possiblecombinations)
 
-            # closes if (length(remaining_attachednodes) >= 2) {
-          }
+          # remove all combinations where an edge between connected nodes OR
+          # attached nodes already exist
+
+          valid_combinations <- vapply(seq_len(nrow(possiblecombinations)), function(i) {
+            !igraph::are_adjacent(
+              newnet,
+              possiblecombinations$attached1[i],
+              possiblecombinations$attached2[i]
+            ) &&
+              !igraph::are_adjacent(
+                newnet,
+                possiblecombinations$connected1[i],
+                possiblecombinations$connected2[i]
+              )
+          }, logical(1))
+
+          possiblecombinations2 <- possiblecombinations[valid_combinations, ]
+
+          return(possiblecombinations2)
+
+          # # select new edge to swap in
+          # if (length(remaining_attached) >= 2) {
+          #
+          #   # Randomly select two nodes attached to the central node
+          #   selected_pair <- sample(seq_along(remaining_attachednodes), 2)
+          #
+          #   attached1 <- remaining_attachednodes[selected_pair[1]]
+          #   attached2 <- remaining_attachednodes[selected_pair[2]]
+          #
+          #   # Randomly select one connection from each
+          #
+          #   connected1 <- connections[[selected_pair[1]]][sample.int(length(remaining_connections[[selected_pair[1]]]), 1)]
+          #   connected2 <- connections[[selected_pair[2]]][sample.int(length(remaining_connections[[selected_pair[2]]]), 1)]
+          #
+          #   cat("attached1 is", attached1, "attached 2 is", attached2,
+          #       "connected1 is", connected1, "connected2 is", connected2)
+          #
+          #   # closes if (length(remaining_attachednodes) >= 2) {
+          # }
 
 
 
