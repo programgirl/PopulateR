@@ -91,10 +91,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     mintriangles <- ceiling(mintarget * triples / 3)
     maxtriangles <- floor(maxtarget * triples / 3)
 
-    cat("triples equals", triples, "mintriangles equals", mintriangles,
-        "maxtriangles equals", maxtriangles, "\n")
+    # cat("triples equals", triples, "mintriangles equals", mintriangles,
+        # "maxtriangles equals", maxtriangles, "\n")
 
-    return()
 
     # cat("Entered loop as number of triangles not in range", "\n")
 
@@ -123,9 +122,17 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         weights <- choose(degrees[eligiblenodes], 2)
 
-        numswaps <- round(((mintriangles+maxtriangles)/2)*.2, 0)
+        currenttriangles <- round(new_transitivity * triples / 3, 0)
+        numswaps <- max(1,
+                        round((maxtriangles - currenttriangles) * 0.2, 0))
 
-          cat("numswaps is", numswaps, "\n")
+        cat("numswaps is", numswaps, "\n")
+
+        cat("Current triangles:", currenttriangles,
+            "New transitivity:", new_transitivity,
+            "Minimum target:", mintarget,
+            "Maximum target:", maxtarget, "\n")
+
 
           for(j in 1:numswaps) {
 
@@ -152,7 +159,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         if (length(attachednodes) >= 2) {
           # Continue identifying possible connections
 
-          cat("At least two nodes with one or more additional edges \n")
+          # cat("At least two nodes with one or more additional edges \n")
 
           connectednodes <- lapply(attachednodes, function(node) {
             setdiff(
@@ -268,20 +275,25 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
             proposed_transitivity <- igraph::transitivity(proposednet)
 
-            cat("Proposed transitivity is", proposed_transitivity, "\n")
+            # cat("Proposed transitivity is", proposed_transitivity, "\n")
 
-            if(proposed_transitivity <= maxtarget) {
+            if (proposed_transitivity > new_transitivity &&
+                proposed_transitivity <= maxtarget) {
 
               newnet <- proposednet
 
             new_transitivity <- proposed_transitivity
 
-            cat("New transitivity is", new_transitivity, "\n")
+            # cat("New transitivity is", new_transitivity, "\n")
 
             if (new_transitivity >= mintarget &&
                 new_transitivity <= maxtarget) {
               break
             }
+
+            currenttriangles <- round(new_transitivity * triples / 3, 0)
+            numswaps <- max(1,
+                round((((mintriangles + maxtriangles) / 2) - currenttriangles) * 0.2, 0))
 
             # closes if(proposed_transitivity <= maxtarget)
             }
