@@ -103,6 +103,10 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     # may need to decrease the number of triangles or increase the number of triangles
     # need to do each type of operation separately as the fix is the opposite
 
+    ###################################################################
+    # increase number of triangles
+    ###################################################################
+
     if(current_clustering < mintarget) {
 
       for(i in 1:numiters) {
@@ -124,9 +128,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         currenttriangles <- round(new_transitivity * triples / 3, 0)
         numswaps <- max(1,
-                        round((maxtriangles - currenttriangles) * 0.2, 0))
+                        round((maxtriangles - currenttriangles), 0))
 
-        cat("numswaps is", numswaps, "\n")
+        # cat("numswaps is", numswaps, "\n")
 
         cat("Current triangles:", currenttriangles,
             "New transitivity:", new_transitivity,
@@ -286,14 +290,13 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
             # cat("New transitivity is", new_transitivity, "\n")
 
-            if (new_transitivity >= mintarget &&
-                new_transitivity <= maxtarget) {
+            if (new_transitivity >= probsame) {
               break
             }
 
-            currenttriangles <- round(new_transitivity * triples / 3, 0)
-            numswaps <- max(1,
-                round((((mintriangles + maxtriangles) / 2) - currenttriangles) * 0.2, 0))
+            # currenttriangles <- round(new_transitivity * triples / 3, 0)
+            # numswaps <- max(1,
+            #     round((((mintriangles + maxtriangles) / 2) - currenttriangles) * 0.2, 0))
 
             # closes if(proposed_transitivity <= maxtarget)
             }
@@ -323,215 +326,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
       # closes if(current_clustering < mintarget) {
     }
 
-    ###################################################################
-    # increase number of triangles
-    ###################################################################
-    if(current_clustering < mintarget) {
-
-      for(i in 1:numiters) {
-
-        # cat("Entered too few triangles loop", "\n")
-
-        degrees <- igraph::degree(newnet)
-
-        candidates <- which(degrees >= 2)
-
-        eligiblenodes <- candidates[
-          vapply(candidates, function(v) {
-            neighbours <- igraph::neighbors(newnet, v)
-            sum(degrees[as.integer(neighbours)] >= 2) >= 2
-          }, logical(1))
-        ]
-
-        weights <- choose(degrees[eligiblenodes], 2)
-
-        numswaps <- round(((mintriangles+maxtriangles)/2)*.2, 0)
-
-          cat("numswaps is", numswaps, "\n")
-
-          for(j in 1:numswaps) {
-
-            # select the node which will be used for the basis of the new triangle
-        selectednode <- sample(
-          eligiblenodes,
-          size = 1,
-          prob = weights)
-
-        # return(selectednode)
-
-        # the attached nodes, will attempt to join two to create a triangle
-        attachednodes <- as.integer(igraph::neighbors(newnet, selectednode))
-
-        # retain only the attached nodes with at least two edges
-        attachednodes <- attachednodes[
-          igraph::degree(newnet, v = attachednodes) >= 2
-        ]
-
-        # return(attachednodes)
-
-        # only proceed to attempt to create a triangle if there is at least two
-        # attached nodes with at least two edges
-        if (length(attachednodes) >= 2) {
-          # Continue identifying possible connections
-
-          cat("At least two nodes with one or more additional edges \n")
-
-          connectednodes <- lapply(attachednodes, function(node) {
-            setdiff(
-              as.integer(igraph::neighbors(newnet, node)),
-              selectednode
-            )
-          })
-
-          # return(connectednodes)
-
-          # remove all edges that already exist
-          connectednodes <- lapply(connectednodes, function(nodes) {
-            setdiff(nodes, attachednodes)
-          })
-
-          # return(connectednodes)
-
-          valid_connected <- lengths(connectednodes) > 0
-
-          if(sum(valid_connected) >= 2) {
-
-          remaining_connected <- connectednodes[valid_connected]
-          remaining_attached <- attachednodes[valid_connected]
-
-          attachedpairs <- combn(
-            seq_along(remaining_attached),
-            2,
-            simplify = FALSE
-          )
-
-          # create all possible combinations of existing attached nodes and
-          # connected nodes
-
-          possiblecombinations <- do.call(rbind, lapply(attachedpairs, function(pair) {
-
-            combinations <- expand.grid(
-              connected1 = remaining_connected[[pair[1]]],
-              connected2 = remaining_connected[[pair[2]]]
-            )
-
-            data.frame(
-              attached1 = remaining_attached[pair[1]],
-              attached2 = remaining_attached[pair[2]],
-              combinations
-            )
-          }))
-
-          # return(possiblecombinations)
-
-          # remove all combinations where an edge between connected nodes OR
-          # attached nodes already exist
-
-          valid_combinations <- vapply(seq_len(nrow(possiblecombinations)), function(i) {
-            !igraph::are_adjacent(
-              newnet,
-              possiblecombinations$attached1[i],
-              possiblecombinations$attached2[i]
-            ) &&
-              !igraph::are_adjacent(
-                newnet,
-                possiblecombinations$connected1[i],
-                possiblecombinations$connected2[i]
-              )
-          }, logical(1))
-
-          possiblecombinations2 <- possiblecombinations[valid_combinations, ]
-
-          # return(possiblecombinations2)
-
-          # two attached nodes may already have the same connected node
-          # this would create a self-pair
-          # remove any of these
-
-          possiblecombinations3 <- possiblecombinations2[
-            possiblecombinations2$connected1 != possiblecombinations2$connected2,
-          ]
-
-          # return(possiblecombinations3)
-
-          # select one set of connected-connected and attached-attached pairs
-          # so long as there is at least one row in the possiblecombinations3 table
-          # after removing the attached nodes that would need to have an edge with
-          # themselves, the possible combinations data frame may be empty
-
-          if (nrow(possiblecombinations3) > 0) {
-            selectedcombination <- possiblecombinations3 %>%
-              slice_sample(n = 1)
-
-            # perform the pair swap
-            # this joins the two adjacent nodes, which do not have an existing edge
-            # and joins the two connecting nodes (one each to those two adjacent nodes)
-            # that do not already have an existing edge
-
-            proposednet <- igraph::delete_edges(
-              newnet,
-              igraph::get.edge.ids(
-                newnet,
-                c(
-                  selectedcombination$attached1, selectedcombination$connected1,
-                  selectedcombination$attached2, selectedcombination$connected2
-                )
-              )
-            )
-
-            # Add the two new edges
-            proposednet <- igraph::add_edges(
-              proposednet,
-              c(
-                selectedcombination$attached1, selectedcombination$attached2,
-                selectedcombination$connected1, selectedcombination$connected2
-              )
-            )
-
-            proposed_transitivity <- igraph::transitivity(proposednet)
-
-            cat("Proposed transitivity is", proposed_transitivity, "\n")
-
-            if(proposed_transitivity <= maxtarget) {
-
-              newnet <- proposednet
-
-            new_transitivity <- igraph::transitivity(newnet)
-
-            cat("New transitivity is", new_transitivity, "\n")
-
-            if (new_transitivity >= mintarget &&
-                new_transitivity <= maxtarget) {
-              break
-            }
-
-            # closes if(proposed_transitivity <= maxtarget)
-            }
-
-
-            # closes if (nrow(possiblecombinations3) > 0) {
-          }
-
-          # closes if(sum(valid_connected) >= 2) {
-          }
-
- # closes if (length(attachednodes) >= 2) {
-}
-
-
-        # closes for(j in 1:numswaps) {
-          }
-
-          if (new_transitivity >= mintarget &&
-              new_transitivity <= maxtarget) {
-            break
-          }
-
-        # closes for(i in 1:numiters) {
-      }
-
-      # closes if(current_clustering < mintarget) {
-    }
 
     return(newnet)
 
@@ -553,7 +347,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       new_transitivity <- igraph::transitivity(currentnet)
 
-      cat("New transitivity is", new_transitivity, "\n")
+      # cat("New transitivity is", new_transitivity, "\n")
 
       return()
 
