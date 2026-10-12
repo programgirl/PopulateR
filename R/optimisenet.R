@@ -244,7 +244,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             # and joins the two connecting nodes (one each to those two adjacent nodes)
             # that do not already have an existing edge
 
-            newnet <- igraph::delete_edges(
+            proposednet <- igraph::delete_edges(
               newnet,
               igraph::get.edge.ids(
                 newnet,
@@ -256,13 +256,21 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             )
 
             # Add the two new edges
-            newnet <- igraph::add_edges(
-              newnet,
+            proposednet <- igraph::add_edges(
+              proposednet,
               c(
                 selectedcombination$attached1, selectedcombination$attached2,
                 selectedcombination$connected1, selectedcombination$connected2
               )
             )
+
+            proposed_transitivity <- igraph::transitivity(proposednet)
+
+            cat("Proposed transitivity is", proposed_transitivity, "\n")
+
+            if(proposed_transitivity <= maxtarget) {
+
+              newnet <- proposednet
 
             new_transitivity <- igraph::transitivity(newnet)
 
@@ -271,6 +279,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             if (new_transitivity >= mintarget &&
                 new_transitivity <= maxtarget) {
               break
+            }
+
+            # closes if(proposed_transitivity <= maxtarget)
             }
 
 
