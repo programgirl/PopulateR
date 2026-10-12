@@ -170,6 +170,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           valid_connected <- lengths(connectednodes) > 0
 
+          if(sum(valid_connected) >= 2) {
+
           remaining_connected <- connectednodes[valid_connected]
           remaining_attached <- attachednodes[valid_connected]
 
@@ -262,30 +264,33 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
               )
             )
 
+            new_transitivity <- igraph::transitivity(newnet)
+
+            cat("New transitivity is", new_transitivity, "\n")
+
+            if (new_transitivity >= mintarget &&
+                new_transitivity <= maxtarget) {
+              break
+            }
+
 
             # closes if (nrow(possiblecombinations3) > 0) {
+          }
+
+          # closes if(sum(valid_connected) >= 2) {
           }
 
  # closes if (length(attachednodes) >= 2) {
 }
 
-        new_transitivity <- igraph::transitivity(newnet)
-
-        cat("New transitivity is", new_transitivity, "\n")
-
-        if (new_transitivity >= mintarget &&
-            new_transitivity <= maxtarget) {
-          break
-        }
-
-
-
-        if (new_clustering >= mintarget && new_clustering <= maxtarget) {
-          break
-        }
 
         # closes for(j in 1:numswaps) {
-        }
+          }
+
+          if (new_transitivity >= mintarget &&
+              new_transitivity <= maxtarget) {
+            break
+          }
 
         # closes for(i in 1:numiters) {
       }
