@@ -128,7 +128,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         currenttriangles <- round(new_transitivity * triples / 3, 0)
         numswaps <- max(1,
-                        round((maxtriangles - currenttriangles), 0))
+                        round((maxtriangles - currenttriangles)*2, 0))
 
         # cat("numswaps is", numswaps, "\n")
 
