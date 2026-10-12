@@ -216,38 +216,57 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           possiblecombinations2 <- possiblecombinations[valid_combinations, ]
 
-          return(possiblecombinations2)
+          # return(possiblecombinations2)
 
-          # # select new edge to swap in
-          # if (length(remaining_attached) >= 2) {
-          #
-          #   # Randomly select two nodes attached to the central node
-          #   selected_pair <- sample(seq_along(remaining_attachednodes), 2)
-          #
-          #   attached1 <- remaining_attachednodes[selected_pair[1]]
-          #   attached2 <- remaining_attachednodes[selected_pair[2]]
-          #
-          #   # Randomly select one connection from each
-          #
-          #   connected1 <- connections[[selected_pair[1]]][sample.int(length(remaining_connections[[selected_pair[1]]]), 1)]
-          #   connected2 <- connections[[selected_pair[2]]][sample.int(length(remaining_connections[[selected_pair[2]]]), 1)]
-          #
-          #   cat("attached1 is", attached1, "attached 2 is", attached2,
-          #       "connected1 is", connected1, "connected2 is", connected2)
-          #
-          #   # closes if (length(remaining_attachednodes) >= 2) {
-          # }
+          # two attached nodes may already have the same connected node
+          # this would create a self-pair
+          # remove any of these
+
+          possiblecombinations3 <- possiblecombinations2[
+            possiblecombinations2$connected1 != possiblecombinations2$connected2,
+          ]
+
+          # return(possiblecombinations3)
+
+          # select one set of connected-connected and attached-attached pairs
+          # so long as there is at least one row in the possiblecombinations3 table
+          # after removing the attached nodes that would need to have an edge with
+          # themselves, the possible combinations data frame may be empty
+
+          if (nrow(possiblecombinations3) > 0) {
+            selectedcombination <- possiblecombinations3 %>%
+              slice_sample(n = 1)
+
+            # perform the pair swap
+            # this joins the two adjacent nodes, which do not have an existing edge
+            # and joins the two connecting nodes (one each to those two adjacent nodes)
+            # that do not already have an existing edge
+
+            newnet <- igraph::delete_edges(
+              newnet,
+              igraph::get.edge.ids(
+                newnet,
+                c(
+                  selectedcombination$attached1, selectedcombination$connected1,
+                  selectedcombination$attached2, selectedcombination$connected2
+                )
+              )
+            )
+
+            # Add the two new edges
+            newnet <- igraph::add_edges(
+              newnet,
+              c(
+                selectedcombination$attached1, selectedcombination$attached2,
+                selectedcombination$connected1, selectedcombination$connected2
+              )
+            )
 
 
+            # closes if (nrow(possiblecombinations3) > 0) {
+          }
 
-          # closes if (length(attachednodes) >= 2) {
-        }
-
-
-        return(remaining_attachednodes)
-
-
-
+ # closes if (length(attachednodes) >= 2) {
 }
 
         new_transitivity <- igraph::transitivity(newnet)
@@ -257,15 +276,15 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         if (new_transitivity >= mintarget &&
             new_transitivity <= maxtarget) {
           break
+        }
 
-        return()
 
 
         if (new_clustering >= mintarget && new_clustering <= maxtarget) {
           break
         }
 
-        # closes for(i in 1:numiters) {
+        # closes for(j in 1:numswaps) {
         }
 
         # closes for(i in 1:numiters) {
