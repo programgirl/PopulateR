@@ -132,13 +132,11 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         numswaps <- min(2000, max(currenttriangles*3,
                         round((maxtriangles - currenttriangles), 0)))
 
-
-        # cat("numswaps is", numswaps, "\n")
-
-        cat("Current triangles:", currenttriangles,
-            "New transitivity:", new_transitivity,
-            "Minimum target:", mintarget,
-            "Maximum target:", maxtarget, "\n")
+        #
+        # cat("Current triangles:", currenttriangles,
+        #     "New transitivity:", new_transitivity,
+        #     "Minimum target:", mintarget,
+        #     "Maximum target:", maxtarget, "\n")
 
 
           for(j in 1:numswaps) {
@@ -330,6 +328,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
       # closes if(current_clustering < mintarget) {
     }
 
+
+    cat("Achieved transitivity was", new_transitivity, "\n" )
 
     return(newnet)
 
