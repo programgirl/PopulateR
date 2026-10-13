@@ -111,6 +111,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       for(i in 1:numiters) {
 
+        # cat("numiters is", i, "\n")
+
         # cat("Entered too few triangles loop", "\n")
 
         degrees <- igraph::degree(newnet)
@@ -127,8 +129,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         weights <- choose(degrees[eligiblenodes], 2)
 
         currenttriangles <- round(new_transitivity * triples / 3, 0)
-        numswaps <- max(1,
-                        round((maxtriangles - currenttriangles)*2, 0))
+        numswaps <- min(2000, max(currenttriangles*3,
+                        round((maxtriangles - currenttriangles), 0)))
+
 
         # cat("numswaps is", numswaps, "\n")
 
@@ -311,6 +314,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
  # closes if (length(attachednodes) >= 2) {
 }
 
+        # cat("j was", j, "\n")
 
         # closes for(j in 1:numswaps) {
           }
