@@ -324,18 +324,26 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       # select one triangle to break
 
-      selectedtriangle <- triangle_matrix[sample.int(nrow(triangle_matrix), 1), ]
+      selected_triangle <- triangle_matrix[sample.int(nrow(triangle_matrix), 1), ]
 
       # randomly select two of the nodes in the selected triangle
 
-      selectednodes <- selectedtriangle[sample.int(length(selectedtriangle), 2)]
+      selected_nodes <- selected_triangle[sample.int(length(selected_triangle), 2)]
 
-      # identify possible nodes for swapping
+      # identify possible edges for swapping
 
-      possiblenodes <- which(igraph::degree(newnet) >= 1)
-      possiblenodes <- possiblenodes[!possiblenodes %in% selectedtriangle]
+      possible_edges <- igraph::as_edgelist(newnet, names = FALSE)
 
-      connectednodes <- possiblenodes[sample.int(length(possiblenodes), 2)]
+      possible_edges <- possible_edges[
+        !possible_edges[, 1] %in% selected_triangle &
+          !possible_edges[, 2] %in% selected_triangle, ,drop = FALSE
+      ]
+
+      # randomly sample 1 edge
+
+      connected_nodes <- possible_edges[sample.int(nrow(possible_edges), 1), ]
+
+      return(connected_nodes)
 
       # only swap if new edges will be created, reject if a proposed edge already exists
       # cannot have two edges between the same nodes
@@ -345,9 +353,47 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
         cat("Edge swap proceeding\n")
 
-        return()
-        # Perform edge swap
+        # perform the swaps
 
+        # Remove the two existing edges
+        proposednet <- igraph::delete_edges(
+          newnet,
+          igraph::get_edge_ids(
+            newnet,
+            c(
+              selectednodes[1], selectednodes[2],
+              connectednodes[1], connectednodes[2]
+            )
+          )
+        )
+
+        # Add the two new edges
+        proposednet <- igraph::add_edges(
+          proposednet,
+          c(
+            selectednodes[1], connectednodes[1],
+            selectednodes[2], connectednodes[2]
+          )
+        )
+
+        proposed_transitivity <- igraph::transitivity(proposednet)
+
+        if (proposed_transitivity < new_transitivity &&
+            proposed_transitivity >= mintarget) {
+
+          newnet <- proposednet
+
+          new_transitivity <- proposed_transitivity
+
+          if (new_transitivity <= probsame) {
+            break
+          }
+        }
+
+          return(proposed_transitivity)
+
+
+        # closes if (!igraph::are_adjacent(newnet, selectednodes[1], connectednodes[1]) &&
       }
 
       return()
