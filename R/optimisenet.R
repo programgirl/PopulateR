@@ -76,9 +76,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   current_clustering <- igraph::transitivity(currentnet)
 
-  cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
-      current_clustering, "\n")
-
   if(current_clustering < mintarget || current_clustering > maxtarget) {
 
     if (!is.null(userseed)) {
@@ -91,17 +88,14 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     mintriangles <- ceiling(mintarget * triples / 3)
     maxtriangles <- floor(maxtarget * triples / 3)
 
-    # cat("triples equals", triples, "mintriangles equals", mintriangles,
-        # "maxtriangles equals", maxtriangles, "\n")
-
-
-    # cat("Entered loop as number of triangles not in range", "\n")
-
     # initialise the transitivity container
     new_transitivity <- current_clustering
 
     # may need to decrease the number of triangles or increase the number of triangles
     # need to do each type of operation separately as the fix is the opposite
+
+
+
 
     ###################################################################
     # increase number of triangles
@@ -111,10 +105,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
 
       for(i in 1:numiters) {
-
-        # cat("numiters is", i, "\n")
-
-        # cat("Entered too few triangles loop", "\n")
 
         degrees <- igraph::degree(newnet)
 
@@ -133,12 +123,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         numswaps <- min(2000, max(currenttriangles*3,
                         round((maxtriangles - currenttriangles), 0)))
 
-        #
-        # cat("Current triangles:", currenttriangles,
-        #     "New transitivity:", new_transitivity,
-        #     "Minimum target:", mintarget,
-        #     "Maximum target:", maxtarget, "\n")
-
 
           for(j in 1:numswaps) {
 
@@ -148,7 +132,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           size = 1,
           prob = weights)
 
-        # return(selectednode)
 
         # the attached nodes, will attempt to join two to create a triangle
         attachednodes <- as.integer(igraph::neighbors(newnet, selectednode))
@@ -158,14 +141,12 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           igraph::degree(newnet, v = attachednodes) >= 2
         ]
 
-        # return(attachednodes)
 
         # only proceed to attempt to create a triangle if there is at least two
         # attached nodes with at least two edges
         if (length(attachednodes) >= 2) {
           # Continue identifying possible connections
 
-          # cat("At least two nodes with one or more additional edges \n")
 
           connectednodes <- lapply(attachednodes, function(node) {
             setdiff(
@@ -174,14 +155,10 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             )
           })
 
-          # return(connectednodes)
-
           # remove all edges that already exist
           connectednodes <- lapply(connectednodes, function(nodes) {
             setdiff(nodes, attachednodes)
           })
-
-          # return(connectednodes)
 
           valid_connected <- lengths(connectednodes) > 0
 
@@ -213,8 +190,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
             )
           }))
 
-          # return(possiblecombinations)
-
           # remove all combinations where an edge between connected nodes OR
           # attached nodes already exist
 
@@ -233,8 +208,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
           possiblecombinations2 <- possiblecombinations[valid_combinations, ]
 
-          # return(possiblecombinations2)
-
           # two attached nodes may already have the same connected node
           # this would create a self-pair
           # remove any of these
@@ -242,8 +215,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           possiblecombinations3 <- possiblecombinations2[
             possiblecombinations2$connected1 != possiblecombinations2$connected2,
           ]
-
-          # return(possiblecombinations3)
 
           # select one set of connected-connected and attached-attached pairs
           # so long as there is at least one row in the possiblecombinations3 table
@@ -281,8 +252,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
             proposed_transitivity <- igraph::transitivity(proposednet)
 
-            # cat("Proposed transitivity is", proposed_transitivity, "\n")
-
             if (proposed_transitivity > new_transitivity &&
                 proposed_transitivity <= maxtarget) {
 
@@ -290,15 +259,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
             new_transitivity <- proposed_transitivity
 
-            cat("New transitivity is", new_transitivity, "\n")
-
             if (new_transitivity >= probsame) {
               break
             }
-
-            # currenttriangles <- round(new_transitivity * triples / 3, 0)
-            # numswaps <- max(1,
-            #     round((((mintriangles + maxtriangles) / 2) - currenttriangles) * 0.2, 0))
 
             # closes if(proposed_transitivity <= maxtarget)
             }
@@ -313,7 +276,6 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
  # closes if (length(attachednodes) >= 2) {
 }
 
-        # cat("j was", j, "\n")
 
         # closes for(j in 1:numswaps) {
           }
@@ -349,6 +311,26 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         currentnet,
         with = igraph::keeping_degseq(niter = 100)
       )
+
+      # select existing triangles
+      newnet_triangles <- igraph::triangles(newnet)
+
+
+      # create a three-column matrix of the existing triangles
+
+      triangle_matrix <- matrix(as.integer(newnet_triangles),
+                                ncol = 3,
+                                byrow = TRUE)
+
+      # select one triangle to break
+
+      selectedtriangle <- triangle_matrix[sample.int(nrow(triangle_matrix), 1), ]
+
+      # randomly select two of the nodes in the selected triangle
+
+      selectednodes <- selectedtriangle[sample.int(length(selectedtriangle), 2)]
+
+      return(selectednodes)
 
       new_transitivity <- igraph::transitivity(currentnet)
 
