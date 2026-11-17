@@ -76,8 +76,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
   current_clustering <- igraph::transitivity(currentnet)
 
-  # cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
-      # current_clustering, "\n")
+  cat("Min tolerance is", mintarget, "max tolerance is", maxtarget, "current value is",
+      current_clustering, "\n")
 
   if(current_clustering < mintarget || current_clustering > maxtarget) {
 
@@ -108,6 +108,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     ###################################################################
 
     if(current_clustering < mintarget) {
+
 
       for(i in 1:numiters) {
 
@@ -289,7 +290,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
             new_transitivity <- proposed_transitivity
 
-            # cat("New transitivity is", new_transitivity, "\n")
+            cat("New transitivity is", new_transitivity, "\n")
 
             if (new_transitivity >= probsame) {
               break
@@ -325,13 +326,13 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         # closes for(i in 1:numiters) {
       }
 
+      cat("Achieved transitivity was", new_transitivity, "\n" )
+
+      return(newnet)
+
       # closes if(current_clustering < mintarget) {
     }
 
-
-    cat("Achieved transitivity was", new_transitivity, "\n" )
-
-    return(newnet)
 
 
 
@@ -351,7 +352,7 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       new_transitivity <- igraph::transitivity(currentnet)
 
-      # cat("New transitivity is", new_transitivity, "\n")
+      cat("New transitivity is", new_transitivity, "\n")
 
       return()
 
