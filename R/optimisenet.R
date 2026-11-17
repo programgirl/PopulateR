@@ -330,13 +330,35 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       selectednodes <- selectedtriangle[sample.int(length(selectedtriangle), 2)]
 
-      return(selectednodes)
+      # identify possible nodes for swapping
+
+      possiblenodes <- which(igraph::degree(newnet) >= 1)
+      possiblenodes <- possiblenodes[!possiblenodes %in% selectedtriangle]
+
+      connectednodes <- possiblenodes[sample.int(length(possiblenodes), 2)]
+
+      # only swap if new edges will be created, reject if a proposed edge already exists
+      # cannot have two edges between the same nodes
+
+      if (!igraph::are_adjacent(newnet, selectednodes[1], connectednodes[1]) &&
+          !igraph::are_adjacent(newnet, selectednodes[2], connectednodes[2])) {
+
+        cat("Edge swap proceeding\n")
+
+        return()
+        # Perform edge swap
+
+      }
+
+      return()
+
+
+
 
       new_transitivity <- igraph::transitivity(currentnet)
 
       cat("New transitivity is", new_transitivity, "\n")
 
-      return()
 
 
       if (new_clustering >= mintarget && new_clustering <= maxtarget) {
