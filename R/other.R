@@ -242,12 +242,12 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
       ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
       logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
-      ObservedAgeDifferences <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+      ObservedAgeDifferences <- hist(CurrentAgeMatch$RenamedAge - CurrentAgeMatch$MatchedAge,
                                      breaks = bins, plot = FALSE)$counts
 
 
       # set up for chi-squared
-      log0ObservedAges <- hist(CurrentAgeMatch[,1] - CurrentAgeMatch[,3],
+      log0ObservedAges <- hist(CurrentAgeMatch$RenamedAge - CurrentAgeMatch$MatchedAge,
                                breaks = logBins, plot = FALSE)$counts
       logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                                 log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
@@ -292,7 +292,7 @@ other <- function(people, pplid, pplage, numppl = NULL, sdused, HHStartNum, HHNu
         PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
         # do chi-squared
-        Proplog0 <- hist(PropAgeMatch[,1] - PropAgeMatch[,3], breaks = logBins, plot = FALSE)$counts
+        Proplog0 <- hist(PropAgeMatch$RenamedAge - PropAgeMatch$MatchedAge, breaks = logBins, plot = FALSE)$counts
         ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs,
                           log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
