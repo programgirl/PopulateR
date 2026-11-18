@@ -133,7 +133,6 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, t
 
   print(current_clustering)
   cat(sprintf("%.10f", igraph::transitivity(WiredNetwork)))
-  return(WiredNetwork)
 
   # https://github.com/cwatson/brainGraph/pull/26
   ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
