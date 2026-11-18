@@ -334,17 +334,10 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       PropPair1 <- swap_household_matches(Current1, Current2)
       PropPair2 <- swap_household_matches(Current2, Current1)
 
-      Output <- list()
-      Output$Current1 <- Current1
-      Output$Current2 <- Current2
-      Output$PropPair1 <- PropPair1
-      Output$PropPair2 <- PropPair2
-      return(Output)
-
 
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!(.data$existID %in% c(PropPair1[,2], PropPair2[,2])))
+        filter(!(.data$existID %in% c(PropPair1$existID, PropPair2$existID)))
 
       PropAgeMatch <- bind_rows(PropAgeMatch, PropPair1, PropPair2)
 
