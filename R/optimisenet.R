@@ -36,7 +36,9 @@ NULL
 #   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
 #   NetworkSmallN <- addnetworklite(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
 #                               probsame = .5, userseed=4, numiters = 10)
-#  Lowertrans <- optimisenet(NetworkSmallN, probsame = 0.2, tolerance = 0.05, userseed = 4)
+#  Lowertransit <- optimisenet(NetworkSmallN, probsame = 0.2, tolerance = 0.05, userseed = 4)
+#  plot(NetworkSmallN)
+#  plot(Lowertransit)
 
 
 optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NULL,
@@ -288,7 +290,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         # closes for(i in 1:numiters) {
       }
 
+      if (verbose == TRUE) {
       cat("Achieved transitivity was", new_transitivity, "\n" )
+      }
 
       return(newnet)
 
@@ -396,8 +400,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       # ends for(j in 1:numiters) {
     }
-
-      cat("Achieved transitivity was", new_transitivity, "\n" )
+      if (verbose == TRUE) {
+        cat("Achieved transitivity was", new_transitivity, "\n" )
+      }
 
       return(newnet)
 
