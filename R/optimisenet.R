@@ -34,9 +34,9 @@ NULL
 #   filter(between(Age, 20, 29)) %>%
 #   slice_sample(n = 20)
 #   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
-#   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+#   NetworkSmallN <- addnetworklite(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
 #                               probsame = .5, userseed=4, numiters = 10)
-#  # plot(NetworkSmallN)
+#  Lowertrans <- optimisenet(NetworkSmallN, probsame = 0.2, tolerance = 0.05, userseed = 4)
 
 
 optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NULL,
