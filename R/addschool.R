@@ -1166,9 +1166,6 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   }
 
 
-
-
-
   allPeople <- allPeople %>%
     rename(!!pplidcolName := "personID",
            !!pplagecolName := "personAge",
