@@ -41,7 +41,7 @@ NULL
 #'   filter(between(Age, 20, 29)) %>%
 #'   slice_sample(n = 20)
 #'   Smallnetwork <- rpois(n = nrow(SmallDemo), lambda = 1.5)
-#'   NetworkSmallN <- addnetwork(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
+#'   NetworkSmallN <- addnetworklite(SmallDemo, "ID", "Age", Smallnetwork, sdused=2,
 #'                               probsame = .5, userseed=4, numiters = 10)
 #'  # plot(NetworkSmallN)
 
@@ -112,8 +112,8 @@ addnetworklite <- function(people, pplid, pplage, netmax, sdused=0, probsame = .
 
     if(verbose == TRUE) {
       message("The number of network links must be a factor of 2.", "\n")
-      message("1 has been added to the network matrix at position", IndexToAdd1, "\n")
-      message("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
+      message("1 has been added to the network matrix at position ", IndexToAdd1, "\n")
+      message("The value has been changed from ", OriginalValue, " to ", OriginalValue + 1, "\n")
 
       # closes if(prsummary == TRUE) {
     }
@@ -131,14 +131,13 @@ addnetworklite <- function(people, pplid, pplage, netmax, sdused=0, probsame = .
 
   target_clustering <- probsame # P(triads | length 3 path)
 
-  print(current_clustering)
-  cat(sprintf("%.10f", igraph::transitivity(WiredNetwork)))
+  # print(current_clustering)
+  # cat(sprintf("%.10f", igraph::transitivity(WiredNetwork)))
 
   # using optimisenet
 
   ClusteredNetwork <- optimisenet(WiredNetwork, probsame = target_clustering, tolerance = tolerance,
-                                  numiters = numiters)
-  )
+                                  numiters = numiters, verbose = verbose)
 
 
   igraph::transitivity(ClusteredNetwork)
