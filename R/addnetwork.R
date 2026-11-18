@@ -112,8 +112,8 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, t
 
     if(verbose == TRUE) {
       message("The number of network links must be a factor of 2.", "\n")
-      message("1 has been added to the network matrix at position", IndexToAdd1, "\n")
-      message("The value has been changed from", OriginalValue, "to", OriginalValue + 1, "\n")
+      message("1 has been added to the network matrix at position ", IndexToAdd1, "\n")
+      message("The value has been changed from ", OriginalValue, " to ", OriginalValue + 1, "\n")
 
       # closes if(prsummary == TRUE) {
     }
