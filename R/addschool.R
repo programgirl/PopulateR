@@ -119,7 +119,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
            schoolAge = !! schagecolName,
            personCounts = !! schrollcolName,
            schoolType = !! schtypecolName) %>%
-    mutate(schoolID = as.character(.data$schoolID),
+    mutate(schoolID = paste0("School_", schoolID),
            schoolType = as.character(.data$schoolType),
            originalCounts = .data$personCounts) %>%
     #mutate(across(where(is.factor), as.character)) %>%
@@ -130,7 +130,8 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
   # test if there is a matching school ID to a person ID - may cause non-bipartite graphs
   peopleIDOnly <- peopleRenamed %>%
     select("personID") %>%
-    rename(ID = "personID")
+    rename(ID = "personID") %>%
+    mutate(ID = as.character(.data$ID))
 
   schoolsIDOnly <- schoolsRenamed %>%
     select("schoolID") %>%
@@ -143,7 +144,7 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
     filter(.data$numID > 1)
 
 
-  if(nrow(combinedIDs) > 1) {
+  if(nrow(combinedIDs) > 0) {
 
     stop("The same ID exists in both the people data frame and the schools data frame. IDs must be unique across both data frames.")
   }
@@ -1123,11 +1124,15 @@ addschool <- function(people, pplid, pplage, pplsx, pplst = NULL, hhid = NULL, s
     # closes  for(i in 1:nrow(ListofHouseholds)) {
   }
 
+
+    #######################################
+
   NotInSchool <- NotInSchool %>%
     filter(!(.data$personID %in% c(ChildSchoolMatches$personID))) %>%
     mutate(schoolID = as.character(0))
 
-  allPeople <- bind_rows(NotInSchool, ChildSchoolMatches)
+  allPeople <- bind_rows(NotInSchool, ChildSchoolMatches) %>%
+    mutate(schoolID = sub("^School_", "", schoolID))
 
   if(isTRUE(is.integer(schools[[schid]]))) {
 
