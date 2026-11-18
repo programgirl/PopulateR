@@ -23,7 +23,6 @@ NULL
 #' @param numadd The number of people to be added to the household.
 #' @param sdused The standard deviation of the normal distribution for the distribution of ages in a household.
 #' @param userseed The user-defined seed for reproducibility. If left blank the normal set.seed() function will be used.
-#' @param attempts The number of times the function will randomly change two matches to improve the fit.
 #' @param numiters The maximum number of iterations used to construct the household data frame. This has a default value of 10000, and is the stopping rule if the algorithm does not converge.
 #' @param verbose Whether the number of iterations used, the critical chi-squared value, and the final chi-squared value are printed to the console. The information will be printed for each set of pairs. For example, if there are two people being added to each household, the information will be printed twice. The default is FALSE, so no information will be printed to the console.
 #'
@@ -44,14 +43,14 @@ NULL
 #'# toy example with few iterations
 #' OldHouseholds <- otherNum(AdultsID, exsid = "ID", exsage = "Age", HHNumVar = "HouseholdID",
 #'                           NoHousehold, addid = "ID", addage = "Age", numadd = 2, sdused = 3,
-#'                           userseed=4, attempts= 10, numiters = 80)
+#'                           userseed=4, numiters = 80)
 #' CompletedHouseholds <- OldHouseholds$Matched # will match even if critical p-value not met
 #' IncompleteHouseholds <- OldHouseholds$Existing # no-one available to match in
 #' UnmatchedOthers <- OldHouseholds$Additions # all people not in households were matched
 
 
 otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid, addage,
-                     numadd = NULL, sdused = NULL, userseed=NULL, attempts= 10, numiters = 10000, verbose = FALSE)
+                     numadd = NULL, sdused = NULL, userseed=NULL, numiters = 10000, verbose = FALSE)
 {
 
   withr::local_options(dplyr.summarise.inform = FALSE)
