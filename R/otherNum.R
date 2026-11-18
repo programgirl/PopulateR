@@ -112,8 +112,8 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
 
   swap_household_matches <- function(pair1, pair2) {
     swap <- pair1
-    swap$MatchedID <- pair2$MatchedID
-    swap$MatchedAge <- pair2$MatchedAge
+    swap$addID <- pair2$addID
+    swap$addAge <- pair2$addAge
     return(swap)
   }
 
@@ -334,6 +334,14 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
       PropPair1 <- swap_household_matches(Current1, Current2)
       PropPair2 <- swap_household_matches(Current2, Current1)
 
+      Output <- list()
+      Output$Current1 <- Current1
+      Output$Current2 <- Current2
+      Output$PropPair1 <- PropPair1
+      Output$PropPair2 <- PropPair2
+      return(Output)
+
+
       # compute change in Chi-squared value from current pairing to proposed pairing
       PropAgeMatch <- CurrentAgeMatch %>%
         filter(!(.data$existID %in% c(PropPair1[,2], PropPair2[,2])))
@@ -357,7 +365,7 @@ otherNum <- function(existing, exsid, exsage, HHNumVar = NULL, additions, addid,
         logKObservedAges <- ProplogK
         log_chisq <- prop_log_chisq
 
-        # closes pair swqp
+        # closes pair swap
 
       }
 
