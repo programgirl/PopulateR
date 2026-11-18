@@ -14,6 +14,8 @@ NULL
 #'
 #' The two options for output are a dgCMatrix or an igraph. The dgCMatrix is output as n x n. For a large data frame of people, this will be a large and sparse matrix, which may not be completed due to RAM limitations. The igraph output only contains the pairs, and should be a smaller object compared to the dgCMatrix.
 #'
+#' This version of adding a network requires a lot of memory due to the brainGraph call. addnetworklite is the alternative function that does not use brainGraph, reducing reliance on memory.
+#'
 #' @export
 #' @param people A data frame containing people to be matched to each other using social networks.
 #' @param pplid The variable for each person's unique ID.
@@ -133,11 +135,11 @@ addnetwork <- function(people, pplid, pplage, netmax, sdused=0, probsame = .5, t
   cat(sprintf("%.10f", igraph::transitivity(WiredNetwork)))
   return(WiredNetwork)
 
-  # # https://github.com/cwatson/brainGraph/pull/26
-  # ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
-  #                                                      rewire.iters=0,
-  #                                                      cl=target_clustering,
-  #                                                      max.iters=100)
+  # https://github.com/cwatson/brainGraph/pull/26
+  ClusteredNetwork <- brainGraph::sim.rand.graph.clust(WiredNetwork,
+                                                       rewire.iters=0,
+                                                       cl=target_clustering,
+                                                       max.iters=100)
 
 
   igraph::transitivity(ClusteredNetwork)
