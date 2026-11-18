@@ -268,13 +268,13 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
 
             # closes if (nrow(possiblecombinations3) > 0) {
-          }
+            }
 
           # closes if(sum(valid_connected) >= 2) {
           }
 
- # closes if (length(attachednodes) >= 2) {
-}
+          # closes if (length(attachednodes) >= 2) {
+        }
 
 
         # closes for(j in 1:numswaps) {
@@ -301,16 +301,16 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     ###################################################################
     # decrease number of triangles
     ###################################################################
+
+    # initialise counters
+    swapconducted <- 0
+    noswap <- numiters
+
     if(current_clustering > maxtarget) {
 
 
     for(j in 1:numiters) {
       #ensure that there is no endless loop
-
-      newnet <- igraph::rewire(
-        currentnet,
-        with = igraph::keeping_degseq(niter = 100)
-      )
 
       # select existing triangles
       newnet_triangles <- igraph::triangles(newnet)
@@ -343,15 +343,11 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
 
       connected_nodes <- possible_edges[sample.int(nrow(possible_edges), 1), ]
 
-      return(connected_nodes)
-
       # only swap if new edges will be created, reject if a proposed edge already exists
       # cannot have two edges between the same nodes
 
-      if (!igraph::are_adjacent(newnet, selectednodes[1], connectednodes[1]) &&
-          !igraph::are_adjacent(newnet, selectednodes[2], connectednodes[2])) {
-
-        cat("Edge swap proceeding\n")
+      if (!igraph::are_adjacent(newnet, selected_nodes[1], connected_nodes[1]) &&
+          !igraph::are_adjacent(newnet, selected_nodes[2], connected_nodes[2])) {
 
         # perform the swaps
 
@@ -361,8 +357,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           igraph::get_edge_ids(
             newnet,
             c(
-              selectednodes[1], selectednodes[2],
-              connectednodes[1], connectednodes[2]
+              selected_nodes[1], selected_nodes[2],
+              connected_nodes[1], connected_nodes[2]
             )
           )
         )
@@ -371,8 +367,8 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         proposednet <- igraph::add_edges(
           proposednet,
           c(
-            selectednodes[1], connectednodes[1],
-            selectednodes[2], connectednodes[2]
+            selected_nodes[1], connected_nodes[1],
+            selected_nodes[2], connected_nodes[2]
           )
         )
 
@@ -381,6 +377,9 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
         if (proposed_transitivity < new_transitivity &&
             proposed_transitivity >= mintarget) {
 
+          swapconducted <- swapconducted + 1
+          noswap <- noswap - 1
+
           newnet <- proposednet
 
           new_transitivity <- proposed_transitivity
@@ -388,31 +387,19 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
           if (new_transitivity <= probsame) {
             break
           }
+
+          # closes if (proposed_transitivity < new_transitivity &&
         }
-
-          return(proposed_transitivity)
-
 
         # closes if (!igraph::are_adjacent(newnet, selectednodes[1], connectednodes[1]) &&
       }
 
-      return()
-
-
-
-
-      new_transitivity <- igraph::transitivity(currentnet)
-
-      cat("New transitivity is", new_transitivity, "\n")
-
-
-
-      if (new_clustering >= mintarget && new_clustering <= maxtarget) {
-        break
-      }
-
       # ends for(j in 1:numiters) {
     }
+
+      cat("Achieved transitivity was", new_transitivity, "\n" )
+
+      return(newnet)
 
       # ends if(current_clustering > maxtarget) {
     }
@@ -420,9 +407,11 @@ optimisenet <- function(currentnet, probsame = .5, tolerance = 0.05, userseed=NU
     # ends if(current_clustering < mintarget | current_clustering > maxtarget) {
   }
 
+  # return dataframe if initial transitivity did not need altering
 
+  return(newnet)
 
-  #   return(igraph::as_adj(ClusteredNetwork, type = "both", names = TRUE))
+  # ends function, output performed earlier
   }
 
 
