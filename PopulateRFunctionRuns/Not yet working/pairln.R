@@ -1,61 +1,53 @@
-#' Pairs people from smalldf with people from largedf, creating couples in households.
-#' This function creates a data frame of couples, based on a log-normal distribution of age differences. .
-#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the data frames are different sizes, the smalldf data frame must be the smaller of the two. In this situation, a random subsample of the largedf data frame will be used.
-#' Both data frames must be restricted to only those people that will have a couples match performed.
+#' @importFrom dplyr filter group_by mutate pull rename select summarise ungroup
+#' @importFrom magrittr %>%
+#' @importFrom rlang .data as_string sym !!
+# '
+#' Pairs people from youngdf to people in olderdf, creating pairs in households.
+#'
+#' This function creates a data frame of paired people, based on a log-normal distribution of age differences.
+#' Two data frames are required. One person from each data frame will be matched, based on the age difference distribution specified. If the minimum age difference is more than 0 years, use the locationP parameter to specify the minimum difference.
+#'
+#' Both data frames must be restricted to only those people that can be paired.
 #' @export
-#' @param smalldf A data frame containing one set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the smallest number.
-#' @param smlid The variable containing the unique ID for each person, in the smalldf data frame.
-#' @param smlage The age variable, in the smalldf data frame.
-#' @param largedf A data frame containing the second set of people to be paired. If the two data frames contain different numbers of people, this must be the data frame containing the largest number.
-#' @param lrgid The variable containing the unique ID for each person, in the largedf data frame.
-#' @param lrgage The age variable, in the largedf data frame.
+#' @param youngerdf The data frame containing the youngest people to be paired.
+#' @param yngrlid The variable containing the unique ID for each person, in the youngerdf data frame.
+#' @param yngrage The age variable, in the youngerdf data frame.
+#' @param olderdf A data frame containing the oldest people to be paired.
+#' @param oldrid The variable containing the unique ID for each person, in the olderdf data frame.
+#' @param oldrage The age variable, in the olderdf data frame.
 #' @param lnmean The mean value for the log-normal distribution.
 #' @param lnsd The standard deviation value for the log-normal distribution.
+#' @param locationP The minimum age difference permitted. The default value is 0.
 #' @param HHStartNum The starting value for HHNumVar. Must be numeric.
 #' @param HHNumVar The name for the household variable.
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #' @param ptostop The critical p-value stopping rule for the function. If this value is not set, the critical p-value of .01 is used.
 #' @param numiters The maximum number of iterations used to construct the output data frame ($Matched) containing the couples. The default value is 1000000, and is the stopping rule if the algorithm does not converge.
 
-#' @return A list of two data frames. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from largedf. If there are no unmatched people, $Unmatched will be an empty data frame.
+#' @return A list of two data frames. $Matched contains the data frame of pairs. $Unmatched contains the unmatched observations from the data frame containing the most observations. If there are no unmatched people, $Unmatched will be an empty data frame.
 #'
 #' @examples
 #' library(dplyr)
 #'
-#'matched dataframe sizes first, using a normal distribution
-#' set.seed(1)
-#' PartneredFemales <- Township %>%
+#' PossibleMothers <- Township %>%
 #'   filter(Sex == "Female", Relationship == "Partnered")
-#' PartneredMales <- Township %>%
-#'   filter(Sex == "Male", Relationship == "Partnered")
+#' PossibleChildren <- Township %>%
+#'   filter(Age < 16)
 #'
-#' # partners females and males, using a normal distribution, with the females
-#' being younger by a log mean of -2 and a log standard deviation of 3
-#' OppSexCouples1 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar = "HouseholdID",
-#'                            userseed = 4, ptostop=.01)
-#' Couples1 <- OppSexCouples1$Matched
+#' # minimum age difference between mother and child is 20 years
+#' # mean age difference is 28 years (8 = 28 - 20)
+#' # standard deviation is 6 years
 #'
-#' different size dataframes
-#'
-#' PartneredFemales <- Township %>%
-#'   filter(Sex == "Female", Relationship == "Partnered")
-#' PartneredMales <- Township %>%
-#'   filter(Sex == "Male", Relationship == "Partnered")
-#'
-#' OppSexCouples2 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMales, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, HHStartNum = 1, HHNumVar="HouseholdID",
-#'                            userseed = 4, ptostop=.01)
-#' Couples2 <- OppSexCouples2$Matched
-#'
-#' # skew normal example, does not converge
-#' OppSexCouples3 <- pairnorm(PartneredFemales, smlid = "ID", smlage = "Age", PartneredMalesSmall, lrgid = "ID",
-#'                            lrgage = "Age", directxi = -2, directomega = 3, alphaused = 5, HHStartNum = 1,
-#'                            HHNumVar = "HouseholdID", userseed = 4, ptostop=.01)
-#' Couples3 <- OppSexCouples3$Matched
+#' thelnsd <- sqrt(log(1 + (6 / 8)^2))
+#' thelnmean <- log(8) - thelnsd^2 / 2
+
+#' Pairs <- pairln(PossibleChildren, yngrid = "ID", yngrage = "Age", PossibleMothers, oldrid = "ID",
+#'                            oldrage = "Age", lnmean = thelnmean, lnsd = thelnsd, locationP = 20, HHStartNum = 1,
+#'                            HHNumVar = "HouseholdID", userseed = 4, ptostop = 0.05)
+#' MothersWithChildren <- Pairs$Matched
 
 
-pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, lnsd=NULL,
+pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=NULL, lnsd=NULL, locationP=0,
                      HHStartNum, HHNumVar, userseed=NULL, ptostop=NULL, numiters=1000000) {
 
 
@@ -67,21 +59,21 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   #####################################
 
   # tests for first data frame
-  if (!smlid %in% names(smalldf)) {
+  if (!yngrid %in% names(youngerdf)) {
     stop("The ID variable in the first data frame does not exist.")
   }
 
-  if (!smlage %in% names(smalldf)) {
+  if (!yngrage %in% names(youngerdf)) {
     stop("The age variable in the first data frame does not exist.")
   }
 
 
   # tests for second data frame
-  if (!lrgid %in% names(largedf)) {
+  if (!oldrid %in% names(olderdf)) {
     stop("The ID variable in the second data frame does not exist.")
   }
 
-  if (!lrgage %in% names(largedf)) {
+  if (!oldrage %in% names(olderdf)) {
     stop("The age variable in the second data frame does not exist.")
   }
 
@@ -97,15 +89,15 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   #####################################
   #####################################
 
-  # smalldf ID variable
-  smlidcolName <- sym(names(smalldf[smlid]))
-  # smalldf age variable
-  smlagecolName <- sym(names(smalldf[smlage]))
+  # youngerdf ID variable
+  yngridcolName <- sym(names(youngerdf[yngrid]))
+  # youngerdf age variable
+  yngragecolName <- sym(names(youngerdf[yngrage]))
 
-  # largedf ID variable
-  lrgidcolName <- sym(names(largedf[lrgid]))
-  # largedf age variable
-  lrgagecolName <- sym(names(largedf[lrgage]))
+  # olderdf ID variable
+  oldridcolName <- sym(names(olderdf[oldrid]))
+  # olderdf age variable
+  oldragecolName <- sym(names(olderdf[oldrage]))
 
   #####################################
   #####################################
@@ -115,19 +107,19 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
 
   # more testing
 
-  if (!any(duplicated(smalldf[[smlidcolName]])) == FALSE) {
+  if (!any(duplicated(youngerdf[[yngridcolName]])) == FALSE) {
     stop("The ID variable in the first data frame has duplicated values.")
   }
 
-  if (!any(duplicated(largedf[[lrgidcolName]])) == FALSE) {
+  if (!any(duplicated(olderdf[[oldridcolName]])) == FALSE) {
     stop("The ID variable in the second data frame has duplicated values.")
   }
 
-  if (!is.numeric(smalldf[[smlagecolName]])) {
+  if (!is.numeric(youngerdf[[yngragecolName]])) {
     stop("The age variable in the first data frame is not numeric.")
   }
 
-  if (!is.numeric(largedf[[lrgagecolName]])) {
+  if (!is.numeric(olderdf[[oldragecolName]])) {
     stop("The age variable in the first second frame is not numeric.")
   }
 
@@ -137,10 +129,15 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   #####################################
   # pairing swap subfunction
 
-  swap_largedf <- function(pair1, pair2) {
+  swap_pairs <- function(pair1, pair2) {
     swap <- pair1
-    swap$largedfID <- pair2$largedfID
-    swap$largedfAge <- pair2$largedfAge
+
+    if(Largest == "Older") {
+      swap$olderdfAge <- pair2$olderdfAge
+    } else {
+      swap$youngerdfAge <- pair2$youngerdfAge
+    }
+
     return(swap)
   }
 
@@ -183,54 +180,33 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   #####################################
   #####################################
 
-  # get counts for each single age from the largedf data frame
-  largedfCounts <- largedf %>%
-    group_by(across(!!lrgagecolName)) %>%
-    summarise(AgeCount=n())
-
-
-  # largedfAges <- as.vector(largedfCounts[1])
-  largedfAges <- pull(largedfCounts[1])
-  largedfAgeCounts <- pull(largedfCounts[2])
-
   # set up bins for iterations
   # enable at least some extreme age differences to be assigned to the Inf categories
   # otherwise the bins will be wrong
 
-  # this bit needs to be changed depending on the sign of the mean
+      MaxAgeDifference <-  (max(olderdf[[oldragecolName]]) -
+                            min(youngerdf[[yngragecolName]]))-5
 
-  if(lnmean >= 0) {
-
-    MaxAgeDifference <-  (max(smalldf[[smlagecolName]]) -
-                            min(largedf[[lrgagecolName]]))-5
-
-  } else {
-
-    MaxAgeDifference <-  (max(largedf[[lrgagecolName]]) -
-                            min(smalldf[[smlagecolName]]))-5
-
-    # closes if(directxi >= 0)
-  }
 
 
   # cat("Starting the bins", "\n")
 
   # estimate expected minimum and maximum ages from the distribution, and bin these
 
-    min_bin <- exp(dlnorm(1/100000, meanlog=lnmean, sdlog=lnsd))+0.5
-    max_bin <- exp(dlnorm(1-(1/100000), meanlog=lnmean, sdlog=lnsd))-0.5
+    min_bin <- locationP-0.5
+    max_bin <- qlnorm(1-(1/100000), meanlog=lnmean, sdlog=lnsd)+locationP + 0.5
+
+    cat("minbin is ", min_bin, " and max bin is ", max_bin, "\n")
 
     # cat("Error when trying to bin", "\n")
 
     bins <- c(min_bin:max_bin)
 
-    return(min_bin)
-
     # cat("Error after making the bins", "\n")
 
     # construct the probabilities for each bin, gives n(bins)-1
-    Probabilities <- plnorm(bins[-1], meanlog=lnmean, sdlog=lnsd) -
-      plnorm(bins[-length(bins)], meanlog=lnmean, sdlog=lnsd)
+    Probabilities <- plnorm(bins[-1] - locationP, meanlog=lnmean, sdlog=lnsd) -
+      plnorm(bins[-length(bins)] - locationP, meanlog=lnmean, sdlog=lnsd)
 
     # cat("Error after making the probabilities", "\n")
 
@@ -258,17 +234,57 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   #####################################
   #####################################
   # this is a random sample so age differences will not follow desired distribution
-  # however, if the largedf data frame is larger than the smalldf data frame
-  # this ensures that a random selection of largedfs has the correct count
+  # however, if the olderdf data frame is larger than the youngerdf data frame
+  # this ensures that a random selection of olderdfs has the correct count
   if (!is.null(userseed)) {
     set.seed(userseed)
   }
 
-  CurrentAgeMatch <- smalldf %>%
-    select(!!smlidcolName, !!smlagecolName) %>%
-    mutate(largedfAge = sample(rep(largedfAges, largedfAgeCounts),
-                               size=nrow(smalldf),
-                               replace = FALSE))
+    # sample from data frame with largest number of people
+
+    if(nrow(youngerdf) > nrow(olderdf)) {
+
+      Largest <- "Younger"
+
+      # get counts for each single age from the youngerdf data frame
+      youngerdfCounts <- youngerdf %>%
+        group_by(across(!!yngragecolName)) %>%
+        summarise(AgeCount=n())
+
+      youngerdfAges <- pull(youngerdfCounts[1])
+      youngerdfAgeCounts <- pull(youngerdfCounts[2])
+
+      CurrentAgeMatch <- olderdf %>%
+        select(!!oldridcolName, !!oldragecolName) %>%
+        mutate(youngerdfAge = sample(rep(youngerdfAges, youngerdfAgeCounts),
+                                     size=nrow(olderdf),
+                                     replace = FALSE)) %>%
+        rename(olderdfAge = !!oldragecolName)
+
+      return(CurrentAgeMatch)
+
+
+    } else {
+
+      Largest <- "Older"
+
+      # get counts for each single age from the olderdf data frame
+      olderdfCounts <- olderdf %>%
+        group_by(across(!!oldragecolName)) %>%
+        summarise(AgeCount=n())
+
+      olderdfAges <- pull(olderdfCounts[1])
+      olderdfAgeCounts <- pull(olderdfCounts[2])
+
+      CurrentAgeMatch <- youngerdf %>%
+        select(!!yngridcolName, !!yngragecolName) %>%
+        mutate(olderdfAge = sample(rep(olderdfAges, olderdfAgeCounts),
+                                   size=nrow(youngerdf),
+                                   replace = FALSE)) %>%
+        rename(youngerdfAge = !!yngragecolName)
+
+
+    }
 
 
   # set up for chi-squared test
@@ -276,12 +292,17 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
   # construct starting set of observed age difference values for iteration
-  ObservedAgeDifferences <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = bins, plot=FALSE)$counts
+  ObservedAgeDifferences <- hist(CurrentAgeMatch$olderdfage - CurrentAgeMatch$youngerdfage, breaks = bins,
+                                 plot=FALSE)$counts
 
   # set up for chi-squared
-  log0ObservedAges <- hist(CurrentAgeMatch[,2] - CurrentAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
-  logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs, log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
+  log0ObservedAges <- hist(CurrentAgeMatch$olderdfage - CurrentAgeMatch$youngerdfage, breaks = logBins,
+                           plot=FALSE)$counts
+  logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
+                            log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
   log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
+
+  # print(log_chisq)
 
   if (is.null(ptostop)) {
 
@@ -301,8 +322,6 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
 
   for (i in 1:numiters) {
 
-    print(i)
-
     # randomly choose two pairs
     Pick1 <- sample(nrow(CurrentAgeMatch), 1)
     Pick2 <- sample(nrow(CurrentAgeMatch), 1)
@@ -310,21 +329,42 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
     Current2 <- CurrentAgeMatch[Pick2,]
 
     # # proposed pairing after a swap
-    PropPair1 <- swap_largedf(Current1, Current2)
-    PropPair2 <- swap_largedf(Current2, Current1)
+    PropPair1 <- swap_pairs(Current1, Current2)
+    PropPair2 <- swap_pairs(Current2, Current1)
+
+    print(Current1)
+    print(Current2)
+    print(PropPair1)
+    print(PropPair2)
 
     # compute change in Chi-squared value from current pairing to proposed pairing
-    PropAgeMatch <- CurrentAgeMatch %>%
-      filter(!(smalldf[[smlidcolName]] %in% c(PropPair1[,1], PropPair2[,1]))) %>%
-      bind_rows(., PropPair1,PropPair2)
+
+    if(Largest == "Younger") {
+
+
+      PropAgeMatch <- CurrentAgeMatch %>%
+        filter(!(!!yngridcolName %in%
+                   c(PropPair1[[rlang::as_string(yngridcolName)]],
+                     PropPair2[[rlang::as_string(yngridcolName)]]))) %>%
+        bind_rows(PropPair1, PropPair2)
+
+    } else {
+
+      PropAgeMatch <- CurrentAgeMatch %>%
+        filter(!(!!oldridcolName %in%
+                   c(PropPair1[[rlang::as_string(oldridcolName)]],
+                     PropPair2[[rlang::as_string(oldridcolName)]]))) %>%
+        bind_rows(PropPair1, PropPair2)
+
+      }
 
     # do chi-squared
-    Proplog0 <- hist(PropAgeMatch[,2] - PropAgeMatch[,3], breaks = logBins, plot=FALSE)$counts
+    Proplog0 <- hist(PropAgeMatch$olderdfage - PropAgeMatch$youngerdfage, breaks = logBins, plot=FALSE)$counts
     ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
     prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
 
-    return(logEAgeProbs)
+    cat("Current:", log_chisq, "Proposed:", prop_log_chisq, "\n")
 
     if (compare_logK(ProplogK, logKObservedAges) < 0) { # we cancel out the bits that haven't changed first.
 
@@ -338,6 +378,7 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
 
     }
 
+
     if (log_chisq <= Critical_log_chisq) {
       break
 
@@ -348,74 +389,76 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   cat("The critical chi-squared value is", round(Critical_log_chisq,6), "\n")
   cat(i, "iterations were used, and the final chi-squared value was", round(log_chisq,6), "\n")
 
+  return()
+
   #####################################
   #####################################
-  # iteration for matching couple ages ends here
+  # iteration for matching ages ends here
   #####################################
   #####################################
 
 
   #####################################
   #####################################
-  # pairing the actual couples starts here
+  # pairing  starts here
   #####################################
   #####################################
-  # return full largedf and smalldf rows as matched household pairs
-  # extract ages counts for matching the largedfs
-  MatchedlargedfAges <- CurrentAgeMatch %>%
-    dplyr::select(largedfAge) %>%
-    group_by(largedfAge) %>%
-    mutate(largedfAgeCount = row_number()) %>%
+  # return full olderdf and youngerdf rows as matched household pairs
+  # extract ages counts for matching the olderdfs
+  MatchedolderdfAges <- CurrentAgeMatch %>%
+    dplyr::select(olderdfAge) %>%
+    group_by(olderdfAge) %>%
+    mutate(olderdfAgeCount = row_number()) %>%
     ungroup()
 
 
-  #   # generate same AgeCount second ID variable for the largedf data
-  #   # the AgeCount is used to ensure that the first largedf with a specific age is matched first
-  #   # the second largedf with a specific age is matched second
+  #   # generate same AgeCount second ID variable for the olderdf data
+  #   # the AgeCount is used to ensure that the first olderdf with a specific age is matched first
+  #   # the second olderdf with a specific age is matched second
   #   # and so forth
-  largedfsToMatch <- largedf %>%
-    group_by(!!lrgagecolName) %>%
-    mutate(largedfAgeCount = row_number()) %>%
+  olderdfsToMatch <- olderdf %>%
+    group_by(!!oldragecolName) %>%
+    mutate(olderdfAgeCount = row_number()) %>%
     ungroup()
 
 
-  # reduce pool of potentially partnered largedfs to only those matched to smalldfs
+  # reduce pool of potentially partnered olderdfs to only those matched to youngerdfs
 
   # do the rename first and then join
-  largedfsToMatch <- largedfsToMatch %>%
-    rename(largedfAge = {{lrgagecolName}})
+  olderdfsToMatch <- olderdfsToMatch %>%
+    rename(olderdfAge = {{oldragecolName}})
 
-  largedfsMatched <- left_join(MatchedlargedfAges, largedfsToMatch, by = c("largedfAge", "largedfAgeCount")) %>%
-    mutate(!!lrgagecolName := largedfAge)
-
-
+  olderdfsMatched <- left_join(MatchedolderdfAges, olderdfsToMatch, by = c("olderdfAge", "olderdfAgeCount")) %>%
+    mutate(!!oldragecolName := olderdfAge)
 
 
-  # construct same file for the smalldfs
-  # need both largedf age and largedf age count so that the join between the smalldfs and the largedfs works
-  # do not need smalldf age as this will be a duplicate column on the merge
 
-  smalldfsMatchPrep <- CurrentAgeMatch %>%
-    group_by(largedfAge) %>%
-    mutate(largedfAgeCount = row_number()) %>%
+
+  # construct same file for the youngerdfs
+  # need both olderdf age and olderdf age count so that the join between the youngerdfs and the olderdfs works
+  # do not need youngerdf age as this will be a duplicate column on the merge
+
+  youngerdfsMatchPrep <- CurrentAgeMatch %>%
+    group_by(olderdfAge) %>%
+    mutate(olderdfAgeCount = row_number()) %>%
     dplyr::select(-c(2))
 
 
-  smalldfsReadyToMatch <- suppressMessages(left_join(smalldf, smalldfsMatchPrep))
+  youngerdfsReadyToMatch <- suppressMessages(left_join(youngerdf, youngerdfsMatchPrep))
 
 
-  # now merge the full data of the subset largedfs to the smalldfs
-  # by largedf age and largedf age count
-  # smalldf data frame is the one to which observations must be joined
+  # now merge the full data of the subset olderdfs to the youngerdfs
+  # by olderdf age and olderdf age count
+  # youngerdf data frame is the one to which observations must be joined
   # also add the household numbers at this point
 
 
-  MaxHHStartNum <- (nrow(smalldfsReadyToMatch)-1) + HHStartNum
+  MaxHHStartNum <- (nrow(youngerdfsReadyToMatch)-1) + HHStartNum
 
 
 
-  FullMatchedDataFrame <- left_join(smalldfsReadyToMatch, largedfsMatched, by=c("largedfAge", "largedfAgeCount")) %>%
-    dplyr::select(-largedfAge, -largedfAgeCount) %>%
+  FullMatchedDataFrame <- left_join(youngerdfsReadyToMatch, olderdfsMatched, by=c("olderdfAge", "olderdfAgeCount")) %>%
+    dplyr::select(-olderdfAge, -olderdfAgeCount) %>%
     ungroup() %>%
     mutate({{HHNumVar}} := seq(HHStartNum, MaxHHStartNum))
 
@@ -423,11 +466,11 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
 
   FirstDataframeSplit <- FullMatchedDataFrame %>%
     dplyr::select(ends_with(".x"), {{HHNumVar}}) %>%
-    rename_all(list(~gsub("\\.x$", "", .)))
+    rename_with(list(~gsub("\\.x$", "", .)))
 
   SecondDataframeSplit <- FullMatchedDataFrame %>%
     dplyr::select(ends_with(".y"), {{HHNumVar}}) %>%
-    rename_all(list(~gsub("\\.y$", "", .)))
+    rename_with(list(~gsub("\\.y$", "", .)))
 
   OutputDataframe <- rbind(FirstDataframeSplit, SecondDataframeSplit)
 
@@ -444,17 +487,17 @@ pairln <- function(smalldf, smlid, smlage, largedf, lrgid, lrgage, lnmean=NULL, 
   # print(Critical_log_chisq)
   # print(log_chisq)
 
-  # if(nrow(largedf) > nrow(smalldf)) {
+  # if(nrow(olderdf) > nrow(youngerdf)) {
   #
   #   cat("The second dataframe contained more observations than the first dataframe.", "\n")
   #   cat("A merged dataframe has been returned as a list.", "\n")
   cat("The individual dataframes are $Matched and $Unmatched.", "\n")
 
   MatchedIDs <- OutputDataframe %>%
-    pull({{lrgidcolName}})
+    pull({{oldridcolName}})
 
-  UnmatchedDataframe <- largedf %>%
-    filter(!({{lrgidcolName}} %in% MatchedIDs)) #%>%
+  UnmatchedDataframe <- olderdf %>%
+    filter(!({{oldridcolName}} %in% MatchedIDs)) #%>%
   # mutate({{HHNumVar}} = NA)
 
   MergedList <- list()
