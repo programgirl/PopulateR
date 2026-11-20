@@ -125,6 +125,16 @@ pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=
 
   #####################################
   #####################################
+  # no mothers can be younger than the location value
+  #####################################
+  #####################################
+
+  olderdf <- olderdf %>%
+    filter(!!oldragecolName > locationP )
+
+
+  #####################################
+  #####################################
   #####################################
   #####################################
   # pairing swap subfunction
@@ -286,23 +296,23 @@ pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=
 
     }
 
+    return(CurrentAgeMatch)
 
   # set up for chi-squared test
   ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
   logEAgeProbs <- logProb + log(nrow(CurrentAgeMatch))
 
   # construct starting set of observed age difference values for iteration
-  ObservedAgeDifferences <- hist(CurrentAgeMatch$olderdfage - CurrentAgeMatch$youngerdfage, breaks = bins,
+  ObservedAgeDifferences <- hist(CurrentAgeMatch$olderdfAge - CurrentAgeMatch$youngerdfAge, breaks = bins,
                                  plot=FALSE)$counts
 
   # set up for chi-squared
-  log0ObservedAges <- hist(CurrentAgeMatch$olderdfage - CurrentAgeMatch$youngerdfage, breaks = logBins,
+  log0ObservedAges <- hist(CurrentAgeMatch$olderdfAge - CurrentAgeMatch$youngerdfAge, breaks = logBins,
                            plot=FALSE)$counts
   logKObservedAges = ifelse(log0ObservedAges == 0, 2*logEAgeProbs,
                             log((log0ObservedAges - exp(logEAgeProbs))^2)) - logEAgeProbs
   log_chisq = max(logKObservedAges) + log(sum(exp(logKObservedAges - max(logKObservedAges))))
 
-  # print(log_chisq)
 
   if (is.null(ptostop)) {
 
@@ -332,23 +342,14 @@ pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=
     PropPair1 <- swap_pairs(Current1, Current2)
     PropPair2 <- swap_pairs(Current2, Current1)
 
-    print(Current1)
-    print(Current2)
-    print(PropPair1)
-    print(PropPair2)
+    if ((PropPair1$olderdfAge - PropPair1$youngerdfAge < locationP) |
+        (PropPair2$olderdfAge - PropPair2$youngerdfAge < locationP)) {
+      next
+    }
 
     # compute change in Chi-squared value from current pairing to proposed pairing
 
     if(Largest == "Younger") {
-
-
-      PropAgeMatch <- CurrentAgeMatch %>%
-        filter(!(!!yngridcolName %in%
-                   c(PropPair1[[rlang::as_string(yngridcolName)]],
-                     PropPair2[[rlang::as_string(yngridcolName)]]))) %>%
-        bind_rows(PropPair1, PropPair2)
-
-    } else {
 
       PropAgeMatch <- CurrentAgeMatch %>%
         filter(!(!!oldridcolName %in%
@@ -356,10 +357,18 @@ pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=
                      PropPair2[[rlang::as_string(oldridcolName)]]))) %>%
         bind_rows(PropPair1, PropPair2)
 
+    } else {
+
+      PropAgeMatch <- CurrentAgeMatch %>%
+        filter(!(!!yngridcolName %in%
+                   c(PropPair1[[rlang::as_string(yngridcolName)]],
+                     PropPair2[[rlang::as_string(yngridcolName)]]))) %>%
+        bind_rows(PropPair1, PropPair2)
+
       }
 
     # do chi-squared
-    Proplog0 <- hist(PropAgeMatch$olderdfage - PropAgeMatch$youngerdfage, breaks = logBins, plot=FALSE)$counts
+    Proplog0 <- hist(PropAgeMatch$olderdfAge - PropAgeMatch$youngerdfAge, breaks = logBins, plot=FALSE)$counts
     ProplogK = ifelse(Proplog0 == 0, 2*logEAgeProbs, log((Proplog0 - exp(logEAgeProbs))^2)) - logEAgeProbs
 
     prop_log_chisq = max(ProplogK) + log(sum(exp(ProplogK - max(ProplogK))))
