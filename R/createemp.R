@@ -18,6 +18,7 @@ NULL
 #' @param pplmax The variable containing the maximum number of staff in each industry.
 #' @param stffname The variable name to use for the staff counts for each employer.
 #' @param cpyname The variable name to use for the companies.
+#' @param sampling Whether creating the employers and their associated counts use a continuous or discrete method of sampling. Continuous de-weights the count at either end of the range. Options are "C" for continuous or "D" for discrete, and the default is "D".
 #' @param userseed If specified, this will set the seed to the number provided. If not, the normal set.seed() function will be used.
 #'
 #' @return #'A data frames of synthetic companies, with the number of employees and a mock company name.
@@ -26,11 +27,20 @@ NULL
 #'
 #' library("dplyr")
 #'
-#' TownshipEmployment <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
+#'# uses discrete sampling
+#' TownshipEmploymentD <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
 #'                                 indsmax = "maxCo", pplmin = "minStaff", pplmax = "maxStaff",
-#'                                 stffname="NumEmployees", cpyname="Company", userseed = 4)
+#'                                 stffname="NumEmployees", cpyname="Company",
+#'                                 userseed = 4)
+#'
+#' # repeated using continuous sampling
+#' TownshipEmploymentC <- createemp(AllEmployers, industry = "ANZSIC06", indsmin = "minCo",
+#'                                 indsmax = "maxCo", pplmin = "minStaff", pplmax = "maxStaff",
+#'                                 stffname="NumEmployees", cpyname="Company",
+#'                                 sampling = "C", userseed = 4)
 
-createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stffname=NULL, cpyname=NULL, userseed = NULL) {
+createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stffname=NULL, cpyname=NULL,
+                      sampling = "D", userseed = NULL) {
 
   withr::local_options(dplyr.summarise.inform = FALSE)
 
@@ -42,6 +52,10 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
   if(is.null(cpyname)) {
 
     stop("The name of the variable containing the company names must be supplied.")
+  }
+
+  if (length(sampling) != 1 || !sampling %in% c("C", "D")) {
+    stop("sampling must be either 'C' (continuous) or 'D' (discrete).")
   }
 
   #####################################
@@ -92,12 +106,20 @@ createemp <- function(employers, industry, indsmin, indsmax, pplmin, pplmax, stf
     minEmp <- currentEmp$companyCtMin
     maxEmp <- currentEmp$companyCtMax
 
-    numEmp <- round(runif(1, minEmp, maxEmp),0)
+    if(sampling == "D") {
+      numEmp <- sample(seq_len((maxEmp - minEmp) + 1), size = 1) + minEmp - 1
+    } else {
+      numEmp <- round(runif(1, minEmp, maxEmp),0)
+      }
 
     minStaff <- currentEmp$staffCtMin
     maxStaff <- currentEmp$staffCtMax
 
-    numStaff <- round(runif(1, minStaff, maxStaff),0)
+    if(sampling == "D") {
+      numStaff <- sample(seq_len((maxStaff - minStaff) + 1), size = 1) + minStaff - 1
+      } else {
+        numStaff <- round(runif(1, minStaff, maxStaff),0)
+        }
 
     if(numStaff < numEmp) {
 
