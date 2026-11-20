@@ -1,4 +1,4 @@
-#' @importFrom dplyr filter group_by mutate pull rename select summarise ungroup
+#' @importFrom dplyr between filter group_by mutate pull rename select summarise ungroup
 #' @importFrom magrittr %>%
 #' @importFrom rlang .data as_string sym !!
 # '
@@ -291,12 +291,48 @@ pairln <- function(youngerdf, yngrid, yngrage, olderdf, oldrid, oldrage, lnmean=
         mutate(olderdfAge = sample(rep(olderdfAges, olderdfAgeCounts),
                                    size=nrow(youngerdf),
                                    replace = FALSE)) %>%
-        rename(youngerdfAge = !!yngragecolName)
+        rename(youngerdfAge = !!yngragecolName) %>%
+        mutate(InitialAgeDiff = olderdfAge - youngerdfAge)
 
 
     }
 
-    return(CurrentAgeMatch)
+    ProblemPairs <- CurrentAgeMatch %>%
+      filter(InitialAgeDiff < locationP)
+
+    if(nrow(ProblemPairs) > 0) {
+
+      RemainingPairs <- CurrentAgeMatch %>%
+        filter(InitialAgeDiff >= locationP)
+
+      for(k in 1:nrow(ProblemPairs)) {
+
+        CurrentProblem <- ProblemPairs[1,]
+
+        PossibleReplacements <- RemainingPairs %>%
+          filter(CurrentProblem$olderdfAge > .data$youngerdfAge + (locationP - 1) &
+                   .data$olderdfAge > CurrentProblem$youngerdfAge + (locationP - 1))
+
+        if(nrow(PossibleReplacements) > 0) {
+
+          SwapRecord <- PossibleReplacements %>%
+            slice_sample(n=1)
+
+          return(SwapRecord)
+
+          # closes if(nrow(PossibleReplacements) > 0 {
+        } else {
+
+          CannotFix <- CurrentProblem
+        }
+
+        return(PossibleReplacements)
+
+        # closes for(k in 1:nrow(ProblemPairs)) {
+      }
+
+      # closes if(nrow(ProblemPairs) > 0) {
+    }
 
   # set up for chi-squared test
   ExpectedAgeProbs <- Probabilities * nrow(CurrentAgeMatch)
